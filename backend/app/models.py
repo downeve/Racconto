@@ -24,6 +24,7 @@ class Project(Base):
     is_public = Column(String, default="false")
     photos = relationship("Photo", back_populates="project")
     pitches = relationship("Pitch", back_populates="project")
+    notes = relationship("Note", back_populates="project")
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
@@ -51,3 +52,12 @@ class Pitch(Base):
     note = Column(Text)
     project = relationship("Project", back_populates="pitches")
     created_at = Column(DateTime, default=datetime.utcnow)
+
+class Note(Base):
+    __tablename__ = "notes"
+    id = Column(String, primary_key=True)
+    project_id = Column(String, ForeignKey("projects.id"))
+    content = Column(Text, nullable=False)
+    project = relationship("Project", back_populates="notes")
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
