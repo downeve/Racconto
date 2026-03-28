@@ -87,7 +87,7 @@ async def upload_photo(
     with open(file_path, "wb") as buffer:
         shutil.copyfileobj(file.file, buffer)
 
-    image_url = f"http://localhost:8000/uploads/{filename}"
+    image_url = f"${import.meta.env.VITE_API_URL}/uploads/{filename}"
 
     db_photo = models.Photo(
         id=file_id,

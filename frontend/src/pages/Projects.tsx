@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import axios from 'axios'
 import ProjectCard from '../components/ProjectCard'
 
-const API = 'http://localhost:8000'
+const API = import.meta.env.VITE_API_URL
 
 interface Project {
   id: string
