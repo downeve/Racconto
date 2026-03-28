@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, UploadFile, File
 from sqlalchemy.orm import Session
 from app.database import get_db
 from app import models
@@ -6,8 +6,13 @@ from pydantic import BaseModel
 from typing import Optional
 from datetime import datetime
 import uuid
+import os
+import shutil
 
 router = APIRouter(prefix="/photos", tags=["photos"])
+
+UPLOAD_DIR = "app/uploads"
+os.makedirs(UPLOAD_DIR, exist_ok=True)
 
 class PhotoCreate(BaseModel):
     project_id: str
@@ -53,6 +58,17 @@ def create_photo(photo: PhotoCreate, db: Session = Depends(get_db)):
     db.refresh(db_photo)
     return db_photo
 
+@router.put("/{photo_id}", response_model=PhotoResponse)
+def update_photo(photo_id: str, photo: PhotoCreate, db: Session = Depends(get_db)):
+    db_photo = db.query(models.Photo).filter(models.Photo.id == photo_id).first()
+    if not db_photo:
+        raise HTTPException(status_code=404, detail="사진을 찾을 수 없습니다")
+    for key, value in photo.dict(exclude_unset=True).items():
+        setattr(db_photo, key, value)
+    db.commit()
+    db.refresh(db_photo)
+    return db_photo
+
 @router.delete("/{photo_id}")
 def delete_photo(photo_id: str, db: Session = Depends(get_db)):
     photo = db.query(models.Photo).filter(models.Photo.id == photo_id).first()
@@ -61,14 +77,6 @@ def delete_photo(photo_id: str, db: Session = Depends(get_db)):
     db.delete(photo)
     db.commit()
     return {"message": "삭제되었습니다"}
-
-import os
-import shutil
-from fastapi import UploadFile, File
-from fastapi.staticfiles import StaticFiles
-
-UPLOAD_DIR = "app/uploads"
-os.makedirs(UPLOAD_DIR, exist_ok=True)
 
 @router.post("/upload")
 async def upload_photo(
@@ -87,7 +95,8 @@ async def upload_photo(
     with open(file_path, "wb") as buffer:
         shutil.copyfileobj(file.file, buffer)
 
-    image_url = f"${import.meta.env.VITE_API_URL}/uploads/{filename}"
+    BASE_URL = os.getenv("BASE_URL", "http://localhost:8000")
+    image_url = f"{BASE_URL}/uploads/{filename}"
 
     db_photo = models.Photo(
         id=file_id,
@@ -97,17 +106,6 @@ async def upload_photo(
         is_portfolio="false"
     )
     db.add(db_photo)
-    db.commit()
-    db.refresh(db_photo)
-    return db_photo
-
-@router.put("/{photo_id}", response_model=PhotoResponse)
-def update_photo(photo_id: str, photo: PhotoCreate, db: Session = Depends(get_db)):
-    db_photo = db.query(models.Photo).filter(models.Photo.id == photo_id).first()
-    if not db_photo:
-        raise HTTPException(status_code=404, detail="사진을 찾을 수 없습니다")
-    for key, value in photo.dict(exclude_unset=True).items():
-        setattr(db_photo, key, value)
     db.commit()
     db.refresh(db_photo)
     return db_photo
