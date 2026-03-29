@@ -3,6 +3,8 @@ import Navbar from './components/Navbar'
 import Projects from './pages/Projects'
 import ProjectDetail from './pages/ProjectDetail'
 import Portfolio from './pages/Portfolio'
+import ProjectEdit from './pages/ProjectEdit'
+import Trash from './pages/Trash'
 
 function App() {
   return (
@@ -14,6 +16,8 @@ function App() {
           <Route path="/projects" element={<Projects />} />
           <Route path="/projects/:id" element={<ProjectDetail />} />
           <Route path="/portfolio" element={<Portfolio />} />
+          <Route path="/projects/:id/edit" element={<ProjectEdit />} />
+          <Route path="/trash" element={<Trash />} />
         </Routes>
       </div>
     </BrowserRouter>

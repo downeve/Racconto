@@ -32,13 +32,22 @@ class ProjectResponse(BaseModel):
     is_public: str
     created_at: datetime
     updated_at: datetime
+    deleted_at: Optional[datetime] = None
 
     class Config:
         from_attributes = True
 
 @router.get("/", response_model=list[ProjectResponse])
 def get_projects(db: Session = Depends(get_db)):
-    return db.query(models.Project).order_by(models.Project.updated_at.desc()).all()
+    return db.query(models.Project).filter(
+        models.Project.deleted_at == None
+    ).order_by(models.Project.updated_at.desc()).all()
+
+@router.get("/trash", response_model=list[ProjectResponse])
+def get_trash(db: Session = Depends(get_db)):
+    return db.query(models.Project).filter(
+        models.Project.deleted_at != None
+    ).order_by(models.Project.deleted_at.desc()).all()
 
 @router.post("/", response_model=ProjectResponse)
 def create_project(project: ProjectCreate, db: Session = Depends(get_db)):
@@ -60,14 +69,20 @@ def create_project(project: ProjectCreate, db: Session = Depends(get_db)):
 
 @router.get("/{project_id}", response_model=ProjectResponse)
 def get_project(project_id: str, db: Session = Depends(get_db)):
-    project = db.query(models.Project).filter(models.Project.id == project_id).first()
+    project = db.query(models.Project).filter(
+        models.Project.id == project_id,
+        models.Project.deleted_at == None
+    ).first()
     if not project:
         raise HTTPException(status_code=404, detail="프로젝트를 찾을 수 없습니다")
     return project
 
 @router.put("/{project_id}", response_model=ProjectResponse)
 def update_project(project_id: str, project: ProjectCreate, db: Session = Depends(get_db)):
-    db_project = db.query(models.Project).filter(models.Project.id == project_id).first()
+    db_project = db.query(models.Project).filter(
+        models.Project.id == project_id,
+        models.Project.deleted_at == None
+    ).first()
     if not db_project:
         raise HTTPException(status_code=404, detail="프로젝트를 찾을 수 없습니다")
     for key, value in project.dict(exclude_unset=True).items():
@@ -81,9 +96,37 @@ def update_project(project_id: str, project: ProjectCreate, db: Session = Depend
 
 @router.delete("/{project_id}")
 def delete_project(project_id: str, db: Session = Depends(get_db)):
-    project = db.query(models.Project).filter(models.Project.id == project_id).first()
+    project = db.query(models.Project).filter(
+        models.Project.id == project_id,
+        models.Project.deleted_at == None
+    ).first()
+    if not project:
+        raise HTTPException(status_code=404, detail="프로젝트를 찾을 수 없습니다")
+    project.deleted_at = datetime.utcnow()
+    db.commit()
+    return {"message": "휴지통으로 이동했습니다"}
+
+@router.post("/{project_id}/restore", response_model=ProjectResponse)
+def restore_project(project_id: str, db: Session = Depends(get_db)):
+    project = db.query(models.Project).filter(
+        models.Project.id == project_id,
+        models.Project.deleted_at != None
+    ).first()
+    if not project:
+        raise HTTPException(status_code=404, detail="프로젝트를 찾을 수 없습니다")
+    project.deleted_at = None
+    db.commit()
+    db.refresh(project)
+    return project
+
+@router.delete("/{project_id}/permanent")
+def permanent_delete(project_id: str, db: Session = Depends(get_db)):
+    project = db.query(models.Project).filter(
+        models.Project.id == project_id,
+        models.Project.deleted_at != None
+    ).first()
     if not project:
         raise HTTPException(status_code=404, detail="프로젝트를 찾을 수 없습니다")
     db.delete(project)
     db.commit()
-    return {"message": "삭제되었습니다"}
+    return {"message": "영구 삭제되었습니다"}

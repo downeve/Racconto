@@ -8,6 +8,7 @@ export default function Navbar() {
         <div className="flex gap-8">
           <Link to="/projects" className="text-sm tracking-wider hover:text-gray-300">PROJECTS</Link>
           <Link to="/portfolio" className="text-sm tracking-wider hover:text-gray-300">PORTFOLIO</Link>
+          <Link to="/trash" className="text-sm tracking-wider hover:text-gray-300">🗑</Link>
         </div>
       </div>
     </nav>

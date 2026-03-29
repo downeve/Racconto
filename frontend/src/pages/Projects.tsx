@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import axios from 'axios'
 import ProjectCard from '../components/ProjectCard'
+import { Link } from 'react-router-dom'
 
 const API = import.meta.env.VITE_API_URL
 
@@ -26,6 +27,12 @@ export default function Projects() {
   const [location, setLocation] = useState('')
   const [status, setStatus] = useState('in_progress')
   const [isPublic, setIsPublic] = useState('false')
+
+  const handleDelete = async (projectId: string) => {
+    if (!confirm('프로젝트를 삭제할까요? 사진과 노트도 모두 삭제되며 30일 동안 휴지통에 보관됩니다.')) return
+    await axios.delete(`${API}/projects/${projectId}`)
+    fetchProjects()
+  }
 
   const fetchProjects = async () => {
     const res = await axios.get(`${API}/projects/`)
@@ -91,7 +98,24 @@ export default function Projects() {
 
       <div className="grid grid-cols-3 gap-6">
         {projects.map(project => (
-          <ProjectCard key={project.id} project={project} />
+          <div key={project.id} className="relative group">
+            <ProjectCard project={project} />
+            <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity flex gap-1">
+              <Link
+                to={`/projects/${project.id}/edit`}
+                className="bg-white text-black px-2 py-1 text-xs rounded shadow hover:bg-gray-100"
+                onClick={e => e.stopPropagation()}
+              >
+                수정
+              </Link>
+              <button
+                onClick={e => { e.preventDefault(); handleDelete(project.id) }}
+                className="bg-red-500 text-white px-2 py-1 text-xs rounded shadow hover:bg-red-600"
+              >
+                삭제
+              </button>
+            </div>
+          </div>
         ))}
       </div>
 

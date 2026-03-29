@@ -27,6 +27,7 @@ class Project(Base):
     notes = relationship("Note", back_populates="project")
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    deleted_at = Column(DateTime, nullable=True, default=None)
 
 class Photo(Base):
     __tablename__ = "photos"
