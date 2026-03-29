@@ -9,7 +9,8 @@ import Portfolio from './pages/Portfolio'
 import Trash from './pages/Trash'
 
 function PrivateRoute({ children }: { children: React.ReactNode }) {
-  const { isAuthenticated } = useAuth()
+  const { isAuthenticated, isLoading } = useAuth()
+  if (isLoading) return <div className="min-h-screen bg-gray-50" />
   return isAuthenticated ? <>{children}</> : <Navigate to="/login" />
 }
 

@@ -40,6 +40,15 @@ interface Photo {
   caption_en: string
   is_portfolio: string
   order: number
+  taken_at: string | null
+  camera: string | null
+  lens: string | null
+  iso: string | null
+  shutter_speed: string | null
+  aperture: string | null
+  focal_length: string | null
+  gps_lat: string | null
+  gps_lng: string | null
 }
 
 interface Note {
@@ -119,6 +128,7 @@ function SortablePhoto({
           </button>
         </div>
       </div>
+
       {/* 캡션 영역 */}
       {editingCaption === photo.id ? (
         <div className="p-2 bg-white">
@@ -156,6 +166,31 @@ function SortablePhoto({
           ) : (
             <p className="text-xs text-gray-300">캡션 추가...</p>
           )}
+        </div>
+      )}
+      
+      {/* EXIF 메타데이터 */}
+      {(photo.camera || photo.taken_at) && (
+        <div className="px-2 pb-2 bg-white">
+          <div className="border-t pt-2 mt-1">
+            {photo.taken_at && (
+              <p className="text-xs text-gray-400">
+                📅 {new Date(photo.taken_at).toLocaleDateString('ko-KR')}
+              </p>
+            )}
+            {photo.camera && (
+              <p className="text-xs text-gray-400">📷 {photo.camera}</p>
+            )}
+            {photo.lens && (
+              <p className="text-xs text-gray-400">🔭 {photo.lens}</p>
+            )}
+            {(photo.iso || photo.shutter_speed || photo.aperture || photo.focal_length) && (
+              <p className="text-xs text-gray-400">
+                {[photo.focal_length, photo.aperture, photo.shutter_speed, photo.iso]
+                  .filter(Boolean).join(' · ')}
+              </p>
+            )}
+          </div>
         </div>
       )}
     </div>

@@ -38,6 +38,16 @@ class Photo(Base):
     caption_en = Column(Text)
     order = Column(Integer, default=0)
     is_portfolio = Column(String, default="false")
+    # EXIF 메타데이터
+    taken_at = Column(DateTime, nullable=True)
+    camera = Column(String, nullable=True)
+    lens = Column(String, nullable=True)
+    iso = Column(String, nullable=True)
+    shutter_speed = Column(String, nullable=True)
+    aperture = Column(String, nullable=True)
+    focal_length = Column(String, nullable=True)
+    gps_lat = Column(String, nullable=True)
+    gps_lng = Column(String, nullable=True)
     project = relationship("Project", back_populates="photos")
     created_at = Column(DateTime, default=datetime.utcnow)
 

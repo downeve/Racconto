@@ -9,6 +9,89 @@ import uuid
 import os
 import shutil
 
+from PIL import Image
+from PIL.ExifTags import TAGS, GPSTAGS
+from datetime import datetime as dt
+
+def extract_exif(file_path: str) -> dict:
+    exif_data = {}
+    try:
+        image = Image.open(file_path)
+        raw_exif = image._getexif()
+        if not raw_exif:
+            return exif_data
+
+        exif = {TAGS.get(k, k): v for k, v in raw_exif.items()}
+
+        # 촬영일
+        if 'DateTimeOriginal' in exif:
+            try:
+                exif_data['taken_at'] = dt.strptime(exif['DateTimeOriginal'], '%Y:%m:%d %H:%M:%S')
+            except:
+                pass
+
+        # 카메라
+        make = exif.get('Make', '')
+        model = exif.get('Model', '')
+        if make or model:
+            exif_data['camera'] = f"{make} {model}".strip()
+
+        # 렌즈
+        if 'LensModel' in exif:
+            exif_data['lens'] = str(exif['LensModel'])
+
+        # ISO
+        if 'ISOSpeedRatings' in exif:
+            exif_data['iso'] = f"ISO {exif['ISOSpeedRatings']}"
+
+        # 셔터스피드
+        if 'ExposureTime' in exif:
+            et = exif['ExposureTime']
+            if hasattr(et, 'numerator'):
+                if et.numerator == 1:
+                    exif_data['shutter_speed'] = f"1/{et.denominator}s"
+                else:
+                    exif_data['shutter_speed'] = f"{float(et):.1f}s"
+            else:
+                exif_data['shutter_speed'] = str(et)
+
+        # 조리개
+        if 'FNumber' in exif:
+            fn = exif['FNumber']
+            if hasattr(fn, 'numerator'):
+                exif_data['aperture'] = f"f/{float(fn):.1f}"
+            else:
+                exif_data['aperture'] = f"f/{fn}"
+
+        # 초점거리
+        if 'FocalLength' in exif:
+            fl = exif['FocalLength']
+            if hasattr(fl, 'numerator'):
+                exif_data['focal_length'] = f"{float(fl):.0f}mm"
+            else:
+                exif_data['focal_length'] = f"{fl}mm"
+
+        # GPS
+        if 'GPSInfo' in exif:
+            gps_info = {GPSTAGS.get(k, k): v for k, v in exif['GPSInfo'].items()}
+            if 'GPSLatitude' in gps_info and 'GPSLongitude' in gps_info:
+                def to_degrees(values):
+                    d, m, s = [float(x) for x in values]
+                    return d + m/60 + s/3600
+                lat = to_degrees(gps_info['GPSLatitude'])
+                lng = to_degrees(gps_info['GPSLongitude'])
+                if gps_info.get('GPSLatitudeRef') == 'S':
+                    lat = -lat
+                if gps_info.get('GPSLongitudeRef') == 'W':
+                    lng = -lng
+                exif_data['gps_lat'] = str(lat)
+                exif_data['gps_lng'] = str(lng)
+
+    except Exception as e:
+        print(f"EXIF 추출 오류: {e}")
+
+    return exif_data
+
 router = APIRouter(prefix="/photos", tags=["photos"])
 
 UPLOAD_DIR = "app/uploads"
@@ -30,6 +113,15 @@ class PhotoResponse(BaseModel):
     caption_en: Optional[str]
     order: int
     is_portfolio: str
+    taken_at: Optional[datetime]
+    camera: Optional[str]
+    lens: Optional[str]
+    iso: Optional[str]
+    shutter_speed: Optional[str]
+    aperture: Optional[str]
+    focal_length: Optional[str]
+    gps_lat: Optional[str]
+    gps_lng: Optional[str]
     created_at: datetime
 
     class Config:
@@ -98,6 +190,9 @@ async def upload_photo(
     BASE_URL = os.getenv("BASE_URL", "http://localhost:8000")
     image_url = f"{BASE_URL}/uploads/{filename}"
 
+    # EXIF 추출
+    exif = extract_exif(file_path)
+
     # 현재 프로젝트의 마지막 order 값 + 1
     last_photo = db.query(models.Photo).filter(
         models.Photo.project_id == project_id
@@ -109,7 +204,16 @@ async def upload_photo(
         project_id=project_id,
         image_url=image_url,
         order=next_order,
-        is_portfolio="false"
+        is_portfolio="false",
+        taken_at=exif.get('taken_at'),
+        camera=exif.get('camera'),
+        lens=exif.get('lens'),
+        iso=exif.get('iso'),
+        shutter_speed=exif.get('shutter_speed'),
+        aperture=exif.get('aperture'),
+        focal_length=exif.get('focal_length'),
+        gps_lat=exif.get('gps_lat'),
+        gps_lng=exif.get('gps_lng')
     )
     db.add(db_photo)
     db.commit()
