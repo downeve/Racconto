@@ -98,11 +98,17 @@ async def upload_photo(
     BASE_URL = os.getenv("BASE_URL", "http://localhost:8000")
     image_url = f"{BASE_URL}/uploads/{filename}"
 
+    # 현재 프로젝트의 마지막 order 값 + 1
+    last_photo = db.query(models.Photo).filter(
+        models.Photo.project_id == project_id
+    ).order_by(models.Photo.order.desc()).first()
+    next_order = (last_photo.order + 1) if last_photo else 0
+
     db_photo = models.Photo(
         id=file_id,
         project_id=project_id,
         image_url=image_url,
-        order=0,
+        order=next_order,
         is_portfolio="false"
     )
     db.add(db_photo)

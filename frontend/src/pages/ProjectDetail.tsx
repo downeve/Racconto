@@ -20,6 +20,7 @@ interface Photo {
   id: string
   image_url: string
   caption: string
+  caption_en: string
   is_portfolio: string
 }
 
@@ -41,6 +42,9 @@ export default function ProjectDetail() {
   const [editingNote, setEditingNote] = useState<string | null>(null)
   const [editContent, setEditContent] = useState('')
   const [activeTab, setActiveTab] = useState<'photos' | 'notes'>('photos')
+  const [editingCaption, setEditingCaption] = useState<string | null>(null)
+  const [captionKo, setCaptionKo] = useState('')
+  const [captionEn, setCaptionEn] = useState('')
 
   const fetchPhotos = async () => {
     if (!id) return
@@ -84,8 +88,8 @@ export default function ProjectDetail() {
   }
 
   const handleSetCover = async (photo: Photo) => {
-    const statusValue = typeof project!.status === 'object' 
-      ? (project!.status as any).value 
+    const statusValue = typeof project!.status === 'object'
+      ? (project!.status as any).value
       : project!.status
     await axios.put(`${API}/projects/${id}`, {
       title: project!.title,
@@ -100,7 +104,7 @@ export default function ProjectDetail() {
     const res = await axios.get(`${API}/projects/${id}`)
     setProject(res.data)
   }
-  
+
   const handleRemoveCover = async () => {
     const statusValue = typeof project!.status === 'object'
       ? (project!.status as any).value
@@ -121,6 +125,16 @@ export default function ProjectDetail() {
 
   const handleDeletePhoto = async (photoId: string) => {
     await axios.delete(`${API}/photos/${photoId}`)
+    fetchPhotos()
+  }
+
+  const handleSaveCaption = async (photo: Photo) => {
+    await axios.put(`${API}/photos/${photo.id}`, {
+      ...photo,
+      caption: captionKo,
+      caption_en: captionEn
+    })
+    setEditingCaption(null)
     fetchPhotos()
   }
 
@@ -156,23 +170,16 @@ export default function ProjectDetail() {
         {project.description && <p className="text-gray-700 mb-2">{project.description}</p>}
         {project.description_en && <p className="text-gray-500 text-sm">{project.description_en}</p>}
         {project.cover_image_url && (
-            <div className="mt-4 flex items-center gap-3">
-              <img
-                src={project.cover_image_url}
-                alt="커버"
-                className="w-16 h-16 object-cover rounded"
-              />
-              <div>
-                <p className="text-xs text-gray-500 mb-1">현재 커버 이미지</p>
-                <button
-                  onClick={handleRemoveCover}
-                  className="text-xs text-red-400 hover:text-red-600"
-                >
-                  커버 제거
-                </button>
-              </div>
+          <div className="mt-4 flex items-center gap-3">
+            <img src={project.cover_image_url} alt="커버" className="w-16 h-16 object-cover rounded" />
+            <div>
+              <p className="text-xs text-gray-500 mb-1">현재 커버 이미지</p>
+              <button onClick={handleRemoveCover} className="text-xs text-red-400 hover:text-red-600">
+                커버 제거
+              </button>
             </div>
-          )}
+          </div>
+        )}
       </div>
 
       {/* 탭 */}
@@ -211,28 +218,79 @@ export default function ProjectDetail() {
 
           <div className="grid grid-cols-2 gap-4">
             {photos.map(photo => (
-              <div key={photo.id} className="relative group rounded overflow-hidden bg-gray-100">
-                <img src={photo.image_url} alt={photo.caption} className="w-full object-cover" />
-                <div className="absolute inset-0 bg-black bg-opacity-50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-3">
-                  <button
-                    onClick={() => handleSetCover(photo)}
-                    className={`px-2 py-1 text-xs rounded ${project?.cover_image_url === photo.image_url ? 'bg-yellow-400 text-black' : 'bg-white text-black'}`}
-                  >
-                    {project?.cover_image_url === photo.image_url ? '✓ 커버' : '커버 설정'}
-                  </button>
-                  <button
-                    onClick={() => handleTogglePortfolio(photo)}
-                    className={`px-3 py-1 text-xs rounded ${photo.is_portfolio === 'true' ? 'bg-green-500 text-white' : 'bg-white text-black'}`}
-                  >
-                    {photo.is_portfolio === 'true' ? '✓ 포트폴리오' : '포트폴리오 추가'}
-                  </button>
-                  <button
-                    onClick={() => handleDeletePhoto(photo.id)}
-                    className="px-3 py-1 text-xs bg-red-500 text-white rounded"
-                  >
-                    삭제
-                  </button>
+              <div key={photo.id} className="rounded overflow-hidden bg-gray-100">
+                <div className="relative group">
+                  <img src={photo.image_url} alt={photo.caption} className="w-full object-cover" />
+                  <div className="absolute inset-0 bg-black bg-opacity-50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-3">
+                    <button
+                      onClick={() => handleSetCover(photo)}
+                      className={`px-2 py-1 text-xs rounded ${project?.cover_image_url === photo.image_url ? 'bg-yellow-400 text-black' : 'bg-white text-black'}`}
+                    >
+                      {project?.cover_image_url === photo.image_url ? '✓ 커버' : '커버 설정'}
+                    </button>
+                    <button
+                      onClick={() => handleTogglePortfolio(photo)}
+                      className={`px-3 py-1 text-xs rounded ${photo.is_portfolio === 'true' ? 'bg-green-500 text-white' : 'bg-white text-black'}`}
+                    >
+                      {photo.is_portfolio === 'true' ? '✓ 포트폴리오' : '포트폴리오 추가'}
+                    </button>
+                    <button
+                      onClick={() => handleDeletePhoto(photo.id)}
+                      className="px-3 py-1 text-xs bg-red-500 text-white rounded"
+                    >
+                      삭제
+                    </button>
+                  </div>
                 </div>
+                {/* 캡션 영역 */}
+                {editingCaption === photo.id ? (
+                  <div className="p-2 bg-white">
+                    <input
+                      className="w-full border rounded px-2 py-1 text-xs mb-1"
+                      placeholder="캡션 (한국어)"
+                      value={captionKo}
+                      onChange={e => setCaptionKo(e.target.value)}
+                    />
+                    <input
+                      className="w-full border rounded px-2 py-1 text-xs mb-2"
+                      placeholder="Caption (English)"
+                      value={captionEn}
+                      onChange={e => setCaptionEn(e.target.value)}
+                    />
+                    <div className="flex gap-1">
+                      <button
+                        onClick={() => handleSaveCaption(photo)}
+                        className="bg-black text-white px-2 py-1 text-xs"
+                      >
+                        저장
+                      </button>
+                      <button
+                        onClick={() => setEditingCaption(null)}
+                        className="border px-2 py-1 text-xs"
+                      >
+                        취소
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <div
+                    className="p-2 cursor-pointer hover:bg-gray-50"
+                    onClick={() => {
+                      setEditingCaption(photo.id)
+                      setCaptionKo(photo.caption || '')
+                      setCaptionEn(photo.caption_en || '')
+                    }}
+                  >
+                    {photo.caption || photo.caption_en ? (
+                      <div>
+                        {photo.caption && <p className="text-xs text-gray-600">{photo.caption}</p>}
+                        {photo.caption_en && <p className="text-xs text-gray-400 italic">{photo.caption_en}</p>}
+                      </div>
+                    ) : (
+                      <p className="text-xs text-gray-300">캡션 추가...</p>
+                    )}
+                  </div>
+                )}
               </div>
             ))}
           </div>
@@ -249,7 +307,6 @@ export default function ProjectDetail() {
       {/* 노트 탭 */}
       {activeTab === 'notes' && (
         <div>
-          {/* 노트 입력 */}
           <div className="mb-6">
             <textarea
               className="w-full border rounded px-3 py-2 text-sm mb-2 focus:outline-none focus:ring-1 focus:ring-black"
@@ -266,7 +323,6 @@ export default function ProjectDetail() {
             </button>
           </div>
 
-          {/* 노트 목록 */}
           <div className="space-y-4">
             {notes.map(note => (
               <div key={note.id} className="bg-white rounded-lg shadow p-4">
