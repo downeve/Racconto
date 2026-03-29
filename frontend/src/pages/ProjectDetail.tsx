@@ -13,6 +13,7 @@ interface Project {
   status: string
   location: string
   is_public: string
+  cover_image_url: string
 }
 
 interface Photo {
@@ -82,6 +83,42 @@ export default function ProjectDetail() {
     fetchPhotos()
   }
 
+  const handleSetCover = async (photo: Photo) => {
+    const statusValue = typeof project!.status === 'object' 
+      ? (project!.status as any).value 
+      : project!.status
+    await axios.put(`${API}/projects/${id}`, {
+      title: project!.title,
+      title_en: project!.title_en,
+      description: project!.description,
+      description_en: project!.description_en,
+      location: project!.location,
+      is_public: project!.is_public,
+      status: statusValue,
+      cover_image_url: photo.image_url
+    })
+    const res = await axios.get(`${API}/projects/${id}`)
+    setProject(res.data)
+  }
+  
+  const handleRemoveCover = async () => {
+    const statusValue = typeof project!.status === 'object'
+      ? (project!.status as any).value
+      : project!.status
+    await axios.put(`${API}/projects/${id}`, {
+      title: project!.title,
+      title_en: project!.title_en,
+      description: project!.description,
+      description_en: project!.description_en,
+      location: project!.location,
+      is_public: project!.is_public,
+      status: statusValue,
+      cover_image_url: null
+    })
+    const res = await axios.get(`${API}/projects/${id}`)
+    setProject(res.data)
+  }
+
   const handleDeletePhoto = async (photoId: string) => {
     await axios.delete(`${API}/photos/${photoId}`)
     fetchPhotos()
@@ -118,6 +155,24 @@ export default function ProjectDetail() {
         {project.location && <p className="text-sm text-gray-500 mb-4">📍 {project.location}</p>}
         {project.description && <p className="text-gray-700 mb-2">{project.description}</p>}
         {project.description_en && <p className="text-gray-500 text-sm">{project.description_en}</p>}
+        {project.cover_image_url && (
+            <div className="mt-4 flex items-center gap-3">
+              <img
+                src={project.cover_image_url}
+                alt="커버"
+                className="w-16 h-16 object-cover rounded"
+              />
+              <div>
+                <p className="text-xs text-gray-500 mb-1">현재 커버 이미지</p>
+                <button
+                  onClick={handleRemoveCover}
+                  className="text-xs text-red-400 hover:text-red-600"
+                >
+                  커버 제거
+                </button>
+              </div>
+            </div>
+          )}
       </div>
 
       {/* 탭 */}
@@ -159,6 +214,12 @@ export default function ProjectDetail() {
               <div key={photo.id} className="relative group rounded overflow-hidden bg-gray-100">
                 <img src={photo.image_url} alt={photo.caption} className="w-full object-cover" />
                 <div className="absolute inset-0 bg-black bg-opacity-50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-3">
+                  <button
+                    onClick={() => handleSetCover(photo)}
+                    className={`px-2 py-1 text-xs rounded ${project?.cover_image_url === photo.image_url ? 'bg-yellow-400 text-black' : 'bg-white text-black'}`}
+                  >
+                    {project?.cover_image_url === photo.image_url ? '✓ 커버' : '커버 설정'}
+                  </button>
                   <button
                     onClick={() => handleTogglePortfolio(photo)}
                     className={`px-3 py-1 text-xs rounded ${photo.is_portfolio === 'true' ? 'bg-green-500 text-white' : 'bg-white text-black'}`}

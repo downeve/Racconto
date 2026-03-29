@@ -18,6 +18,7 @@ class ProjectCreate(BaseModel):
     location: Optional[str] = None
     shot_date: Optional[datetime] = None
     is_public: Optional[str] = "false"
+    cover_image_url: Optional[str] = None
 
 class ProjectResponse(BaseModel):
     id: str
