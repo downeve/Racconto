@@ -41,7 +41,7 @@ class ProjectResponse(BaseModel):
 def get_projects(db: Session = Depends(get_db)):
     return db.query(models.Project).filter(
         models.Project.deleted_at == None
-    ).order_by(models.Project.updated_at.desc()).all()
+    ).order_by(models.Project.created_at.desc()).all()
 
 @router.get("/trash", response_model=list[ProjectResponse])
 def get_trash(db: Session = Depends(get_db)):
