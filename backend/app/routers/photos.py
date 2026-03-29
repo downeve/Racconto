@@ -104,6 +104,8 @@ class PhotoCreate(BaseModel):
     caption_en: Optional[str] = None
     order: Optional[int] = 0
     is_portfolio: Optional[str] = "false"
+    rating: Optional[int] = None
+    color_label: Optional[str] = None
 
 class PhotoResponse(BaseModel):
     id: str
@@ -122,6 +124,8 @@ class PhotoResponse(BaseModel):
     focal_length: Optional[str]
     gps_lat: Optional[str]
     gps_lng: Optional[str]
+    rating: Optional[int] = None
+    color_label: Optional[str] = None
     created_at: datetime
 
     class Config:

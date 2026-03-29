@@ -48,6 +48,8 @@ class Photo(Base):
     focal_length = Column(String, nullable=True)
     gps_lat = Column(String, nullable=True)
     gps_lng = Column(String, nullable=True)
+    rating = Column(Integer, nullable=True)
+    color_label = Column(String, nullable=True)
     project = relationship("Project", back_populates="photos")
     created_at = Column(DateTime, default=datetime.utcnow)
 

@@ -49,6 +49,8 @@ interface Photo {
   focal_length: string | null
   gps_lat: string | null
   gps_lng: string | null
+  rating: number | null
+  color_label: string | null
 }
 
 interface Note {
@@ -72,7 +74,9 @@ function SortablePhoto({
   onSetCover,
   onTogglePortfolio,
   onDelete,
-  onSaveCaption
+  onSaveCaption,
+  onSetRating,
+  onSetColorLabel
 }: {
   photo: Photo
   project: Project
@@ -86,6 +90,8 @@ function SortablePhoto({
   onTogglePortfolio: (photo: Photo) => void
   onDelete: (id: string) => void
   onSaveCaption: (photo: Photo) => void
+  onSetRating: (photo: Photo, rating: number) => void
+  onSetColorLabel: (photo: Photo, label: string) => void
 }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: photo.id })
 
@@ -129,6 +135,39 @@ function SortablePhoto({
         </div>
       </div>
 
+      {/* 별점 & 컬러 레이블 */}
+      <div className="px-2 py-2 bg-white flex items-center justify-between">
+        {/* 별점 */}
+        <div className="flex gap-1">
+          {[1, 2, 3, 4, 5].map(star => (
+            <button
+              key={star}
+              onClick={() => onSetRating(photo, star)}
+              className={`text-sm ${photo.rating && photo.rating >= star ? 'text-yellow-400' : 'text-gray-300'}`}
+            >
+              ★
+            </button>
+          ))}
+        </div>
+        {/* 컬러 레이블 */}
+        <div className="flex gap-1">
+          {[
+            { value: 'red', color: 'bg-red-500', label: '거절' },
+            { value: 'yellow', color: 'bg-yellow-400', label: '보류' },
+            { value: 'green', color: 'bg-green-500', label: '선택' },
+            { value: 'blue', color: 'bg-blue-500', label: '클라이언트' },
+            { value: 'purple', color: 'bg-purple-500', label: '포트폴리오' },
+          ].map(label => (
+            <button
+              key={label.value}
+              onClick={() => onSetColorLabel(photo, label.value)}
+              title={label.label}
+              className={`w-4 h-4 rounded-full ${label.color} ${photo.color_label === label.value ? 'ring-2 ring-offset-1 ring-gray-400' : 'opacity-50'}`}
+            />
+          ))}
+        </div>
+      </div>
+
       {/* 캡션 영역 */}
       {editingCaption === photo.id ? (
         <div className="p-2 bg-white">
@@ -168,7 +207,7 @@ function SortablePhoto({
           )}
         </div>
       )}
-      
+
       {/* EXIF 메타데이터 */}
       {(photo.camera || photo.taken_at) && (
         <div className="px-2 pb-2 bg-white">
@@ -300,6 +339,24 @@ export default function ProjectDetail() {
     fetchPhotos()
   }
 
+  const handleSetRating = async (photo: Photo, rating: number) => {
+    const newRating = photo.rating === rating ? null : rating
+    await axios.put(`${API}/photos/${photo.id}`, {
+      ...photo,
+      rating: newRating
+    })
+    fetchPhotos()
+  }
+
+  const handleSetColorLabel = async (photo: Photo, label: string) => {
+    const newLabel = photo.color_label === label ? null : label
+    await axios.put(`${API}/photos/${photo.id}`, {
+      ...photo,
+      color_label: newLabel
+    })
+    fetchPhotos()
+  }
+
   const handleDragEnd = async (event: DragEndEvent) => {
     const { active, over } = event
     if (!over || active.id === over.id) return
@@ -421,6 +478,8 @@ export default function ProjectDetail() {
                     onTogglePortfolio={handleTogglePortfolio}
                     onDelete={handleDeletePhoto}
                     onSaveCaption={handleSaveCaption}
+                    onSetRating={handleSetRating}
+                    onSetColorLabel={handleSetColorLabel}
                   />
                 ))}
               </div>
