@@ -75,3 +75,23 @@ class Note(Base):
     project = relationship("Project", back_populates="notes")
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+class Chapter(Base):
+    __tablename__ = "chapters"
+    id = Column(String, primary_key=True)
+    project_id = Column(String, ForeignKey("projects.id"))
+    title = Column(String, nullable=False)
+    description = Column(Text, nullable=True)
+    order_num = Column(Integer, default=0)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    photos = relationship("ChapterPhoto", back_populates="chapter")
+
+class ChapterPhoto(Base):
+    __tablename__ = "chapter_photos"
+    id = Column(String, primary_key=True)
+    chapter_id = Column(String, ForeignKey("chapters.id"))
+    photo_id = Column(String, ForeignKey("photos.id"))
+    order_num = Column(Integer, default=0)
+    chapter = relationship("Chapter", back_populates="photos")
+    photo = relationship("Photo")

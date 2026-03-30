@@ -3,7 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from app.database import engine
 import app.models as models
-from app.routers import projects, photos, portfolio, notes, auth
+from app.routers import projects, photos, portfolio, notes, auth, chapters
 import os
 
 models.Base.metadata.create_all(bind=engine)
@@ -23,6 +23,7 @@ app.include_router(photos.router)
 app.include_router(portfolio.router)
 app.include_router(notes.router)
 app.include_router(auth.router)
+app.include_router(chapters.router)
 
 os.makedirs("app/uploads", exist_ok=True)
 app.mount("/uploads", StaticFiles(directory="app/uploads"), name="uploads")

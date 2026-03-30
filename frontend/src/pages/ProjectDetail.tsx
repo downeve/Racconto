@@ -18,6 +18,7 @@ import {
   arrayMove
 } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
+import ProjectStory from './ProjectStory'
 
 const API = import.meta.env.VITE_API_URL
 
@@ -353,7 +354,7 @@ export default function ProjectDetail() {
   const [newNote, setNewNote] = useState('')
   const [editingNote, setEditingNote] = useState<string | null>(null)
   const [editContent, setEditContent] = useState('')
-  const [activeTab, setActiveTab] = useState<'photos' | 'notes'>('photos')
+  const [activeTab, setActiveTab] = useState<'photos' | 'story' | 'notes'>('photos')
   const [filterRating, setFilterRating] = useState<number | null>(null)
   const [filterColor, setFilterColor] = useState<string | null>(null)
   const [filterPortfolio, setFilterPortfolio] = useState(false)
@@ -590,6 +591,12 @@ export default function ProjectDetail() {
           className={`px-6 py-2 text-sm tracking-wider ${activeTab === 'photos' ? 'border-b-2 border-black font-semibold' : 'text-gray-400'}`}
         >
           사진 ({photos.length})
+        </button>
+        <button
+          onClick={() => setActiveTab('story')}
+          className={`px-6 py-2 text-sm tracking-wider ${activeTab === 'story' ? 'border-b-2 border-black font-semibold' : 'text-gray-400'}`}
+        >
+          스토리
         </button>
         <button
           onClick={() => setActiveTab('notes')}
@@ -842,6 +849,11 @@ export default function ProjectDetail() {
         </div>
       )}
 
+      {/* 스토리 탭 */}
+      {activeTab === 'story' && (
+        <ProjectStory projectId={id!} allPhotos={photos} />
+      )}
+      
       {/* 노트 탭 */}
       {activeTab === 'notes' && (
         <div>
