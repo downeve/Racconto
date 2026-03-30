@@ -7,6 +7,7 @@ import ProjectDetail from './pages/ProjectDetail'
 import ProjectEdit from './pages/ProjectEdit'
 import Portfolio from './pages/Portfolio'
 import Trash from './pages/Trash'
+import Settings from './pages/Settings'
 
 function PrivateRoute({ children }: { children: React.ReactNode }) {
   const { isAuthenticated, isLoading } = useAuth()
@@ -28,6 +29,7 @@ function AppRoutes() {
         <Route path="/projects/:id/edit" element={<PrivateRoute><ProjectEdit /></PrivateRoute>} />
         <Route path="/portfolio" element={<PrivateRoute><Portfolio /></PrivateRoute>} />
         <Route path="/trash" element={<PrivateRoute><Trash /></PrivateRoute>} />
+        <Route path="/settings" element={<PrivateRoute><Settings /></PrivateRoute>} />
       </Routes>
     </div>
   )

@@ -27,7 +27,7 @@ interface Photo {
   folder: string | null
 }
 
-export default function ProjectStory({ projectId, allPhotos }: { projectId: string, allPhotos: Photo[] }) {
+export default function ProjectStory({ projectId, allPhotos, onChapterChange }: { projectId: string, allPhotos: Photo[], onChapterChange?: (count: number) => void }) {
   const [chapters, setChapters] = useState<Chapter[]>([])
   const [chapterPhotos, setChapterPhotos] = useState<Record<string, ChapterPhoto[]>>({})
   const [newTitle, setNewTitle] = useState('')
@@ -39,10 +39,11 @@ export default function ProjectStory({ projectId, allPhotos }: { projectId: stri
   const [showPhotoSelector, setShowPhotoSelector] = useState<string | null>(null)
 
   const fetchChapters = async () => {
-    const res = await axios.get(`${API}/chapters/?project_id=${projectId}`)
+  const res = await axios.get(`${API}/chapters/?project_id=${projectId}`)
     setChapters(res.data)
+    onChapterChange?.(res.data.length)
     for (const chapter of res.data) {
-      fetchChapterPhotos(chapter.id)
+        fetchChapterPhotos(chapter.id)
     }
   }
 

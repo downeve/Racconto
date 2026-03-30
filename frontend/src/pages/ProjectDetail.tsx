@@ -78,7 +78,8 @@ function SortablePhoto({
   onSetRating,
   onSetColorLabel,
   showExif,
-  gridCols
+  gridCols,
+  colorLabels
 }: {
   photo: Photo
   project: Project
@@ -94,6 +95,7 @@ function SortablePhoto({
   onSetColorLabel: (photo: Photo, label: string) => void
   showExif: boolean
   gridCols: number
+  colorLabels: { value: string; color: string; label: string }[]
 }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: photo.id })
 
@@ -128,13 +130,7 @@ function SortablePhoto({
 
         {/* 컬러 레이블 */}
         <div className="flex gap-0.5 shrink-0">
-          {[
-            { value: 'red', color: 'bg-red-500', label: '거절' },
-            { value: 'yellow', color: 'bg-yellow-400', label: '보류' },
-            { value: 'green', color: 'bg-green-500', label: '선택' },
-            { value: 'blue', color: 'bg-blue-500', label: '클라이언트' },
-            { value: 'purple', color: 'bg-purple-500', label: '포트폴리오' },
-          ].map(label => (
+          {colorLabels.map(label => (
             <button
               key={label.value}
               onClick={() => onSetColorLabel(photo, label.value)}
@@ -266,15 +262,10 @@ function SortablePhoto({
             </button>
           ))}
         </div>
+
         {/* 컬러 레이블 */}
         <div className="flex gap-0.5">
-          {[
-            { value: 'red', color: 'bg-red-500', label: '거절' },
-            { value: 'yellow', color: 'bg-yellow-400', label: '보류' },
-            { value: 'green', color: 'bg-green-500', label: '선택' },
-            { value: 'blue', color: 'bg-blue-500', label: '클라이언트' },
-            { value: 'purple', color: 'bg-purple-500', label: '포트폴리오' },
-          ].map(label => (
+          {colorLabels.map(label => (
             <button
               key={label.value}
               onClick={() => onSetColorLabel(photo, label.value)}
@@ -359,10 +350,10 @@ export default function ProjectDetail() {
   const [filterColor, setFilterColor] = useState<string | null>(null)
   const [filterPortfolio, setFilterPortfolio] = useState(false)
   const [filterFolder, setFilterFolder] = useState<string | null>(null)
-  const [gridCols, setGridCols] = useState(3)
   const [showExif, setShowExif] = useState(true)
   const [showFilter, setShowFilter] = useState(true)
   const [editingCaption, setEditingCaption] = useState<string | null>(null)
+  const [chapterCount, setChapterCount] = useState(0)
   const [captionKo, setCaptionKo] = useState('')
 
   const sensors = useSensors(
@@ -387,6 +378,36 @@ export default function ProjectDetail() {
     const res = await axios.get(`${API}/notes/?project_id=${id}`)
     setNotes(res.data)
   }
+
+  const [gridCols, setGridCols] = useState(3)
+  const [labelSettings, setLabelSettings] = useState<Record<string, string>>({
+    color_label_red: '거절',
+    color_label_yellow: '보류',
+    color_label_green: '선택',
+    color_label_blue: '클라이언트 공유',
+    color_label_purple: '최종 선택',
+  })
+
+  useEffect(() => {
+    axios.get(`${API}/settings/`).then(res => {
+      const cols = parseInt(res.data['default_grid_cols'] || '3')
+      setGridCols(cols)
+      setLabelSettings({
+        color_label_red: res.data['color_label_red'] || '거절',
+        color_label_yellow: res.data['color_label_yellow'] || '보류',
+        color_label_green: res.data['color_label_green'] || '선택',
+        color_label_blue: res.data['color_label_blue'] || '클라이언트 공유',
+        color_label_purple: res.data['color_label_purple'] || '최종 선택',
+      })
+    })
+  }, [])
+
+  useEffect(() => {
+    if (!id) return
+    axios.get(`${API}/chapters/?project_id=${id}`).then(res => {
+      setChapterCount(res.data.length)
+    })
+  }, [id])
 
   useEffect(() => {
     if (!id) return
@@ -505,6 +526,14 @@ export default function ProjectDetail() {
     fetchPhotos()
   }
 
+  const colorLabels = [
+    { value: 'red', color: 'bg-red-500', label: labelSettings['color_label_red'] },
+    { value: 'yellow', color: 'bg-yellow-400', label: labelSettings['color_label_yellow'] },
+    { value: 'green', color: 'bg-green-500', label: labelSettings['color_label_green'] },
+    { value: 'blue', color: 'bg-blue-500', label: labelSettings['color_label_blue'] },
+    { value: 'purple', color: 'bg-purple-500', label: labelSettings['color_label_purple'] },
+  ]
+
   const filteredPhotos = photos.filter(photo => {
     if (filterRating !== null) {
       if (filterRating === 0) {
@@ -596,7 +625,7 @@ export default function ProjectDetail() {
           onClick={() => setActiveTab('story')}
           className={`px-6 py-2 text-sm tracking-wider ${activeTab === 'story' ? 'border-b-2 border-black font-semibold' : 'text-gray-400'}`}
         >
-          스토리
+          스토리 ({chapterCount})
         </button>
         <button
           onClick={() => setActiveTab('notes')}
@@ -758,13 +787,7 @@ export default function ProjectDetail() {
                     초기화
                   </button>
                   </div>
-                  {[
-                    { value: 'red', color: 'bg-red-500', label: '거절' },
-                    { value: 'yellow', color: 'bg-yellow-400', label: '보류' },
-                    { value: 'green', color: 'bg-green-500', label: '선택' },
-                    { value: 'blue', color: 'bg-blue-500', label: '클라이언트 공유' },
-                    { value: 'purple', color: 'bg-purple-500', label: '최종 선택' },
-                  ].map(label => {
+                  {colorLabels.map(label => {
                     const count = photos.filter(p => p.color_label === label.value).length
                     return (
                       <button
@@ -824,6 +847,7 @@ export default function ProjectDetail() {
                       onSetColorLabel={handleSetColorLabel}
                       showExif={showExif}
                       gridCols={gridCols}
+                      colorLabels={colorLabels}
                     />
                   ))}
                 </div>
@@ -851,9 +875,13 @@ export default function ProjectDetail() {
 
       {/* 스토리 탭 */}
       {activeTab === 'story' && (
-        <ProjectStory projectId={id!} allPhotos={photos} />
+        <ProjectStory 
+          projectId={id!} 
+          allPhotos={photos}
+          onChapterChange={setChapterCount}
+        />
       )}
-      
+
       {/* 노트 탭 */}
       {activeTab === 'notes' && (
         <div>

@@ -13,6 +13,7 @@ export default function Navbar({ onLogout }: NavbarProps) {
           <Link to="/projects" className="text-sm tracking-wider hover:text-gray-300">PROJECTS</Link>
           <Link to="/portfolio" className="text-sm tracking-wider hover:text-gray-300">PORTFOLIO</Link>
           <Link to="/trash" className="text-sm tracking-wider hover:text-gray-300">🗑</Link>
+          <Link to="/settings" className="text-sm tracking-wider hover:text-gray-300">⚙️</Link>
           <button
             onClick={onLogout}
             className="text-sm tracking-wider text-gray-400 hover:text-white"

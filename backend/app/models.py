@@ -95,3 +95,8 @@ class ChapterPhoto(Base):
     order_num = Column(Integer, default=0)
     chapter = relationship("Chapter", back_populates="photos")
     photo = relationship("Photo")
+
+class Setting(Base):
+    __tablename__ = "settings"
+    key = Column(String, primary_key=True)
+    value = Column(String, nullable=False)
