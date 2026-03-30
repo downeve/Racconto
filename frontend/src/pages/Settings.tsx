@@ -14,6 +14,43 @@ const COLOR_KEYS = [
 export default function Settings() {
   const [settings, setSettings] = useState<Record<string, string>>({})
   const [saved, setSaved] = useState(false)
+  const [currentPassword, setCurrentPassword] = useState('')
+  const [newPassword, setNewPassword] = useState('')
+  const [confirmPassword, setConfirmPassword] = useState('')
+  const [passwordError, setPasswordError] = useState('')
+  const [passwordSuccess, setPasswordSuccess] = useState('')
+
+    const handlePasswordChange = async () => {
+    setPasswordError('')
+    setPasswordSuccess('')
+    if (!currentPassword || !newPassword || !confirmPassword) {
+        setPasswordError('모든 항목을 입력해주세요')
+        return
+    }
+    if (newPassword !== confirmPassword) {
+        setPasswordError('새 비밀번호가 일치하지 않아요')
+        return
+    }
+    if (newPassword.length < 8) {
+        setPasswordError('비밀번호는 8자 이상이어야 해요')
+        return
+    }
+    try {
+        const token = localStorage.getItem('token')
+        const res = await axios.put(`${API}/auth/password`, {
+        current_password: currentPassword,
+        new_password: newPassword
+        }, {
+        headers: { Authorization: `Bearer ${token}` }
+        })
+        setPasswordSuccess('비밀번호가 변경되었습니다!')
+        setCurrentPassword('')
+        setNewPassword('')
+        setConfirmPassword('')
+    } catch (err: any) {
+        setPasswordError(err.response?.data?.detail || '변경에 실패했어요')
+    }
+    }
 
   useEffect(() => {
     axios.get(`${API}/settings/`).then(res => setSettings(res.data))
@@ -74,6 +111,42 @@ export default function Settings() {
           </div>
         </div>
       </div>
+
+      {/* 비밀번호 변경 */}
+        <div className="bg-white rounded-lg shadow p-6 mb-6">
+        <h3 className="font-semibold mb-4">비밀번호 변경</h3>
+        <div className="space-y-3">
+            <input
+            type="password"
+            className="w-full border rounded px-3 py-2 text-sm"
+            placeholder="현재 비밀번호"
+            value={currentPassword}
+            onChange={e => setCurrentPassword(e.target.value)}
+            />
+            <input
+            type="password"
+            className="w-full border rounded px-3 py-2 text-sm"
+            placeholder="새 비밀번호"
+            value={newPassword}
+            onChange={e => setNewPassword(e.target.value)}
+            />
+            <input
+            type="password"
+            className="w-full border rounded px-3 py-2 text-sm"
+            placeholder="새 비밀번호 확인"
+            value={confirmPassword}
+            onChange={e => setConfirmPassword(e.target.value)}
+            />
+            {passwordError && <p className="text-red-500 text-xs">{passwordError}</p>}
+            {passwordSuccess && <p className="text-green-500 text-xs">{passwordSuccess}</p>}
+            <button
+            onClick={handlePasswordChange}
+            className="bg-black text-white px-4 py-2 text-sm hover:bg-gray-800"
+            >
+            비밀번호 변경
+            </button>
+        </div>
+        </div>
 
       {/* 저장 버튼 */}
       <button
