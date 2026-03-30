@@ -25,6 +25,7 @@ interface PortfolioProject {
   location: string | null
   photos: Photo[]
   chapters: Chapter[]
+  extra_photos: Photo[]
 }
 
 export default function Portfolio() {
@@ -199,6 +200,27 @@ export default function Portfolio() {
               </div>
             )}
 
+            {/* 기타 섹션 (챕터에 없는 포트폴리오 사진) */}
+            {selectedProject.chapters.length > 0 && selectedProject.extra_photos.length > 0 && (
+              <div className="mt-12">
+                <div className="mb-4">
+                  <h3 className="text-lg font-semibold">기타</h3>
+                  <p className={`text-xs ${subText} mt-1`}>챕터에 포함되지 않은 사진</p>
+                </div>
+                <div className="grid grid-cols-3 gap-3">
+                  {selectedProject.extra_photos.map(photo => (
+                    <img
+                      key={photo.id}
+                      src={photo.image_url}
+                      alt={photo.caption || ''}
+                      className="w-full object-cover rounded cursor-pointer hover:opacity-80 transition-opacity"
+                      onClick={() => openLightbox(photo, selectedProject.extra_photos, '기타')}
+                    />
+                  ))}
+                </div>
+              </div>
+            )}
+            
             {selectedProject.photos.length === 0 && selectedProject.chapters.length === 0 && (
               <div className="text-center py-20">
                 <p className={subText}>포트폴리오로 선택된 사진이 없어요</p>

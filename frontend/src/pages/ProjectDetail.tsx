@@ -79,7 +79,8 @@ function SortablePhoto({
   onSetColorLabel,
   showExif,
   gridCols,
-  colorLabels
+  colorLabels,
+  chapterPhotoIds
 }: {
   photo: Photo
   project: Project
@@ -96,6 +97,7 @@ function SortablePhoto({
   showExif: boolean
   gridCols: number
   colorLabels: { value: string; color: string; label: string }[]
+  chapterPhotoIds: Set<string>
 }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: photo.id })
 
@@ -191,12 +193,21 @@ function SortablePhoto({
           >
             {project?.cover_image_url === photo.image_url ? '✓커버' : '커버'}
           </button>
-          <button
-            onClick={() => onTogglePortfolio(photo)}
-            className={`px-2 py-1 text-xs rounded ${photo.is_portfolio === 'true' ? 'bg-green-500 text-white' : 'bg-gray-100 hover:bg-gray-200'}`}
-          >
-            {photo.is_portfolio === 'true' ? '✓포트폴리오' : '포트폴리오'}
-          </button>
+          {chapterPhotoIds.has(photo.id) ? (
+            <button
+              className="px-2 py-1 text-xs rounded bg-blue-100 text-blue-500 cursor-default"
+              title="챕터에 포함된 사진은 챕터에서 관리해요"
+            >
+              📖 챕터
+            </button>
+          ) : (
+            <button
+              onClick={() => onTogglePortfolio(photo)}
+              className={`px-2 py-1 text-xs rounded ${photo.is_portfolio === 'true' ? 'bg-green-500 text-white' : 'bg-gray-100 hover:bg-gray-200'}`}
+            >
+              {photo.is_portfolio === 'true' ? '✓포트폴리오' : '포트폴리오'}
+            </button>
+          )}
           <button
             onClick={() => onDelete(photo.id)}
             className="px-2 py-1 text-xs bg-red-100 text-red-500 rounded hover:bg-red-200"
@@ -233,12 +244,21 @@ function SortablePhoto({
           >
             {project?.cover_image_url === photo.image_url ? '✓커버' : gridCols >= 3 ? '커버' : '커버 설정'}
           </button>
-          <button
-            onClick={() => onTogglePortfolio(photo)}
-            className={`${gridCols >= 4 ? 'px-1 py-0.5 text-xs' : 'px-2 py-1 text-xs'} rounded ${photo.is_portfolio === 'true' ? 'bg-green-500 text-white' : 'bg-white text-black'}`}
-          >
-            {photo.is_portfolio === 'true' ? '✓포트폴리오' : gridCols >= 3 ? '포트폴리오' : '포트폴리오 추가'}
-          </button>
+          {chapterPhotoIds.has(photo.id) ? (
+            <button
+              className={`${gridCols >= 4 ? 'px-1 py-0.5 text-xs' : 'px-2 py-1 text-xs'} rounded bg-blue-100 text-blue-500 cursor-default`}
+              title="챕터에 포함된 사진은 챕터에서 관리해요"
+            >
+              📖 챕터
+            </button>
+          ) : (
+            <button
+              onClick={() => onTogglePortfolio(photo)}
+              className={`${gridCols >= 4 ? 'px-1 py-0.5 text-xs' : 'px-2 py-1 text-xs'} rounded ${photo.is_portfolio === 'true' ? 'bg-green-500 text-white' : 'bg-white text-black'}`}
+            >
+              {photo.is_portfolio === 'true' ? '✓포트폴리오' : gridCols >= 3 ? '포트폴리오' : '포트폴리오 추가'}
+            </button>
+          )}
           <button
             onClick={() => onDelete(photo.id)}
             className={`${gridCols >= 4 ? 'px-1 py-0.5 text-xs' : 'px-2 py-1 text-xs'} bg-red-500 text-white rounded`}
@@ -355,6 +375,7 @@ export default function ProjectDetail() {
   const [editingCaption, setEditingCaption] = useState<string | null>(null)
   const [chapterCount, setChapterCount] = useState(0)
   const [captionKo, setCaptionKo] = useState('')
+  const [chapterPhotoIds, setChapterPhotoIds] = useState<Set<string>>(new Set())
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -371,6 +392,18 @@ export default function ProjectDetail() {
     if (!id) return
     const res = await axios.get(`${API}/photos/?project_id=${id}`)
     setPhotos(res.data)
+  }
+
+  const fetchChapterPhotoIds = async () => {
+    if (!id) return
+    const res = await axios.get(`${API}/chapters/?project_id=${id}`)
+    setChapterCount(res.data.length)
+    const ids = new Set<string>()
+    for (const chapter of res.data) {
+      const photoRes = await axios.get(`${API}/chapters/${chapter.id}/photos`)
+      photoRes.data.forEach((cp: any) => ids.add(cp.photo_id))
+    }
+    setChapterPhotoIds(ids)
   }
 
   const fetchNotes = async () => {
@@ -404,16 +437,14 @@ export default function ProjectDetail() {
 
   useEffect(() => {
     if (!id) return
-    axios.get(`${API}/chapters/?project_id=${id}`).then(res => {
-      setChapterCount(res.data.length)
-    })
+    axios.get(`${API}/projects/${id}`).then(res => setProject(res.data))
+    fetchPhotos()
+    fetchNotes()
   }, [id])
 
   useEffect(() => {
     if (!id) return
-    axios.get(`${API}/projects/${id}`).then(res => setProject(res.data))
-    fetchPhotos()
-    fetchNotes()
+    fetchChapterPhotoIds()
   }, [id])
 
   const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -600,7 +631,7 @@ export default function ProjectDetail() {
       <div className="mb-4">
         <a href="/projects" className="text-sm text-gray-400 hover:text-black">← 목록</a>
       </div>
-      
+
       {/* 프로젝트 헤더 */}
       <div className="mb-8 flex items-start justify-between gap-6">
         <div className="flex-1">
@@ -621,7 +652,7 @@ export default function ProjectDetail() {
       {/* 탭 */}
       <div className="flex border-b mb-6">
         <button
-          onClick={() => setActiveTab('photos')}
+          onClick={() => { setActiveTab('photos');  fetchChapterPhotoIds() }}
           className={`px-6 py-2 text-sm tracking-wider ${activeTab === 'photos' ? 'border-b-2 border-black font-semibold' : 'text-gray-400'}`}
         >
           사진 ({photos.length})
@@ -853,6 +884,7 @@ export default function ProjectDetail() {
                       showExif={showExif}
                       gridCols={gridCols}
                       colorLabels={colorLabels}
+                      chapterPhotoIds={chapterPhotoIds}
                     />
                   ))}
                 </div>

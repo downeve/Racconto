@@ -19,7 +19,6 @@ def get_portfolio(db: Session = Depends(get_db)):
             models.Photo.is_portfolio == "true"
         ).order_by(models.Photo.order).all()
 
-        # 챕터 정보
         chapters = db.query(models.Chapter).filter(
             models.Chapter.project_id == project.id
         ).order_by(models.Chapter.order_num).all()
@@ -47,6 +46,22 @@ def get_portfolio(db: Session = Depends(get_db)):
                 "photos": cp_list
             })
 
+        # 챕터에 포함된 사진 ID 목록 (for 루프 밖으로)
+        chapter_photo_ids = set()
+        for ch in chapter_list:
+            for cp in ch['photos']:
+                chapter_photo_ids.add(cp['id'])
+
+        # 챕터에 없는 포트폴리오 사진 (기타)
+        extra_photos = []
+        for p in photos:
+            if p.id not in chapter_photo_ids:
+                extra_photos.append({
+                    "id": p.id,
+                    "image_url": p.image_url,
+                    "caption": p.caption
+                })
+
         result.append({
             "id": project.id,
             "title": project.title,
@@ -54,6 +69,7 @@ def get_portfolio(db: Session = Depends(get_db)):
             "cover_image_url": project.cover_image_url,
             "location": project.location,
             "photos": [{"id": p.id, "image_url": p.image_url, "caption": p.caption} for p in photos],
-            "chapters": chapter_list
+            "chapters": chapter_list,
+            "extra_photos": extra_photos
         })
     return result
