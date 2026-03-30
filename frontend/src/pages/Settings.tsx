@@ -37,7 +37,7 @@ export default function Settings() {
     }
     try {
         const token = localStorage.getItem('token')
-        const res = await axios.put(`${API}/auth/password`, {
+        await axios.put(`${API}/auth/password`, {
         current_password: currentPassword,
         new_password: newPassword
         }, {
