@@ -68,9 +68,7 @@ function SortablePhoto({
   project,
   editingCaption,
   captionKo,
-  captionEn,
   setCaptionKo,
-  setCaptionEn,
   setEditingCaption,
   onSetCover,
   onTogglePortfolio,
@@ -85,9 +83,7 @@ function SortablePhoto({
   project: Project
   editingCaption: string | null
   captionKo: string
-  captionEn: string
   setCaptionKo: (v: string) => void
-  setCaptionEn: (v: string) => void
   setEditingCaption: (v: string | null) => void
   onSetCover: (photo: Photo) => void
   onTogglePortfolio: (photo: Photo) => void
@@ -367,7 +363,6 @@ export default function ProjectDetail() {
   const [showFilter, setShowFilter] = useState(true)
   const [editingCaption, setEditingCaption] = useState<string | null>(null)
   const [captionKo, setCaptionKo] = useState('')
-  const [captionEn, setCaptionEn] = useState('')
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -542,7 +537,6 @@ export default function ProjectDetail() {
     await axios.put(`${API}/photos/${photo.id}`, {
       ...photo,
       caption: captionKo,
-      caption_en: captionEn
     })
     setEditingCaption(null)
     fetchPhotos()
@@ -813,9 +807,7 @@ export default function ProjectDetail() {
                       project={project}
                       editingCaption={editingCaption}
                       captionKo={captionKo}
-                      captionEn={captionEn}
                       setCaptionKo={setCaptionKo}
-                      setCaptionEn={setCaptionEn}
                       setEditingCaption={setEditingCaption}
                       onSetCover={handleSetCover}
                       onTogglePortfolio={handleTogglePortfolio}
