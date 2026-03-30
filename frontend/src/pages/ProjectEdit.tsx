@@ -47,29 +47,16 @@ export default function ProjectEdit() {
         <div className="grid grid-cols-2 gap-4 mb-4">
           <input
             className="border rounded px-3 py-2"
-            placeholder="프로젝트명 (한국어) *"
+            placeholder="프로젝트명 *"
             value={title}
             onChange={e => setTitle(e.target.value)}
           />
-          <input
-            className="border rounded px-3 py-2"
-            placeholder="Project Title (English)"
-            value={titleEn}
-            onChange={e => setTitleEn(e.target.value)}
-          />
           <textarea
             className="border rounded px-3 py-2 col-span-2"
-            placeholder="설명 (한국어)"
+            placeholder="설명"
             rows={3}
             value={description}
             onChange={e => setDescription(e.target.value)}
-          />
-          <textarea
-            className="border rounded px-3 py-2 col-span-2"
-            placeholder="Description (English)"
-            rows={3}
-            value={descriptionEn}
-            onChange={e => setDescriptionEn(e.target.value)}
           />
           <input
             className="border rounded px-3 py-2"

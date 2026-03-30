@@ -39,6 +39,7 @@ interface Photo {
   caption: string
   caption_en: string
   is_portfolio: string
+  folder: string | null
   order: number
   taken_at: string | null
   camera: string | null
@@ -146,28 +147,21 @@ function SortablePhoto({
           ))}
         </div>
 
-        {/* 캡션 */}
+        {/* 캡션 영역 */}
         <div
           className="flex-1 min-w-0 cursor-pointer"
           onClick={() => {
             setEditingCaption(photo.id)
             setCaptionKo(photo.caption || '')
-            setCaptionEn(photo.caption_en || '')
           }}
         >
           {editingCaption === photo.id ? (
             <div className="flex gap-1" onClick={e => e.stopPropagation()}>
               <input
                 className="border rounded px-2 py-0.5 text-xs flex-1"
-                placeholder="캡션 (한국어)"
+                placeholder="캡션"
                 value={captionKo}
                 onChange={e => setCaptionKo(e.target.value)}
-              />
-              <input
-                className="border rounded px-2 py-0.5 text-xs flex-1"
-                placeholder="Caption (English)"
-                value={captionEn}
-                onChange={e => setCaptionEn(e.target.value)}
               />
               <button onClick={() => onSaveCaption(photo)} className="bg-black text-white px-2 py-0.5 text-xs rounded">저장</button>
               <button onClick={() => setEditingCaption(null)} className="border px-2 py-0.5 text-xs rounded">취소</button>
@@ -294,20 +288,14 @@ function SortablePhoto({
         </div>
       </div>
 
-      {/* 캡션 영역 */}
+      {/* 캡션 영역 - 영어 칸 제거 */}
       {editingCaption === photo.id ? (
         <div className="p-2 bg-white">
           <input
             className="w-full border rounded px-2 py-1 text-xs mb-1"
-            placeholder="캡션 (한국어)"
+            placeholder="캡션"
             value={captionKo}
             onChange={e => setCaptionKo(e.target.value)}
-          />
-          <input
-            className="w-full border rounded px-2 py-1 text-xs mb-2"
-            placeholder="Caption (English)"
-            value={captionEn}
-            onChange={e => setCaptionEn(e.target.value)}
           />
           <div className="flex gap-1">
             <button onClick={() => onSaveCaption(photo)} className="bg-black text-white px-2 py-1 text-xs">저장</button>
@@ -320,13 +308,11 @@ function SortablePhoto({
           onClick={() => {
             setEditingCaption(photo.id)
             setCaptionKo(photo.caption || '')
-            setCaptionEn(photo.caption_en || '')
           }}
         >
           {photo.caption || photo.caption_en ? (
             <div>
               {photo.caption && <p className="text-xs text-gray-600">{photo.caption}</p>}
-              {photo.caption_en && <p className="text-xs text-gray-400 italic">{photo.caption_en}</p>}
             </div>
           ) : (
             <p className="text-xs text-gray-300">캡션 추가...</p>
@@ -375,6 +361,7 @@ export default function ProjectDetail() {
   const [filterRating, setFilterRating] = useState<number | null>(null)
   const [filterColor, setFilterColor] = useState<string | null>(null)
   const [filterPortfolio, setFilterPortfolio] = useState(false)
+  const [filterFolder, setFilterFolder] = useState<string | null>(null)
   const [gridCols, setGridCols] = useState(3)
   const [showExif, setShowExif] = useState(true)
   const [showFilter, setShowFilter] = useState(true)
@@ -419,7 +406,16 @@ export default function ProjectDetail() {
     for (const file of files) {
       const formData = new FormData()
       formData.append('file', file)
-      await axios.post(`${API}/photos/upload?project_id=${id}`, formData, {
+
+      // 폴더 업로드인 경우 폴더명 추출
+      const relativePath = (file as any).webkitRelativePath
+      const folder = relativePath ? relativePath.split('/')[0] : null
+
+      const url = folder
+        ? `${API}/photos/upload?project_id=${id}&folder=${encodeURIComponent(folder)}`
+        : `${API}/photos/upload?project_id=${id}`
+
+      await axios.post(url, formData, {
         headers: { 'Content-Type': 'multipart/form-data' }
       })
     }
@@ -523,6 +519,7 @@ export default function ProjectDetail() {
     }
     if (filterColor !== null && photo.color_label !== filterColor) return false
     if (filterPortfolio && photo.is_portfolio !== 'true') return false
+    if (filterFolder !== null && photo.folder !== filterFolder) return false
     return true
   })
 
@@ -576,21 +573,18 @@ export default function ProjectDetail() {
   return (
     <div className="max-w-5xl mx-auto p-6">
       {/* 프로젝트 헤더 */}
-      <div className="mb-8">
-        <h2 className="text-3xl font-bold mb-1">{project.title}</h2>
-        {project.title_en && <p className="text-gray-400 mb-4">{project.title_en}</p>}
-        {project.location && <p className="text-sm text-gray-500 mb-4">📍 {project.location}</p>}
-        {project.description && <p className="text-gray-700 mb-2">{project.description}</p>}
-        {project.description_en && <p className="text-gray-500 text-sm">{project.description_en}</p>}
+      <div className="mb-8 flex items-start justify-between gap-6">
+        <div className="flex-1">
+          <h2 className="text-3xl font-bold mb-1">{project.title}</h2>
+          {project.location && <p className="text-sm text-gray-500 mb-4">📍 {project.location}</p>}
+          {project.description && <p className="text-gray-700 mb-2">{project.description}</p>}
+        </div>
         {project.cover_image_url && (
-          <div className="mt-4 flex items-center gap-3">
-            <img src={project.cover_image_url} alt="커버" className="w-16 h-16 object-cover rounded" />
-            <div>
-              <p className="text-xs text-gray-500 mb-1">현재 커버 이미지</p>
-              <button onClick={handleRemoveCover} className="text-xs text-red-400 hover:text-red-600">
-                커버 제거
-              </button>
-            </div>
+          <div className="shrink-0 flex flex-col items-center gap-2">
+            <img src={project.cover_image_url} alt="커버" className="w-24 h-24 object-cover rounded" />
+            <button onClick={handleRemoveCover} className="text-xs text-red-400 hover:text-red-600">
+              커버 제거
+            </button>
           </div>
         )}
       </div>
@@ -624,20 +618,34 @@ export default function ProjectDetail() {
             </button>
 
             {showFilter && (
-              <div className="bg-white rounded-lg shadow p-4 sticky top-4">
+              <div className="bg-white rounded-lg shadow p-4 overflow-y-auto max-h-[calc(100vh-2rem)] sticky top-4">
 
                 {/* 업로드 버튼 */}
-                <label className="cursor-pointer bg-black text-white px-3 py-2 text-xs tracking-wider hover:bg-gray-800 inline-block w-full text-center mb-4">
-                  {uploading ? '업로드 중...' : '+ 사진 업로드'}
-                  <input
-                    type="file"
-                    accept="image/*"
-                    multiple
-                    className="hidden"
-                    onChange={handleUpload}
-                    disabled={uploading}
-                  />
-                </label>
+                <div className="mb-4 flex flex-col gap-2">
+                  <label className="cursor-pointer bg-black text-white px-3 py-2 text-xs tracking-wider hover:bg-gray-800 inline-block w-full text-center">
+                    {uploading ? '업로드 중...' : '+ 사진 업로드'}
+                    <input
+                      type="file"
+                      accept="image/*"
+                      multiple
+                      className="hidden"
+                      onChange={handleUpload}
+                      disabled={uploading}
+                    />
+                  </label>
+                  <label className="cursor-pointer bg-gray-700 text-white px-3 py-2 text-xs tracking-wider hover:bg-gray-600 inline-block w-full text-center">
+                    {uploading ? '업로드 중...' : '+ 폴더 업로드'}
+                    <input
+                      type="file"
+                      accept="image/*"
+                      multiple
+                      className="hidden"
+                      onChange={handleUpload}
+                      disabled={uploading}
+                      {...{ webkitdirectory: '' } as any}
+                    />
+                  </label>
+                </div>
 
                 {/* 보기 설정 */}
                 <div className="mb-4">
@@ -669,11 +677,41 @@ export default function ProjectDetail() {
 
                 {/* 전체 보기 */}
                 <button
-                  onClick={() => { setFilterRating(null); setFilterColor(null); setFilterPortfolio(false) }}
+                  onClick={() => { setFilterRating(null); setFilterColor(null); setFilterPortfolio(false); setFilterFolder(null) }}
                   className={`w-full text-left px-2 py-1 text-xs rounded mb-3 ${!filterRating && !filterColor && !filterPortfolio ? 'bg-black text-white' : 'hover:bg-gray-50'}`}
                 >
                   전체 ({photos.length})
                 </button>
+
+                {/* 폴더 필터 */}
+                {photos.some(p => p.folder) && (
+                  <div className="mt-4 mb-4">
+                    <p className="text-xs font-semibold text-gray-500 mb-2">폴더</p>
+                    <button
+                      onClick={() => setFilterFolder(null)}
+                      className={`w-full text-left px-2 py-1 text-xs rounded flex items-center justify-between mb-1 ${filterFolder === null ? 'bg-black text-white' : 'hover:bg-gray-50'}`}
+                    >
+                      <span>전체</span>
+                      <span className="text-gray-400">{photos.length}</span>
+                    </button>
+                    {[...new Set(photos.filter(p => p.folder).map(p => p.folder))].map(folder => {
+                      const count = photos.filter(p => p.folder === folder).length
+                      return (
+                        <button
+                          key={folder}
+                          onClick={() => setFilterFolder(filterFolder === folder ? null : folder!)}
+                          className={`w-full text-left px-2 py-1 text-xs rounded flex items-center justify-between ${filterFolder === folder ? 'bg-black text-white' : 'hover:bg-gray-50'}`}
+                        >
+                          <span className="flex items-center gap-1">
+                            <span>📁</span>
+                            <span className="truncate">{folder}</span>
+                          </span>
+                          <span className="text-gray-400">{count}</span>
+                        </button>
+                      )
+                    })}
+                  </div>
+                )}
 
                 {/* 별점 필터 */}
                 <div className="mb-4">

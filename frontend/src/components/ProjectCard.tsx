@@ -48,9 +48,6 @@ export default function ProjectCard({ project }: { project: Project }) {
               {statusLabel[project.status] || project.status}
             </span>
           </div>
-          {project.title_en && (
-            <p className="text-xs text-gray-400 mb-2">{project.title_en}</p>
-          )}
           {project.description && (
             <p className="text-sm text-gray-600 line-clamp-2">{project.description}</p>
           )}

@@ -52,6 +52,7 @@ class Photo(Base):
     color_label = Column(String, nullable=True)
     project = relationship("Project", back_populates="photos")
     created_at = Column(DateTime, default=datetime.utcnow)
+    folder = Column(String, nullable=True)
 
 class Pitch(Base):
     __tablename__ = "pitches"

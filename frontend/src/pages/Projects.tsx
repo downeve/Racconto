@@ -73,10 +73,8 @@ export default function Projects() {
         <div className="bg-white rounded-lg shadow p-6 mb-8">
           <h3 className="font-semibold mb-4">프로젝트 등록</h3>
           <div className="grid grid-cols-2 gap-4 mb-4">
-            <input className="border rounded px-3 py-2" placeholder="프로젝트명 (한국어) *" value={title} onChange={e => setTitle(e.target.value)} />
-            <input className="border rounded px-3 py-2" placeholder="Project Title (English)" value={titleEn} onChange={e => setTitleEn(e.target.value)} />
-            <textarea className="border rounded px-3 py-2 col-span-2" placeholder="설명 (한국어)" rows={2} value={description} onChange={e => setDescription(e.target.value)} />
-            <textarea className="border rounded px-3 py-2 col-span-2" placeholder="Description (English)" rows={2} value={descriptionEn} onChange={e => setDescriptionEn(e.target.value)} />
+            <input className="border rounded px-3 py-2" placeholder="프로젝트명 *" value={title} onChange={e => setTitle(e.target.value)} />
+            <textarea className="border rounded px-3 py-2 col-span-2" placeholder="설명" rows={2} value={description} onChange={e => setDescription(e.target.value)} />
             <input className="border rounded px-3 py-2" placeholder="촬영 장소" value={location} onChange={e => setLocation(e.target.value)} />
             <select className="border rounded px-3 py-2" value={status} onChange={e => setStatus(e.target.value)}>
               <option value="in_progress">진행 중</option>

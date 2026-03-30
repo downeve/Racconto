@@ -106,6 +106,7 @@ class PhotoCreate(BaseModel):
     is_portfolio: Optional[str] = "false"
     rating: Optional[int] = None
     color_label: Optional[str] = None
+    folder: Optional[str] = None
 
 class PhotoResponse(BaseModel):
     id: str
@@ -127,9 +128,10 @@ class PhotoResponse(BaseModel):
     rating: Optional[int] = None
     color_label: Optional[str] = None
     created_at: datetime
+    folder: Optional[str] = None
 
-    class Config:
-        from_attributes = True
+class Config:
+    from_attributes = True
 
 @router.get("/", response_model=list[PhotoResponse])
 def get_photos(project_id: Optional[str] = None, db: Session = Depends(get_db)):
@@ -170,6 +172,16 @@ def delete_photo(photo_id: str, db: Session = Depends(get_db)):
     photo = db.query(models.Photo).filter(models.Photo.id == photo_id).first()
     if not photo:
         raise HTTPException(status_code=404, detail="사진을 찾을 수 없습니다")
+    
+    # 실제 파일 삭제
+    try:
+        file_path = photo.image_url.split('/uploads/')[-1]
+        full_path = f"{UPLOAD_DIR}/{file_path}"
+        if os.path.exists(full_path):
+            os.remove(full_path)
+    except Exception as e:
+        print(f"파일 삭제 오류: {e}")
+    
     db.delete(photo)
     db.commit()
     return {"message": "삭제되었습니다"}
@@ -178,6 +190,7 @@ def delete_photo(photo_id: str, db: Session = Depends(get_db)):
 async def upload_photo(
     project_id: str,
     file: UploadFile = File(...),
+    folder: Optional[str] = None,
     db: Session = Depends(get_db)
 ):
     ext = file.filename.split(".")[-1].lower()
@@ -209,6 +222,7 @@ async def upload_photo(
         image_url=image_url,
         order=next_order,
         is_portfolio="false",
+        folder=folder,
         taken_at=exif.get('taken_at'),
         camera=exif.get('camera'),
         lens=exif.get('lens'),
