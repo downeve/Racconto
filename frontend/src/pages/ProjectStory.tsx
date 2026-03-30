@@ -55,19 +55,19 @@ export default function ProjectStory({ projectId, allPhotos }: { projectId: stri
     fetchChapters()
   }, [projectId])
 
-  const handleAddChapter = async () => {
+    const handleAddChapter = async () => {
     if (!newTitle.trim()) return
-    const res = await axios.post(`${API}/chapters/`, {
-      project_id: projectId,
-      title: newTitle,
-      description: newDesc,
-      order_num: chapters.length
+    await axios.post(`${API}/chapters/`, {
+        project_id: projectId,
+        title: newTitle,
+        description: newDesc,
+        order_num: chapters.length
     })
     setNewTitle('')
     setNewDesc('')
     setShowAddChapter(false)
     fetchChapters()
-  }
+    }
 
   const handleUpdateChapter = async (chapter: Chapter) => {
     await axios.put(`${API}/chapters/${chapter.id}`, {
