@@ -596,6 +596,11 @@ export default function ProjectDetail() {
 
   return (
     <div className="max-w-5xl mx-auto p-6">
+      {/* 뒤로가기 */}
+      <div className="mb-4">
+        <a href="/projects" className="text-sm text-gray-400 hover:text-black">← 목록</a>
+      </div>
+      
       {/* 프로젝트 헤더 */}
       <div className="mb-8 flex items-start justify-between gap-6">
         <div className="flex-1">

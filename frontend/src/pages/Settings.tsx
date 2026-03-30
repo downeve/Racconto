@@ -19,6 +19,7 @@ export default function Settings() {
   const [confirmPassword, setConfirmPassword] = useState('')
   const [passwordError, setPasswordError] = useState('')
   const [passwordSuccess, setPasswordSuccess] = useState('')
+  const [portfolioTheme, setPortfolioTheme] = useState('light')
 
     const handlePasswordChange = async () => {
     setPasswordError('')
@@ -53,7 +54,10 @@ export default function Settings() {
     }
 
   useEffect(() => {
-    axios.get(`${API}/settings/`).then(res => setSettings(res.data))
+    axios.get(`${API}/settings/`).then(res => {
+      setSettings(res.data)
+      setPortfolioTheme(res.data['portfolio_theme'] || 'light')
+    })
   }, [])
 
   const handleChange = (key: string, value: string) => {
@@ -61,7 +65,10 @@ export default function Settings() {
   }
 
   const handleSave = async () => {
-    await axios.put(`${API}/settings/batch/update`, settings)
+    await axios.put(`${API}/settings/batch/update`, {
+      ...settings,
+      portfolio_theme: portfolioTheme
+    })
     setSaved(true)
     setTimeout(() => setSaved(false), 2000)
   }
@@ -109,6 +116,25 @@ export default function Settings() {
               </button>
             ))}
           </div>
+        </div>
+      </div>
+
+      {/* 포트폴리오 테마 */}
+      <div className="bg-white rounded-lg shadow p-6 mb-6">
+        <h3 className="font-semibold mb-4">포트폴리오 기본 테마</h3>
+        <div className="flex gap-3">
+          <button
+            onClick={() => setPortfolioTheme('light')}
+            className={`px-4 py-2 text-sm rounded border ${portfolioTheme === 'light' ? 'bg-black text-white border-black' : 'border-gray-300 hover:bg-gray-50'}`}
+          >
+            ☀️ 라이트 (베이지)
+          </button>
+          <button
+            onClick={() => setPortfolioTheme('dark')}
+            className={`px-4 py-2 text-sm rounded border ${portfolioTheme === 'dark' ? 'bg-black text-white border-black' : 'border-gray-300 hover:bg-gray-50'}`}
+          >
+            🌙 다크
+          </button>
         </div>
       </div>
 
