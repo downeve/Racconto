@@ -230,7 +230,7 @@ function SortablePhoto({
 }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: photo.id })
   const style = { transform: CSS.Transform.toString(transform), transition, opacity: isDragging ? 0.5 : 1 }
-  const { t } = useTranslation()
+  const { t, i18n } = useTranslation()
 
   // 목록형
   if (gridCols === 1) {
@@ -270,7 +270,13 @@ function SortablePhoto({
         {showExif && editingCaption !== photo.id && (
           <div className="text-xs text-gray-400 shrink-0 text-right">
             {photo.camera && <p>{photo.camera}</p>}
-            {photo.taken_at && <p>{new Date(photo.taken_at).toLocaleDateString('ko-KR')}</p>}
+            {photo.taken_at && (
+              <p>
+                {new Date(photo.taken_at).toLocaleDateString(
+                  i18n.language?.startsWith('ko') ? 'ko-KR' : 'en-US'
+                )}
+              </p>
+            )}
             {(photo.focal_length || photo.aperture || photo.shutter_speed || photo.iso) && (
               <p>{[photo.focal_length, photo.aperture, photo.shutter_speed, photo.iso].filter(Boolean).join(' · ')}</p>
             )}
