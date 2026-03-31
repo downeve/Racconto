@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useLocation } from 'react-router-dom'
 import axios from 'axios'
+import { useTranslation } from 'react-i18next'
 
 const API = import.meta.env.VITE_API_URL
 
@@ -35,6 +36,7 @@ export default function Portfolio() {
   const [lightboxPhotos, setLightboxPhotos] = useState<Photo[]>([])
   const [darkMode, setDarkMode] = useState(false)
   const [lightboxChapter, setLightboxChapter] = useState<string | null>(null)
+  const { t } = useTranslation()
 
   const location = useLocation()
 
@@ -84,7 +86,7 @@ export default function Portfolio() {
 
   return (
     <div className={`min-h-screen ${bg} transition-colors duration-300`}>
-      <div className="max-w-5xl mx-auto p-6">
+      <div className="max-w-6xl mx-auto p-6">
 
         {/* 헤더 */}
         <div className="flex items-center justify-between mb-8">
@@ -94,11 +96,11 @@ export default function Portfolio() {
                 onClick={() => setSelectedProject(null)}
                 className={`text-sm ${subText} hover:text-current`}
               >
-                ← 목록
+                {t('nav.backToList')}
               </button>
             )}
             <h2 className="text-2xl font-bold tracking-wider">
-              {selectedProject ? selectedProject.title : 'Portfolio'}
+              {selectedProject ? selectedProject.title : t('nav.portfolio')}
             </h2>
           </div>
           {/* 배경 토글 */}
@@ -106,7 +108,7 @@ export default function Portfolio() {
             onClick={() => setDarkMode(!darkMode)}
             className={`px-3 py-1 text-xs rounded-full border ${darkMode ? 'border-gray-600 text-gray-400' : 'border-gray-300 text-gray-500'}`}
           >
-            {darkMode ? '☀️ 라이트' : '🌙 다크'}
+            {darkMode ? '☀️ ' + t('settings.themeBeige') : '🌙 ' + t('settings.themeDark')}
           </button>
         </div>
 

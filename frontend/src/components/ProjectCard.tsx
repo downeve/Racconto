@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 
 interface Project {
   id: string
@@ -12,13 +13,6 @@ interface Project {
   created_at: string
 }
 
-const statusLabel: Record<string, string> = {
-  in_progress: '진행 중',
-  completed: '완성',
-  published: '발표됨',
-  archived: '보관'
-}
-
 const statusColor: Record<string, string> = {
   in_progress: 'bg-yellow-100 text-yellow-800',
   completed: 'bg-blue-100 text-blue-800',
@@ -27,6 +21,8 @@ const statusColor: Record<string, string> = {
 }
 
 export default function ProjectCard({ project }: { project: Project }) {
+  const { t } = useTranslation()
+
   return (
     <Link to={`/projects/${project.id}`}>
       <div className="bg-white rounded-lg shadow hover:shadow-md transition-shadow overflow-hidden">
@@ -38,14 +34,14 @@ export default function ProjectCard({ project }: { project: Project }) {
               className="w-full h-full object-cover"
             />
           ) : (
-            <span className="text-gray-400 text-sm">이미지 없음</span>
+            <span className="text-gray-400 text-sm">{t('project.noImage')}</span>
           )}
         </div>
         <div className="p-4">
           <div className="flex items-start justify-between mb-2">
             <h3 className="font-bold text-gray-900">{project.title}</h3>
             <span className={`text-xs px-2 py-1 rounded-full ml-2 shrink-0 ${statusColor[project.status] || 'bg-gray-100'}`}>
-              {statusLabel[project.status] || project.status}
+              {t(`status.${project.status}`)} 
             </span>
           </div>
           {project.description && (

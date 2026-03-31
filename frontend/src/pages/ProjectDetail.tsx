@@ -20,6 +20,7 @@ import {
 import { CSS } from '@dnd-kit/utilities'
 import ProjectStory from './ProjectStory'
 import DeliveryManager from '../components/DeliveryManager'
+import { useTranslation } from 'react-i18next'
 
 const API = import.meta.env.VITE_API_URL
 
@@ -83,6 +84,7 @@ function Lightbox({
   const idx = photos.findIndex(p => p.id === photo.id)
   const [editingCaption, setEditingCaption] = useState(false)
   const [captionDraft, setCaptionDraft] = useState(photo.caption || '')
+  const { t } = useTranslation()
 
   useEffect(() => {
     setEditingCaption(false)
@@ -153,11 +155,11 @@ function Lightbox({
             <div className="w-px h-5 bg-white/20" />
             {/* 포트폴리오 */}
             {inChapter ? (
-              <span className="text-xs text-blue-400">📖 챕터 포함</span>
+              <span className="text-xs text-blue-400">📖 {t('story.chapterIncl')}</span>
             ) : (
               <button onClick={() => onTogglePortfolio(photo)}
                 className={`text-xs px-3 py-1 rounded transition-colors ${isPortfolio ? 'bg-green-600 text-white' : 'bg-white/10 hover:bg-white/20 text-white/70'}`}>
-                {isPortfolio ? '✓ 포트폴리오' : '포트폴리오 추가'}
+                {isPortfolio ? t('photo.isPortfolio') : t('photo.addToPortfolio')}
               </button>
             )}
             {/* EXIF */}
@@ -184,14 +186,14 @@ function Lightbox({
                 autoFocus
               />
               <button onClick={() => { onSaveCaption(photo, captionDraft); setEditingCaption(false) }}
-                className="text-xs px-3 py-1.5 bg-white text-black rounded hover:bg-gray-200">저장</button>
+                className="text-xs px-3 py-1.5 bg-white text-black rounded hover:bg-gray-200">{t('common.save')}</button>
               <button onClick={() => setEditingCaption(false)}
-                className="text-xs px-3 py-1.5 bg-white/10 text-white rounded hover:bg-white/20">취소</button>
+                className="text-xs px-3 py-1.5 bg-white/10 text-white rounded hover:bg-white/20">{t('common.cancel')}</button>
             </div>
           ) : (
             <button onClick={() => { setEditingCaption(true); setCaptionDraft(photo.caption || '') }}
               className="text-left w-full text-sm text-white/60 hover:text-white/90 transition-colors">
-              {photo.caption || <span className="italic text-white/30">캡션 추가...</span>}
+              {photo.caption || <span className="italic text-white/30">{t('photo.addCaption')}</span>}
             </button>
           )}
         </div>
@@ -228,6 +230,7 @@ function SortablePhoto({
 }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: photo.id })
   const style = { transform: CSS.Transform.toString(transform), transition, opacity: isDragging ? 0.5 : 1 }
+  const { t } = useTranslation()
 
   // 목록형
   if (gridCols === 1) {
@@ -261,7 +264,7 @@ function SortablePhoto({
           ) : (
             photo.caption
               ? <p className="text-sm text-gray-700 truncate">{photo.caption}</p>
-              : <p className="text-sm text-gray-300">캡션 추가...</p>
+              : <p className="text-sm text-gray-300">{t('photo.addCaption')}</p>
           )}
         </div>
         {showExif && editingCaption !== photo.id && (
@@ -277,7 +280,7 @@ function SortablePhoto({
           <div className="flex gap-1 shrink-0">
             <button onClick={() => onSetCover(photo)}
               className={`px-2 py-1 text-xs rounded ${project?.cover_image_url === photo.image_url ? 'bg-yellow-400 text-black' : 'bg-gray-100 hover:bg-gray-200'}`}>
-              {project?.cover_image_url === photo.image_url ? '✓커버' : '커버'}
+              {project?.cover_image_url === photo.image_url ? t('photo.isCover') : t('photo.setCover')}
             </button>
             {chapterPhotoIds.has(photo.id) ? (
               <button className="px-2 py-1 text-xs rounded bg-blue-100 text-blue-500 cursor-default">📖 챕터</button>
@@ -318,7 +321,7 @@ function SortablePhoto({
             <button
               onClick={e => { e.stopPropagation(); onSetCover(photo) }}
               className={`${gridCols >= 4 ? 'px-1 py-0.5 text-xs' : 'px-2 py-1 text-xs'} rounded ${project?.cover_image_url === photo.image_url ? 'bg-yellow-400 text-black' : 'bg-white text-black'}`}>
-              {project?.cover_image_url === photo.image_url ? '✓커버' : '커버'}
+              {project?.cover_image_url === photo.image_url ? t('photo.isCover') : t('photo.setCover')}
             </button>
             {/* 챕터 추가 버튼 */}
             {chapters.length > 0 && (
@@ -378,7 +381,7 @@ function SortablePhoto({
           onClick={() => { setEditingCaption(photo.id); setCaptionKo(photo.caption || '') }}>
           {photo.caption
             ? <p className="text-xs text-gray-600">{photo.caption}</p>
-            : <p className="text-xs text-gray-300">캡션 추가...</p>}
+            : <p className="text-xs text-gray-300">{t('photo.addCaption')}</p>}
         </div>
       )}
 
@@ -403,6 +406,8 @@ function SortablePhoto({
 
 // ── ProjectDetail ──────────────────────────────────────────
 export default function ProjectDetail() {
+  const { t, i18n } = useTranslation()
+
   const { id } = useParams()
   const [project, setProject] = useState<Project | null>(null)
   const [photos, setPhotos] = useState<Photo[]>([])
@@ -458,8 +463,8 @@ export default function ProjectDetail() {
 
   const [gridCols, setGridCols] = useState(3)
   const [labelSettings, setLabelSettings] = useState<Record<string, string>>({
-    color_label_red: '거절', color_label_yellow: '보류', color_label_green: '선택',
-    color_label_blue: '클라이언트 공유', color_label_purple: '최종 선택',
+    color_label_red: t('colors.reject'), color_label_yellow: t('colors.hold'), color_label_green: t('colors.select'),
+    color_label_blue: t('colors.clientShare'), color_label_purple: t('colors.finalSelect'),
   })
 
   useEffect(() => {
@@ -467,11 +472,11 @@ export default function ProjectDetail() {
       setGridCols(parseInt(res.data['default_grid_cols'] || '3'))
       setShowExif(res.data['default_show_exif'] !== 'false')
       setLabelSettings({
-        color_label_red: res.data['color_label_red'] || '거절',
-        color_label_yellow: res.data['color_label_yellow'] || '보류',
-        color_label_green: res.data['color_label_green'] || '선택',
-        color_label_blue: res.data['color_label_blue'] || '클라이언트 공유',
-        color_label_purple: res.data['color_label_purple'] || '최종 선택',
+        color_label_red: res.data['color_label_red'] || t('colors.reject'),
+        color_label_yellow: res.data['color_label_yellow'] || t('colors.hold'),
+        color_label_green: res.data['color_label_green'] || t('colors.select'),
+        color_label_blue: res.data['color_label_blue'] || t('colors.clientShare'),
+        color_label_purple: res.data['color_label_purple'] || t('colors.finalSelect'),
       })
     })
   }, [])
@@ -567,7 +572,7 @@ export default function ProjectDetail() {
   }
 
   const handleClearRatings = async () => {
-    if (!confirm('모든 사진의 별점을 초기화할까요?')) return
+    if (!confirm(t('actions.resetRatingsConfirm'))) return
     for (const photo of photos) {
       if (photo.rating !== null) await axios.put(`${API}/photos/${photo.id}`, { ...photo, rating: null })
     }
@@ -575,7 +580,7 @@ export default function ProjectDetail() {
   }
 
   const handleClearColorLabels = async () => {
-    if (!confirm('모든 사진의 컬러 레이블을 초기화할까요?')) return
+    if (!confirm(t('actions.resetColorsConfirm'))) return
     for (const photo of photos) {
       if (photo.color_label !== null) await axios.put(`${API}/photos/${photo.id}`, { ...photo, color_label: null })
     }
@@ -648,7 +653,7 @@ export default function ProjectDetail() {
     }
   }
 
-  if (!project) return <div className="p-6 text-gray-400">로딩 중...</div>
+  if (!project) return <div className="p-6 text-gray-400">{t('common.loading')}</div>
 
   return (
     <div className="max-w-5xl mx-auto p-6">
@@ -669,7 +674,7 @@ export default function ProjectDetail() {
       )}
 
       <div className="mb-4">
-        <a href="/projects" className="text-sm text-gray-400 hover:text-black">← 목록</a>
+        <a href="/projects" className="text-sm text-gray-400 hover:text-black">{t('nav.backToProjects')}</a>
       </div>
 
       <div className="mb-8 flex items-start justify-between gap-6">
@@ -681,7 +686,7 @@ export default function ProjectDetail() {
         {project.cover_image_url && (
           <div className="shrink-0 flex flex-col items-center gap-2">
             <img src={project.cover_image_url} alt="커버" className="w-24 h-24 object-cover rounded" />
-            <button onClick={handleRemoveCover} className="text-xs text-red-400 hover:text-red-600">커버 제거</button>
+            <button onClick={handleRemoveCover} className="text-xs text-red-400 hover:text-red-600">{t('photo.removeCover')}</button>
           </div>
         )}
       </div>
@@ -691,7 +696,7 @@ export default function ProjectDetail() {
         <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center"
           onClick={() => setChapterMenuPhoto(null)}>
           <div className="bg-white rounded-xl p-5 shadow-2xl min-w-[240px]" onClick={e => { e.stopPropagation() }}>
-            <h3 className="text-sm font-semibold mb-3">챕터 선택</h3>
+            <h3 className="text-sm font-semibold mb-3">{t('story.selectChapter')}</h3>
             <div className="space-y-1">
             {chapters.map((chapter, idx) => (
               <button key={chapter.id}
@@ -703,7 +708,7 @@ export default function ProjectDetail() {
             ))}
             </div>
             <button onClick={() => setChapterMenuPhoto(null)}
-              className="mt-3 w-full text-xs text-gray-400 hover:text-black">닫기</button>
+              className="mt-3 w-full text-xs text-gray-400 hover:text-black">{t('common.close')}</button>
           </div>
         </div>
       )}
@@ -712,19 +717,19 @@ export default function ProjectDetail() {
       <div className="flex border-b mb-6">
         <button onClick={() => { setActiveTab('photos'); fetchChapterPhotoIds() }}
           className={`px-6 py-2 text-sm tracking-wider ${activeTab === 'photos' ? 'border-b-2 border-black font-semibold' : 'text-gray-400'}`}>
-          사진 ({photos.length})
+          {t('photo.title')} ({photos.length})
         </button>
         <button onClick={() => setActiveTab('story')}
           className={`px-6 py-2 text-sm tracking-wider ${activeTab === 'story' ? 'border-b-2 border-black font-semibold' : 'text-gray-400'}`}>
-          스토리 ({chapterCount})
+          {t('story.title')} ({chapterCount})
         </button>
         <button onClick={() => setActiveTab('notes')}
           className={`px-6 py-2 text-sm tracking-wider ${activeTab === 'notes' ? 'border-b-2 border-black font-semibold' : 'text-gray-400'}`}>
-          노트 ({notes.length})
+          {t('note.title')} ({notes.length})
         </button>
         <button onClick={() => setActiveTab('delivery')}
           className={`px-6 py-2 text-sm tracking-wider ${activeTab === 'delivery' ? 'border-b-2 border-black font-semibold' : 'text-gray-400'}`}>
-          납품
+          {t('delivery.title')}
         </button>
       </div>
 
@@ -734,23 +739,23 @@ export default function ProjectDetail() {
           <div className={`${showFilter ? 'w-48' : 'w-6'} shrink-0 transition-all duration-200`}>
             <button onClick={() => setShowFilter(!showFilter)}
               className="mb-2 text-gray-400 hover:text-black text-xs flex items-center gap-1">
-              {showFilter ? '◀ 필터' : '▶'}
+              {showFilter ? '◀ ' + t('filter.filter') : '▶'}
             </button>
             {showFilter && (
               <div className="bg-white rounded-lg shadow p-4 overflow-y-auto max-h-[calc(100vh-2rem)] sticky top-4">
                 <div className="mb-4 flex flex-col gap-2">
                   <label className="cursor-pointer bg-black text-white px-3 py-2 text-xs tracking-wider hover:bg-gray-800 inline-block w-full text-center">
-                    {uploading ? '업로드 중...' : '+ 사진 업로드'}
+                    {uploading ? t('photo.uploading') : t('photo.uploadPhotos')}
                     <input type="file" accept="image/*" multiple className="hidden" onChange={handleUpload} disabled={uploading} />
                   </label>
                   <label className="cursor-pointer bg-gray-700 text-white px-3 py-2 text-xs tracking-wider hover:bg-gray-600 inline-block w-full text-center">
-                    {uploading ? '업로드 중...' : '+ 폴더 업로드'}
+                    {uploading ? t('photo.uploading') : t('photo.uploadFolder')}
                     <input type="file" accept="image/*" multiple className="hidden" onChange={handleUpload} disabled={uploading} {...{ webkitdirectory: '' } as any} />
                   </label>
                 </div>
 
                 <div className="mb-4">
-                  <p className="text-xs font-semibold text-gray-500 mb-2">보기</p>
+                  <p className="text-xs font-semibold text-gray-500 mb-2">{t('filter.view')}</p>
                   <div className="flex gap-1 mb-2">
                     {[{ cols: 2, icon: '2' }, { cols: 3, icon: '3' }, { cols: 4, icon: '4' }, { cols: 1, icon: '≡' }].map(({ cols, icon }) => (
                       <button key={cols} onClick={() => setGridCols(cols)}
@@ -759,21 +764,21 @@ export default function ProjectDetail() {
                   </div>
                   <button onClick={() => setShowExif(!showExif)}
                     className={`w-full text-left px-2 py-1 text-xs rounded flex items-center justify-between ${showExif ? 'bg-black text-white' : 'hover:bg-gray-50'}`}>
-                    <span>EXIF 정보</span><span>{showExif ? 'ON' : 'OFF'}</span>
+                    <span>{t('filter.exifOnOff')}</span><span>{showExif ? 'ON' : 'OFF'}</span>
                   </button>
                 </div>
 
                 <button onClick={() => { setFilterRating(null); setFilterColor(null); setFilterPortfolio(false); setFilterFolder(null) }}
                   className={`w-full text-left px-2 py-1 text-xs rounded mb-3 ${!filterRating && !filterColor && !filterPortfolio ? 'bg-black text-white' : 'hover:bg-gray-50'}`}>
-                  전체 ({photos.length})
+                  {t('filter.allPhotos')} ({photos.length})
                 </button>
 
                 {photos.some(p => p.folder) && (
                   <div className="mt-4 mb-4">
-                    <p className="text-xs font-semibold text-gray-500 mb-2">폴더</p>
+                    <p className="text-xs font-semibold text-gray-500 mb-2">{t('filter.folder')}</p>
                     <button onClick={() => setFilterFolder(null)}
                       className={`w-full text-left px-2 py-1 text-xs rounded flex items-center justify-between mb-1 ${filterFolder === null ? 'bg-black text-white' : 'hover:bg-gray-50'}`}>
-                      <span>전체</span><span className="text-gray-400">{photos.length}</span>
+                      <span>{t('filter.allFolders')}</span><span className="text-gray-400">{photos.length}</span>
                     </button>
                     {[...new Set(photos.filter(p => p.folder).map(p => p.folder))].map(folder => {
                       const count = photos.filter(p => p.folder === folder).length
@@ -790,8 +795,8 @@ export default function ProjectDetail() {
 
                 <div className="mb-4">
                   <div className="flex items-center justify-between mb-2">
-                    <p className="text-xs font-semibold text-gray-500 mb-2">별점</p>
-                    <button onClick={handleClearRatings} className="text-xs text-gray-400 hover:text-red-500">초기화</button>
+                    <p className="text-xs font-semibold text-gray-500">{t('filter.rating')}</p>
+                    <button onClick={handleClearRatings} className="text-xs text-gray-400 hover:text-red-500">{t('common.reset')}</button>
                   </div>
                   {[5, 4, 3, 2, 1].map(star => {
                     const count = photos.filter(p => p.rating === star).length
@@ -805,15 +810,15 @@ export default function ProjectDetail() {
                   })}
                   <button onClick={() => setFilterRating(filterRating === 0 ? null : 0)}
                     className={`w-full text-left px-2 py-1 text-xs rounded flex items-center justify-between ${filterRating === 0 ? 'bg-black text-white' : 'hover:bg-gray-50'}`}>
-                    <span className="text-gray-400">미평가</span>
+                    <span className="text-gray-400">{t('filter.unrated')}</span>
                     <span className="text-gray-400">{photos.filter(p => !p.rating).length}</span>
                   </button>
                 </div>
 
                 <div className="mb-4">
                   <div className="flex items-center justify-between mb-2">
-                    <p className="text-xs font-semibold text-gray-500 mb-2">컬러 레이블</p>
-                    <button onClick={handleClearColorLabels} className="text-xs text-gray-400 hover:text-red-500">초기화</button>
+                    <p className="text-xs font-semibold text-gray-500">{t('filter.colors')}</p>
+                    <button onClick={handleClearColorLabels} className="text-xs text-gray-400 hover:text-red-500">{t('common.reset')}</button>
                   </div>
                   {colorLabels.map(label => {
                     const count = photos.filter(p => p.color_label === label.value).length
@@ -828,12 +833,20 @@ export default function ProjectDetail() {
                 </div>
 
                 <div>
-                  <p className="text-xs font-semibold text-gray-500 mb-2">포트폴리오</p>
-                  <button onClick={() => setFilterPortfolio(!filterPortfolio)}
-                    className={`w-full text-left px-2 py-1 text-xs rounded flex items-center justify-between ${filterPortfolio ? 'bg-black text-white' : 'hover:bg-gray-50'}`}>
-                    <span>✓ 포트폴리오</span>
-                    <span className="text-gray-400">{photos.filter(p => p.is_portfolio === 'true').length}</span>
-                  </button>
+                  <p 
+                    onClick={() => setFilterPortfolio(!filterPortfolio)}
+                    className={`cursor-pointer flex items-center justify-between px-0 py-1 mb-2 text-xs font-semibold rounded transition-colors ${
+                      filterPortfolio ? 'bg-black text-white' : 'text-gray-500 hover:bg-gray-50'
+                    }`}
+                  >
+                    {/* 선택되었을 때만 앞에 체크(✓) 표시를 보여줍니다 */}
+                    <span>{filterPortfolio ? ` ✓ ${t('filter.allPortfolio')}` : t('filter.allPortfolio')}</span>
+                    
+                    {/* 사진 개수 표시 (선택 시 글자색도 살짝 밝게 조정) */}
+                    <span className={filterPortfolio ? 'text-gray-300 px-2' : 'text-gray-400 px-2'}>
+                      {photos.filter(p => p.is_portfolio === 'true').length}
+                    </span>
+                  </p>
                 </div>
               </div>
             )}
@@ -866,8 +879,8 @@ export default function ProjectDetail() {
             {filteredPhotos.length === 0 && !uploading && (
               <div className="text-center py-20 text-gray-400">
                 {photos.length === 0
-                  ? <><p className="text-lg mb-2">아직 사진이 없어요</p><p className="text-sm">위 버튼으로 사진을 업로드해봐요</p></>
-                  : <><p className="text-lg mb-2">조건에 맞는 사진이 없어요</p><p className="text-sm">필터를 변경해봐요</p></>}
+                  ? <><p className="text-lg mb-2">{t('photo.noPhotos')}</p></>
+                  : <><p className="text-lg mb-2">{t('filter.noMatch')}</p></>}
               </div>
             )}
           </div>
@@ -884,10 +897,10 @@ export default function ProjectDetail() {
         <div>
           <div className="mb-6">
             <textarea className="w-full border rounded px-3 py-2 text-sm mb-2 focus:outline-none focus:ring-1 focus:ring-black"
-              placeholder="리서치 메모, 촬영 아이디어, 컨셉 노트 등을 자유롭게 기록하세요..."
+              placeholder={t('note.placeholder')}
               rows={4} value={newNote} onChange={e => setNewNote(e.target.value)} />
             <button onClick={handleAddNote} className="bg-black text-white px-4 py-2 text-sm tracking-wider hover:bg-gray-800">
-              + 노트 추가
+              {t('note.addNote')}
             </button>
           </div>
           <div className="space-y-4">
@@ -910,8 +923,8 @@ export default function ProjectDetail() {
                         {new Date(note.updated_at).toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
                       </span>
                       <div className="flex gap-2">
-                        <button onClick={() => { setEditingNote(note.id); setEditContent(note.content) }} className="text-xs text-gray-400 hover:text-black">수정</button>
-                        <button onClick={() => handleDeleteNote(note.id)} className="text-xs text-red-400 hover:text-red-600">삭제</button>
+                        <button onClick={() => { setEditingNote(note.id); setEditContent(note.content) }} className="text-xs text-gray-400 hover:text-black">{t('common.edit')}</button>
+                        <button onClick={() => handleDeleteNote(note.id)} className="text-xs text-red-400 hover:text-red-600">{t('common.delete')}</button>
                       </div>
                     </div>
                   </div>
@@ -921,8 +934,8 @@ export default function ProjectDetail() {
           </div>
           {notes.length === 0 && (
             <div className="text-center py-20 text-gray-400">
-              <p className="text-lg mb-2">아직 노트가 없어요</p>
-              <p className="text-sm">리서치, 아이디어, 컨셉을 자유롭게 기록해봐요</p>
+              <p className="text-lg mb-2">{t('note.noNotes')}</p>
+              <p className="text-sm">{t('note.noNotes2')}</p>
             </div>
           )}
         </div>

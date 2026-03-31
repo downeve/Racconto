@@ -1,14 +1,15 @@
 import { useEffect, useState } from 'react'
 import axios from 'axios'
+import { useTranslation } from 'react-i18next'
 
 const API = import.meta.env.VITE_API_URL
 
 const COLOR_KEYS = [
-  { key: 'color_label_red',    color: 'bg-red-500',    value: 'red',    label: '빨강' },
-  { key: 'color_label_yellow', color: 'bg-yellow-400', value: 'yellow', label: '노랑' },
-  { key: 'color_label_green',  color: 'bg-green-500',  value: 'green',  label: '초록' },
-  { key: 'color_label_blue',   color: 'bg-blue-500',   value: 'blue',   label: '파랑' },
-  { key: 'color_label_purple', color: 'bg-purple-500', value: 'purple', label: '보라' },
+  { key: 'color_label_red',    color: 'bg-red-500',    value: 'red' },
+  { key: 'color_label_yellow', color: 'bg-yellow-400', value: 'yellow' },
+  { key: 'color_label_green',  color: 'bg-green-500',  value: 'green' },
+  { key: 'color_label_blue',   color: 'bg-blue-500',   value: 'blue' },
+  { key: 'color_label_purple', color: 'bg-purple-500', value: 'purple' },
 ]
 
 export default function Settings() {
@@ -23,12 +24,13 @@ export default function Settings() {
   const [deliveryTagColor, setDeliveryTagColor] = useState('purple')
   const [defaultGridCols, setDefaultGridCols] = useState('3')
   const [defaultShowExif, setDefaultShowExif] = useState('true')
+  const { t } = useTranslation()
 
   const handlePasswordChange = async () => {
     setPasswordError('')
     setPasswordSuccess('')
     if (!currentPassword || !newPassword || !confirmPassword) {
-      setPasswordError('모든 항목을 입력해주세요')
+      setPasswordError(t('settings.passwordInputAll'))
       return
     }
     if (newPassword !== confirmPassword) {
@@ -47,12 +49,12 @@ export default function Settings() {
       }, {
         headers: { Authorization: `Bearer ${token}` }
       })
-      setPasswordSuccess('비밀번호가 변경되었습니다!')
+      setPasswordSuccess(t('settings.passwordChanged'))
       setCurrentPassword('')
       setNewPassword('')
       setConfirmPassword('')
     } catch (err: any) {
-      setPasswordError(err.response?.data?.detail || '변경에 실패했어요')
+      setPasswordError(err.response?.data?.detail || t('settings.passwordChangeFailed'))
     }
   }
 
@@ -85,21 +87,23 @@ export default function Settings() {
   function colorName(value: string) {
     const c = COLOR_KEYS.find(o => o.value === value)
     if (!c) return value
-    return settings[c.key] || c.label
+    
+    //c.label 대신 t() 함수를 사용해 동적으로 번역을 가져옵니다.
+    return settings[c.key] || t(`colorLabels.${c.value}`)
   }
 
   return (
     <div className="max-w-2xl mx-auto p-6">
-      <h2 className="text-2xl font-bold mb-8">설정</h2>
+      <h2 className="text-2xl font-bold mb-8">{t('settings.title')}</h2>
 
       {/* 컬러 레이블 */}
       <div className="bg-white rounded-lg shadow p-6 mb-6">
-        <h3 className="font-semibold mb-4">컬러 레이블 이름</h3>
+        <h3 className="font-semibold mb-4">{t('settings.colorLabelNames')}</h3>
         <div className="space-y-3">
-          {COLOR_KEYS.map(({ key, color, label }) => (
+          {COLOR_KEYS.map(({ key, color, value }) => (
             <div key={key} className="flex items-center gap-4">
               <div className={`w-4 h-4 rounded-full ${color} shrink-0`} />
-              <span className="text-sm text-gray-500 w-12 shrink-0">{label}</span>
+              <span className="text-sm text-gray-500 w-12 shrink-0">{t(`colorLabels.${value}`)}</span>
               <input
                 className="flex-1 border rounded px-3 py-1.5 text-sm"
                 value={settings[key] || ''}
@@ -112,65 +116,64 @@ export default function Settings() {
 
       {/* 기본 보기 설정 */}
       <div className="bg-white rounded-lg shadow p-6 mb-6">
-        <h3 className="font-semibold mb-4">기본 보기 설정</h3>
+        <h3 className="font-semibold mb-4">{t('settings.defaultView')}</h3>
         <div className="space-y-4">
+        <div className="grid grid-cols-[max-content_1fr] items-center gap-x-4 gap-y-6">
+          
           {/* 그리드 컬럼 */}
-          <div className="flex items-center gap-4">
-            <span className="text-sm text-gray-500 w-28 shrink-0">기본 그리드 컬럼</span>
-            <div className="flex gap-2">
-              {[
-                { cols: '2', icon: '2' },
-                { cols: '3', icon: '3' },
-                { cols: '4', icon: '4' },
-                { cols: '1', icon: '≡' },
-              ].map(({ cols, icon }) => (
-                <button
-                  key={cols}
-                  onClick={() => setDefaultGridCols(cols)}
-                  className={`w-8 h-8 text-xs rounded ${defaultGridCols === cols ? 'bg-black text-white' : 'bg-gray-100 hover:bg-gray-200'}`}
-                >
-                  {icon}
-                </button>
-              ))}
-            </div>
+          <span className="text-sm text-gray-500">{t('settings.defaultGridCols')}</span>
+          <div className="flex gap-2">
+            {[
+              { cols: '2', icon: '2' },
+              { cols: '3', icon: '3' },
+              { cols: '4', icon: '4' },
+              { cols: '1', icon: '≡' },
+            ].map(({ cols, icon }) => (
+              <button
+                key={cols}
+                onClick={() => setDefaultGridCols(cols)}
+                className={`w-8 h-8 text-xs rounded ${defaultGridCols === cols ? 'bg-black text-white' : 'bg-gray-100 hover:bg-gray-200'}`}
+              >
+                {icon}
+              </button>
+            ))}
           </div>
 
           {/* EXIF 기본값 */}
-          <div className="flex items-center gap-4">
-            <span className="text-sm text-gray-500 w-28 shrink-0">EXIF 정보 기본값</span>
-            <div className="flex gap-2">
-              <button
-                onClick={() => setDefaultShowExif('true')}
-                className={`px-3 py-1.5 text-xs rounded ${defaultShowExif === 'true' ? 'bg-black text-white' : 'bg-gray-100 hover:bg-gray-200'}`}
-              >
-                ON
-              </button>
-              <button
-                onClick={() => setDefaultShowExif('false')}
-                className={`px-3 py-1.5 text-xs rounded ${defaultShowExif === 'false' ? 'bg-black text-white' : 'bg-gray-100 hover:bg-gray-200'}`}
-              >
-                OFF
-              </button>
-            </div>
+          <span className="text-sm text-gray-500">{t('settings.defaultExif')}</span>
+          <div className="flex gap-2">
+            <button
+              onClick={() => setDefaultShowExif('true')}
+              className={`px-3 py-1.5 text-xs rounded ${defaultShowExif === 'true' ? 'bg-black text-white' : 'bg-gray-100 hover:bg-gray-200'}`}
+            >
+              ON
+            </button>
+            <button
+              onClick={() => setDefaultShowExif('false')}
+              className={`px-3 py-1.5 text-xs rounded ${defaultShowExif === 'false' ? 'bg-black text-white' : 'bg-gray-100 hover:bg-gray-200'}`}
+            >
+              OFF
+            </button>
           </div>
+        </div>
         </div>
       </div>
 
       {/* 포트폴리오 테마 */}
       <div className="bg-white rounded-lg shadow p-6 mb-6">
-        <h3 className="font-semibold mb-4">포트폴리오 기본 테마</h3>
+        <h3 className="font-semibold mb-4">{t('settings.portfolioThemeDesc')}</h3>
         <div className="flex gap-3">
           <button
             onClick={() => setPortfolioTheme('light')}
             className={`px-4 py-2 text-sm rounded border ${portfolioTheme === 'light' ? 'bg-black text-white border-black' : 'border-gray-300 hover:bg-gray-50'}`}
           >
-            ☀️ 라이트 (베이지)
+            ☀️ {t('settings.themeLight')}
           </button>
           <button
             onClick={() => setPortfolioTheme('dark')}
             className={`px-4 py-2 text-sm rounded border ${portfolioTheme === 'dark' ? 'bg-black text-white border-black' : 'border-gray-300 hover:bg-gray-50'}`}
           >
-            🌙 다크
+            🌙 {t('settings.themeDark')}
           </button>
         </div>
       </div>
@@ -204,36 +207,36 @@ export default function Settings() {
 
       {/* 비밀번호 변경 */}
       <div className="bg-white rounded-lg shadow p-6 mb-6">
-        <h3 className="font-semibold mb-4">비밀번호 변경</h3>
+        <h3 className="font-semibold mb-4">{t('settings.managePassword')}</h3>
         <div className="space-y-3">
           <input
             type="password"
             className="w-full border rounded px-3 py-2 text-sm"
-            placeholder="현재 비밀번호"
+            placeholder={t('settings.currentPassword')}
             value={currentPassword}
             onChange={e => setCurrentPassword(e.target.value)}
           />
           <input
             type="password"
             className="w-full border rounded px-3 py-2 text-sm"
-            placeholder="새 비밀번호"
+            placeholder={t('settings.newPassword')}
             value={newPassword}
             onChange={e => setNewPassword(e.target.value)}
           />
           <input
             type="password"
             className="w-full border rounded px-3 py-2 text-sm"
-            placeholder="새 비밀번호 확인"
+            placeholder={t('settings.newPasswordConfirm')}
             value={confirmPassword}
             onChange={e => setConfirmPassword(e.target.value)}
           />
-          {passwordError && <p className="text-red-500 text-xs">{passwordError}</p>}
-          {passwordSuccess && <p className="text-green-500 text-xs">{passwordSuccess}</p>}
+          {passwordError && <p className="text-red-500 text-xs">{t('settings.passwordChangeFailed')}</p>}
+          {passwordSuccess && <p className="text-green-500 text-xs">{t('settings.passwordChanged')}</p>}
           <button
             onClick={handlePasswordChange}
             className="bg-black text-white px-4 py-2 text-sm hover:bg-gray-800"
           >
-            비밀번호 변경
+            {t('settings.changePassword')}
           </button>
         </div>
       </div>
@@ -243,7 +246,7 @@ export default function Settings() {
         onClick={handleSave}
         className="bg-black text-white px-6 py-2 text-sm tracking-wider hover:bg-gray-800"
       >
-        {saved ? '✓ 저장됨' : '저장'}
+        {saved ? t('settings.saveSuccess') : t('common.save')}
       </button>
     </div>
   )

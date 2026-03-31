@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import axios from 'axios'
 import ProjectCard from '../components/ProjectCard'
 import { Link } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 
 const API = import.meta.env.VITE_API_URL
 
@@ -27,9 +28,10 @@ export default function Projects() {
   const [location, setLocation] = useState('')
   const [status, setStatus] = useState('in_progress')
   const [isPublic, setIsPublic] = useState('false')
+  const { t } = useTranslation()
 
   const handleDelete = async (projectId: string) => {
-    if (!confirm('프로젝트를 삭제할까요? 사진과 노트도 모두 삭제되며 30일 동안 휴지통에 보관됩니다.')) return
+    if (!confirm((t('project.deleteConfirm')))) return
     await axios.delete(`${API}/projects/${projectId}`)
     fetchProjects()
   }
@@ -60,36 +62,36 @@ export default function Projects() {
   return (
     <div className="max-w-6xl mx-auto p-6">
       <div className="flex items-center justify-between mb-8">
-        <h2 className="text-2xl font-bold">프로젝트</h2>
+        <h2 className="text-2xl font-bold">{t('nav.projects')}</h2>
         <button
           onClick={() => setShowForm(!showForm)}
           className="bg-black text-white px-4 py-2 text-sm tracking-wider hover:bg-gray-800"
         >
-          + 새 프로젝트
+          {t('project.newProject')}
         </button>
       </div>
 
       {showForm && (
         <div className="bg-white rounded-lg shadow p-6 mb-8">
-          <h3 className="font-semibold mb-4">프로젝트 등록</h3>
+          <h3 className="font-semibold mb-4">{t('project.createProject')}</h3>
           <div className="grid grid-cols-2 gap-4 mb-4">
-            <input className="border rounded px-3 py-2" placeholder="프로젝트명 *" value={title} onChange={e => setTitle(e.target.value)} />
-            <textarea className="border rounded px-3 py-2 col-span-2" placeholder="설명" rows={2} value={description} onChange={e => setDescription(e.target.value)} />
-            <input className="border rounded px-3 py-2" placeholder="촬영 장소" value={location} onChange={e => setLocation(e.target.value)} />
+            <input className="border rounded px-3 py-2" placeholder={t('project.projectName')} value={title} onChange={e => setTitle(e.target.value)} />
+            <textarea className="border rounded px-3 py-2 col-span-2" placeholder={t('project.description')} rows={2} value={description} onChange={e => setDescription(e.target.value)} />
+            <input className="border rounded px-3 py-2" placeholder={t('project.location')} value={location} onChange={e => setLocation(e.target.value)} />
             <select className="border rounded px-3 py-2" value={status} onChange={e => setStatus(e.target.value)}>
-              <option value="in_progress">진행 중</option>
-              <option value="completed">완성</option>
-              <option value="published">발표됨</option>
-              <option value="archived">보관</option>
+              <option value="in_progress">{t('project.statusInProgress')}</option>
+              <option value="completed">{t('project.statusCompleted')}</option>
+              <option value="published">{t('project.statusPublished')}</option>
+              <option value="archived">{t('project.statusArchived')}</option>
             </select>
             <select className="border rounded px-3 py-2" value={isPublic} onChange={e => setIsPublic(e.target.value)}>
-              <option value="false">비공개</option>
-              <option value="true">공개 (포트폴리오 노출)</option>
+              <option value="false">{t('project.privateProject')}</option>
+              <option value="true">{t('project.publicProject')}</option>
             </select>
           </div>
           <div className="flex gap-2">
-            <button onClick={handleSubmit} className="bg-black text-white px-6 py-2 text-sm hover:bg-gray-800">등록</button>
-            <button onClick={() => setShowForm(false)} className="border px-6 py-2 text-sm hover:bg-gray-50">취소</button>
+            <button onClick={handleSubmit} className="bg-black text-white px-6 py-2 text-sm hover:bg-gray-800">{t('common.save')}</button>
+            <button onClick={() => setShowForm(false)} className="border px-6 py-2 text-sm hover:bg-gray-50">{t('common.cancel')}</button>
           </div>
         </div>
       )}
@@ -104,13 +106,13 @@ export default function Projects() {
                 className="bg-white text-black px-2 py-1 text-xs rounded shadow hover:bg-gray-100"
                 onClick={e => e.stopPropagation()}
               >
-                수정
+                {t('common.edit')}
               </Link>
               <button
                 onClick={e => { e.preventDefault(); handleDelete(project.id) }}
                 className="bg-red-500 text-white px-2 py-1 text-xs rounded shadow hover:bg-red-600"
               >
-                삭제
+                {t('common.delete')}
               </button>
             </div>
           </div>
@@ -119,8 +121,7 @@ export default function Projects() {
 
       {projects.length === 0 && (
         <div className="text-center py-20 text-gray-400">
-          <p className="text-lg mb-2">프로젝트가 없어요</p>
-          <p className="text-sm">첫 번째 프로젝트를 등록해봐요</p>
+          <p className="text-lg mb-2">{t('project.noProjects')}</p>
         </div>
       )}
     </div>

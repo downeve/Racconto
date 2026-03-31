@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import axios from 'axios'
+import { useTranslation } from 'react-i18next'
 
 const API = import.meta.env.VITE_API_URL
 
@@ -37,6 +38,7 @@ export default function ProjectStory({ projectId, allPhotos, onChapterChange }: 
   const [editTitle, setEditTitle] = useState('')
   const [editDesc, setEditDesc] = useState('')
   const [showPhotoSelector, setShowPhotoSelector] = useState<string | null>(null)
+  const { t } = useTranslation()
 
   const fetchChapters = async () => {
   const res = await axios.get(`${API}/chapters/?project_id=${projectId}`)
@@ -81,7 +83,7 @@ export default function ProjectStory({ projectId, allPhotos, onChapterChange }: 
   }
 
   const handleDeleteChapter = async (chapterId: string) => {
-    if (!confirm('챕터를 삭제할까요? 사진 연결도 해제됩니다.')) return
+    if (!confirm(t('story.chapterDeleteWarning'))) return
     await axios.delete(`${API}/chapters/${chapterId}`)
     fetchChapters()
   }
@@ -132,20 +134,20 @@ export default function ProjectStory({ projectId, allPhotos, onChapterChange }: 
             <div className="bg-white rounded-lg shadow p-4">
               <input
                 className="w-full border rounded px-3 py-2 text-sm mb-2"
-                placeholder="챕터 제목 *"
+                placeholder={t('story.chapterTitlePlaceholder')}
                 value={newTitle}
                 onChange={e => setNewTitle(e.target.value)}
               />
               <textarea
                 className="w-full border rounded px-3 py-2 text-sm mb-3"
-                placeholder="챕터 설명 (선택)"
+                placeholder={t('story.chapterDescPlaceholder')}
                 rows={2}
                 value={newDesc}
                 onChange={e => setNewDesc(e.target.value)}
               />
               <div className="flex gap-2">
-                <button onClick={handleAddChapter} className="bg-black text-white px-4 py-2 text-sm hover:bg-gray-800">추가</button>
-                <button onClick={() => setShowAddChapter(false)} className="border px-4 py-2 text-sm hover:bg-gray-50">취소</button>
+                <button onClick={handleAddChapter} className="bg-black text-white px-4 py-2 text-sm hover:bg-gray-800">{t('common.add')}</button>
+                <button onClick={() => setShowAddChapter(false)} className="border px-4 py-2 text-sm hover:bg-gray-50">{t('common.cancel')}</button>
               </div>
             </div>
           ) : (
@@ -153,7 +155,7 @@ export default function ProjectStory({ projectId, allPhotos, onChapterChange }: 
               onClick={() => setShowAddChapter(true)}
               className="bg-black text-white px-4 py-2 text-sm tracking-wider hover:bg-gray-800"
             >
-              + 챕터 추가
+              {t('story.addChapter')}
             </button>
           )}
         </div>
@@ -178,8 +180,8 @@ export default function ProjectStory({ projectId, allPhotos, onChapterChange }: 
                       onChange={e => setEditDesc(e.target.value)}
                     />
                     <div className="flex gap-2">
-                      <button onClick={() => handleUpdateChapter(chapter)} className="bg-black text-white px-3 py-1 text-xs">저장</button>
-                      <button onClick={() => setEditingChapter(null)} className="border px-3 py-1 text-xs">취소</button>
+                      <button onClick={() => handleUpdateChapter(chapter)} className="bg-black text-white px-3 py-1 text-xs">{t('common.save')}</button>
+                      <button onClick={() => setEditingChapter(null)} className="border px-3 py-1 text-xs">{t('common.cancel')}</button>
                     </div>
                   </div>
                 ) : (
@@ -208,9 +210,9 @@ export default function ProjectStory({ projectId, allPhotos, onChapterChange }: 
                             onClick={() => { setEditingChapter(chapter.id); setEditTitle(chapter.title); setEditDesc(chapter.description || '') }}
                             className="text-xs text-gray-400 hover:text-black"
                         >
-                            수정
+                            {t('common.edit')}
                           </button>
-                          <button onClick={() => handleDeleteChapter(chapter.id)} className="text-xs text-red-400 hover:text-red-600">삭제</button>
+                          <button onClick={() => handleDeleteChapter(chapter.id)} className="text-xs text-red-400 hover:text-red-600">{t('story.deleteChapter')}</button>
                     </div>
                   </div>
                 )}
@@ -235,13 +237,13 @@ export default function ProjectStory({ projectId, allPhotos, onChapterChange }: 
                   onClick={() => setShowPhotoSelector(showPhotoSelector === chapter.id ? null : chapter.id)}
                   className="text-xs text-gray-400 hover:text-black border px-3 py-1 rounded"
                 >
-                  + 사진 추가
+                  {t('story.addPhotos')}
                 </button>
 
                 {/* 사진 선택기 */}
                 {showPhotoSelector === chapter.id && (
                   <div className="mt-3 p-3 bg-gray-50 rounded">
-                    <p className="text-xs text-gray-500 mb-2">추가할 사진 선택:</p>
+                    <p className="text-xs text-gray-500 mb-2">{t('story.selectPhotos')}:</p>
                     <div className="grid grid-cols-4 gap-2 max-h-48 overflow-y-auto">
                       {allPhotos.map(photo => {
                         const isAdded = (chapterPhotos[chapter.id] || []).some(cp => cp.photo_id === photo.id)
@@ -265,7 +267,7 @@ export default function ProjectStory({ projectId, allPhotos, onChapterChange }: 
                       onClick={() => setShowPhotoSelector(null)}
                       className="mt-2 text-xs text-gray-400 hover:text-black"
                     >
-                      닫기
+                      {t('common.close')}
                     </button>
                   </div>
                 )}
@@ -276,8 +278,7 @@ export default function ProjectStory({ projectId, allPhotos, onChapterChange }: 
 
         {chapters.length === 0 && (
           <div className="text-center py-20 text-gray-400">
-            <p className="text-lg mb-2">아직 챕터가 없어요</p>
-            <p className="text-sm">위 버튼으로 첫 챕터를 추가해봐요</p>
+            <p className="text-lg mb-2">{t('story.noChapter')}</p>
           </div>
         )}
       </div>
