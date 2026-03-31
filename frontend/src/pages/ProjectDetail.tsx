@@ -926,7 +926,10 @@ export default function ProjectDetail() {
                     <p className="text-sm text-gray-700 whitespace-pre-wrap mb-3">{note.content}</p>
                     <div className="flex items-center justify-between">
                       <span className="text-xs text-gray-400">
-                        {new Date(note.updated_at).toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                      {new Date(note.updated_at).toLocaleString(
+                        i18n.language?.startsWith('ko') ? 'ko-KR' : 'en-US', 
+                        { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' }
+                      )}
                       </span>
                       <div className="flex gap-2">
                         <button onClick={() => { setEditingNote(note.id); setEditContent(note.content) }} className="text-xs text-gray-400 hover:text-black">{t('common.edit')}</button>
