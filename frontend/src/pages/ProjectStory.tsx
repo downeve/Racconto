@@ -218,7 +218,7 @@ export default function ProjectStory({ projectId, allPhotos, onChapterChange }: 
 
               {/* 챕터 사진 */}
               <div className="p-4">
-                <div className="grid grid-cols-4 gap-2 mb-3">
+                <div className="grid grid-cols-3 gap-2 mb-3">
                   {(chapterPhotos[chapter.id] || []).map(cp => (
                     <div key={cp.id} className="relative group">
                       <img src={cp.image_url} alt={cp.caption || ''} className="w-full h-24 object-contain rounded bg-gray-100" />
@@ -242,7 +242,7 @@ export default function ProjectStory({ projectId, allPhotos, onChapterChange }: 
                 {showPhotoSelector === chapter.id && (
                   <div className="mt-3 p-3 bg-gray-50 rounded">
                     <p className="text-xs text-gray-500 mb-2">추가할 사진 선택:</p>
-                    <div className="grid grid-cols-5 gap-2 max-h-48 overflow-y-auto">
+                    <div className="grid grid-cols-4 gap-2 max-h-48 overflow-y-auto">
                       {allPhotos.map(photo => {
                         const isAdded = (chapterPhotos[chapter.id] || []).some(cp => cp.photo_id === photo.id)
                         return (

@@ -213,14 +213,14 @@ export default function Portfolio() {
                       key={photo.id}
                       src={photo.image_url}
                       alt={photo.caption || ''}
-                      className="w-full object-cover rounded cursor-pointer hover:opacity-80 transition-opacity"
+                      className="w-full object-contain bg-gray-100 rounded cursor-pointer hover:opacity-80 transition-opacity"
                       onClick={() => openLightbox(photo, selectedProject.extra_photos, '기타')}
                     />
                   ))}
                 </div>
               </div>
             )}
-            
+
             {selectedProject.photos.length === 0 && selectedProject.chapters.length === 0 && (
               <div className="text-center py-20">
                 <p className={subText}>포트폴리오로 선택된 사진이 없어요</p>

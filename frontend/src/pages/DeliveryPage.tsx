@@ -265,7 +265,7 @@ export default function DeliveryPage() {
                   <img
                     src={photo.image_url}
                     alt={photo.caption || ''}
-                    className="w-full object-cover hover:opacity-90 transition-opacity"
+                    className="w-full object-contain bg-gray-50 hover:opacity-90 transition-opacity"
                     onClick={() => setLightboxPhoto(photo)}
                   />
 

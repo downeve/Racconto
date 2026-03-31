@@ -204,7 +204,7 @@ function Lightbox({
 function SortablePhoto({
   photo, project, editingCaption, captionKo, setCaptionKo, setEditingCaption,
   onSetCover, onTogglePortfolio, onDelete, onSaveCaption, onSetRating, onSetColorLabel,
-  onOpenLightbox, showExif, gridCols, colorLabels, chapterPhotoIds
+  onOpenLightbox, showExif, gridCols, colorLabels, chapterPhotoIds, chapters, onShowChapterMenu
 }: {
   photo: Photo
   project: Project
@@ -223,6 +223,8 @@ function SortablePhoto({
   gridCols: number
   colorLabels: { value: string; color: string; label: string }[]
   chapterPhotoIds: Set<string>
+  chapters: { id: string; title: string }[]
+  onShowChapterMenu: (photoId: string) => void
 }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: photo.id })
   const style = { transform: CSS.Transform.toString(transform), transition, opacity: isDragging ? 0.5 : 1 }
@@ -318,10 +320,28 @@ function SortablePhoto({
               className={`${gridCols >= 4 ? 'px-1 py-0.5 text-xs' : 'px-2 py-1 text-xs'} rounded ${project?.cover_image_url === photo.image_url ? 'bg-yellow-400 text-black' : 'bg-white text-black'}`}>
               {project?.cover_image_url === photo.image_url ? '✓커버' : '커버'}
             </button>
+            {/* 챕터 추가 버튼 */}
+            {chapters.length > 0 && (
+              chapterPhotoIds.has(photo.id) ? (
+                // 이미 챕터에 있으면 비활성 표시
+                <button
+                  className={`${gridCols >= 4 ? 'px-1 py-0.5 text-xs' : 'px-2 py-1 text-xs'} rounded bg-blue-500 text-white opacity-70 cursor-default`}
+                  title="이미 챕터에 포함된 사진"
+                >📖</button>
+              ) : (
+                // 챕터에 없으면 클릭 가능
+                <button
+                  onClick={e => { e.stopPropagation(); onShowChapterMenu(photo.id) }}
+                  className={`${gridCols >= 4 ? 'px-1 py-0.5 text-xs' : 'px-2 py-1 text-xs'} rounded bg-white text-black`}
+                  title="챕터에 추가"
+                >📖</button>
+              )
+            )}
+            {/* 삭제 — 빨간 X */}
             <button
               onClick={e => { e.stopPropagation(); onDelete(photo.id) }}
-              className={`${gridCols >= 4 ? 'px-1 py-0.5 text-xs' : 'px-2 py-1 text-xs'} bg-red-500 text-white rounded`}>
-              삭제
+              className="w-6 h-6 flex items-center justify-center bg-red-500 text-white rounded-full text-xs font-bold">
+              ✕
             </button>
           </div>
         </div>
@@ -403,6 +423,8 @@ export default function ProjectDetail() {
   const [captionKo, setCaptionKo] = useState('')
   const [chapterPhotoIds, setChapterPhotoIds] = useState<Set<string>>(new Set())
   const [lightboxPhoto, setLightboxPhoto] = useState<Photo | null>(null)
+  const [chapterMenuPhoto, setChapterMenuPhoto] = useState<string | null>(null)
+  const [chapters, setChapters] = useState<{ id: string; title: string }[]>([])
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
@@ -419,6 +441,7 @@ export default function ProjectDetail() {
     if (!id) return
     const res = await axios.get(`${API}/chapters/?project_id=${id}`)
     setChapterCount(res.data.length)
+    setChapters(res.data.map((c: any) => ({ id: c.id, title: c.title }))) // 추가
     const ids = new Set<string>()
     for (const chapter of res.data) {
       const photoRes = await axios.get(`${API}/chapters/${chapter.id}/photos`)
@@ -584,6 +607,16 @@ export default function ProjectDetail() {
     fetchNotes()
   }
 
+  const handleAddToChapter = async (photoId: string, chapterId: string) => {
+  try {
+      await axios.post(`${API}/chapters/${chapterId}/photos`, { photo_id: photoId })
+      fetchChapterPhotoIds()
+    } catch {
+      // 이미 추가됨
+    }
+    setChapterMenuPhoto(null)
+  }
+
   const colorLabels = [
     { value: 'red',    color: 'bg-red-500',    label: labelSettings['color_label_red'] },
     { value: 'yellow', color: 'bg-yellow-400', label: labelSettings['color_label_yellow'] },
@@ -652,6 +685,28 @@ export default function ProjectDetail() {
           </div>
         )}
       </div>
+
+      {/* 챕터 선택 모달 */}
+      {chapterMenuPhoto && (
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center"
+          onClick={() => setChapterMenuPhoto(null)}>
+          <div className="bg-white rounded-xl p-5 shadow-2xl min-w-[240px]" onClick={e => { e.stopPropagation() }}>
+            <h3 className="text-sm font-semibold mb-3">챕터 선택</h3>
+            <div className="space-y-1">
+            {chapters.map((chapter, idx) => (
+              <button key={chapter.id}
+                onClick={() => handleAddToChapter(chapterMenuPhoto, chapter.id)}
+                className="w-full text-left px-3 py-2 text-sm rounded hover:bg-gray-100 text-gray-700">
+                <span className="text-gray-400 text-xs mr-2">Ch.{idx + 1}</span>
+                {chapter.title}
+              </button>
+            ))}
+            </div>
+            <button onClick={() => setChapterMenuPhoto(null)}
+              className="mt-3 w-full text-xs text-gray-400 hover:text-black">닫기</button>
+          </div>
+        </div>
+      )}
 
       {/* 탭 */}
       <div className="flex border-b mb-6">
@@ -799,6 +854,8 @@ export default function ProjectDetail() {
                       onDelete={handleDeletePhoto} onSaveCaption={handleSaveCaption}
                       onSetRating={handleSetRating} onSetColorLabel={handleSetColorLabel}
                       onOpenLightbox={setLightboxPhoto}
+                      chapters={chapters}           // 추가
+                      onShowChapterMenu={setChapterMenuPhoto}
                       showExif={showExif} gridCols={gridCols}
                       colorLabels={colorLabels} chapterPhotoIds={chapterPhotoIds}
                     />
