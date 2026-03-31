@@ -395,7 +395,7 @@ function SortablePhoto({
       {showExif && (photo.camera || photo.taken_at) && (
         <div className="px-2 pb-2 bg-white">
           <div className="border-t pt-2 mt-1">
-            {photo.taken_at && <p className="text-xs text-gray-400">📅 {new Date(photo.taken_at).toLocaleDateString('ko-KR')}</p>}
+            {photo.taken_at && <p className="text-xs text-gray-400">📅 {new Date(photo.taken_at).toLocaleDateString(i18n.language === 'ko' ? 'ko-KR' : 'en-US')}</p>}
             {photo.camera && <p className="text-xs text-gray-400">📷 {photo.camera}</p>}
             {photo.lens && <p className="text-xs text-gray-400">🔭 {photo.lens}</p>}
             {(photo.iso || photo.shutter_speed || photo.aperture || photo.focal_length) && (
