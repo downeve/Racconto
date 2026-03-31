@@ -157,7 +157,7 @@ function Lightbox({
             ) : (
               <button onClick={() => onTogglePortfolio(photo)}
                 className={`text-xs px-3 py-1 rounded transition-colors ${isPortfolio ? 'bg-green-600 text-white' : 'bg-white/10 hover:bg-white/20 text-white/70'}`}>
-                {isPortfolio ? '✓ 포트폴리오' : '포트폴리오'}
+                {isPortfolio ? '✓ 포트폴리오' : '포트폴리오 추가'}
               </button>
             )}
             {/* EXIF */}
@@ -282,7 +282,7 @@ function SortablePhoto({
             ) : (
               <button onClick={() => onTogglePortfolio(photo)}
                 className={`px-2 py-1 text-xs rounded ${photo.is_portfolio === 'true' ? 'bg-green-500 text-white' : 'bg-gray-100 hover:bg-gray-200'}`}>
-                {photo.is_portfolio === 'true' ? '✓포트폴리오' : '포트폴리오'}
+                {photo.is_portfolio === 'true' ? '✓포트폴리오' : '포트폴리오 추가'}
               </button>
             )}
             <button onClick={() => onDelete(photo.id)} className="px-2 py-1 text-xs bg-red-100 text-red-500 rounded hover:bg-red-200">삭제</button>
@@ -442,6 +442,7 @@ export default function ProjectDetail() {
   useEffect(() => {
     axios.get(`${API}/settings/`).then(res => {
       setGridCols(parseInt(res.data['default_grid_cols'] || '3'))
+      setShowExif(res.data['default_show_exif'] !== 'false')
       setLabelSettings({
         color_label_red: res.data['color_label_red'] || '거절',
         color_label_yellow: res.data['color_label_yellow'] || '보류',

@@ -5,13 +5,19 @@ import axios from 'axios'
 
 const API = import.meta.env.VITE_API_URL
 
-const COLOR_OPTIONS = [
-  { value: 'red',    label: '빨강', bg: 'bg-red-500' },
-  { value: 'yellow', label: '노랑', bg: 'bg-yellow-400' },
-  { value: 'green',  label: '초록', bg: 'bg-green-500' },
-  { value: 'blue',   label: '파랑', bg: 'bg-blue-500' },
-  { value: 'purple', label: '보라', bg: 'bg-purple-500' },
+const COLOR_DEFAULTS = [
+  { value: 'red',    bg: 'bg-red-500',    defaultLabel: '거절' },
+  { value: 'yellow', bg: 'bg-yellow-400', defaultLabel: '보류' },
+  { value: 'green',  bg: 'bg-green-500',  defaultLabel: '선택' },
+  { value: 'blue',   bg: 'bg-blue-500',   defaultLabel: '클라이언트 공유' },
+  { value: 'purple', bg: 'bg-purple-500', defaultLabel: '최종 선택' },
 ]
+
+interface ColorOption {
+  value: string
+  bg: string
+  label: string
+}
 
 interface DeliveryLink {
   id: string
@@ -39,6 +45,10 @@ interface Props {
 }
 
 export default function DeliveryManager({ projectId }: Props) {
+  const [colorOptions, setColorOptions] = useState<ColorOption[]>(
+    COLOR_DEFAULTS.map(c => ({ value: c.value, bg: c.bg, label: c.defaultLabel }))
+  )
+
   const [links, setLinks] = useState<DeliveryLink[]>([])
   const [showForm, setShowForm] = useState(false)
 
@@ -52,10 +62,20 @@ export default function DeliveryManager({ projectId }: Props) {
   const [viewingSelections, setViewingSelections] = useState<string | null>(null)
   const [selections, setSelections] = useState<SelectionResult[]>([])
   const [loadingSelections, setLoadingSelections] = useState(false)
-  const [appliedCaptions, setAppliedCaptions] = useState<Set<string>>(new Set())
+  const [appliedCaptions, setAppliedCaptions] = useState<Record<string, string>>({})
   const [applyingCaption, setApplyingCaption] = useState<string | null>(null)
 
-  useEffect(() => { fetchLinks() }, [projectId])
+  useEffect(() => {
+    // 설정에서 커스텀 컬러 레이블 이름 불러오기
+    axios.get(`${API}/settings/`).then(res => {
+      setColorOptions(COLOR_DEFAULTS.map(c => ({
+        value: c.value,
+        bg: c.bg,
+        label: res.data[`color_label_${c.value}`] || c.defaultLabel,
+      })))
+    })
+    fetchLinks()
+  }, [projectId])
 
   async function fetchLinks() {
     const res = await axios.get(`${API}/api/delivery/project/${projectId}`)
@@ -92,7 +112,7 @@ export default function DeliveryManager({ projectId }: Props) {
   async function viewSelections(linkId: string) {
     if (viewingSelections === linkId) { setViewingSelections(null); return }
     setViewingSelections(linkId)
-    setAppliedCaptions(new Set())
+    setAppliedCaptions({})
     setLoadingSelections(true)
     const res = await axios.get(`${API}/api/delivery/${linkId}/selections`)
     setSelections(res.data)
@@ -100,14 +120,11 @@ export default function DeliveryManager({ projectId }: Props) {
   }
 
   async function applyCommentAsCaption(photoId: string, comment: string) {
-    if (!confirm(`이 코멘트를 사진 캡션으로 반영할까요?\n\n"${comment}"\n\n기존 캡션이 덮어씌워집니다.`)) return
     setApplyingCaption(photoId)
-    // photo 전체 데이터를 먼저 조회해서 다른 필드가 날아가지 않게 처리
     const res = await axios.get(`${API}/photos/${photoId}`)
     await axios.put(`${API}/photos/${photoId}`, { ...res.data, caption: comment })
     setApplyingCaption(null)
-    // 반영된 photo_id를 추적해서 버튼 상태 변경
-    setAppliedCaptions(prev => new Set([...prev, photoId]))
+    setAppliedCaptions(prev => ({ ...prev, [photoId]: comment }))
   }
 
   function copyLink(id: string) {
@@ -124,7 +141,7 @@ export default function DeliveryManager({ projectId }: Props) {
     const parts = []
     if (link.filter_rating) parts.push(`★${link.filter_rating} 이상`)
     if (link.filter_color) {
-      const c = COLOR_OPTIONS.find(o => o.value === link.filter_color)
+      const c = colorOptions.find(o => o.value === link.filter_color)
       if (c) parts.push(c.label)
     }
     return parts.length > 0 ? parts.join(' + ') : '전체 사진'
@@ -174,7 +191,7 @@ export default function DeliveryManager({ projectId }: Props) {
               <div className="flex gap-1 flex-wrap">
                 <button onClick={() => setFilterColor(null)}
                   className={`px-2 py-1 text-xs rounded border ${filterColor === null ? 'bg-black text-white border-black' : 'border-gray-300 hover:bg-gray-100'}`}>전체</button>
-                {COLOR_OPTIONS.map(opt => (
+                {colorOptions.map(opt => (
                   <button key={opt.value} onClick={() => setFilterColor(filterColor === opt.value ? null : opt.value)}
                     className={`flex items-center gap-1 px-2 py-1 text-xs rounded border ${filterColor === opt.value ? 'bg-black text-white border-black' : 'border-gray-300 hover:bg-gray-100'}`}>
                     <span className={`w-2.5 h-2.5 rounded-full ${opt.bg}`} />{opt.label}
@@ -184,7 +201,7 @@ export default function DeliveryManager({ projectId }: Props) {
             </div>
             <p className="text-xs text-gray-400 mt-2">
               → {filterRating || filterColor
-                ? `${filterRating ? `★${filterRating} 이상` : ''}${filterRating && filterColor ? ' + ' : ''}${filterColor ? COLOR_OPTIONS.find(o => o.value === filterColor)?.label + ' 레이블' : ''} 사진 공개`
+                ? `${filterRating ? `★${filterRating} 이상` : ''}${filterRating && filterColor ? ' + ' : ''}${filterColor ? colorOptions.find(o => o.value === filterColor)?.label + ' 레이블' : ''} 사진 공개`
                 : '전체 사진 공개 (필터 없음)'}
             </p>
           </div>
@@ -273,57 +290,52 @@ export default function DeliveryManager({ projectId }: Props) {
                   ) : (
                     <div>
                       <p className="text-xs font-medium text-gray-500 mb-3">선택된 사진 {selections.length}장</p>
-
-                      {/* 코멘트 없는 사진: 3열 그리드 */}
-                      {selections.some(s => !s.comment) && (
-                        <div className="grid grid-cols-3 gap-2 mb-4">
-                          {selections.filter(s => !s.comment).map(s => (
-                            <div key={s.photo_id}>
-                              <img src={s.image_url} alt={s.caption || ''}
-                                className="w-full aspect-square object-cover rounded" />
-                              {s.caption && (
-                                <p className="text-xs text-gray-400 mt-1 truncate">{s.caption}</p>
-                              )}
-                            </div>
-                          ))}
-                        </div>
-                      )}
-
-                      {/* 코멘트 있는 사진: 리스트 */}
-                      {selections.some(s => s.comment) && (
-                        <div className="space-y-2">
-                          <p className="text-xs text-gray-400 mb-1">💬 코멘트 있음</p>
-                          {selections.filter(s => s.comment).map(s => (
-                            <div key={s.photo_id} className="flex items-start gap-3 bg-white rounded-lg p-2 border border-gray-100">
-                              <img src={s.image_url} alt={s.caption || ''}
-                                className="w-14 h-14 object-cover rounded shrink-0" />
-                              <div className="flex-1 min-w-0">
-                                {s.caption && (
-                                  <p className="text-xs text-gray-400 mb-1 truncate">캡션: {s.caption}</p>
-                                )}
-                                <div className="bg-blue-50 border border-blue-100 rounded px-2 py-1.5">
-                                  <p className="text-xs text-blue-700 font-medium mb-0.5">고객 코멘트</p>
-                                  <p className="text-xs text-blue-600">{s.comment}</p>
-                                </div>
+                      <div className="grid grid-cols-3 gap-3">
+                        {selections.map(s => {
+                          const isApplied = s.photo_id in appliedCaptions
+                          const appliedCaption = appliedCaptions[s.photo_id]
+                          const displayCaption = isApplied ? appliedCaption : s.caption
+                          return (
+                            <div key={s.photo_id} className="bg-white rounded-lg overflow-hidden border border-gray-100">
+                              <div className="bg-gray-100 flex items-center justify-center">
+                                <img
+                                  src={s.image_url}
+                                  alt={displayCaption || ''}
+                                  className="w-full object-contain max-h-48"
+                                />
                               </div>
-                              {/* 캡션 반영 버튼 */}
-                              <button
-                                onClick={() => applyCommentAsCaption(s.photo_id, s.comment!)}
-                                disabled={applyingCaption === s.photo_id || appliedCaptions.has(s.photo_id)}
-                                className={`shrink-0 text-xs px-2 py-1 rounded border whitespace-nowrap transition-colors ${
-                                  appliedCaptions.has(s.photo_id)
-                                    ? 'border-green-300 bg-green-50 text-green-600'
-                                    : 'border-gray-300 hover:bg-gray-100 text-gray-500 disabled:opacity-40'
-                                }`}
-                              >
-                                {applyingCaption === s.photo_id ? '반영 중...'
-                                  : appliedCaptions.has(s.photo_id) ? '✓ 반영됨'
-                                  : '캡션으로 반영'}
-                              </button>
+                              <div className="p-2 space-y-1.5">
+                                {displayCaption && (
+                                  <p className="text-xs text-gray-500 leading-tight">{displayCaption}</p>
+                                )}
+                                {s.comment && (
+                                  <div className="bg-blue-50 border border-blue-100 rounded px-2 py-1.5">
+                                    <p className="text-xs text-blue-700 font-medium mb-0.5">고객 코멘트</p>
+                                    <p className="text-xs text-blue-600 leading-tight">{s.comment}</p>
+                                  </div>
+                                )}
+                                {s.comment && (
+                                  <button
+                                    onClick={() => applyCommentAsCaption(s.photo_id, s.comment!)}
+                                    disabled={applyingCaption === s.photo_id || isApplied}
+                                    className={`w-full text-xs px-2 py-1 rounded border transition-colors ${
+                                      isApplied
+                                        ? 'border-green-300 bg-green-50 text-green-600 cursor-default'
+                                        : applyingCaption === s.photo_id
+                                          ? 'border-gray-200 text-gray-400 cursor-wait'
+                                          : 'border-gray-300 hover:bg-gray-100 text-gray-500'
+                                    }`}
+                                  >
+                                    {applyingCaption === s.photo_id ? '반영 중...'
+                                      : isApplied ? '✓ 반영됨'
+                                      : '캡션으로 반영'}
+                                  </button>
+                                )}
+                              </div>
                             </div>
-                          ))}
-                        </div>
-                      )}
+                          )
+                        })}
+                      </div>
                     </div>
                   )}
                 </div>

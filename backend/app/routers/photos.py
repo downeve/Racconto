@@ -8,10 +8,17 @@ from datetime import datetime
 import uuid
 import os
 import shutil
+import requests
+from PIL import Image as PilImage
+import io
 
 from PIL import Image
 from PIL.ExifTags import TAGS, GPSTAGS
 from datetime import datetime as dt
+
+CF_ACCOUNT_ID = os.getenv("CF_ACCOUNT_ID")
+CF_API_TOKEN = os.getenv("CF_API_TOKEN")
+CF_UPLOAD_URL = f"https://api.cloudflare.com/client/v4/accounts/{CF_ACCOUNT_ID}/images/v1"
 
 def extract_exif(file_path: str) -> dict:
     exif_data = {}
@@ -91,6 +98,59 @@ def extract_exif(file_path: str) -> dict:
         print(f"EXIF 추출 오류: {e}")
 
     return exif_data
+
+def upload_to_cloudflare(file_path: str, filename: str) -> str:
+    """이미지를 장변 2400px로 리사이즈 후 CF Images에 업로드, CF URL 반환"""
+    # PIL로 리사이즈
+    img = PilImage.open(file_path)
+    
+    # EXIF orientation 보정
+    try:
+        from PIL import ImageOps
+        img = ImageOps.exif_transpose(img)
+    except:
+        pass
+    
+    # 장변 2400px 리사이즈
+    max_size = 2400
+    w, h = img.size
+    if max(w, h) > max_size:
+        if w >= h:
+            new_w, new_h = max_size, int(h * max_size / w)
+        else:
+            new_w, new_h = int(w * max_size / h), max_size
+        img = img.resize((new_w, new_h), PilImage.LANCZOS)
+    
+    # 메모리 버퍼에 JPEG로 저장
+    buf = io.BytesIO()
+    img.convert('RGB').save(buf, format='JPEG', quality=88, optimize=True)
+    buf.seek(0)
+    
+    # CF Images API 업로드
+    res = requests.post(
+        CF_UPLOAD_URL,
+        headers={"Authorization": f"Bearer {CF_API_TOKEN}"},
+        files={"file": (filename, buf, "image/jpeg")},
+    )
+    data = res.json()
+    if not data.get("success"):
+        raise Exception(f"CF 업로드 실패: {data}")
+    
+    return data["result"]["variants"][0]  # CF 이미지 URL 반환
+
+
+def delete_from_cloudflare(image_url: str):
+    """CF Images에서 이미지 삭제"""
+    # CF URL에서 이미지 ID 추출
+    # URL 형식: https://imagedelivery.net/{hash}/{image_id}/public
+    try:
+        image_id = image_url.rstrip('/').split('/')[-2]
+        requests.delete(
+            f"{CF_UPLOAD_URL}/{image_id}",
+            headers={"Authorization": f"Bearer {CF_API_TOKEN}"},
+        )
+    except:
+        pass
 
 router = APIRouter(prefix="/photos", tags=["photos"])
 
@@ -180,15 +240,18 @@ def delete_photo(photo_id: str, db: Session = Depends(get_db)):
     if not photo:
         raise HTTPException(status_code=404, detail="사진을 찾을 수 없습니다")
     
-    # 실제 파일 삭제
     try:
-        file_path = photo.image_url.split('/uploads/')[-1]
-        full_path = f"{UPLOAD_DIR}/{file_path}"
-        if os.path.exists(full_path):
-            os.remove(full_path)
+        # CF 이미지면 CF에서 삭제, 로컬 이미지면 로컬에서 삭제
+        if "imagedelivery.net" in photo.image_url:
+            delete_from_cloudflare(photo.image_url)
+        else:
+            file_path = photo.image_url.split('/uploads/')[-1]
+            full_path = f"{UPLOAD_DIR}/{file_path}"
+            if os.path.exists(full_path):
+                os.remove(full_path)
     except Exception as e:
         print(f"파일 삭제 오류: {e}")
-    
+
     db.delete(photo)
     db.commit()
     return {"message": "삭제되었습니다"}
@@ -211,8 +274,12 @@ async def upload_photo(
     with open(file_path, "wb") as buffer:
         shutil.copyfileobj(file.file, buffer)
 
-    BASE_URL = os.getenv("BASE_URL", "http://localhost:8000")
-    image_url = f"{BASE_URL}/uploads/{filename}"
+    # CF에 업로드하고 URL 받기
+    image_url = upload_to_cloudflare(file_path, filename)
+
+    # 로컬 임시 파일 삭제
+    if os.path.exists(file_path):
+        os.remove(file_path)
 
     # EXIF 추출
     exif = extract_exif(file_path)

@@ -21,6 +21,8 @@ export default function Settings() {
   const [passwordSuccess, setPasswordSuccess] = useState('')
   const [portfolioTheme, setPortfolioTheme] = useState('light')
   const [deliveryTagColor, setDeliveryTagColor] = useState('purple')
+  const [defaultGridCols, setDefaultGridCols] = useState('3')
+  const [defaultShowExif, setDefaultShowExif] = useState('true')
 
   const handlePasswordChange = async () => {
     setPasswordError('')
@@ -59,6 +61,8 @@ export default function Settings() {
       setSettings(res.data)
       setPortfolioTheme(res.data['portfolio_theme'] || 'light')
       setDeliveryTagColor(res.data['delivery_tag_color'] || 'purple')
+      setDefaultGridCols(res.data['default_grid_cols'] || '3')
+      setDefaultShowExif(res.data['default_show_exif'] || 'true')
     })
   }, [])
 
@@ -71,12 +75,13 @@ export default function Settings() {
       ...settings,
       portfolio_theme: portfolioTheme,
       delivery_tag_color: deliveryTagColor,
+      default_grid_cols: defaultGridCols,
+      default_show_exif: defaultShowExif,
     })
     setSaved(true)
     setTimeout(() => setSaved(false), 2000)
   }
 
-  // 현재 컬러 레이블 이름 가져오기 (커스텀 이름 반영)
   function colorName(value: string) {
     const c = COLOR_KEYS.find(o => o.value === value)
     if (!c) return value
@@ -108,23 +113,45 @@ export default function Settings() {
       {/* 기본 보기 설정 */}
       <div className="bg-white rounded-lg shadow p-6 mb-6">
         <h3 className="font-semibold mb-4">기본 보기 설정</h3>
-        <div className="flex items-center gap-4">
-          <span className="text-sm text-gray-500">기본 그리드 컬럼</span>
-          <div className="flex gap-2">
-            {[
-              { cols: '2', icon: '2' },
-              { cols: '3', icon: '3' },
-              { cols: '4', icon: '4' },
-              { cols: '1', icon: '≡' },
-            ].map(({ cols, icon }) => (
+        <div className="space-y-4">
+          {/* 그리드 컬럼 */}
+          <div className="flex items-center gap-4">
+            <span className="text-sm text-gray-500 w-28 shrink-0">기본 그리드 컬럼</span>
+            <div className="flex gap-2">
+              {[
+                { cols: '2', icon: '2' },
+                { cols: '3', icon: '3' },
+                { cols: '4', icon: '4' },
+                { cols: '1', icon: '≡' },
+              ].map(({ cols, icon }) => (
+                <button
+                  key={cols}
+                  onClick={() => setDefaultGridCols(cols)}
+                  className={`w-8 h-8 text-xs rounded ${defaultGridCols === cols ? 'bg-black text-white' : 'bg-gray-100 hover:bg-gray-200'}`}
+                >
+                  {icon}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* EXIF 기본값 */}
+          <div className="flex items-center gap-4">
+            <span className="text-sm text-gray-500 w-28 shrink-0">EXIF 정보 기본값</span>
+            <div className="flex gap-2">
               <button
-                key={cols}
-                onClick={() => handleChange('default_grid_cols', cols)}
-                className={`w-8 h-8 text-xs rounded ${settings['default_grid_cols'] === cols ? 'bg-black text-white' : 'bg-gray-100 hover:bg-gray-200'}`}
+                onClick={() => setDefaultShowExif('true')}
+                className={`px-3 py-1.5 text-xs rounded ${defaultShowExif === 'true' ? 'bg-black text-white' : 'bg-gray-100 hover:bg-gray-200'}`}
               >
-                {icon}
+                ON
               </button>
-            ))}
+              <button
+                onClick={() => setDefaultShowExif('false')}
+                className={`px-3 py-1.5 text-xs rounded ${defaultShowExif === 'false' ? 'bg-black text-white' : 'bg-gray-100 hover:bg-gray-200'}`}
+              >
+                OFF
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -148,7 +175,7 @@ export default function Settings() {
         </div>
       </div>
 
-      {/* 납품 선택 태그 */}
+      {/* 납품 선택 자동 태그 */}
       <div className="bg-white rounded-lg shadow p-6 mb-6">
         <h3 className="font-semibold mb-1">납품 선택 자동 태그</h3>
         <p className="text-xs text-gray-400 mb-4">
@@ -170,9 +197,9 @@ export default function Settings() {
             </button>
           ))}
         </div>
-          <p className="text-xs text-gray-400 mt-3">
-            → 고객 선택 완료 시 선택된 사진에 <strong>{colorName(deliveryTagColor)}</strong> 레이블 자동 태깅
-          </p>
+        <p className="text-xs text-gray-400 mt-3">
+          → 고객 선택 완료 시 선택된 사진에 <strong>{colorName(deliveryTagColor)}</strong> 레이블 자동 태깅
+        </p>
       </div>
 
       {/* 비밀번호 변경 */}
