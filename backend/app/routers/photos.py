@@ -140,6 +140,13 @@ def get_photos(project_id: Optional[str] = None, db: Session = Depends(get_db)):
         query = query.filter(models.Photo.project_id == project_id)
     return query.order_by(models.Photo.order).all()
 
+@router.get("/{photo_id}", response_model=PhotoResponse)
+def get_photo(photo_id: str, db: Session = Depends(get_db)):
+    photo = db.query(models.Photo).filter(models.Photo.id == photo_id).first()
+    if not photo:
+        raise HTTPException(status_code=404, detail="사진을 찾을 수 없습니다")
+    return photo
+
 @router.post("/", response_model=PhotoResponse)
 def create_photo(photo: PhotoCreate, db: Session = Depends(get_db)):
     db_photo = models.Photo(

@@ -1,4 +1,4 @@
-from sqlalchemy import Column, String, Text, DateTime, Enum, ForeignKey, Integer
+from sqlalchemy import Column, String, Text, DateTime, Enum, ForeignKey, Integer, Boolean
 from sqlalchemy.orm import relationship
 from app.database import Base
 from datetime import datetime
@@ -25,6 +25,7 @@ class Project(Base):
     photos = relationship("Photo", back_populates="project")
     pitches = relationship("Pitch", back_populates="project")
     notes = relationship("Note", back_populates="project")
+    delivery_links = relationship("DeliveryLink", back_populates="project")
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     deleted_at = Column(DateTime, nullable=True, default=None)
@@ -38,7 +39,6 @@ class Photo(Base):
     caption_en = Column(Text)
     order = Column(Integer, default=0)
     is_portfolio = Column(String, default="false")
-    # EXIF 메타데이터
     taken_at = Column(DateTime, nullable=True)
     camera = Column(String, nullable=True)
     lens = Column(String, nullable=True)
@@ -100,3 +100,36 @@ class Setting(Base):
     __tablename__ = "settings"
     key = Column(String, primary_key=True)
     value = Column(String, nullable=False)
+
+
+# ── 납품 링크 ──────────────────────────────────────────────
+
+class DeliveryLink(Base):
+    __tablename__ = "delivery_links"
+    id = Column(String, primary_key=True)
+    project_id = Column(String, ForeignKey("projects.id"), nullable=False)
+    label = Column(String, nullable=True)
+    password_hash = Column(String, nullable=True)
+    expires_at = Column(DateTime, nullable=True)
+    # 사진 필터 조건
+    # filter_rating: 이 값 이상인 사진만 포함 (NULL이면 조건 없음)
+    # filter_color:  이 컬러 레이블 사진만 포함 (NULL이면 조건 없음)
+    # 둘 다 지정하면 AND 조건 (별점 AND 컬러 둘 다 만족해야 포함)
+    filter_rating = Column(Integer, nullable=True)
+    filter_color = Column(String, nullable=True)
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+    project = relationship("Project", back_populates="delivery_links")
+    selections = relationship("DeliverySelection", back_populates="link", cascade="all, delete-orphan")
+
+
+class DeliverySelection(Base):
+    __tablename__ = "delivery_selections"
+    id = Column(String, primary_key=True)
+    link_id = Column(String, ForeignKey("delivery_links.id"), nullable=False)
+    photo_id = Column(String, ForeignKey("photos.id"), nullable=False)
+    comment = Column(Text, nullable=True)
+    selected_at = Column(DateTime, default=datetime.utcnow)
+
+    link = relationship("DeliveryLink", back_populates="selections")
+    photo = relationship("Photo")

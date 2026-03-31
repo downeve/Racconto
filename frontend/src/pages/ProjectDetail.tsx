@@ -19,6 +19,7 @@ import {
 } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
 import ProjectStory from './ProjectStory'
+import DeliveryManager from '../components/DeliveryManager'
 
 const API = import.meta.env.VITE_API_URL
 
@@ -63,24 +64,147 @@ interface Note {
   updated_at: string
 }
 
-// 개별 사진 카드 컴포넌트 (드래그 가능)
+// ── 라이트박스 ─────────────────────────────────────────────
+function Lightbox({
+  photo, photos, colorLabels, chapterPhotoIds,
+  onClose, onNavigate, onSetRating, onSetColorLabel, onTogglePortfolio, onSaveCaption,
+}: {
+  photo: Photo
+  photos: Photo[]
+  colorLabels: { value: string; color: string; label: string }[]
+  chapterPhotoIds: Set<string>
+  onClose: () => void
+  onNavigate: (p: Photo) => void
+  onSetRating: (p: Photo, r: number) => void
+  onSetColorLabel: (p: Photo, l: string) => void
+  onTogglePortfolio: (p: Photo) => void
+  onSaveCaption: (p: Photo, c: string) => void
+}) {
+  const idx = photos.findIndex(p => p.id === photo.id)
+  const [editingCaption, setEditingCaption] = useState(false)
+  const [captionDraft, setCaptionDraft] = useState(photo.caption || '')
+
+  useEffect(() => {
+    setEditingCaption(false)
+    setCaptionDraft(photo.caption || '')
+  }, [photo.id])
+
+  useEffect(() => {
+    function onKey(e: KeyboardEvent) {
+      if (e.key === 'Escape') onClose()
+      if (e.key === 'ArrowRight' && idx < photos.length - 1) onNavigate(photos[idx + 1])
+      if (e.key === 'ArrowLeft' && idx > 0) onNavigate(photos[idx - 1])
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [photo, photos])
+
+  const isPortfolio = photo.is_portfolio === 'true'
+  const inChapter = chapterPhotoIds.has(photo.id)
+
+  return (
+    <div className="fixed inset-0 bg-black/90 z-50 flex flex-col" onClick={onClose}>
+      {/* 상단 */}
+      <div className="flex items-center justify-between px-6 py-3 shrink-0" onClick={e => e.stopPropagation()}>
+        <span className="text-white/50 text-sm">{idx + 1} / {photos.length}</span>
+        <button onClick={onClose} className="text-white/70 hover:text-white text-2xl">✕</button>
+      </div>
+
+      {/* 이미지 + 화살표 */}
+      <div className="flex-1 flex items-center justify-center relative min-h-0" onClick={onClose}>
+        {idx > 0 && (
+          <button className="absolute left-4 z-10 text-white/70 hover:text-white text-5xl select-none"
+            onClick={e => { e.stopPropagation(); onNavigate(photos[idx - 1]) }}>‹</button>
+        )}
+        <img
+          src={photo.image_url} alt={photo.caption || ''}
+          className="max-w-[calc(100%-8rem)] max-h-full object-contain"
+          onClick={e => e.stopPropagation()}
+        />
+        {idx < photos.length - 1 && (
+          <button className="absolute right-4 z-10 text-white/70 hover:text-white text-5xl select-none"
+            onClick={e => { e.stopPropagation(); onNavigate(photos[idx + 1]) }}>›</button>
+        )}
+      </div>
+
+      {/* 하단 컨트롤 */}
+      <div className="shrink-0 bg-black/80 border-t border-white/10 px-6 py-4" onClick={e => e.stopPropagation()}>
+        <div className="max-w-3xl mx-auto space-y-3">
+          <div className="flex items-center gap-4 flex-wrap">
+            {/* 별점 */}
+            <div className="flex gap-1">
+              {[1, 2, 3, 4, 5].map(star => (
+                <button key={star} onClick={() => onSetRating(photo, star)}
+                  className={`text-xl transition-colors ${photo.rating && photo.rating >= star ? 'text-yellow-400' : 'text-white/20 hover:text-yellow-300'}`}>★</button>
+              ))}
+            </div>
+            <div className="w-px h-5 bg-white/20" />
+            {/* 컬러 레이블 */}
+            <div className="flex gap-1.5">
+              {colorLabels.map(label => (
+                <button key={label.value} onClick={() => onSetColorLabel(photo, label.value)} title={label.label}
+                  className={`w-5 h-5 rounded-full ${label.color} transition-all ${
+                    photo.color_label === label.value
+                      ? 'ring-2 ring-offset-2 ring-offset-black ring-white scale-110'
+                      : 'opacity-40 hover:opacity-80'
+                  }`} />
+              ))}
+            </div>
+            <div className="w-px h-5 bg-white/20" />
+            {/* 포트폴리오 */}
+            {inChapter ? (
+              <span className="text-xs text-blue-400">📖 챕터 포함</span>
+            ) : (
+              <button onClick={() => onTogglePortfolio(photo)}
+                className={`text-xs px-3 py-1 rounded transition-colors ${isPortfolio ? 'bg-green-600 text-white' : 'bg-white/10 hover:bg-white/20 text-white/70'}`}>
+                {isPortfolio ? '✓ 포트폴리오' : '포트폴리오'}
+              </button>
+            )}
+            {/* EXIF */}
+            {(photo.camera || photo.focal_length) && (
+              <>
+                <div className="w-px h-5 bg-white/20" />
+                <span className="text-xs text-white/40">
+                  {[photo.camera, photo.focal_length, photo.aperture, photo.shutter_speed, photo.iso].filter(Boolean).join(' · ')}
+                </span>
+              </>
+            )}
+          </div>
+          {/* 캡션 */}
+          {editingCaption ? (
+            <div className="flex gap-2">
+              <input
+                className="flex-1 bg-white/10 text-white text-sm px-3 py-1.5 rounded border border-white/20 focus:outline-none focus:border-white/50"
+                value={captionDraft}
+                onChange={e => setCaptionDraft(e.target.value)}
+                onKeyDown={e => {
+                  if (e.key === 'Enter') { onSaveCaption(photo, captionDraft); setEditingCaption(false) }
+                  if (e.key === 'Escape') setEditingCaption(false)
+                }}
+                autoFocus
+              />
+              <button onClick={() => { onSaveCaption(photo, captionDraft); setEditingCaption(false) }}
+                className="text-xs px-3 py-1.5 bg-white text-black rounded hover:bg-gray-200">저장</button>
+              <button onClick={() => setEditingCaption(false)}
+                className="text-xs px-3 py-1.5 bg-white/10 text-white rounded hover:bg-white/20">취소</button>
+            </div>
+          ) : (
+            <button onClick={() => { setEditingCaption(true); setCaptionDraft(photo.caption || '') }}
+              className="text-left w-full text-sm text-white/60 hover:text-white/90 transition-colors">
+              {photo.caption || <span className="italic text-white/30">캡션 추가...</span>}
+            </button>
+          )}
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// ── SortablePhoto ──────────────────────────────────────────
 function SortablePhoto({
-  photo,
-  project,
-  editingCaption,
-  captionKo,
-  setCaptionKo,
-  setEditingCaption,
-  onSetCover,
-  onTogglePortfolio,
-  onDelete,
-  onSaveCaption,
-  onSetRating,
-  onSetColorLabel,
-  showExif,
-  gridCols,
-  colorLabels,
-  chapterPhotoIds
+  photo, project, editingCaption, captionKo, setCaptionKo, setEditingCaption,
+  onSetCover, onTogglePortfolio, onDelete, onSaveCaption, onSetRating, onSetColorLabel,
+  onOpenLightbox, showExif, gridCols, colorLabels, chapterPhotoIds
 }: {
   photo: Photo
   project: Project
@@ -94,86 +218,50 @@ function SortablePhoto({
   onSaveCaption: (photo: Photo) => void
   onSetRating: (photo: Photo, rating: number) => void
   onSetColorLabel: (photo: Photo, label: string) => void
+  onOpenLightbox: (photo: Photo) => void
   showExif: boolean
   gridCols: number
   colorLabels: { value: string; color: string; label: string }[]
   chapterPhotoIds: Set<string>
 }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: photo.id })
+  const style = { transform: CSS.Transform.toString(transform), transition, opacity: isDragging ? 0.5 : 1 }
 
-  const style = {
-    transform: CSS.Transform.toString(transform),
-    transition,
-    opacity: isDragging ? 0.5 : 1,
-  }
-
-  // 목록형 레이아웃
+  // 목록형
   if (gridCols === 1) {
     return (
       <div ref={setNodeRef} style={style} className="bg-white rounded overflow-hidden flex items-center gap-4 p-2 border-b">
-        {/* 드래그 핸들 */}
         <div {...attributes} {...listeners} className="text-gray-300 cursor-grab px-1">⠿</div>
-        
-        {/* 썸네일 */}
-        <img src={photo.image_url} alt={photo.caption} className="w-16 h-16 object-cover rounded shrink-0" />
-        
-        {/* 별점 */}
+        <img src={photo.image_url} alt={photo.caption}
+          className="w-16 h-16 object-cover rounded shrink-0 cursor-pointer hover:opacity-80 transition-opacity"
+          onClick={() => onOpenLightbox(photo)} />
         <div className="flex gap-0.5 shrink-0">
           {[1, 2, 3, 4, 5].map(star => (
-            <button
-              key={star}
-              onClick={() => onSetRating(photo, star)}
-              className={`text-xs ${photo.rating && photo.rating >= star ? 'text-yellow-400' : 'text-gray-300'}`}
-            >
-              ★
-            </button>
+            <button key={star} onClick={() => onSetRating(photo, star)}
+              className={`text-xs ${photo.rating && photo.rating >= star ? 'text-yellow-400' : 'text-gray-300'}`}>★</button>
           ))}
         </div>
-
-        {/* 컬러 레이블 */}
         <div className="flex gap-0.5 shrink-0">
           {colorLabels.map(label => (
-            <button
-              key={label.value}
-              onClick={() => onSetColorLabel(photo, label.value)}
-              title={label.label}
-              className={`w-3 h-3 rounded-full ${label.color} ${photo.color_label === label.value ? 'ring-2 ring-offset-1 ring-gray-400' : 'opacity-40'}`}
-            />
+            <button key={label.value} onClick={() => onSetColorLabel(photo, label.value)} title={label.label}
+              className={`w-3 h-3 rounded-full ${label.color} ${photo.color_label === label.value ? 'ring-2 ring-offset-1 ring-gray-400' : 'opacity-40'}`} />
           ))}
         </div>
-
-        {/* 캡션 영역 */}
-        <div
-          className="flex-1 min-w-0 cursor-pointer"
-          onClick={() => {
-            setEditingCaption(photo.id)
-            setCaptionKo(photo.caption || '')
-          }}
-        >
+        <div className="flex-1 min-w-0 cursor-pointer"
+          onClick={() => { setEditingCaption(photo.id); setCaptionKo(photo.caption || '') }}>
           {editingCaption === photo.id ? (
             <div className="flex gap-1" onClick={e => e.stopPropagation()}>
-              <input
-                className="border rounded px-2 py-0.5 text-xs flex-1"
-                placeholder="캡션"
-                value={captionKo}
-                onChange={e => setCaptionKo(e.target.value)}
-              />
+              <input className="border rounded px-2 py-0.5 text-xs flex-1" placeholder="캡션"
+                value={captionKo} onChange={e => setCaptionKo(e.target.value)} />
               <button onClick={() => onSaveCaption(photo)} className="bg-black text-white px-2 py-0.5 text-xs rounded">저장</button>
               <button onClick={() => setEditingCaption(null)} className="border px-2 py-0.5 text-xs rounded">취소</button>
             </div>
           ) : (
-            <>
-              {photo.caption ? (
-                <p className="text-sm text-gray-700 truncate">{photo.caption}</p>
-              ) : (
-                <p className="text-sm text-gray-300">캡션 추가...</p>
-              )}
-              {photo.caption_en && <p className="text-xs text-gray-400 truncate italic">{photo.caption_en}</p>}
-            </>
+            photo.caption
+              ? <p className="text-sm text-gray-700 truncate">{photo.caption}</p>
+              : <p className="text-sm text-gray-300">캡션 추가...</p>
           )}
         </div>
-
-        {/* EXIF */}
         {showExif && editingCaption !== photo.id && (
           <div className="text-xs text-gray-400 shrink-0 text-right">
             {photo.camera && <p>{photo.camera}</p>}
@@ -183,170 +271,107 @@ function SortablePhoto({
             )}
           </div>
         )}
-
-        {/* 포트폴리오/커버/삭제 버튼 */}
         {editingCaption !== photo.id && (
-        <div className="flex gap-1 shrink-0">
-          <button
-            onClick={() => onSetCover(photo)}
-            className={`px-2 py-1 text-xs rounded ${project?.cover_image_url === photo.image_url ? 'bg-yellow-400 text-black' : 'bg-gray-100 hover:bg-gray-200'}`}
-          >
-            {project?.cover_image_url === photo.image_url ? '✓커버' : '커버'}
-          </button>
-          {chapterPhotoIds.has(photo.id) ? (
-            <button
-              className="px-2 py-1 text-xs rounded bg-blue-100 text-blue-500 cursor-default"
-              title="챕터에 포함된 사진은 챕터에서 관리해요"
-            >
-              📖 챕터
+          <div className="flex gap-1 shrink-0">
+            <button onClick={() => onSetCover(photo)}
+              className={`px-2 py-1 text-xs rounded ${project?.cover_image_url === photo.image_url ? 'bg-yellow-400 text-black' : 'bg-gray-100 hover:bg-gray-200'}`}>
+              {project?.cover_image_url === photo.image_url ? '✓커버' : '커버'}
             </button>
-          ) : (
-            <button
-              onClick={() => onTogglePortfolio(photo)}
-              className={`px-2 py-1 text-xs rounded ${photo.is_portfolio === 'true' ? 'bg-green-500 text-white' : 'bg-gray-100 hover:bg-gray-200'}`}
-            >
-              {photo.is_portfolio === 'true' ? '✓포트폴리오' : '포트폴리오'}
-            </button>
-          )}
-          <button
-            onClick={() => onDelete(photo.id)}
-            className="px-2 py-1 text-xs bg-red-100 text-red-500 rounded hover:bg-red-200"
-          >
-            삭제
-          </button>
-        </div>
+            {chapterPhotoIds.has(photo.id) ? (
+              <button className="px-2 py-1 text-xs rounded bg-blue-100 text-blue-500 cursor-default">📖 챕터</button>
+            ) : (
+              <button onClick={() => onTogglePortfolio(photo)}
+                className={`px-2 py-1 text-xs rounded ${photo.is_portfolio === 'true' ? 'bg-green-500 text-white' : 'bg-gray-100 hover:bg-gray-200'}`}>
+                {photo.is_portfolio === 'true' ? '✓포트폴리오' : '포트폴리오'}
+              </button>
+            )}
+            <button onClick={() => onDelete(photo.id)} className="px-2 py-1 text-xs bg-red-100 text-red-500 rounded hover:bg-red-200">삭제</button>
+          </div>
         )}
       </div>
     )
   }
 
+  // 그리드
   return (
     <div ref={setNodeRef} style={style} className="rounded overflow-hidden bg-gray-100">
       <div className="relative group">
         {/* 드래그 핸들 */}
-        <div
-          {...attributes}
-          {...listeners}
-          className="absolute top-2 left-2 z-10 bg-black bg-opacity-50 text-white px-2 py-1 text-xs rounded cursor-grab active:cursor-grabbing"
-        >
-          ⠿
-        </div>
+        <div {...attributes} {...listeners}
+          className="absolute top-2 left-2 z-10 bg-black/50 text-white px-2 py-1 text-xs rounded cursor-grab active:cursor-grabbing">⠿</div>
+
+        {/* 사진 */}
         <img
-          src={photo.image_url}
-          alt={photo.caption}
+          src={photo.image_url} alt={photo.caption}
           className="w-full object-cover cursor-pointer"
+          onClick={() => onOpenLightbox(photo)}
         />
-        <div className="absolute inset-0 bg-black bg-opacity-50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-1 flex-wrap p-1"
-        onClick={e => e.stopPropagation()}>
-          <button
-            onClick={() => onSetCover(photo)}
-            className={`${gridCols >= 4 ? 'px-1 py-0.5 text-xs' : 'px-2 py-1 text-xs'} rounded ${project?.cover_image_url === photo.image_url ? 'bg-yellow-400 text-black' : 'bg-white text-black'}`}
-          >
-            {project?.cover_image_url === photo.image_url ? '✓커버' : gridCols >= 3 ? '커버' : '커버 설정'}
-          </button>
-          {chapterPhotoIds.has(photo.id) ? (
+
+        {/* 호버 오버레이 — 배경은 라이트박스로, 버튼만 stopPropagation */}
+        <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity">
+          {/* 배경 클릭 → 라이트박스 */}
+          <div className="absolute inset-0 bg-black/50" onClick={() => onOpenLightbox(photo)} />
+          {/* 버튼들 — 배경 위에 z-10으로 올림 */}
+          <div className="absolute bottom-2 right-2 flex gap-1 z-10">
             <button
-              className={`${gridCols >= 4 ? 'px-1 py-0.5 text-xs' : 'px-2 py-1 text-xs'} rounded bg-blue-100 text-blue-500 cursor-default`}
-              title="챕터에 포함된 사진은 챕터에서 관리해요"
-            >
-              📖 챕터
+              onClick={e => { e.stopPropagation(); onSetCover(photo) }}
+              className={`${gridCols >= 4 ? 'px-1 py-0.5 text-xs' : 'px-2 py-1 text-xs'} rounded ${project?.cover_image_url === photo.image_url ? 'bg-yellow-400 text-black' : 'bg-white text-black'}`}>
+              {project?.cover_image_url === photo.image_url ? '✓커버' : '커버'}
             </button>
-          ) : (
             <button
-              onClick={() => onTogglePortfolio(photo)}
-              className={`${gridCols >= 4 ? 'px-1 py-0.5 text-xs' : 'px-2 py-1 text-xs'} rounded ${photo.is_portfolio === 'true' ? 'bg-green-500 text-white' : 'bg-white text-black'}`}
-            >
-              {photo.is_portfolio === 'true' ? '✓포트폴리오' : gridCols >= 3 ? '포트폴리오' : '포트폴리오 추가'}
+              onClick={e => { e.stopPropagation(); onDelete(photo.id) }}
+              className={`${gridCols >= 4 ? 'px-1 py-0.5 text-xs' : 'px-2 py-1 text-xs'} bg-red-500 text-white rounded`}>
+              삭제
             </button>
-          )}
-          <button
-            onClick={() => onDelete(photo.id)}
-            className={`${gridCols >= 4 ? 'px-1 py-0.5 text-xs' : 'px-2 py-1 text-xs'} bg-red-500 text-white rounded`}
-          >
-            삭제
-          </button>
+          </div>
         </div>
       </div>
 
       {/* 별점 & 컬러 레이블 */}
       <div className="px-2 py-2 bg-white flex items-center justify-between">
-        {/* 별점 */}
         <div className="flex gap-0.5">
           {[1, 2, 3, 4, 5].map(star => (
-            <button
-              key={star}
-              onClick={() => onSetRating(photo, star)}
-              className={`${gridCols >= 4 ? 'text-xs' : 'text-sm'} ${photo.rating && photo.rating >= star ? 'text-yellow-400' : 'text-gray-300'}`}
-            >
-              ★
-            </button>
+            <button key={star} onClick={() => onSetRating(photo, star)}
+              className={`${gridCols >= 4 ? 'text-xs' : 'text-sm'} ${photo.rating && photo.rating >= star ? 'text-yellow-400' : 'text-gray-300'}`}>★</button>
           ))}
         </div>
-
-        {/* 컬러 레이블 */}
         <div className="flex gap-0.5">
           {colorLabels.map(label => (
-            <button
-              key={label.value}
-              onClick={() => onSetColorLabel(photo, label.value)}
-              title={label.label}
-              className={`rounded-full ${label.color} ${gridCols >= 4 ? 'w-3 h-3' : 'w-4 h-4'} ${photo.color_label === label.value ? 'ring-2 ring-offset-1 ring-gray-400' : 'opacity-50'}`}
-            />
+            <button key={label.value} onClick={() => onSetColorLabel(photo, label.value)} title={label.label}
+              className={`rounded-full ${label.color} ${gridCols >= 4 ? 'w-3 h-3' : 'w-4 h-4'} ${photo.color_label === label.value ? 'ring-2 ring-offset-1 ring-gray-400' : 'opacity-50'}`} />
           ))}
         </div>
       </div>
 
-      {/* 캡션 영역 - 영어 칸 제거 */}
+      {/* 캡션 */}
       {editingCaption === photo.id ? (
         <div className="p-2 bg-white">
-          <input
-            className="w-full border rounded px-2 py-1 text-xs mb-1"
-            placeholder="캡션"
-            value={captionKo}
-            onChange={e => setCaptionKo(e.target.value)}
-          />
+          <input className="w-full border rounded px-2 py-1 text-xs mb-1" placeholder="캡션"
+            value={captionKo} onChange={e => setCaptionKo(e.target.value)} />
           <div className="flex gap-1">
             <button onClick={() => onSaveCaption(photo)} className="bg-black text-white px-2 py-1 text-xs">저장</button>
             <button onClick={() => setEditingCaption(null)} className="border px-2 py-1 text-xs">취소</button>
           </div>
         </div>
       ) : (
-        <div
-          className="p-2 cursor-pointer hover:bg-gray-50"
-          onClick={() => {
-            setEditingCaption(photo.id)
-            setCaptionKo(photo.caption || '')
-          }}
-        >
-          {photo.caption || photo.caption_en ? (
-            <div>
-              {photo.caption && <p className="text-xs text-gray-600">{photo.caption}</p>}
-            </div>
-          ) : (
-            <p className="text-xs text-gray-300">캡션 추가...</p>
-          )}
+        <div className="p-2 cursor-pointer hover:bg-gray-50"
+          onClick={() => { setEditingCaption(photo.id); setCaptionKo(photo.caption || '') }}>
+          {photo.caption
+            ? <p className="text-xs text-gray-600">{photo.caption}</p>
+            : <p className="text-xs text-gray-300">캡션 추가...</p>}
         </div>
       )}
 
-      {/* EXIF 메타데이터 */}
+      {/* EXIF */}
       {showExif && (photo.camera || photo.taken_at) && (
         <div className="px-2 pb-2 bg-white">
           <div className="border-t pt-2 mt-1">
-            {photo.taken_at && (
-              <p className="text-xs text-gray-400">
-                📅 {new Date(photo.taken_at).toLocaleDateString('ko-KR')}
-              </p>
-            )}
-            {photo.camera && (
-              <p className="text-xs text-gray-400">📷 {photo.camera}</p>
-            )}
-            {photo.lens && (
-              <p className="text-xs text-gray-400">🔭 {photo.lens}</p>
-            )}
+            {photo.taken_at && <p className="text-xs text-gray-400">📅 {new Date(photo.taken_at).toLocaleDateString('ko-KR')}</p>}
+            {photo.camera && <p className="text-xs text-gray-400">📷 {photo.camera}</p>}
+            {photo.lens && <p className="text-xs text-gray-400">🔭 {photo.lens}</p>}
             {(photo.iso || photo.shutter_speed || photo.aperture || photo.focal_length) && (
               <p className="text-xs text-gray-400">
-                {[photo.focal_length, photo.aperture, photo.shutter_speed, photo.iso]
-                  .filter(Boolean).join(' · ')}
+                {[photo.focal_length, photo.aperture, photo.shutter_speed, photo.iso].filter(Boolean).join(' · ')}
               </p>
             )}
           </div>
@@ -356,6 +381,7 @@ function SortablePhoto({
   )
 }
 
+// ── ProjectDetail ──────────────────────────────────────────
 export default function ProjectDetail() {
   const { id } = useParams()
   const [project, setProject] = useState<Project | null>(null)
@@ -365,7 +391,7 @@ export default function ProjectDetail() {
   const [newNote, setNewNote] = useState('')
   const [editingNote, setEditingNote] = useState<string | null>(null)
   const [editContent, setEditContent] = useState('')
-  const [activeTab, setActiveTab] = useState<'photos' | 'story' | 'notes'>('photos')
+  const [activeTab, setActiveTab] = useState<'photos' | 'story' | 'notes' | 'delivery'>('photos')
   const [filterRating, setFilterRating] = useState<number | null>(null)
   const [filterColor, setFilterColor] = useState<string | null>(null)
   const [filterPortfolio, setFilterPortfolio] = useState(false)
@@ -376,16 +402,11 @@ export default function ProjectDetail() {
   const [chapterCount, setChapterCount] = useState(0)
   const [captionKo, setCaptionKo] = useState('')
   const [chapterPhotoIds, setChapterPhotoIds] = useState<Set<string>>(new Set())
+  const [lightboxPhoto, setLightboxPhoto] = useState<Photo | null>(null)
 
   const sensors = useSensors(
-    useSensor(PointerSensor, {
-      activationConstraint: {
-        distance: 8,  // 8px 이상 움직여야 드래그로 인식
-      },
-    }),
-    useSensor(KeyboardSensor, {
-      coordinateGetter: sortableKeyboardCoordinates,
-    })
+    useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
+    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
   )
 
   const fetchPhotos = async () => {
@@ -414,17 +435,13 @@ export default function ProjectDetail() {
 
   const [gridCols, setGridCols] = useState(3)
   const [labelSettings, setLabelSettings] = useState<Record<string, string>>({
-    color_label_red: '거절',
-    color_label_yellow: '보류',
-    color_label_green: '선택',
-    color_label_blue: '클라이언트 공유',
-    color_label_purple: '최종 선택',
+    color_label_red: '거절', color_label_yellow: '보류', color_label_green: '선택',
+    color_label_blue: '클라이언트 공유', color_label_purple: '최종 선택',
   })
 
   useEffect(() => {
     axios.get(`${API}/settings/`).then(res => {
-      const cols = parseInt(res.data['default_grid_cols'] || '3')
-      setGridCols(cols)
+      setGridCols(parseInt(res.data['default_grid_cols'] || '3'))
       setLabelSettings({
         color_label_red: res.data['color_label_red'] || '거절',
         color_label_yellow: res.data['color_label_yellow'] || '보류',
@@ -442,30 +459,20 @@ export default function ProjectDetail() {
     fetchNotes()
   }, [id])
 
-  useEffect(() => {
-    if (!id) return
-    fetchChapterPhotoIds()
-  }, [id])
+  useEffect(() => { if (id) fetchChapterPhotoIds() }, [id])
 
   const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!e.target.files || !id) return
     setUploading(true)
-    const files = Array.from(e.target.files)
-    for (const file of files) {
+    for (const file of Array.from(e.target.files)) {
       const formData = new FormData()
       formData.append('file', file)
-
-      // 폴더 업로드인 경우 폴더명 추출
       const relativePath = (file as any).webkitRelativePath
       const folder = relativePath ? relativePath.split('/')[0] : null
-
       const url = folder
         ? `${API}/photos/upload?project_id=${id}&folder=${encodeURIComponent(folder)}`
         : `${API}/photos/upload?project_id=${id}`
-
-      await axios.post(url, formData, {
-        headers: { 'Content-Type': 'multipart/form-data' }
-      })
+      await axios.post(url, formData, { headers: { 'Content-Type': 'multipart/form-data' } })
     }
     await fetchPhotos()
     setUploading(false)
@@ -479,36 +486,24 @@ export default function ProjectDetail() {
   }
 
   const handleSetCover = async (photo: Photo) => {
-    const statusValue = typeof project!.status === 'object'
-      ? (project!.status as any).value
-      : project!.status
+    const statusValue = typeof project!.status === 'object' ? (project!.status as any).value : project!.status
     await axios.put(`${API}/projects/${id}`, {
-      title: project!.title,
-      title_en: project!.title_en,
-      description: project!.description,
-      description_en: project!.description_en,
-      location: project!.location,
-      is_public: project!.is_public,
-      status: statusValue,
-      cover_image_url: photo.image_url
+      title: project!.title, title_en: project!.title_en,
+      description: project!.description, description_en: project!.description_en,
+      location: project!.location, is_public: project!.is_public,
+      status: statusValue, cover_image_url: photo.image_url
     })
     const res = await axios.get(`${API}/projects/${id}`)
     setProject(res.data)
   }
 
   const handleRemoveCover = async () => {
-    const statusValue = typeof project!.status === 'object'
-      ? (project!.status as any).value
-      : project!.status
+    const statusValue = typeof project!.status === 'object' ? (project!.status as any).value : project!.status
     await axios.put(`${API}/projects/${id}`, {
-      title: project!.title,
-      title_en: project!.title_en,
-      description: project!.description,
-      description_en: project!.description_en,
-      location: project!.location,
-      is_public: project!.is_public,
-      status: statusValue,
-      cover_image_url: null
+      title: project!.title, title_en: project!.title_en,
+      description: project!.description, description_en: project!.description_en,
+      location: project!.location, is_public: project!.is_public,
+      status: statusValue, cover_image_url: null
     })
     const res = await axios.get(`${API}/projects/${id}`)
     setProject(res.data)
@@ -516,33 +511,41 @@ export default function ProjectDetail() {
 
   const handleDeletePhoto = async (photoId: string) => {
     await axios.delete(`${API}/photos/${photoId}`)
+    if (lightboxPhoto?.id === photoId) setLightboxPhoto(null)
     fetchPhotos()
   }
 
   const handleSetRating = async (photo: Photo, rating: number) => {
     const newRating = photo.rating === rating ? null : rating
-    await axios.put(`${API}/photos/${photo.id}`, {
-      ...photo,
-      rating: newRating
-    })
+    await axios.put(`${API}/photos/${photo.id}`, { ...photo, rating: newRating })
+    if (lightboxPhoto?.id === photo.id) setLightboxPhoto(prev => prev ? { ...prev, rating: newRating } : null)
     fetchPhotos()
   }
 
   const handleSetColorLabel = async (photo: Photo, label: string) => {
     const newLabel = photo.color_label === label ? null : label
-    await axios.put(`${API}/photos/${photo.id}`, {
-      ...photo,
-      color_label: newLabel
-    })
+    await axios.put(`${API}/photos/${photo.id}`, { ...photo, color_label: newLabel })
+    if (lightboxPhoto?.id === photo.id) setLightboxPhoto(prev => prev ? { ...prev, color_label: newLabel } : null)
+    fetchPhotos()
+  }
+
+  const handleTogglePortfolioLightbox = async (photo: Photo) => {
+    const newValue = photo.is_portfolio === 'true' ? 'false' : 'true'
+    await axios.put(`${API}/photos/${photo.id}`, { ...photo, is_portfolio: newValue })
+    if (lightboxPhoto?.id === photo.id) setLightboxPhoto(prev => prev ? { ...prev, is_portfolio: newValue } : null)
+    fetchPhotos()
+  }
+
+  const handleSaveCaptionLightbox = async (photo: Photo, caption: string) => {
+    await axios.put(`${API}/photos/${photo.id}`, { ...photo, caption })
+    if (lightboxPhoto?.id === photo.id) setLightboxPhoto(prev => prev ? { ...prev, caption } : null)
     fetchPhotos()
   }
 
   const handleClearRatings = async () => {
     if (!confirm('모든 사진의 별점을 초기화할까요?')) return
     for (const photo of photos) {
-      if (photo.rating !== null) {
-        await axios.put(`${API}/photos/${photo.id}`, { ...photo, rating: null })
-      }
+      if (photo.rating !== null) await axios.put(`${API}/photos/${photo.id}`, { ...photo, rating: null })
     }
     fetchPhotos()
   }
@@ -550,28 +553,48 @@ export default function ProjectDetail() {
   const handleClearColorLabels = async () => {
     if (!confirm('모든 사진의 컬러 레이블을 초기화할까요?')) return
     for (const photo of photos) {
-      if (photo.color_label !== null) {
-        await axios.put(`${API}/photos/${photo.id}`, { ...photo, color_label: null })
-      }
+      if (photo.color_label !== null) await axios.put(`${API}/photos/${photo.id}`, { ...photo, color_label: null })
     }
     fetchPhotos()
   }
 
+  const handleSaveCaption = async (photo: Photo) => {
+    await axios.put(`${API}/photos/${photo.id}`, { ...photo, caption: captionKo })
+    setEditingCaption(null)
+    fetchPhotos()
+  }
+
+  const handleAddNote = async () => {
+    if (!newNote.trim() || !id) return
+    await axios.post(`${API}/notes/`, { project_id: id, content: newNote })
+    setNewNote('')
+    fetchNotes()
+  }
+
+  const handleUpdateNote = async (noteId: string) => {
+    if (!editContent.trim()) return
+    await axios.put(`${API}/notes/${noteId}`, { content: editContent })
+    setEditingNote(null); setEditContent('')
+    fetchNotes()
+  }
+
+  const handleDeleteNote = async (noteId: string) => {
+    await axios.delete(`${API}/notes/${noteId}`)
+    fetchNotes()
+  }
+
   const colorLabels = [
-    { value: 'red', color: 'bg-red-500', label: labelSettings['color_label_red'] },
+    { value: 'red',    color: 'bg-red-500',    label: labelSettings['color_label_red'] },
     { value: 'yellow', color: 'bg-yellow-400', label: labelSettings['color_label_yellow'] },
-    { value: 'green', color: 'bg-green-500', label: labelSettings['color_label_green'] },
-    { value: 'blue', color: 'bg-blue-500', label: labelSettings['color_label_blue'] },
+    { value: 'green',  color: 'bg-green-500',  label: labelSettings['color_label_green'] },
+    { value: 'blue',   color: 'bg-blue-500',   label: labelSettings['color_label_blue'] },
     { value: 'purple', color: 'bg-purple-500', label: labelSettings['color_label_purple'] },
   ]
 
   const filteredPhotos = photos.filter(photo => {
     if (filterRating !== null) {
-      if (filterRating === 0) {
-        if (photo.rating !== null) return false
-      } else {
-        if (photo.rating !== filterRating) return false
-      }
+      if (filterRating === 0) { if (photo.rating !== null) return false }
+      else { if (photo.rating !== filterRating) return false }
     }
     if (filterColor !== null && photo.color_label !== filterColor) return false
     if (filterPortfolio && photo.is_portfolio !== 'true') return false
@@ -587,52 +610,34 @@ export default function ProjectDetail() {
     const newPhotos = arrayMove(photos, oldIndex, newIndex)
     setPhotos(newPhotos)
     for (let i = 0; i < newPhotos.length; i++) {
-      await axios.put(`${API}/photos/${newPhotos[i].id}`, {
-        ...newPhotos[i],
-        order: i
-      })
+      await axios.put(`${API}/photos/${newPhotos[i].id}`, { ...newPhotos[i], order: i })
     }
-  }
-
-  const handleSaveCaption = async (photo: Photo) => {
-    await axios.put(`${API}/photos/${photo.id}`, {
-      ...photo,
-      caption: captionKo,
-    })
-    setEditingCaption(null)
-    fetchPhotos()
-  }
-
-  const handleAddNote = async () => {
-    if (!newNote.trim() || !id) return
-    await axios.post(`${API}/notes/`, { project_id: id, content: newNote })
-    setNewNote('')
-    fetchNotes()
-  }
-
-  const handleUpdateNote = async (noteId: string) => {
-    if (!editContent.trim()) return
-    await axios.put(`${API}/notes/${noteId}`, { content: editContent })
-    setEditingNote(null)
-    setEditContent('')
-    fetchNotes()
-  }
-
-  const handleDeleteNote = async (noteId: string) => {
-    await axios.delete(`${API}/notes/${noteId}`)
-    fetchNotes()
   }
 
   if (!project) return <div className="p-6 text-gray-400">로딩 중...</div>
 
   return (
     <div className="max-w-5xl mx-auto p-6">
-      {/* 뒤로가기 */}
+      {/* 라이트박스 */}
+      {lightboxPhoto && (
+        <Lightbox
+          photo={lightboxPhoto}
+          photos={filteredPhotos}
+          colorLabels={colorLabels}
+          chapterPhotoIds={chapterPhotoIds}
+          onClose={() => setLightboxPhoto(null)}
+          onNavigate={setLightboxPhoto}
+          onSetRating={handleSetRating}
+          onSetColorLabel={handleSetColorLabel}
+          onTogglePortfolio={handleTogglePortfolioLightbox}
+          onSaveCaption={handleSaveCaptionLightbox}
+        />
+      )}
+
       <div className="mb-4">
         <a href="/projects" className="text-sm text-gray-400 hover:text-black">← 목록</a>
       </div>
 
-      {/* 프로젝트 헤더 */}
       <div className="mb-8 flex items-start justify-between gap-6">
         <div className="flex-1">
           <h2 className="text-3xl font-bold mb-1">{project.title}</h2>
@@ -642,136 +647,84 @@ export default function ProjectDetail() {
         {project.cover_image_url && (
           <div className="shrink-0 flex flex-col items-center gap-2">
             <img src={project.cover_image_url} alt="커버" className="w-24 h-24 object-cover rounded" />
-            <button onClick={handleRemoveCover} className="text-xs text-red-400 hover:text-red-600">
-              커버 제거
-            </button>
+            <button onClick={handleRemoveCover} className="text-xs text-red-400 hover:text-red-600">커버 제거</button>
           </div>
         )}
       </div>
 
       {/* 탭 */}
       <div className="flex border-b mb-6">
-        <button
-          onClick={() => { setActiveTab('photos');  fetchChapterPhotoIds() }}
-          className={`px-6 py-2 text-sm tracking-wider ${activeTab === 'photos' ? 'border-b-2 border-black font-semibold' : 'text-gray-400'}`}
-        >
+        <button onClick={() => { setActiveTab('photos'); fetchChapterPhotoIds() }}
+          className={`px-6 py-2 text-sm tracking-wider ${activeTab === 'photos' ? 'border-b-2 border-black font-semibold' : 'text-gray-400'}`}>
           사진 ({photos.length})
         </button>
-        <button
-          onClick={() => setActiveTab('story')}
-          className={`px-6 py-2 text-sm tracking-wider ${activeTab === 'story' ? 'border-b-2 border-black font-semibold' : 'text-gray-400'}`}
-        >
+        <button onClick={() => setActiveTab('story')}
+          className={`px-6 py-2 text-sm tracking-wider ${activeTab === 'story' ? 'border-b-2 border-black font-semibold' : 'text-gray-400'}`}>
           스토리 ({chapterCount})
         </button>
-        <button
-          onClick={() => setActiveTab('notes')}
-          className={`px-6 py-2 text-sm tracking-wider ${activeTab === 'notes' ? 'border-b-2 border-black font-semibold' : 'text-gray-400'}`}
-        >
+        <button onClick={() => setActiveTab('notes')}
+          className={`px-6 py-2 text-sm tracking-wider ${activeTab === 'notes' ? 'border-b-2 border-black font-semibold' : 'text-gray-400'}`}>
           노트 ({notes.length})
+        </button>
+        <button onClick={() => setActiveTab('delivery')}
+          className={`px-6 py-2 text-sm tracking-wider ${activeTab === 'delivery' ? 'border-b-2 border-black font-semibold' : 'text-gray-400'}`}>
+          납품
         </button>
       </div>
 
       {/* 사진 탭 */}
       {activeTab === 'photos' && (
         <div className="flex gap-6">
-          {/* 왼쪽 필터 패널 */}
           <div className={`${showFilter ? 'w-48' : 'w-6'} shrink-0 transition-all duration-200`}>
-            <button
-              onClick={() => setShowFilter(!showFilter)}
-              className="mb-2 text-gray-400 hover:text-black text-xs flex items-center gap-1"
-            >
+            <button onClick={() => setShowFilter(!showFilter)}
+              className="mb-2 text-gray-400 hover:text-black text-xs flex items-center gap-1">
               {showFilter ? '◀ 필터' : '▶'}
             </button>
-
             {showFilter && (
               <div className="bg-white rounded-lg shadow p-4 overflow-y-auto max-h-[calc(100vh-2rem)] sticky top-4">
-
-                {/* 업로드 버튼 */}
                 <div className="mb-4 flex flex-col gap-2">
                   <label className="cursor-pointer bg-black text-white px-3 py-2 text-xs tracking-wider hover:bg-gray-800 inline-block w-full text-center">
                     {uploading ? '업로드 중...' : '+ 사진 업로드'}
-                    <input
-                      type="file"
-                      accept="image/*"
-                      multiple
-                      className="hidden"
-                      onChange={handleUpload}
-                      disabled={uploading}
-                    />
+                    <input type="file" accept="image/*" multiple className="hidden" onChange={handleUpload} disabled={uploading} />
                   </label>
                   <label className="cursor-pointer bg-gray-700 text-white px-3 py-2 text-xs tracking-wider hover:bg-gray-600 inline-block w-full text-center">
                     {uploading ? '업로드 중...' : '+ 폴더 업로드'}
-                    <input
-                      type="file"
-                      accept="image/*"
-                      multiple
-                      className="hidden"
-                      onChange={handleUpload}
-                      disabled={uploading}
-                      {...{ webkitdirectory: '' } as any}
-                    />
+                    <input type="file" accept="image/*" multiple className="hidden" onChange={handleUpload} disabled={uploading} {...{ webkitdirectory: '' } as any} />
                   </label>
                 </div>
 
-                {/* 보기 설정 */}
                 <div className="mb-4">
                   <p className="text-xs font-semibold text-gray-500 mb-2">보기</p>
                   <div className="flex gap-1 mb-2">
-                    {[
-                      { cols: 2, icon: '2' },
-                      { cols: 3, icon: '3' },
-                      { cols: 4, icon: '4' },
-                      { cols: 1, icon: '≡' },
-                    ].map(({ cols, icon }) => (
-                      <button
-                        key={cols}
-                        onClick={() => setGridCols(cols)}
-                        className={`flex-1 py-1 text-xs rounded ${gridCols === cols ? 'bg-black text-white' : 'bg-gray-100 hover:bg-gray-200'}`}
-                      >
-                        {icon}
-                      </button>
+                    {[{ cols: 2, icon: '2' }, { cols: 3, icon: '3' }, { cols: 4, icon: '4' }, { cols: 1, icon: '≡' }].map(({ cols, icon }) => (
+                      <button key={cols} onClick={() => setGridCols(cols)}
+                        className={`flex-1 py-1 text-xs rounded ${gridCols === cols ? 'bg-black text-white' : 'bg-gray-100 hover:bg-gray-200'}`}>{icon}</button>
                     ))}
                   </div>
-                  <button
-                    onClick={() => setShowExif(!showExif)}
-                    className={`w-full text-left px-2 py-1 text-xs rounded flex items-center justify-between ${showExif ? 'bg-black text-white' : 'hover:bg-gray-50'}`}
-                  >
-                    <span>EXIF 정보</span>
-                    <span>{showExif ? 'ON' : 'OFF'}</span>
+                  <button onClick={() => setShowExif(!showExif)}
+                    className={`w-full text-left px-2 py-1 text-xs rounded flex items-center justify-between ${showExif ? 'bg-black text-white' : 'hover:bg-gray-50'}`}>
+                    <span>EXIF 정보</span><span>{showExif ? 'ON' : 'OFF'}</span>
                   </button>
                 </div>
 
-                {/* 전체 보기 */}
-                <button
-                  onClick={() => { setFilterRating(null); setFilterColor(null); setFilterPortfolio(false); setFilterFolder(null) }}
-                  className={`w-full text-left px-2 py-1 text-xs rounded mb-3 ${!filterRating && !filterColor && !filterPortfolio ? 'bg-black text-white' : 'hover:bg-gray-50'}`}
-                >
+                <button onClick={() => { setFilterRating(null); setFilterColor(null); setFilterPortfolio(false); setFilterFolder(null) }}
+                  className={`w-full text-left px-2 py-1 text-xs rounded mb-3 ${!filterRating && !filterColor && !filterPortfolio ? 'bg-black text-white' : 'hover:bg-gray-50'}`}>
                   전체 ({photos.length})
                 </button>
 
-                {/* 폴더 필터 */}
                 {photos.some(p => p.folder) && (
                   <div className="mt-4 mb-4">
                     <p className="text-xs font-semibold text-gray-500 mb-2">폴더</p>
-                    <button
-                      onClick={() => setFilterFolder(null)}
-                      className={`w-full text-left px-2 py-1 text-xs rounded flex items-center justify-between mb-1 ${filterFolder === null ? 'bg-black text-white' : 'hover:bg-gray-50'}`}
-                    >
-                      <span>전체</span>
-                      <span className="text-gray-400">{photos.length}</span>
+                    <button onClick={() => setFilterFolder(null)}
+                      className={`w-full text-left px-2 py-1 text-xs rounded flex items-center justify-between mb-1 ${filterFolder === null ? 'bg-black text-white' : 'hover:bg-gray-50'}`}>
+                      <span>전체</span><span className="text-gray-400">{photos.length}</span>
                     </button>
                     {[...new Set(photos.filter(p => p.folder).map(p => p.folder))].map(folder => {
                       const count = photos.filter(p => p.folder === folder).length
                       return (
-                        <button
-                          key={folder}
-                          onClick={() => setFilterFolder(filterFolder === folder ? null : folder!)}
-                          className={`w-full text-left px-2 py-1 text-xs rounded flex items-center justify-between ${filterFolder === folder ? 'bg-black text-white' : 'hover:bg-gray-50'}`}
-                        >
-                          <span className="flex items-center gap-1">
-                            <span>📁</span>
-                            <span className="truncate">{folder}</span>
-                          </span>
+                        <button key={folder} onClick={() => setFilterFolder(filterFolder === folder ? null : folder!)}
+                          className={`w-full text-left px-2 py-1 text-xs rounded flex items-center justify-between ${filterFolder === folder ? 'bg-black text-white' : 'hover:bg-gray-50'}`}>
+                          <span className="flex items-center gap-1"><span>📁</span><span className="truncate">{folder}</span></span>
                           <span className="text-gray-400">{count}</span>
                         </button>
                       )
@@ -779,75 +732,49 @@ export default function ProjectDetail() {
                   </div>
                 )}
 
-                {/* 별점 필터 */}
                 <div className="mb-4">
                   <div className="flex items-center justify-between mb-2">
-                  <p className="text-xs font-semibold text-gray-500 mb-2">별점</p>
-                  <button
-                    onClick={handleClearRatings}
-                    className="text-xs text-gray-400 hover:text-red-500"
-                  >
-                    초기화
-                  </button>
+                    <p className="text-xs font-semibold text-gray-500 mb-2">별점</p>
+                    <button onClick={handleClearRatings} className="text-xs text-gray-400 hover:text-red-500">초기화</button>
                   </div>
                   {[5, 4, 3, 2, 1].map(star => {
                     const count = photos.filter(p => p.rating === star).length
                     return (
-                      <button
-                        key={star}
-                        onClick={() => setFilterRating(filterRating === star ? null : star)}
-                        className={`w-full text-left px-2 py-1 text-xs rounded flex items-center justify-between ${filterRating === star ? 'bg-black text-white' : 'hover:bg-gray-50'}`}
-                      >
+                      <button key={star} onClick={() => setFilterRating(filterRating === star ? null : star)}
+                        className={`w-full text-left px-2 py-1 text-xs rounded flex items-center justify-between ${filterRating === star ? 'bg-black text-white' : 'hover:bg-gray-50'}`}>
                         <span>{'★'.repeat(star)}{'☆'.repeat(5 - star)}</span>
                         <span className="text-gray-400">{count}</span>
                       </button>
                     )
                   })}
-                  <button
-                    onClick={() => setFilterRating(filterRating === 0 ? null : 0)}
-                    className={`w-full text-left px-2 py-1 text-xs rounded flex items-center justify-between ${filterRating === 0 ? 'bg-black text-white' : 'hover:bg-gray-50'}`}
-                  >
+                  <button onClick={() => setFilterRating(filterRating === 0 ? null : 0)}
+                    className={`w-full text-left px-2 py-1 text-xs rounded flex items-center justify-between ${filterRating === 0 ? 'bg-black text-white' : 'hover:bg-gray-50'}`}>
                     <span className="text-gray-400">미평가</span>
                     <span className="text-gray-400">{photos.filter(p => !p.rating).length}</span>
                   </button>
                 </div>
 
-                {/* 컬러 레이블 필터 */}
                 <div className="mb-4">
                   <div className="flex items-center justify-between mb-2">
-                  <p className="text-xs font-semibold text-gray-500 mb-2">컬러 레이블</p>
-                  <button
-                    onClick={handleClearColorLabels}
-                    className="text-xs text-gray-400 hover:text-red-500"
-                  >
-                    초기화
-                  </button>
+                    <p className="text-xs font-semibold text-gray-500 mb-2">컬러 레이블</p>
+                    <button onClick={handleClearColorLabels} className="text-xs text-gray-400 hover:text-red-500">초기화</button>
                   </div>
                   {colorLabels.map(label => {
                     const count = photos.filter(p => p.color_label === label.value).length
                     return (
-                      <button
-                        key={label.value}
-                        onClick={() => setFilterColor(filterColor === label.value ? null : label.value)}
-                        className={`w-full text-left px-2 py-1 text-xs rounded flex items-center justify-between ${filterColor === label.value ? 'bg-black text-white' : 'hover:bg-gray-50'}`}
-                      >
-                        <span className="flex items-center gap-2">
-                          <span className={`w-3 h-3 rounded-full ${label.color}`} />
-                          {label.label}
-                        </span>
+                      <button key={label.value} onClick={() => setFilterColor(filterColor === label.value ? null : label.value)}
+                        className={`w-full text-left px-2 py-1 text-xs rounded flex items-center justify-between ${filterColor === label.value ? 'bg-black text-white' : 'hover:bg-gray-50'}`}>
+                        <span className="flex items-center gap-2"><span className={`w-3 h-3 rounded-full ${label.color}`} />{label.label}</span>
                         <span className="text-gray-400">{count}</span>
                       </button>
                     )
                   })}
                 </div>
 
-                {/* 포트폴리오 필터 */}
                 <div>
                   <p className="text-xs font-semibold text-gray-500 mb-2">포트폴리오</p>
-                  <button
-                    onClick={() => setFilterPortfolio(!filterPortfolio)}
-                    className={`w-full text-left px-2 py-1 text-xs rounded flex items-center justify-between ${filterPortfolio ? 'bg-black text-white' : 'hover:bg-gray-50'}`}
-                  >
+                  <button onClick={() => setFilterPortfolio(!filterPortfolio)}
+                    className={`w-full text-left px-2 py-1 text-xs rounded flex items-center justify-between ${filterPortfolio ? 'bg-black text-white' : 'hover:bg-gray-50'}`}>
                     <span>✓ 포트폴리오</span>
                     <span className="text-gray-400">{photos.filter(p => p.is_portfolio === 'true').length}</span>
                   </button>
@@ -856,99 +783,62 @@ export default function ProjectDetail() {
             )}
           </div>
 
-          {/* 오른쪽 사진 그리드 */}
           <div className="flex-1">
             <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
               <SortableContext items={filteredPhotos.map(p => p.id)} strategy={rectSortingStrategy}>
                 <div className={`grid gap-4 ${
-                  gridCols === 1 ? 'grid-cols-1' :
-                  gridCols === 2 ? 'grid-cols-2' :
-                  gridCols === 3 ? 'grid-cols-3' :
-                  'grid-cols-4'
-                }`}>
+                  gridCols === 1 ? 'grid-cols-1' : gridCols === 2 ? 'grid-cols-2' :
+                  gridCols === 3 ? 'grid-cols-3' : 'grid-cols-4'}`}>
                   {filteredPhotos.map(photo => (
                     <SortablePhoto
-                      key={photo.id}
-                      photo={photo}
-                      project={project}
-                      editingCaption={editingCaption}
-                      captionKo={captionKo}
-                      setCaptionKo={setCaptionKo}
-                      setEditingCaption={setEditingCaption}
-                      onSetCover={handleSetCover}
-                      onTogglePortfolio={handleTogglePortfolio}
-                      onDelete={handleDeletePhoto}
-                      onSaveCaption={handleSaveCaption}
-                      onSetRating={handleSetRating}
-                      onSetColorLabel={handleSetColorLabel}
-                      showExif={showExif}
-                      gridCols={gridCols}
-                      colorLabels={colorLabels}
-                      chapterPhotoIds={chapterPhotoIds}
+                      key={photo.id} photo={photo} project={project}
+                      editingCaption={editingCaption} captionKo={captionKo}
+                      setCaptionKo={setCaptionKo} setEditingCaption={setEditingCaption}
+                      onSetCover={handleSetCover} onTogglePortfolio={handleTogglePortfolio}
+                      onDelete={handleDeletePhoto} onSaveCaption={handleSaveCaption}
+                      onSetRating={handleSetRating} onSetColorLabel={handleSetColorLabel}
+                      onOpenLightbox={setLightboxPhoto}
+                      showExif={showExif} gridCols={gridCols}
+                      colorLabels={colorLabels} chapterPhotoIds={chapterPhotoIds}
                     />
                   ))}
                 </div>
               </SortableContext>
             </DndContext>
-
             {filteredPhotos.length === 0 && !uploading && (
               <div className="text-center py-20 text-gray-400">
-                {photos.length === 0 ? (
-                  <>
-                    <p className="text-lg mb-2">아직 사진이 없어요</p>
-                    <p className="text-sm">위 버튼으로 사진을 업로드해봐요</p>
-                  </>
-                ) : (
-                  <>
-                    <p className="text-lg mb-2">조건에 맞는 사진이 없어요</p>
-                    <p className="text-sm">필터를 변경해봐요</p>
-                  </>
-                )}
+                {photos.length === 0
+                  ? <><p className="text-lg mb-2">아직 사진이 없어요</p><p className="text-sm">위 버튼으로 사진을 업로드해봐요</p></>
+                  : <><p className="text-lg mb-2">조건에 맞는 사진이 없어요</p><p className="text-sm">필터를 변경해봐요</p></>}
               </div>
             )}
           </div>
         </div>
       )}
 
-      {/* 스토리 탭 */}
       {activeTab === 'story' && (
-        <ProjectStory 
-          projectId={id!} 
-          allPhotos={photos}
-          onChapterChange={setChapterCount}
-        />
+        <ProjectStory projectId={id!} allPhotos={photos} onChapterChange={setChapterCount} />
       )}
 
-      {/* 노트 탭 */}
+      {activeTab === 'delivery' && <DeliveryManager projectId={id!} />}
+
       {activeTab === 'notes' && (
         <div>
           <div className="mb-6">
-            <textarea
-              className="w-full border rounded px-3 py-2 text-sm mb-2 focus:outline-none focus:ring-1 focus:ring-black"
+            <textarea className="w-full border rounded px-3 py-2 text-sm mb-2 focus:outline-none focus:ring-1 focus:ring-black"
               placeholder="리서치 메모, 촬영 아이디어, 컨셉 노트 등을 자유롭게 기록하세요..."
-              rows={4}
-              value={newNote}
-              onChange={e => setNewNote(e.target.value)}
-            />
-            <button
-              onClick={handleAddNote}
-              className="bg-black text-white px-4 py-2 text-sm tracking-wider hover:bg-gray-800"
-            >
+              rows={4} value={newNote} onChange={e => setNewNote(e.target.value)} />
+            <button onClick={handleAddNote} className="bg-black text-white px-4 py-2 text-sm tracking-wider hover:bg-gray-800">
               + 노트 추가
             </button>
           </div>
-
           <div className="space-y-4">
             {notes.map(note => (
               <div key={note.id} className="bg-white rounded-lg shadow p-4">
                 {editingNote === note.id ? (
                   <div>
-                    <textarea
-                      className="w-full border rounded px-3 py-2 text-sm mb-2 focus:outline-none focus:ring-1 focus:ring-black"
-                      rows={4}
-                      value={editContent}
-                      onChange={e => setEditContent(e.target.value)}
-                    />
+                    <textarea className="w-full border rounded px-3 py-2 text-sm mb-2 focus:outline-none focus:ring-1 focus:ring-black"
+                      rows={4} value={editContent} onChange={e => setEditContent(e.target.value)} />
                     <div className="flex gap-2">
                       <button onClick={() => handleUpdateNote(note.id)} className="bg-black text-white px-3 py-1 text-xs hover:bg-gray-800">저장</button>
                       <button onClick={() => setEditingNote(null)} className="border px-3 py-1 text-xs hover:bg-gray-50">취소</button>
@@ -959,10 +849,7 @@ export default function ProjectDetail() {
                     <p className="text-sm text-gray-700 whitespace-pre-wrap mb-3">{note.content}</p>
                     <div className="flex items-center justify-between">
                       <span className="text-xs text-gray-400">
-                        {new Date(note.updated_at).toLocaleDateString('ko-KR', {
-                          year: 'numeric', month: 'long', day: 'numeric',
-                          hour: '2-digit', minute: '2-digit'
-                        })}
+                        {new Date(note.updated_at).toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
                       </span>
                       <div className="flex gap-2">
                         <button onClick={() => { setEditingNote(note.id); setEditContent(note.content) }} className="text-xs text-gray-400 hover:text-black">수정</button>
@@ -974,7 +861,6 @@ export default function ProjectDetail() {
               </div>
             ))}
           </div>
-
           {notes.length === 0 && (
             <div className="text-center py-20 text-gray-400">
               <p className="text-lg mb-2">아직 노트가 없어요</p>

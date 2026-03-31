@@ -3,7 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from app.database import engine, SessionLocal
 import app.models as models
-from app.routers import projects, photos, portfolio, notes, auth, chapters, settings
+from app.routers import projects, photos, portfolio, notes, auth, chapters, settings, delivery
 from apscheduler.schedulers.background import BackgroundScheduler
 from datetime import datetime, timedelta
 import os
@@ -27,6 +27,7 @@ app.include_router(notes.router)
 app.include_router(auth.router)
 app.include_router(chapters.router)
 app.include_router(settings.router)
+app.include_router(delivery.router)
 
 os.makedirs("app/uploads", exist_ok=True)
 app.mount("/uploads", StaticFiles(directory="app/uploads"), name="uploads")
@@ -41,7 +42,6 @@ def auto_delete_trash():
             models.Project.deleted_at < threshold
         ).all()
         for project in old_projects:
-            # 사진 파일 삭제
             photos = db.query(models.Photo).filter(models.Photo.project_id == project.id).all()
             for photo in photos:
                 try:
