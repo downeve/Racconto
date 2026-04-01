@@ -41,7 +41,6 @@ interface Photo {
   image_url: string
   caption: string
   caption_en: string
-  is_portfolio: string
   folder: string | null
   order: number
   taken_at: string | null
@@ -69,7 +68,7 @@ interface Note {
 // ── 라이트박스 ─────────────────────────────────────────────
 function Lightbox({
   photo, photos, colorLabels, chapterPhotoIds,
-  onClose, onNavigate, onSetRating, onSetColorLabel, onTogglePortfolio, onSaveCaption,
+  onClose, onNavigate, onSetRating, onSetColorLabel, onSaveCaption,
 }: {
   photo: Photo
   photos: Photo[]
@@ -79,7 +78,6 @@ function Lightbox({
   onNavigate: (p: Photo) => void
   onSetRating: (p: Photo, r: number) => void
   onSetColorLabel: (p: Photo, l: string) => void
-  onTogglePortfolio: (p: Photo) => void
   onSaveCaption: (p: Photo, c: string) => void
 }) {
   const idx = photos.findIndex(p => p.id === photo.id)
@@ -102,7 +100,6 @@ function Lightbox({
     return () => window.removeEventListener('keydown', onKey)
   }, [photo, photos])
 
-  const isPortfolio = photo.is_portfolio === 'true'
   const inChapter = chapterPhotoIds.has(photo.id)
 
   return (
@@ -155,13 +152,8 @@ function Lightbox({
             </div>
             <div className="w-px h-5 bg-white/20" />
             {/* 포트폴리오 */}
-            {inChapter ? (
+            {inChapter && (
               <span className="text-xs text-blue-400">📖 {t('story.chapterIncl')}</span>
-            ) : (
-              <button onClick={() => onTogglePortfolio(photo)}
-                className={`text-xs px-3 py-1 rounded transition-colors ${isPortfolio ? 'bg-green-600 text-white' : 'bg-white/10 hover:bg-white/20 text-white/70'}`}>
-                {isPortfolio ? t('photo.isPortfolio') : t('photo.addToPortfolio')}
-              </button>
             )}
             {/* EXIF */}
             {(photo.camera || photo.focal_length) && (
@@ -206,7 +198,7 @@ function Lightbox({
 // ── SortablePhoto ──────────────────────────────────────────
 function SortablePhoto({
   photo, project, editingCaption, captionKo, setCaptionKo, setEditingCaption,
-  onSetCover, onTogglePortfolio, onDelete, onSaveCaption, onSetRating, onSetColorLabel,
+  onSetCover, onDelete, onSaveCaption, onSetRating, onSetColorLabel,
   onOpenLightbox, showExif, gridCols, colorLabels, chapterPhotoIds, chapters, onShowChapterMenu
 }: {
   photo: Photo
@@ -216,7 +208,6 @@ function SortablePhoto({
   setCaptionKo: (v: string) => void
   setEditingCaption: (v: string | null) => void
   onSetCover: (photo: Photo) => void
-  onTogglePortfolio: (photo: Photo) => void
   onDelete: (id: string) => void
   onSaveCaption: (photo: Photo) => void
   onSetRating: (photo: Photo, rating: number) => void
@@ -289,13 +280,8 @@ function SortablePhoto({
               className={`px-2 py-1 text-xs rounded ${project?.cover_image_url === photo.image_url ? 'bg-yellow-400 text-black' : 'bg-gray-100 hover:bg-gray-200'}`}>
               {project?.cover_image_url === photo.image_url ? t('photo.isCover') : t('photo.setCover')}
             </button>
-            {chapterPhotoIds.has(photo.id) ? (
+            {chapterPhotoIds.has(photo.id) && (
               <button className="px-2 py-1 text-xs rounded bg-blue-100 text-blue-500 cursor-default">📖 챕터</button>
-            ) : (
-              <button onClick={() => onTogglePortfolio(photo)}
-                className={`px-2 py-1 text-xs rounded ${photo.is_portfolio === 'true' ? 'bg-green-500 text-white' : 'bg-gray-100 hover:bg-gray-200'}`}>
-                {photo.is_portfolio === 'true' ? '✓포트폴리오' : '포트폴리오 추가'}
-              </button>
             )}
             <button onClick={() => onDelete(photo.id)} className="px-2 py-1 text-xs bg-red-100 text-red-500 rounded hover:bg-red-200">삭제</button>
           </div>
@@ -432,7 +418,6 @@ export default function ProjectDetail() {
   const [trashedPhotos, setTrashedPhotos] = useState<Photo[]>([])
   const [filterRating, setFilterRating] = useState<number | null>(null)
   const [filterColor, setFilterColor] = useState<string | null>(null)
-  const [filterPortfolio, setFilterPortfolio] = useState(false)
   const [filterFolder, setFilterFolder] = useState<string | null>(null)
   const [showExif, setShowExif] = useState(true)
   const [showFilter, setShowFilter] = useState(true)
@@ -526,12 +511,6 @@ export default function ProjectDetail() {
     e.target.value = ''
   }
 
-  const handleTogglePortfolio = async (photo: Photo) => {
-    const newValue = photo.is_portfolio === 'true' ? 'false' : 'true'
-    await axios.put(`${API}/photos/${photo.id}`, { ...photo, is_portfolio: newValue })
-    fetchPhotos()
-  }
-
   const handleSetCover = async (photo: Photo) => {
     const statusValue = typeof project!.status === 'object' ? (project!.status as any).value : project!.status
     await axios.put(`${API}/projects/${id}`, {
@@ -573,13 +552,6 @@ export default function ProjectDetail() {
     const newLabel = photo.color_label === label ? null : label
     await axios.put(`${API}/photos/${photo.id}`, { ...photo, color_label: newLabel })
     if (lightboxPhoto?.id === photo.id) setLightboxPhoto(prev => prev ? { ...prev, color_label: newLabel } : null)
-    fetchPhotos()
-  }
-
-  const handleTogglePortfolioLightbox = async (photo: Photo) => {
-    const newValue = photo.is_portfolio === 'true' ? 'false' : 'true'
-    await axios.put(`${API}/photos/${photo.id}`, { ...photo, is_portfolio: newValue })
-    if (lightboxPhoto?.id === photo.id) setLightboxPhoto(prev => prev ? { ...prev, is_portfolio: newValue } : null)
     fetchPhotos()
   }
 
@@ -657,7 +629,6 @@ export default function ProjectDetail() {
       else { if (photo.rating !== filterRating) return false }
     }
     if (filterColor !== null && photo.color_label !== filterColor) return false
-    if (filterPortfolio && photo.is_portfolio !== 'true') return false
     if (filterFolder !== null && photo.folder !== filterFolder) return false
     return true
   })
@@ -689,7 +660,6 @@ export default function ProjectDetail() {
           onNavigate={setLightboxPhoto}
           onSetRating={handleSetRating}
           onSetColorLabel={handleSetColorLabel}
-          onTogglePortfolio={handleTogglePortfolioLightbox}
           onSaveCaption={handleSaveCaptionLightbox}
         />
       )}
@@ -819,8 +789,8 @@ export default function ProjectDetail() {
                       </button>
                     </div>
 
-                    <button onClick={() => { setFilterRating(null); setFilterColor(null); setFilterPortfolio(false); setFilterFolder(null) }}
-                      className={`w-full text-left px-2 py-1 text-xs rounded mb-3 ${!filterRating && !filterColor && !filterPortfolio ? 'bg-black text-white' : 'hover:bg-gray-50'}`}>
+                    <button onClick={() => { setFilterRating(null); setFilterColor(null); setFilterFolder(null) }}
+                      className={`w-full text-left px-2 py-1 text-xs rounded mb-3 ${!filterRating && !filterColor ? 'bg-black text-white' : 'hover:bg-gray-50'}`}>
                       {t('filter.allPhotos')} ({photos.length})
                     </button>
 
@@ -883,19 +853,6 @@ export default function ProjectDetail() {
                       })}
                     </div>
 
-                    <div>
-                      <p 
-                        onClick={() => setFilterPortfolio(!filterPortfolio)}
-                        className={`cursor-pointer flex items-center justify-between px-0 py-1 mb-2 text-xs font-semibold rounded transition-colors ${
-                          filterPortfolio ? 'bg-black text-white' : 'text-gray-500 hover:bg-gray-50'
-                        }`}
-                      >
-                        <span>{filterPortfolio ? ` ✓ ${t('filter.allPortfolio')}` : t('filter.allPortfolio')}</span>
-                        <span className={filterPortfolio ? 'text-gray-300 px-2' : 'text-gray-400 px-2'}>
-                          {photos.filter(p => p.is_portfolio === 'true').length}
-                        </span>
-                      </p>
-                    </div>
                   </div>
                 )}
               </div>
@@ -911,7 +868,7 @@ export default function ProjectDetail() {
                           key={photo.id} photo={photo} project={project}
                           editingCaption={editingCaption} captionKo={captionKo}
                           setCaptionKo={setCaptionKo} setEditingCaption={setEditingCaption}
-                          onSetCover={handleSetCover} onTogglePortfolio={handleTogglePortfolio}
+                          onSetCover={handleSetCover} 
                           onDelete={handleDeletePhoto} onSaveCaption={handleSaveCaption}
                           onSetRating={handleSetRating} onSetColorLabel={handleSetColorLabel}
                           onOpenLightbox={setLightboxPhoto}

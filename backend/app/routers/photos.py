@@ -163,7 +163,6 @@ class PhotoCreate(BaseModel):
     caption: Optional[str] = None
     caption_en: Optional[str] = None
     order: Optional[int] = 0
-    is_portfolio: Optional[str] = "false"
     rating: Optional[int] = None
     color_label: Optional[str] = None
     folder: Optional[str] = None
@@ -175,7 +174,6 @@ class PhotoResponse(BaseModel):
     caption: Optional[str]
     caption_en: Optional[str]
     order: int
-    is_portfolio: str
     taken_at: Optional[datetime]
     camera: Optional[str]
     lens: Optional[str]
@@ -216,7 +214,6 @@ def create_photo(photo: PhotoCreate, db: Session = Depends(get_db)):
         caption=photo.caption,
         caption_en=photo.caption_en,
         order=photo.order,
-        is_portfolio=photo.is_portfolio
     )
     db.add(db_photo)
     db.commit()
@@ -287,7 +284,6 @@ async def upload_photo(
         project_id=project_id,
         image_url=image_url,
         order=next_order,
-        is_portfolio="false",
         folder=folder,
         taken_at=exif.get('taken_at'),
         camera=exif.get('camera'),

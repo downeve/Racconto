@@ -93,21 +93,13 @@ def delete_chapter(chapter_id: str, db: Session = Depends(get_db)):
     if not db_chapter:
         raise HTTPException(status_code=404, detail="챕터를 찾을 수 없습니다")
     
-    # 챕터 사진들 is_portfolio 처리
+    # 챕터 사진들 삭제
     chapter_photos = db.query(models.ChapterPhoto).filter(
         models.ChapterPhoto.chapter_id == chapter_id
     ).all()
     
+    # ✅ is_portfolio 관련 로직 삭제, 단순히 chapter_photos만 삭제
     for cp in chapter_photos:
-        # 다른 챕터에도 없으면 is_portfolio false
-        other = db.query(models.ChapterPhoto).filter(
-            models.ChapterPhoto.photo_id == cp.photo_id,
-            models.ChapterPhoto.chapter_id != chapter_id
-        ).first()
-        if not other:
-            photo = db.query(models.Photo).filter(models.Photo.id == cp.photo_id).first()
-            if photo:
-                photo.is_portfolio = "false"
         db.delete(cp)
 
     db.delete(db_chapter)
@@ -137,11 +129,6 @@ def add_photo_to_chapter(chapter_id: str, body: ChapterPhotoAdd, db: Session = D
     )
     db.add(db_cp)
 
-    # 사진 is_portfolio 자동 true
-    photo = db.query(models.Photo).filter(models.Photo.id == body.photo_id).first()
-    if photo:
-        photo.is_portfolio = "true"
-
     db.commit()
     return {"message": "추가되었습니다"}
 
@@ -155,16 +142,6 @@ def remove_photo_from_chapter(chapter_id: str, photo_id: str, db: Session = Depe
     if not cp:
         raise HTTPException(status_code=404, detail="사진을 찾을 수 없습니다")
     db.delete(cp)
-
-    # 다른 챕터에도 없으면 is_portfolio false로
-    other = db.query(models.ChapterPhoto).filter(
-        models.ChapterPhoto.photo_id == photo_id,
-        models.ChapterPhoto.chapter_id != chapter_id
-    ).first()
-    if not other:
-        photo = db.query(models.Photo).filter(models.Photo.id == photo_id).first()
-        if photo:
-            photo.is_portfolio = "false"
 
     db.commit()
     return {"message": "제거되었습니다"}

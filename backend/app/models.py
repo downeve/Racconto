@@ -38,7 +38,6 @@ class Photo(Base):
     caption = Column(Text)
     caption_en = Column(Text)
     order = Column(Integer, default=0)
-    is_portfolio = Column(String, default="false")
     taken_at = Column(DateTime, nullable=True)
     camera = Column(String, nullable=True)
     lens = Column(String, nullable=True)
