@@ -179,7 +179,7 @@ export default function Portfolio() {
                           key={photo.id}
                           src={photo.image_url}
                           alt={photo.caption || ''}
-                          className="w-full object-cover rounded cursor-pointer hover:opacity-80 transition-opacity"
+                          className="w-full aspect-[3/2] object-contain rounded cursor-pointer hover:opacity-80 transition-opacity"
                           onClick={() => openLightbox(photo, chapter.photos, `Chapter ${idx + 1}: ${chapter.title}`)}
                         />
                       ))}
@@ -188,67 +188,34 @@ export default function Portfolio() {
                 ))}
               </div>
             ) : (
-              /* 챕터가 없는 경우 - 전체 그리드 */
-              <div className="grid grid-cols-3 gap-3">
-                {selectedProject.photos.map(photo => (
-                  <img
-                    key={photo.id}
-                    src={photo.image_url}
-                    alt={photo.caption || ''}
-                    className="w-full object-cover rounded cursor-pointer hover:opacity-80 transition-opacity"
-                    onClick={() => openLightbox(photo, selectedProject.photos)}
-                  />
-                ))}
-              </div>
-            )}
-
-            {/* 기타 섹션 (챕터에 없는 포트폴리오 사진) */}
-            {selectedProject.chapters.length > 0 && selectedProject.extra_photos.length > 0 && (
-              <div className="mt-12">
-                <div className="mb-4">
-                  <h3 className="text-lg font-semibold">기타</h3>
-                  <p className={`text-xs ${subText} mt-1`}>챕터에 포함되지 않은 사진</p>
-                </div>
-                <div className="grid grid-cols-3 gap-3">
-                  {selectedProject.extra_photos.map(photo => (
-                    <img
-                      key={photo.id}
-                      src={photo.image_url}
-                      alt={photo.caption || ''}
-                      className="w-full object-contain bg-gray-100 rounded cursor-pointer hover:opacity-80 transition-opacity"
-                      onClick={() => openLightbox(photo, selectedProject.extra_photos, '기타')}
-                    />
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {selectedProject.photos.length === 0 && selectedProject.chapters.length === 0 && (
-              <div className="text-center py-20">
-                <p className={subText}>포트폴리오로 선택된 사진이 없어요</p>
+              /* 챕터가 없는 경우 - 안내 메시지 */
+              <div className="text-center py-20 text-gray-400">
+                <p className="text-lg mb-2">{t('portfolio.noChapters')}</p>
+                <p className="text-sm">{t('portfolio.createChapterFirst')}</p>
               </div>
             )}
           </div>
         )}
       </div>
 
-      {/* 라이트박스 */}
+{/* 라이트박스 */}
       {lightboxPhoto && (
         <div
-          className="fixed inset-0 bg-black bg-opacity-95 z-50 flex items-center justify-center"
+          // 👇 bg-black 제거 후 테마에 따른 배경색 적용 (투명도 95% 유지)
+          className={`fixed inset-0 ${darkMode ? 'bg-[#1A1A1A]/95' : 'bg-[#F5F0EB]/95'} z-50 flex items-center justify-center transition-colors duration-300`}
           onClick={() => setLightboxPhoto(null)}
         >
-          {/* 닫기 버튼 */}
+          {/* 닫기 버튼: 테마에 따라 색상 변경 */}
           <button
-            className="absolute top-6 right-6 text-white text-2xl hover:text-gray-300 z-10"
+            className={`absolute top-6 right-6 text-2xl z-10 ${darkMode ? 'text-white' : 'text-gray-900'} hover:opacity-50`}
             onClick={() => setLightboxPhoto(null)}
           >
             ✕
           </button>
 
-          {/* 이전 버튼 */}
+          {/* 이전 버튼: 테마에 따라 색상 변경 */}
           <button
-            className="absolute left-6 text-white text-5xl hover:text-gray-300 z-10 select-none"
+            className={`absolute left-6 text-5xl z-10 select-none ${darkMode ? 'text-white' : 'text-gray-900'} hover:opacity-50`}
             onClick={e => {
               e.stopPropagation()
               const idx = lightboxPhotos.findIndex(p => p.id === lightboxPhoto.id)
@@ -258,7 +225,7 @@ export default function Portfolio() {
             ‹
           </button>
 
-          {/* 이미지 */}
+          {/* 이미지 컨테이너 */}
           <div
             className="max-w-5xl max-h-screen p-12 flex flex-col items-center"
             onClick={e => e.stopPropagation()}
@@ -268,23 +235,30 @@ export default function Portfolio() {
               alt={lightboxPhoto.caption || ''}
               className="max-w-full max-h-[80vh] object-contain"
             />
+            
+            {/* 캡션: 테마에 따라 글자색 변경 */}
             {lightboxPhoto.caption && (
-              <p className="text-white text-sm mt-4 text-center">{lightboxPhoto.caption}</p>
+              <p className={`text-sm mt-4 text-center ${darkMode ? 'text-white' : 'text-gray-900'}`}>
+                {lightboxPhoto.caption}
+              </p>
             )}
+
             {/* 챕터 정보 + 페이지 번호 */}
             <div className="text-center mt-2">
               {lightboxChapter && (
-                <p className="text-gray-400 text-xs mb-1">{lightboxChapter}</p>
+                <p className={`${darkMode ? 'text-gray-400' : 'text-gray-500'} text-xs mb-1`}>
+                  {lightboxChapter}
+                </p>
               )}
-              <p className="text-gray-500 text-xs">
+              <p className={`${darkMode ? 'text-gray-500' : 'text-gray-400'} text-xs`}>
                 {lightboxPhotos.findIndex(p => p.id === lightboxPhoto.id) + 1} / {lightboxPhotos.length}
               </p>
             </div>
           </div>
 
-          {/* 다음 버튼 */}
+          {/* 다음 버튼: 테마에 따라 색상 변경 */}
           <button
-            className="absolute right-6 text-white text-5xl hover:text-gray-300 z-10 select-none"
+            className={`absolute right-6 text-5xl z-10 select-none ${darkMode ? 'text-white' : 'text-gray-900'} hover:opacity-50`}
             onClick={e => {
               e.stopPropagation()
               const idx = lightboxPhotos.findIndex(p => p.id === lightboxPhoto.id)

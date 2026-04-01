@@ -80,6 +80,7 @@ class Chapter(Base):
     __tablename__ = "chapters"
     id = Column(String, primary_key=True)
     project_id = Column(String, ForeignKey("projects.id"))
+    parent_id = Column(String, ForeignKey("chapters.id", ondelete="CASCADE"), nullable=True)
     title = Column(String, nullable=False)
     description = Column(Text, nullable=True)
     order_num = Column(Integer, default=0)

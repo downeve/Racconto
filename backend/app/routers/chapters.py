@@ -14,11 +14,13 @@ class ChapterCreate(BaseModel):
     title: str
     description: Optional[str] = None
     order_num: Optional[int] = 0
+    parent_id: Optional[str] = None
 
 class ChapterUpdate(BaseModel):
     title: str
     description: Optional[str] = None
     order_num: Optional[int] = 0
+    parent_id: Optional[str] = None
 
 class ChapterPhotoAdd(BaseModel):
     photo_id: str
@@ -45,6 +47,7 @@ class ChapterResponse(BaseModel):
     title: str
     description: Optional[str]
     order_num: int
+    parent_id: Optional[str]
     created_at: datetime
     updated_at: datetime
 
@@ -61,27 +64,51 @@ def get_chapters(project_id: str, db: Session = Depends(get_db)):
 # 챕터 생성
 @router.post("/", response_model=ChapterResponse)
 def create_chapter(chapter: ChapterCreate, db: Session = Depends(get_db)):
+    # 서브챕터 생성 시 parent가 이미 서브챕터인지 검증 (3단계 방지)
+    if chapter.parent_id:
+        parent = db.query(models.Chapter).filter(models.Chapter.id == chapter.parent_id).first()
+        if not parent:
+            raise HTTPException(status_code=404, detail="Parent chapter not found")
+        if parent.parent_id is not None:
+            raise HTTPException(
+                status_code=400, 
+                detail="Cannot create sub-chapter under another sub-chapter (max 2 levels)"
+            )
+    
     db_chapter = models.Chapter(
         id=str(uuid.uuid4()),
         project_id=chapter.project_id,
         title=chapter.title,
         description=chapter.description,
-        order_num=chapter.order_num
+        order_num=chapter.order_num,
+        parent_id=chapter.parent_id  # 🆕 추가
     )
     db.add(db_chapter)
     db.commit()
     db.refresh(db_chapter)
     return db_chapter
 
-# 챕터 수정
 @router.put("/{chapter_id}", response_model=ChapterResponse)
 def update_chapter(chapter_id: str, chapter: ChapterUpdate, db: Session = Depends(get_db)):
     db_chapter = db.query(models.Chapter).filter(models.Chapter.id == chapter_id).first()
     if not db_chapter:
-        raise HTTPException(status_code=404, detail="챕터를 찾을 수 없습니다")
+        raise HTTPException(status_code=404, detail="Chapter not found")
+    
+    # parent_id 변경 시 3단계 방지 검증
+    if chapter.parent_id:
+        parent = db.query(models.Chapter).filter(models.Chapter.id == chapter.parent_id).first()
+        if not parent:
+            raise HTTPException(status_code=404, detail="Parent chapter not found")
+        if parent.parent_id is not None:
+            raise HTTPException(
+                status_code=400,
+                detail="Cannot move under a sub-chapter (max 2 levels)"
+            )
+    
     db_chapter.title = chapter.title
     db_chapter.description = chapter.description
     db_chapter.order_num = chapter.order_num
+    db_chapter.parent_id = chapter.parent_id  # 🆕 추가
     db.commit()
     db.refresh(db_chapter)
     return db_chapter
