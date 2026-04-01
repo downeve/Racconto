@@ -70,10 +70,10 @@ function SortablePhotoChapter({ id, imageUrl, photoId, chapterId, onRemove, onCl
   };
 
   return (
-    // 👇 핵심 1: 가장 바깥쪽 틀(div)에 aspect-[3/2]를 주어 3:2 비율의 투명한 네모 액자를 만듭니다.
-    <div ref={setNodeRef} style={style} className="relative group rounded overflow-hidden aspect-[3/2]">
+    // 1. 최상단 프레임: 3:2 비율 유지, overflow-hidden으로 버튼이나 여백이 튀어나오지 않게 함.
+    <div ref={setNodeRef} style={style} className="relative group rounded overflow-hidden aspect-[3/2] bg-gray-100">
       
-      {/* 👇 핵심 2: 이미지는 이 액자 안에서 꽉 차되(w-full h-full), 원본 비율을 유지하며 들어갑니다(object-contain). */}
+      {/* 2. 실제 이미지: object-contain으로 잘림 없이 표시 */}
       <img
         src={imageUrl}
         alt=""
@@ -81,26 +81,37 @@ function SortablePhotoChapter({ id, imageUrl, photoId, chapterId, onRemove, onCl
         onClick={onClick}
       />
 
-      {/* 드래그 핸들 */}
+      {/* 3. [신규 추가] 호버 오버레이 (ProjectDetail 스타일)
+          마우스를 올렸을 때 사진 위에 쌓이는 검은색 투명 막입니다. (group-hover:opacity-100)
+          pointer-events-none을 주어 이미지 클릭이 방해받지 않게 합니다. */}
+      <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity z-10 pointer-events-none" />
+
+      {/* 4. 드래그 핸들 (위치 수정 및 스타일 변경)
+          이미지 위에 올리고 z-20을 주어 오버레이보다 위로 띄웁니다.
+          아이콘 색상을 하얀색(white)으로 바꿔 어두운 배경에서 잘 보이게 합니다. */}
       <div
         {...attributes}
         {...listeners}
-        className="absolute top-1 left-1 bg-white/70 p-1 rounded cursor-grab opacity-0 group-hover:opacity-100 transition-opacity z-10"
+        // 기존 bg-white/70을 제거하고, z-20과 더 세밀한 위치(top-1.5, left-1.5)를 적용
+        className="absolute top-1.5 left-1.5 p-1.5 rounded cursor-grab opacity-0 group-hover:opacity-100 transition-opacity z-20"
       >
         <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <path d="M6 3C6 3.55228 5.55228 4 5 4C4.44772 4 4 3.55228 4 3C4 2.44772 4.44772 2 5 2C5.55228 2 6 2.44772 6 3Z" fill="#333333"/>
-          <path d="M6 8C6 8.55228 5.55228 9 5 9C4.44772 9 4 8.55228 4 8C4 7.44772 4.44772 7 5 7C5.55228 7 6 7.44772 6 8Z" fill="#333333"/>
-          <path d="M6 13C6 13.5523 5.55228 14 5 14C4.44772 14 4 13.5523 4 13C4 12.4477 4.44772 12 5 12C5.55228 12 6 12.4477 6 13Z" fill="#333333"/>
-          <path d="M12 3C12 3.55228 11.5523 4 11 4C10.4477 4 10 3.55228 10 3C10 2.44772 10.4477 2 11 2C11.5523 2 12 2.44772 12 3Z" fill="#333333"/>
-          <path d="M12 8C12 8.55228 11.5523 9 11 9C10.4477 9 10 8.55228 10 8C10 7.44772 10.4477 7 11 7C11.5523 7 12 7.44772 12 8Z" fill="#333333"/>
-          <path d="M12 13C12 13.5523 11.5523 14 11 14C10.4477 14 10 13.5523 10 13C10 12.4477 10.4477 12 11 12C11.5523 12 12 12.4477 12 13Z" fill="#333333"/>
+          {/* 👇 아이콘 색상을 white로 변경했습니다. */}
+          <path d="M6 3C6 3.55228 5.55228 4 5 4C4.44772 4 4 3.55228 4 3C4 2.44772 4.44772 2 5 2C5.55228 2 6 2.44772 6 3Z" fill="white"/>
+          <path d="M6 8C6 8.55228 5.55228 9 5 9C4.44772 9 4 8.55228 4 8C4 7.44772 4.44772 7 5 7C5.55228 7 6 7.44772 6 8Z" fill="white"/>
+          <path d="M6 13C6 13.5523 5.55228 14 5 14C4.44772 14 4 13.5523 4 13C4 12.4477 4.44772 12 5 12C5.55228 12 6 12.4477 6 13Z" fill="white"/>
+          <path d="M12 3C12 3.55228 11.5523 4 11 4C10.4477 4 10 3.55228 10 3C10 2.44772 10.4477 2 11 2C11.5523 2 12 2.44772 12 3Z" fill="white"/>
+          <path d="M12 8C12 8.55228 11.5523 9 11 9C10.4477 9 10 8.55228 10 8C10 7.44772 10.4477 7 11 7C11.5523 7 12 7.44772 12 8Z" fill="white"/>
+          <path d="M12 13C12 13.5523 11.5523 14 11 14C10.4477 14 10 13.5523 10 13C10 12.4477 10.4477 12 11 12C11.5523 12 12 12.4477 12 13Z" fill="white"/>
         </svg>
       </div>
 
-      {/* 삭제 버튼 */}
+      {/* 5. 삭제 버튼 (위치 수정 및 스타일 변경)
+          이미지 위에 올리고 z-20을 적용. 삭제 버튼은 빨간색(red-600)을 유지하되 더 선명하게 만듭니다. */}
       <button
         onClick={(e) => { e.stopPropagation(); onRemove(chapterId, photoId); }}
-        className="absolute top-1 right-1 bg-red-500 text-white rounded-full w-5 h-5 text-xs opacity-0 group-hover:opacity-100 flex items-center justify-center z-10"
+        // z-20과 더 세밀한 위치(top-1.5, right-1.5)를 적용
+        className="absolute top-1 right-1 bg-red-600 text-white rounded-full w-5 h-5 text-xs font-bold opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity z-20"
       >
         ×
       </button>
@@ -364,7 +375,7 @@ export default function ProjectStory({ projectId, allPhotos, onChapterChange }: 
               {/* 챕터 사진 */}
               <div className="p-4">
                 {/* 👇 여백(gap)을 1로 줄여 꽉 차게 보이게 수정하고 dnd 적용 */}
-                <div className="grid grid-cols-3 gap-1 mb-3">
+                <div className="grid grid-cols-3 gap-x-2 gap-y-4 mb-3">
                   <DndContext
                     sensors={sensors}
                     collisionDetection={closestCenter}

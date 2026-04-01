@@ -195,7 +195,7 @@ class Config:
 
 @router.get("/", response_model=list[PhotoResponse])
 def get_photos(project_id: Optional[str] = None, db: Session = Depends(get_db)):
-    query = db.query(models.Photo)
+    query = db.query(models.Photo).filter(models.Photo.deleted_at == None)  # 삭제된 사진 제외
     if project_id:
         query = query.filter(models.Photo.project_id == project_id)
     return query.order_by(models.Photo.order).all()
@@ -236,25 +236,17 @@ def update_photo(photo_id: str, photo: PhotoCreate, db: Session = Depends(get_db
 
 @router.delete("/{photo_id}")
 def delete_photo(photo_id: str, db: Session = Depends(get_db)):
-    photo = db.query(models.Photo).filter(models.Photo.id == photo_id).first()
+    """소프트 삭제: 휴지통으로 이동"""
+    photo = db.query(models.Photo).filter(
+        models.Photo.id == photo_id,
+        models.Photo.deleted_at == None  # 이미 삭제된 사진 제외
+    ).first()
     if not photo:
-        raise HTTPException(status_code=404, detail="사진을 찾을 수 없습니다")
+        raise HTTPException(status_code=404, detail="Photo not found")
     
-    try:
-        # CF 이미지면 CF에서 삭제, 로컬 이미지면 로컬에서 삭제
-        if "imagedelivery.net" in photo.image_url:
-            delete_from_cloudflare(photo.image_url)
-        else:
-            file_path = photo.image_url.split('/uploads/')[-1]
-            full_path = f"{UPLOAD_DIR}/{file_path}"
-            if os.path.exists(full_path):
-                os.remove(full_path)
-    except Exception as e:
-        print(f"파일 삭제 오류: {e}")
-
-    db.delete(photo)
+    photo.deleted_at = datetime.utcnow()
     db.commit()
-    return {"message": "삭제되었습니다"}
+    return {"message": "Moved to trash"}
 
 @router.post("/upload")
 async def upload_photo(
@@ -311,3 +303,54 @@ async def upload_photo(
     db.commit()
     db.refresh(db_photo)
     return db_photo
+
+@router.get("/trash/{project_id}")
+def get_project_trash(project_id: str, db: Session = Depends(get_db)):
+    """프로젝트별 휴지통 조회"""
+    return db.query(models.Photo).filter(
+        models.Photo.project_id == project_id,
+        models.Photo.deleted_at != None
+    ).order_by(models.Photo.deleted_at.desc()).all()
+
+
+@router.post("/{photo_id}/restore")
+def restore_photo(photo_id: str, db: Session = Depends(get_db)):
+    """휴지통에서 복구"""
+    photo = db.query(models.Photo).filter(
+        models.Photo.id == photo_id,
+        models.Photo.deleted_at != None
+    ).first()
+    if not photo:
+        raise HTTPException(status_code=404, detail="Photo not found in trash")
+    
+    photo.deleted_at = None
+    db.commit()
+    db.refresh(photo)
+    return photo
+
+
+@router.delete("/{photo_id}/permanent")
+def permanent_delete_photo(photo_id: str, db: Session = Depends(get_db)):
+    """영구 삭제 (파일도 삭제)"""
+    photo = db.query(models.Photo).filter(
+        models.Photo.id == photo_id,
+        models.Photo.deleted_at != None
+    ).first()
+    if not photo:
+        raise HTTPException(status_code=404, detail="Photo not found in trash")
+    
+    # CF 또는 로컬 파일 삭제
+    try:
+        if "imagedelivery.net" in photo.image_url:
+            delete_from_cloudflare(photo.image_url)
+        else:
+            file_path = photo.image_url.split('/uploads/')[-1]
+            full_path = f"{UPLOAD_DIR}/{file_path}"
+            if os.path.exists(full_path):
+                os.remove(full_path)
+    except Exception as e:
+        print(f"File deletion error: {e}")
+    
+    db.delete(photo)
+    db.commit()
+    return {"message": "Permanently deleted"}

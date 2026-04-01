@@ -55,6 +55,7 @@ interface Photo {
   gps_lng: string | null
   rating: number | null
   color_label: string | null
+  deleted_at?: string | null 
 }
 
 interface Note {
@@ -314,7 +315,8 @@ function SortablePhoto({
         {/* 사진 */}
         <img
           src={photo.image_url} alt={photo.caption}
-          className="w-full object-cover cursor-pointer"
+          // 핵심 변경: object-cover를 지우고 aspect-[3/2]와 object-contain을 적용합니다.
+          className="w-full aspect-[3/2] object-contain cursor-pointer"
           onClick={() => onOpenLightbox(photo)}
         />
 
@@ -422,7 +424,12 @@ export default function ProjectDetail() {
   const [newNote, setNewNote] = useState('')
   const [editingNote, setEditingNote] = useState<string | null>(null)
   const [editContent, setEditContent] = useState('')
+  // 메인 탭
   const [activeTab, setActiveTab] = useState<'photos' | 'story' | 'notes' | 'delivery'>('photos')
+  // 사진 탭의 서브탭 🆕
+  const [photoSubTab, setPhotoSubTab] = useState<'all' | 'trash'>('all')
+  // 휴지통 데이터 🆕
+  const [trashedPhotos, setTrashedPhotos] = useState<Photo[]>([])
   const [filterRating, setFilterRating] = useState<number | null>(null)
   const [filterColor, setFilterColor] = useState<string | null>(null)
   const [filterPortfolio, setFilterPortfolio] = useState(false)
@@ -446,6 +453,11 @@ export default function ProjectDetail() {
     if (!id) return
     const res = await axios.get(`${API}/photos/?project_id=${id}`)
     setPhotos(res.data)
+  }
+
+  const fetchTrash = async () => {
+    const res = await axios.get(`${API}/photos/trash/${id}`)
+    setTrashedPhotos(res.data)
   }
 
   const fetchChapterPhotoIds = async () => {
@@ -637,6 +649,9 @@ export default function ProjectDetail() {
   ]
 
   const filteredPhotos = photos.filter(photo => {
+    //삭제된 사진 제외
+    if (photo.deleted_at) return false
+
     if (filterRating !== null) {
       if (filterRating === 0) { if (photo.rating !== null) return false }
       else { if (photo.rating !== filterRating) return false }
@@ -741,155 +756,240 @@ export default function ProjectDetail() {
 
       {/* 사진 탭 */}
       {activeTab === 'photos' && (
-        <div className="flex gap-6">
-          <div className={`${showFilter ? 'w-48' : 'w-6'} shrink-0 transition-all duration-200`}>
-            <button onClick={() => setShowFilter(!showFilter)}
-              className="mb-2 text-gray-400 hover:text-black text-xs flex items-center gap-1">
-              {showFilter ? '◀ ' + t('filter.filter') : '▶'}
+        <div>
+          {/* 🆕 서브탭 헤더 */}
+          <div className="flex items-center gap-4 mb-4 border-b">
+            <button
+              onClick={() => setPhotoSubTab('all')}
+              className={`pb-2 px-4 text-sm ${
+                photoSubTab === 'all'
+                  ? 'border-b-2 border-black font-semibold'
+                  : 'text-gray-400 hover:text-gray-600'
+              }`}
+            >
+              {t('photo.allPhotos')}
             </button>
-            {showFilter && (
-              <div className="bg-white rounded-lg shadow p-4 overflow-y-auto max-h-[calc(100vh-2rem)] sticky top-4">
-                <div className="mb-4 flex flex-col gap-2">
-                  <label className="cursor-pointer bg-black text-white px-3 py-2 text-xs tracking-wider hover:bg-gray-800 inline-block w-full text-center">
-                    {uploading ? t('photo.uploading') : t('photo.uploadPhotos')}
-                    <input type="file" accept="image/*" multiple className="hidden" onChange={handleUpload} disabled={uploading} />
-                  </label>
-                  <label className="cursor-pointer bg-gray-700 text-white px-3 py-2 text-xs tracking-wider hover:bg-gray-600 inline-block w-full text-center">
-                    {uploading ? t('photo.uploading') : t('photo.uploadFolder')}
-                    <input type="file" accept="image/*" multiple className="hidden" onChange={handleUpload} disabled={uploading} {...{ webkitdirectory: '' } as any} />
-                  </label>
-                </div>
+            <button
+              onClick={() => {
+                setPhotoSubTab('trash')
+                fetchTrash()
+              }}
+              className={`pb-2 px-4 text-sm ${
+                photoSubTab === 'trash'
+                  ? 'border-b-2 border-black font-semibold'
+                  : 'text-gray-400 hover:text-gray-600'
+              }`}
+            >
+              🗑️ {t('photo.trash')}
+            </button>
+          </div>
 
-                <div className="mb-4">
-                  <p className="text-xs font-semibold text-gray-500 mb-2">{t('filter.view')}</p>
-                  <div className="flex gap-1 mb-2">
-                    {[{ cols: 2, icon: '2' }, { cols: 3, icon: '3' }, { cols: 4, icon: '4' }, { cols: 1, icon: '≡' }].map(({ cols, icon }) => (
-                      <button key={cols} onClick={() => setGridCols(cols)}
-                        className={`flex-1 py-1 text-xs rounded ${gridCols === cols ? 'bg-black text-white' : 'bg-gray-100 hover:bg-gray-200'}`}>{icon}</button>
-                    ))}
-                  </div>
-                  <button onClick={() => setShowExif(!showExif)}
-                    className={`w-full text-left px-2 py-1 text-xs rounded flex items-center justify-between ${showExif ? 'bg-black text-white' : 'hover:bg-gray-50'}`}>
-                    <span>{t('filter.exifOnOff')}</span><span>{showExif ? 'ON' : 'OFF'}</span>
-                  </button>
-                </div>
-
-                <button onClick={() => { setFilterRating(null); setFilterColor(null); setFilterPortfolio(false); setFilterFolder(null) }}
-                  className={`w-full text-left px-2 py-1 text-xs rounded mb-3 ${!filterRating && !filterColor && !filterPortfolio ? 'bg-black text-white' : 'hover:bg-gray-50'}`}>
-                  {t('filter.allPhotos')} ({photos.length})
+          {/* 전체 사진 뷰 (기존 UI 그대로) */}
+          {photoSubTab === 'all' && (
+            <div className="flex gap-6">
+              <div className={`${showFilter ? 'w-48' : 'w-6'} shrink-0 transition-all duration-200`}>
+                <button onClick={() => setShowFilter(!showFilter)}
+                  className="mb-2 text-gray-400 hover:text-black text-xs flex items-center gap-1">
+                  {showFilter ? '◀ ' + t('filter.filter') : '▶'}
                 </button>
+                {showFilter && (
+                  <div className="bg-white rounded-lg shadow p-4 overflow-y-auto max-h-[calc(100vh-2rem)] sticky top-4">
+                    <div className="mb-4 flex flex-col gap-2">
+                      <label className="cursor-pointer bg-black text-white px-3 py-2 text-xs tracking-wider hover:bg-gray-800 inline-block w-full text-center">
+                        {uploading ? t('photo.uploading') : t('photo.uploadPhotos')}
+                        <input type="file" accept="image/*" multiple className="hidden" onChange={handleUpload} disabled={uploading} />
+                      </label>
+                      <label className="cursor-pointer bg-gray-700 text-white px-3 py-2 text-xs tracking-wider hover:bg-gray-600 inline-block w-full text-center">
+                        {uploading ? t('photo.uploading') : t('photo.uploadFolder')}
+                        <input type="file" accept="image/*" multiple className="hidden" onChange={handleUpload} disabled={uploading} {...{ webkitdirectory: '' } as any} />
+                      </label>
+                    </div>
 
-                {photos.some(p => p.folder) && (
-                  <div className="mt-4 mb-4">
-                    <p className="text-xs font-semibold text-gray-500 mb-2">{t('filter.folder')}</p>
-                    <button onClick={() => setFilterFolder(null)}
-                      className={`w-full text-left px-2 py-1 text-xs rounded flex items-center justify-between mb-1 ${filterFolder === null ? 'bg-black text-white' : 'hover:bg-gray-50'}`}>
-                      <span>{t('filter.allFolders')}</span><span className="text-gray-400">{photos.length}</span>
+                    <div className="mb-4">
+                      <p className="text-xs font-semibold text-gray-500 mb-2">{t('filter.view')}</p>
+                      <div className="flex gap-1 mb-2">
+                        {[{ cols: 2, icon: '2' }, { cols: 3, icon: '3' }, { cols: 4, icon: '4' }, { cols: 1, icon: '≡' }].map(({ cols, icon }) => (
+                          <button key={cols} onClick={() => setGridCols(cols)}
+                            className={`flex-1 py-1 text-xs rounded ${gridCols === cols ? 'bg-black text-white' : 'bg-gray-100 hover:bg-gray-200'}`}>{icon}</button>
+                        ))}
+                      </div>
+                      <button onClick={() => setShowExif(!showExif)}
+                        className={`w-full text-left px-2 py-1 text-xs rounded flex items-center justify-between ${showExif ? 'bg-black text-white' : 'hover:bg-gray-50'}`}>
+                        <span>{t('filter.exifOnOff')}</span><span>{showExif ? 'ON' : 'OFF'}</span>
+                      </button>
+                    </div>
+
+                    <button onClick={() => { setFilterRating(null); setFilterColor(null); setFilterPortfolio(false); setFilterFolder(null) }}
+                      className={`w-full text-left px-2 py-1 text-xs rounded mb-3 ${!filterRating && !filterColor && !filterPortfolio ? 'bg-black text-white' : 'hover:bg-gray-50'}`}>
+                      {t('filter.allPhotos')} ({photos.length})
                     </button>
-                    {[...new Set(photos.filter(p => p.folder).map(p => p.folder))].map(folder => {
-                      const count = photos.filter(p => p.folder === folder).length
-                      return (
-                        <button key={folder} onClick={() => setFilterFolder(filterFolder === folder ? null : folder!)}
-                          className={`w-full text-left px-2 py-1 text-xs rounded flex items-center justify-between ${filterFolder === folder ? 'bg-black text-white' : 'hover:bg-gray-50'}`}>
-                          <span className="flex items-center gap-1"><span>📁</span><span className="truncate">{folder}</span></span>
-                          <span className="text-gray-400">{count}</span>
+
+                    {photos.some(p => p.folder) && (
+                      <div className="mt-4 mb-4">
+                        <p className="text-xs font-semibold text-gray-500 mb-2">{t('filter.folder')}</p>
+                        <button onClick={() => setFilterFolder(null)}
+                          className={`w-full text-left px-2 py-1 text-xs rounded flex items-center justify-between mb-1 ${filterFolder === null ? 'bg-black text-white' : 'hover:bg-gray-50'}`}>
+                          <span>{t('filter.allFolders')}</span><span className="text-gray-400">{photos.length}</span>
                         </button>
-                      )
-                    })}
+                        {[...new Set(photos.filter(p => p.folder).map(p => p.folder))].map(folder => {
+                          const count = photos.filter(p => p.folder === folder).length
+                          return (
+                            <button key={folder} onClick={() => setFilterFolder(filterFolder === folder ? null : folder!)}
+                              className={`w-full text-left px-2 py-1 text-xs rounded flex items-center justify-between ${filterFolder === folder ? 'bg-black text-white' : 'hover:bg-gray-50'}`}>
+                              <span className="flex items-center gap-1"><span>📁</span><span className="truncate">{folder}</span></span>
+                              <span className="text-gray-400">{count}</span>
+                            </button>
+                          )
+                        })}
+                      </div>
+                    )}
+
+                    <div className="mb-4">
+                      <div className="flex items-center justify-between mb-2">
+                        <p className="text-xs font-semibold text-gray-500">{t('filter.rating')}</p>
+                        <button onClick={handleClearRatings} className="text-xs text-gray-400 hover:text-red-500">{t('common.reset')}</button>
+                      </div>
+                      {[5, 4, 3, 2, 1].map(star => {
+                        const count = photos.filter(p => p.rating === star).length
+                        return (
+                          <button key={star} onClick={() => setFilterRating(filterRating === star ? null : star)}
+                            className={`w-full text-left px-2 py-1 text-xs rounded flex items-center justify-between ${filterRating === star ? 'bg-black text-white' : 'hover:bg-gray-50'}`}>
+                            <span>{'★'.repeat(star)}{'☆'.repeat(5 - star)}</span>
+                            <span className="text-gray-400">{count}</span>
+                          </button>
+                        )
+                      })}
+                      <button onClick={() => setFilterRating(filterRating === 0 ? null : 0)}
+                        className={`w-full text-left px-2 py-1 text-xs rounded flex items-center justify-between ${filterRating === 0 ? 'bg-black text-white' : 'hover:bg-gray-50'}`}>
+                        <span className="text-gray-400">{t('filter.unrated')}</span>
+                        <span className="text-gray-400">{photos.filter(p => !p.rating).length}</span>
+                      </button>
+                    </div>
+
+                    <div className="mb-4">
+                      <div className="flex items-center justify-between mb-2">
+                        <p className="text-xs font-semibold text-gray-500">{t('filter.colors')}</p>
+                        <button onClick={handleClearColorLabels} className="text-xs text-gray-400 hover:text-red-500">{t('common.reset')}</button>
+                      </div>
+                      {colorLabels.map(label => {
+                        const count = photos.filter(p => p.color_label === label.value).length
+                        return (
+                          <button key={label.value} onClick={() => setFilterColor(filterColor === label.value ? null : label.value)}
+                            className={`w-full text-left px-2 py-1 text-xs rounded flex items-center justify-between ${filterColor === label.value ? 'bg-black text-white' : 'hover:bg-gray-50'}`}>
+                            <span className="flex items-center gap-2"><span className={`w-3 h-3 rounded-full ${label.color}`} />{label.label}</span>
+                            <span className="text-gray-400">{count}</span>
+                          </button>
+                        )
+                      })}
+                    </div>
+
+                    <div>
+                      <p 
+                        onClick={() => setFilterPortfolio(!filterPortfolio)}
+                        className={`cursor-pointer flex items-center justify-between px-0 py-1 mb-2 text-xs font-semibold rounded transition-colors ${
+                          filterPortfolio ? 'bg-black text-white' : 'text-gray-500 hover:bg-gray-50'
+                        }`}
+                      >
+                        <span>{filterPortfolio ? ` ✓ ${t('filter.allPortfolio')}` : t('filter.allPortfolio')}</span>
+                        <span className={filterPortfolio ? 'text-gray-300 px-2' : 'text-gray-400 px-2'}>
+                          {photos.filter(p => p.is_portfolio === 'true').length}
+                        </span>
+                      </p>
+                    </div>
                   </div>
                 )}
+              </div>
 
-                <div className="mb-4">
-                  <div className="flex items-center justify-between mb-2">
-                    <p className="text-xs font-semibold text-gray-500">{t('filter.rating')}</p>
-                    <button onClick={handleClearRatings} className="text-xs text-gray-400 hover:text-red-500">{t('common.reset')}</button>
+              <div className="flex-1">
+                <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+                  <SortableContext items={filteredPhotos.map(p => p.id)} strategy={rectSortingStrategy}>
+                    <div className={`grid gap-4 ${
+                      gridCols === 1 ? 'grid-cols-1' : gridCols === 2 ? 'grid-cols-2' :
+                      gridCols === 3 ? 'grid-cols-3' : 'grid-cols-4'}`}>
+                      {filteredPhotos.map(photo => (
+                        <SortablePhoto
+                          key={photo.id} photo={photo} project={project}
+                          editingCaption={editingCaption} captionKo={captionKo}
+                          setCaptionKo={setCaptionKo} setEditingCaption={setEditingCaption}
+                          onSetCover={handleSetCover} onTogglePortfolio={handleTogglePortfolio}
+                          onDelete={handleDeletePhoto} onSaveCaption={handleSaveCaption}
+                          onSetRating={handleSetRating} onSetColorLabel={handleSetColorLabel}
+                          onOpenLightbox={setLightboxPhoto}
+                          chapters={chapters}
+                          onShowChapterMenu={setChapterMenuPhoto}
+                          showExif={showExif} gridCols={gridCols}
+                          colorLabels={colorLabels} chapterPhotoIds={chapterPhotoIds}
+                        />
+                      ))}
+                    </div>
+                  </SortableContext>
+                </DndContext>
+                {filteredPhotos.length === 0 && !uploading && (
+                  <div className="text-center py-20 text-gray-400">
+                    {photos.length === 0
+                      ? <><p className="text-lg mb-2">{t('photo.noPhotos')}</p></>
+                      : <><p className="text-lg mb-2">{t('filter.noMatch')}</p></>}
                   </div>
-                  {[5, 4, 3, 2, 1].map(star => {
-                    const count = photos.filter(p => p.rating === star).length
-                    return (
-                      <button key={star} onClick={() => setFilterRating(filterRating === star ? null : star)}
-                        className={`w-full text-left px-2 py-1 text-xs rounded flex items-center justify-between ${filterRating === star ? 'bg-black text-white' : 'hover:bg-gray-50'}`}>
-                        <span>{'★'.repeat(star)}{'☆'.repeat(5 - star)}</span>
-                        <span className="text-gray-400">{count}</span>
-                      </button>
-                    )
-                  })}
-                  <button onClick={() => setFilterRating(filterRating === 0 ? null : 0)}
-                    className={`w-full text-left px-2 py-1 text-xs rounded flex items-center justify-between ${filterRating === 0 ? 'bg-black text-white' : 'hover:bg-gray-50'}`}>
-                    <span className="text-gray-400">{t('filter.unrated')}</span>
-                    <span className="text-gray-400">{photos.filter(p => !p.rating).length}</span>
-                  </button>
-                </div>
+                )}
+              </div>
+            </div>
+          )}
 
-                <div className="mb-4">
-                  <div className="flex items-center justify-between mb-2">
-                    <p className="text-xs font-semibold text-gray-500">{t('filter.colors')}</p>
-                    <button onClick={handleClearColorLabels} className="text-xs text-gray-400 hover:text-red-500">{t('common.reset')}</button>
-                  </div>
-                  {colorLabels.map(label => {
-                    const count = photos.filter(p => p.color_label === label.value).length
-                    return (
-                      <button key={label.value} onClick={() => setFilterColor(filterColor === label.value ? null : label.value)}
-                        className={`w-full text-left px-2 py-1 text-xs rounded flex items-center justify-between ${filterColor === label.value ? 'bg-black text-white' : 'hover:bg-gray-50'}`}>
-                        <span className="flex items-center gap-2"><span className={`w-3 h-3 rounded-full ${label.color}`} />{label.label}</span>
-                        <span className="text-gray-400">{count}</span>
-                      </button>
-                    )
-                  })}
+          {/* 🆕 휴지통 뷰 */}
+          {photoSubTab === 'trash' && (
+            <div className="max-w-4xl">
+              {trashedPhotos.length === 0 ? (
+                <div className="text-center py-20 text-gray-400">
+                  <p className="text-lg mb-2">{t('photo.trashEmpty')}</p>
                 </div>
-
-                <div>
-                  <p 
-                    onClick={() => setFilterPortfolio(!filterPortfolio)}
-                    className={`cursor-pointer flex items-center justify-between px-0 py-1 mb-2 text-xs font-semibold rounded transition-colors ${
-                      filterPortfolio ? 'bg-black text-white' : 'text-gray-500 hover:bg-gray-50'
-                    }`}
-                  >
-                    {/* 선택되었을 때만 앞에 체크(✓) 표시를 보여줍니다 */}
-                    <span>{filterPortfolio ? ` ✓ ${t('filter.allPortfolio')}` : t('filter.allPortfolio')}</span>
+              ) : (
+                <div className="space-y-3">
+                  {trashedPhotos.map(photo => {
+                    const deletedDate = new Date(photo.deleted_at!)
+                    const daysLeft = 30 - Math.floor((Date.now() - deletedDate.getTime()) / (1000 * 60 * 60 * 24))
                     
-                    {/* 사진 개수 표시 (선택 시 글자색도 살짝 밝게 조정) */}
-                    <span className={filterPortfolio ? 'text-gray-300 px-2' : 'text-gray-400 px-2'}>
-                      {photos.filter(p => p.is_portfolio === 'true').length}
-                    </span>
-                  </p>
+                    return (
+                      <div key={photo.id} className="bg-white rounded-lg shadow p-4 flex items-center gap-4">
+                        <img 
+                          src={photo.image_url} 
+                          alt={photo.caption || ''} 
+                          className="w-24 h-24 object-cover rounded"
+                        />
+                        <div className="flex-1">
+                          <p className="text-sm font-medium">{photo.caption || t('photo.noCaption')}</p>
+                          <p className="text-xs text-red-400 mt-1">
+                            {t('photo.autoDeleteIn', { days: daysLeft })}
+                          </p>
+                        </div>
+                        <div className="flex gap-2">
+                          <button
+                            onClick={async () => {
+                              await axios.post(`${API}/photos/${photo.id}/restore`)
+                              fetchTrash()
+                              fetchPhotos()
+                            }}
+                            className="border px-3 py-1 text-sm hover:bg-gray-50 rounded"
+                          >
+                            {t('common.restore')}
+                          </button>
+                          <button
+                            onClick={async () => {
+                              if (!confirm(t('photo.confirmPermanentDelete'))) return
+                              await axios.delete(`${API}/photos/${photo.id}/permanent`)
+                              fetchTrash()
+                            }}
+                            className="bg-red-500 text-white px-3 py-1 text-sm hover:bg-red-600 rounded"
+                          >
+                            {t('common.deleteForever')}
+                          </button>
+                        </div>
+                      </div>
+                    )
+                  })}
                 </div>
-              </div>
-            )}
-          </div>
-
-          <div className="flex-1">
-            <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
-              <SortableContext items={filteredPhotos.map(p => p.id)} strategy={rectSortingStrategy}>
-                <div className={`grid gap-4 ${
-                  gridCols === 1 ? 'grid-cols-1' : gridCols === 2 ? 'grid-cols-2' :
-                  gridCols === 3 ? 'grid-cols-3' : 'grid-cols-4'}`}>
-                  {filteredPhotos.map(photo => (
-                    <SortablePhoto
-                      key={photo.id} photo={photo} project={project}
-                      editingCaption={editingCaption} captionKo={captionKo}
-                      setCaptionKo={setCaptionKo} setEditingCaption={setEditingCaption}
-                      onSetCover={handleSetCover} onTogglePortfolio={handleTogglePortfolio}
-                      onDelete={handleDeletePhoto} onSaveCaption={handleSaveCaption}
-                      onSetRating={handleSetRating} onSetColorLabel={handleSetColorLabel}
-                      onOpenLightbox={setLightboxPhoto}
-                      chapters={chapters}           // 추가
-                      onShowChapterMenu={setChapterMenuPhoto}
-                      showExif={showExif} gridCols={gridCols}
-                      colorLabels={colorLabels} chapterPhotoIds={chapterPhotoIds}
-                    />
-                  ))}
-                </div>
-              </SortableContext>
-            </DndContext>
-            {filteredPhotos.length === 0 && !uploading && (
-              <div className="text-center py-20 text-gray-400">
-                {photos.length === 0
-                  ? <><p className="text-lg mb-2">{t('photo.noPhotos')}</p></>
-                  : <><p className="text-lg mb-2">{t('filter.noMatch')}</p></>}
-              </div>
-            )}
-          </div>
+              )}
+            </div>
+          )}
         </div>
       )}
 
