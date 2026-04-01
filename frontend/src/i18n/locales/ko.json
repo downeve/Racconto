@@ -121,6 +121,10 @@
     "noNotes2": "리서치 내용이나 아이디어, 콘셉트 등을 자유롭게 기록해보세요.",
     "placeholder": "리서치 내용, 촬영 아이디어, 콘셉트 노트 등..."
   },
+  "portfolio": {
+    "noChapters": "아직 챕터가 없어요",
+    "createChapterFirst": "스토리 탭에서 챕터를 만들어 사진을 공개해보세요"
+  },
   "delivery": {
     "title": "납품",
     "deliveryLinks": "납품 링크",

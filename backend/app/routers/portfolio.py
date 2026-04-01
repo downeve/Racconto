@@ -55,11 +55,14 @@ def get_portfolio(db: Session = Depends(get_db)):
                 "photos": cp_list
             })
 
-        # 전체 사진 조회 (deleted_at = null)
-        all_photos = db.query(models.Photo).filter(
-            models.Photo.project_id == project.id,
-            models.Photo.deleted_at == None
-        ).order_by(models.Photo.order).all()
+        # 챕터가 없으면 빈 배열 반환
+        if len(chapter_list) == 0:
+            all_photos = []  # 챕터 없으면 사진 노출 안 함
+        else:
+            all_photos = db.query(models.Photo).filter(
+                models.Photo.project_id == project.id,
+                models.Photo.deleted_at == None
+            ).order_by(models.Photo.order).all()
 
         # 챕터에 없는 사진들 (기타 섹션용)
         extra_photos = []

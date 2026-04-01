@@ -121,6 +121,10 @@
     "noNotes2": "Record your research, ideas, and concepts.",
     "placeholder": "Write down research notes, shooting ideas, concept notes..."
   },
+  "portfolio": {
+    "noChapters": "No chapters yet",
+    "createChapterFirst": "Create a chapter in Story tab to publish photos"
+  },
   "delivery": {
     "title": "Delivery",
     "deliveryLinks": "Delivery Links",
