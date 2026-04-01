@@ -24,6 +24,10 @@ class ChapterPhotoAdd(BaseModel):
     photo_id: str
     order_num: Optional[int] = 0
 
+# [여기 추가] 사진 순서 업데이트용 클래스
+class ChapterPhotoUpdate(BaseModel):
+    order_num: int
+
 class ChapterPhotoResponse(BaseModel):
     id: str
     chapter_id: str
@@ -164,6 +168,29 @@ def remove_photo_from_chapter(chapter_id: str, photo_id: str, db: Session = Depe
 
     db.commit()
     return {"message": "제거되었습니다"}
+
+# [여기 추가] 챕터 내 사진 순서(order_num) 업데이트 라우터
+@router.put("/{chapter_id}/photos/{photo_id}")
+def update_chapter_photo_order(
+    chapter_id: str, 
+    photo_id: str, 
+    body: ChapterPhotoUpdate, 
+    db: Session = Depends(get_db)
+):
+    # 해당 챕터의 특정 사진 매핑 데이터 찾기
+    cp = db.query(models.ChapterPhoto).filter(
+        models.ChapterPhoto.chapter_id == chapter_id,
+        models.ChapterPhoto.photo_id == photo_id
+    ).first()
+    
+    if not cp:
+        raise HTTPException(status_code=404, detail="해당 챕터에서 사진을 찾을 수 없습니다")
+    
+    # 순서 업데이트
+    cp.order_num = body.order_num
+    db.commit()
+    
+    return {"message": "순서가 업데이트되었습니다"}
 
 # 챕터 사진 목록
 @router.get("/{chapter_id}/photos")

@@ -27,7 +27,7 @@ def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
 def verify_token(token: str = Depends(oauth2_scheme)):
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
-        detail="인증이 필요합니다",
+        detail="AUTH_INVALID_TOKEN",
         headers={"WWW-Authenticate": "Bearer"},
     )
     try:
