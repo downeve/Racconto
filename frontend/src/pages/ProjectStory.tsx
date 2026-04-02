@@ -31,6 +31,7 @@ interface Chapter {
   title: string
   description: string | null
   order_num: number
+  parent_id: string | null
 }
 
 interface ChapterPhoto {
@@ -125,6 +126,7 @@ export default function ProjectStory({ projectId, allPhotos, onChapterChange }: 
   const [newTitle, setNewTitle] = useState('')
   const [newDesc, setNewDesc] = useState('')
   const [showAddChapter, setShowAddChapter] = useState(false)
+  const [addingSubChapterTo, setAddingSubChapterTo] = useState<string | null>(null)
   const [editingChapter, setEditingChapter] = useState<string | null>(null)
   const [editTitle, setEditTitle] = useState('')
   const [editDesc, setEditDesc] = useState('')
@@ -212,19 +214,21 @@ export default function ProjectStory({ projectId, allPhotos, onChapterChange }: 
     fetchChapters()
   }, [projectId])
 
-    const handleAddChapter = async () => {
+  const handleAddChapter = async () => {
     if (!newTitle.trim()) return
     await axios.post(`${API}/chapters/`, {
-        project_id: projectId,
-        title: newTitle,
-        description: newDesc,
-        order_num: chapters.length
+      project_id: projectId,
+      title: newTitle,
+      description: newDesc,
+      order_num: chapters.length,
+      parent_id: addingSubChapterTo  // 🆕 추가 (서브챕터면 parent_id, 최상위면 null)
     })
     setNewTitle('')
     setNewDesc('')
     setShowAddChapter(false)
+    setAddingSubChapterTo(null)  // 🆕 초기화
     fetchChapters()
-    }
+  }
 
   const handleUpdateChapter = async (chapter: Chapter) => {
     await axios.put(`${API}/chapters/${chapter.id}`, {
@@ -286,174 +290,287 @@ export default function ProjectStory({ projectId, allPhotos, onChapterChange }: 
         <div className="mb-6">
           {showAddChapter ? (
             <div className="bg-white rounded-lg shadow p-4">
+              {/* 🆕 서브챕터 추가 중일 때 안내 */}
+              {addingSubChapterTo && (
+                <p className="text-xs text-gray-500 mb-2">
+                  {t('story.addingSubChapter')}
+                </p>
+              )}
               <input
                 className="w-full border rounded px-3 py-2 text-sm mb-2"
-                placeholder={t('story.chapterTitlePlaceholder')}
+                placeholder={t('story.chapterTitle')}
                 value={newTitle}
                 onChange={e => setNewTitle(e.target.value)}
               />
               <textarea
                 className="w-full border rounded px-3 py-2 text-sm mb-3"
-                placeholder={t('story.chapterDescPlaceholder')}
+                placeholder={t('story.chapterDescription')}
                 rows={2}
                 value={newDesc}
                 onChange={e => setNewDesc(e.target.value)}
               />
               <div className="flex gap-2">
-                <button onClick={handleAddChapter} className="bg-black text-white px-4 py-2 text-sm hover:bg-gray-800">{t('common.add')}</button>
-                <button onClick={() => setShowAddChapter(false)} className="border px-4 py-2 text-sm hover:bg-gray-50">{t('common.cancel')}</button>
+                <button onClick={handleAddChapter} className="bg-black text-white px-4 py-2 text-sm hover:bg-gray-800">
+                  {t('common.add')}
+                </button>
+                <button 
+                  onClick={() => {
+                    setShowAddChapter(false)
+                    setAddingSubChapterTo(null)  // 🆕 추가
+                  }} 
+                  className="border px-4 py-2 text-sm hover:bg-gray-50"
+                >
+                  {t('common.cancel')}
+                </button>
               </div>
             </div>
           ) : (
             <button
-              onClick={() => setShowAddChapter(true)}
+              onClick={() => {
+                setShowAddChapter(true)
+                setAddingSubChapterTo(null)  // 🆕 최상위 챕터 추가
+              }}
               className="bg-black text-white px-4 py-2 text-sm tracking-wider hover:bg-gray-800"
             >
-              {t('story.addChapter')}
+              + {t('story.addChapter')}
             </button>
           )}
         </div>
 
         {/* 챕터 목록 */}
         <div className="space-y-8">
-          {chapters.map((chapter, idx) => (
-            <div key={chapter.id} className="bg-white rounded-lg shadow overflow-hidden">
-              {/* 챕터 헤더 */}
-              <div className="p-4 border-b">
-                {editingChapter === chapter.id ? (
-                  <div>
-                    <input
-                      className="w-full border rounded px-3 py-2 text-sm mb-2"
-                      value={editTitle}
-                      onChange={e => setEditTitle(e.target.value)}
-                    />
-                    <textarea
-                      className="w-full border rounded px-3 py-2 text-sm mb-2"
-                      rows={2}
-                      value={editDesc}
-                      onChange={e => setEditDesc(e.target.value)}
-                    />
-                    <div className="flex gap-2">
-                      <button onClick={() => handleUpdateChapter(chapter)} className="bg-black text-white px-3 py-1 text-xs">{t('common.save')}</button>
-                      <button onClick={() => setEditingChapter(null)} className="border px-3 py-1 text-xs">{t('common.cancel')}</button>
-                    </div>
-                  </div>
-                ) : (
-                  <div className="flex items-start justify-between">
-                    <div>
-                      <span className="text-xs text-gray-400 mr-2">Chapter {idx + 1}</span>
-                      <span className="font-semibold">{chapter.title}</span>
-                      {chapter.description && <p className="text-sm text-gray-500 mt-1">{chapter.description}</p>}
-                    </div>
-                    <div className="flex gap-2 shrink-0">
-                        <button
+        {chapters
+          .filter(c => !c.parent_id)  // 🆕 최상위 챕터만
+          .map((chapter, idx) => {
+            const subChapters = chapters.filter(c => c.parent_id === chapter.id)  // 🆕 서브챕터
+            
+            return (
+              <div key={chapter.id}>
+                {/* 최상위 챕터 */}
+                <div className="bg-white rounded-lg shadow overflow-hidden">
+                  {/* 챕터 헤더 */}
+                  <div className="p-4 border-b">
+                    {editingChapter === chapter.id ? (
+                      <div>
+                        <input
+                          className="w-full border rounded px-3 py-2 text-sm mb-2"
+                          value={editTitle}
+                          onChange={e => setEditTitle(e.target.value)}
+                        />
+                        <textarea
+                          className="w-full border rounded px-3 py-2 text-sm mb-2"
+                          rows={2}
+                          value={editDesc}
+                          onChange={e => setEditDesc(e.target.value)}
+                        />
+                        <div className="flex gap-2">
+                          <button onClick={() => handleUpdateChapter(chapter)} className="bg-black text-white px-3 py-1 text-xs">{t('common.save')}</button>
+                          <button onClick={() => setEditingChapter(null)} className="border px-3 py-1 text-xs">{t('common.cancel')}</button>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="flex items-start justify-between">
+                        <div>
+                          <span className="text-xs text-gray-400 mr-2">Chapter {idx + 1}</span>
+                          <span className="font-semibold">{chapter.title}</span>
+                          {chapter.description && <p className="text-sm text-gray-500 mt-1">{chapter.description}</p>}
+                        </div>
+                        <div className="flex gap-2 shrink-0">
+                          {/* 🆕 서브챕터 추가 버튼 */}
+                          <button
+                            onClick={() => {
+                              setShowAddChapter(true)
+                              setAddingSubChapterTo(chapter.id)
+                            }}
+                            className="text-xs text-blue-500 hover:text-blue-700"
+                          >
+                            + Sub
+                          </button>
+                          <button
                             onClick={() => handleMoveChapter(chapter.id, 'up')}
                             disabled={idx === 0}
                             className="text-xs text-gray-400 hover:text-black disabled:opacity-30"
-                        >
+                          >
                             ↑
-                        </button>
-                        <button
+                          </button>
+                          <button
                             onClick={() => handleMoveChapter(chapter.id, 'down')}
-                            disabled={idx === chapters.length - 1}
+                            disabled={idx === chapters.filter(c => !c.parent_id).length - 1}
                             className="text-xs text-gray-400 hover:text-black disabled:opacity-30"
-                        >
+                          >
                             ↓
-                        </button>
-                        <button
+                          </button>
+                          <button
                             onClick={() => { setEditingChapter(chapter.id); setEditTitle(chapter.title); setEditDesc(chapter.description || '') }}
                             className="text-xs text-gray-400 hover:text-black"
-                        >
+                          >
                             {t('common.edit')}
                           </button>
-                          <button onClick={() => handleDeleteChapter(chapter.id)} className="text-xs text-red-400 hover:text-red-600">{t('story.deleteChapter')}</button>
-                    </div>
+                          <button onClick={() => handleDeleteChapter(chapter.id)} className="text-xs text-red-400 hover:text-red-600">{t('common.delete')}</button>
+                        </div>
+                      </div>
+                    )}
                   </div>
-                )}
-              </div>
 
-              {/* 챕터 사진 */}
-              <div className="p-4">
-                {/* 👇 여백(gap)을 1로 줄여 꽉 차게 보이게 수정하고 dnd 적용 */}
-                <div className="grid grid-cols-3 gap-x-2 gap-y-4 mb-3">
-                  <DndContext
-                    sensors={sensors}
-                    collisionDetection={closestCenter}
-                    onDragEnd={(e) => handleDragEnd(e, chapter.id)}
-                  >
-                    <SortableContext 
-                      items={(chapterPhotos[chapter.id] || []).map(p => p.id)} 
-                      strategy={rectSortingStrategy}
-                    >
-                      {(chapterPhotos[chapter.id] || []).map((cp, idx) => (
-                        <SortablePhotoChapter
-                          key={cp.id}
-                          id={cp.id} // dnd-kit 용
-                          photoId={cp.photo_id} // 삭제용
-                          chapterId={chapter.id}
-                          imageUrl={cp.image_url}
-                          onRemove={handleRemovePhoto}
-                          onClick={() => {
-                            setCurrentChapterPhotos(chapterPhotos[chapter.id] || []);
-                            setSelectedPhotoIndex(idx);
-                          }}
-                        />
-                      ))}
-                    </SortableContext>
-                  </DndContext>
-                </div>
-                <button
-                  onClick={() => setShowPhotoSelector(showPhotoSelector === chapter.id ? null : chapter.id)}
-                  className="text-xs text-gray-400 hover:text-black border px-3 py-1 rounded"
-                >
-                  {t('story.addPhotos')}
-                </button>
-
-                {/* 사진 선택기 */}
-                {showPhotoSelector === chapter.id && (
-                  <div className="mt-3 p-3 bg-gray-50 rounded">
-                    <p className="text-xs text-gray-500 mb-2">{t('story.selectPhotos')}:</p>
-                    
-                    <div className="grid grid-cols-4 gap-2 max-h-96 overflow-y-auto pr-2">
-                      {allPhotos.map(photo => {
-                        const isAdded = (chapterPhotos[chapter.id] || []).some(cp => cp.photo_id === photo.id)
-                        return (
-                          <div
-                            key={photo.id}
-                            // 👇 수정됨: 여기서 aspect-[3/2]를 빼고 안쪽 이미지에 넘겨줍니다. 배경색을 추가해 깔끔하게 보이게 합니다.
-                            className={`relative cursor-pointer rounded overflow-hidden bg-gray-100 ${isAdded ? 'opacity-40' : 'hover:opacity-80'}`}
-                            onClick={() => !isAdded && handleAddPhoto(chapter.id, photo.id)}
+                  {/* 챕터 사진 */}
+                  <div className="p-4">
+                    <div className="grid grid-cols-3 gap-2 mb-3">
+                      {(chapterPhotos[chapter.id] || []).map(cp => (
+                        <div key={cp.id} className="relative group">
+                          <img src={cp.image_url} alt={cp.caption || ''} className="w-full h-24 object-contain rounded bg-gray-100" />
+                          <button
+                            onClick={() => handleRemovePhoto(chapter.id, cp.photo_id)}
+                            className="absolute top-1 right-1 bg-red-500 text-white rounded-full w-5 h-5 text-xs opacity-0 group-hover:opacity-100 flex items-center justify-center"
                           >
-                            {/* 👇 수정됨: absolute를 빼고, w-full aspect-[3/2] object-contain을 이미지 자체에 직접 줍니다. */}
-                            <img 
-                              src={photo.image_url} 
-                              alt={photo.caption || ''} 
-                              className="w-full aspect-[3/2] object-contain block" 
-                            />
-                            
-                            {/* 이미 추가된 사진 표시 (체크 마크) */}
-                            {isAdded && (
-                              <div className="absolute inset-0 flex items-center justify-center bg-white/30 z-10">
-                                <span className="text-green-600 text-3xl font-bold drop-shadow-md">✓</span>
-                              </div>
-                            )}
-                          </div>
-                        )
-                      })}
+                            ×
+                          </button>
+                        </div>
+                      ))}
                     </div>
-                    
                     <button
-                      onClick={() => setShowPhotoSelector(null)}
-                      className="mt-3 text-xs text-gray-500 hover:text-black border border-gray-300 px-3 py-1 rounded bg-white"
+                      onClick={() => setShowPhotoSelector(showPhotoSelector === chapter.id ? null : chapter.id)}
+                      className="text-xs text-gray-400 hover:text-black border px-3 py-1 rounded"
                     >
-                      {t('common.close')}
+                      + {t('story.addPhoto')}
                     </button>
+
+                    {/* 사진 선택기 */}
+                    {showPhotoSelector === chapter.id && (
+                      <div className="mt-3 p-3 bg-gray-50 rounded">
+                        <p className="text-xs text-gray-500 mb-2">{t('story.selectPhotos')}</p>
+                        <div className="grid grid-cols-4 gap-2 max-h-96 overflow-y-auto">
+                          {allPhotos.map(photo => {
+                            const isAdded = (chapterPhotos[chapter.id] || []).some(cp => cp.photo_id === photo.id)
+                            return (
+                              <div
+                                key={photo.id}
+                                className={`relative cursor-pointer ${isAdded ? 'opacity-40' : 'hover:opacity-80'}`}
+                                onClick={() => !isAdded && handleAddPhoto(chapter.id, photo.id)}
+                              >
+                                <img src={photo.image_url} alt={photo.caption || ''} className="w-full h-16 object-contain rounded bg-gray-100" />
+                                {isAdded && (
+                                  <div className="absolute inset-0 flex items-center justify-center">
+                                    <span className="text-green-500 text-lg">✓</span>
+                                  </div>
+                                )}
+                              </div>
+                            )
+                          })}
+                        </div>
+                        <button
+                          onClick={() => setShowPhotoSelector(null)}
+                          className="mt-2 text-xs text-gray-400 hover:text-black"
+                        >
+                          {t('common.close')}
+                        </button>
+                      </div>
+                    )}
                   </div>
-                )}
+                </div>
+
+                {/* 🆕 서브챕터들 (인덴트) */}
+                {subChapters.map((subChapter, subIdx) => (
+                  <div key={subChapter.id} className="ml-8 mt-3 bg-white rounded-lg shadow overflow-hidden border-l-4 border-blue-400">
+                    {/* 서브챕터 헤더 */}
+                    <div className="p-4 border-b">
+                      {editingChapter === subChapter.id ? (
+                        <div>
+                          <input
+                            className="w-full border rounded px-3 py-2 text-sm mb-2"
+                            value={editTitle}
+                            onChange={e => setEditTitle(e.target.value)}
+                          />
+                          <textarea
+                            className="w-full border rounded px-3 py-2 text-sm mb-2"
+                            rows={2}
+                            value={editDesc}
+                            onChange={e => setEditDesc(e.target.value)}
+                          />
+                          <div className="flex gap-2">
+                            <button onClick={() => handleUpdateChapter(subChapter)} className="bg-black text-white px-3 py-1 text-xs">{t('common.save')}</button>
+                            <button onClick={() => setEditingChapter(null)} className="border px-3 py-1 text-xs">{t('common.cancel')}</button>
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="flex items-start justify-between">
+                          <div>
+                            <span className="text-xs text-blue-500 mr-2">Sub-Chapter {idx + 1}.{subIdx + 1}</span>
+                            <span className="font-semibold">{subChapter.title}</span>
+                            {subChapter.description && <p className="text-sm text-gray-500 mt-1">{subChapter.description}</p>}
+                          </div>
+                          <div className="flex gap-2 shrink-0">
+                            <button
+                              onClick={() => { setEditingChapter(subChapter.id); setEditTitle(subChapter.title); setEditDesc(subChapter.description || '') }}
+                              className="text-xs text-gray-400 hover:text-black"
+                            >
+                              {t('common.edit')}
+                            </button>
+                            <button onClick={() => handleDeleteChapter(subChapter.id)} className="text-xs text-red-400 hover:text-red-600">{t('common.delete')}</button>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* 서브챕터 사진 */}
+                    <div className="p-4">
+                      <div className="grid grid-cols-3 gap-2 mb-3">
+                        {(chapterPhotos[subChapter.id] || []).map(cp => (
+                          <div key={cp.id} className="relative group">
+                            <img src={cp.image_url} alt={cp.caption || ''} className="w-full h-24 object-contain rounded bg-gray-100" />
+                            <button
+                              onClick={() => handleRemovePhoto(subChapter.id, cp.photo_id)}
+                              className="absolute top-1 right-1 bg-red-500 text-white rounded-full w-5 h-5 text-xs opacity-0 group-hover:opacity-100 flex items-center justify-center"
+                            >
+                              ×
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                      <button
+                        onClick={() => setShowPhotoSelector(showPhotoSelector === subChapter.id ? null : subChapter.id)}
+                        className="text-xs text-gray-400 hover:text-black border px-3 py-1 rounded"
+                      >
+                        + {t('story.addPhoto')}
+                      </button>
+
+                      {/* 사진 선택기 */}
+                      {showPhotoSelector === subChapter.id && (
+                        <div className="mt-3 p-3 bg-gray-50 rounded">
+                          <p className="text-xs text-gray-500 mb-2">{t('story.selectPhotos')}</p>
+                          <div className="grid grid-cols-4 gap-2 max-h-96 overflow-y-auto">
+                            {allPhotos.map(photo => {
+                              const isAdded = (chapterPhotos[subChapter.id] || []).some(cp => cp.photo_id === photo.id)
+                              return (
+                                <div
+                                  key={photo.id}
+                                  className={`relative cursor-pointer ${isAdded ? 'opacity-40' : 'hover:opacity-80'}`}
+                                  onClick={() => !isAdded && handleAddPhoto(subChapter.id, photo.id)}
+                                >
+                                  <img src={photo.image_url} alt={photo.caption || ''} className="w-full h-16 object-contain rounded bg-gray-100" />
+                                  {isAdded && (
+                                    <div className="absolute inset-0 flex items-center justify-center">
+                                      <span className="text-green-500 text-lg">✓</span>
+                                    </div>
+                                  )}
+                                </div>
+                              )
+                            })}
+                          </div>
+                          <button
+                            onClick={() => setShowPhotoSelector(null)}
+                            className="mt-2 text-xs text-gray-400 hover:text-black"
+                          >
+                            {t('common.close')}
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                ))}
               </div>
-            </div>
-          ))}
-        </div>
+            )  // 🆕 추가: .map() 종료
+          })}
+          </div>
 
         {chapters.length === 0 && (
           <div className="text-center py-20 text-gray-400">
