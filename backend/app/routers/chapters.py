@@ -54,17 +54,18 @@ class ChapterResponse(BaseModel):
     class Config:
         from_attributes = True
 
-# 챕터 목록
+# 1. 챕터 목록 (정렬 기준 강화)
 @router.get("/", response_model=List[ChapterResponse])
 def get_chapters(project_id: str, db: Session = Depends(get_db)):
+    # 💡 order_num이 같을 경우 created_at으로 2차 정렬하여 순서가 꼬이지 않게 방지
     return db.query(models.Chapter).filter(
         models.Chapter.project_id == project_id
-    ).order_by(models.Chapter.order_num).all()
+    ).order_by(models.Chapter.order_num, models.Chapter.created_at).all()
 
-# 챕터 생성
+
+# 2. 챕터 생성 (순서 자동 부여)
 @router.post("/", response_model=ChapterResponse)
 def create_chapter(chapter: ChapterCreate, db: Session = Depends(get_db)):
-    # 서브챕터 생성 시 parent가 이미 서브챕터인지 검증 (3단계 방지)
     if chapter.parent_id:
         parent = db.query(models.Chapter).filter(models.Chapter.id == chapter.parent_id).first()
         if not parent:
@@ -75,28 +76,42 @@ def create_chapter(chapter: ChapterCreate, db: Session = Depends(get_db)):
                 detail="Cannot create sub-chapter under another sub-chapter (max 2 levels)"
             )
     
+    # 💡 새 챕터 생성 시 순서값이 없으면(0이거나 None) 기존 챕터들의 마지막 번호 + 1 자동 할당
+    next_order = chapter.order_num
+    if not next_order:
+        last_chapter = db.query(models.Chapter).filter(
+            models.Chapter.project_id == chapter.project_id
+        ).order_by(models.Chapter.order_num.desc()).first()
+        next_order = (last_chapter.order_num + 1) if last_chapter else 0
+            
     db_chapter = models.Chapter(
         id=str(uuid.uuid4()),
         project_id=chapter.project_id,
         title=chapter.title,
         description=chapter.description,
-        order_num=chapter.order_num,
-        parent_id=chapter.parent_id  # 🆕 추가
+        order_num=next_order,
+        parent_id=chapter.parent_id
     )
     db.add(db_chapter)
     db.commit()
     db.refresh(db_chapter)
     return db_chapter
 
+
+# 3. 챕터 수정 (핵심 로직: 보낸 데이터만 업데이트)
 @router.put("/{chapter_id}", response_model=ChapterResponse)
 def update_chapter(chapter_id: str, chapter: ChapterUpdate, db: Session = Depends(get_db)):
     db_chapter = db.query(models.Chapter).filter(models.Chapter.id == chapter_id).first()
     if not db_chapter:
         raise HTTPException(status_code=404, detail="Chapter not found")
     
+    # 💡 프론트엔드에서 "실제로 명시해서 보낸 값"만 추출 (기본값으로 덮어쓰는 것 방지)
+    # (주의: 만약 Pydantic 최신 버전 에러 시 dict 대신 model_dump(exclude_unset=True) 사용)
+    update_data = chapter.dict(exclude_unset=True) 
+    
     # parent_id 변경 시 3단계 방지 검증
-    if chapter.parent_id:
-        parent = db.query(models.Chapter).filter(models.Chapter.id == chapter.parent_id).first()
+    if update_data.get("parent_id"):
+        parent = db.query(models.Chapter).filter(models.Chapter.id == update_data["parent_id"]).first()
         if not parent:
             raise HTTPException(status_code=404, detail="Parent chapter not found")
         if parent.parent_id is not None:
@@ -105,10 +120,10 @@ def update_chapter(chapter_id: str, chapter: ChapterUpdate, db: Session = Depend
                 detail="Cannot move under a sub-chapter (max 2 levels)"
             )
     
-    db_chapter.title = chapter.title
-    db_chapter.description = chapter.description
-    db_chapter.order_num = chapter.order_num
-    db_chapter.parent_id = chapter.parent_id  # 🆕 추가
+    # 전달된 데이터(예: title만)만 기존 DB 객체에 덮어쓰기 (기존 order_num, parent_id 완벽 보존)
+    for key, value in update_data.items():
+        setattr(db_chapter, key, value)
+        
     db.commit()
     db.refresh(db_chapter)
     return db_chapter
