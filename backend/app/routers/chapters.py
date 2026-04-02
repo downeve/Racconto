@@ -30,6 +30,10 @@ class ChapterPhotoAdd(BaseModel):
 class ChapterPhotoUpdate(BaseModel):
     order_num: int
 
+# --- [추가] 1. 스키마 정의 (파일 상단 ChapterPhotoUpdate 아래쯤에 넣으세요) ---
+class ChapterReorder(BaseModel):
+    chapter_ids: List[str]
+
 class ChapterPhotoResponse(BaseModel):
     id: str
     chapter_id: str
@@ -97,6 +101,18 @@ def create_chapter(chapter: ChapterCreate, db: Session = Depends(get_db)):
     db.refresh(db_chapter)
     return db_chapter
 
+# --- [추가] 2. 일괄 업데이트 라우터 (반드시 @router.put("/{chapter_id}") 보다 위에 작성) ---
+@router.put("/reorder")
+def reorder_chapters(body: ChapterReorder, db: Session = Depends(get_db)):
+    """
+    전달받은 ID 배열의 순서대로 DB의 order_num을 0, 1, 2... 순으로 일괄 갱신합니다.
+    """
+    for index, chapter_id in enumerate(body.chapter_ids):
+        db.query(models.Chapter).filter(models.Chapter.id == chapter_id).update({
+            "order_num": index
+        })
+    db.commit()
+    return {"message": "순서가 성공적으로 변경되었습니다."}
 
 # 3. 챕터 수정 (핵심 로직: 보낸 데이터만 업데이트)
 @router.put("/{chapter_id}", response_model=ChapterResponse)
@@ -128,25 +144,30 @@ def update_chapter(chapter_id: str, chapter: ChapterUpdate, db: Session = Depend
     db.refresh(db_chapter)
     return db_chapter
 
-# 챕터 삭제
+# 챕터 삭제 로직 (chapters.py)
 @router.delete("/{chapter_id}")
 def delete_chapter(chapter_id: str, db: Session = Depends(get_db)):
     db_chapter = db.query(models.Chapter).filter(models.Chapter.id == chapter_id).first()
     if not db_chapter:
-        raise HTTPException(status_code=404, detail="챕터를 찾을 수 없습니다")
+        raise HTTPException(status_code=404, detail="Chapter not found")
     
-    # 챕터 사진들 삭제
-    chapter_photos = db.query(models.ChapterPhoto).filter(
-        models.ChapterPhoto.chapter_id == chapter_id
-    ).all()
+    # 1. 삭제하려는 챕터에 딸린 '서브 챕터'들을 모두 검색
+    sub_chapters = db.query(models.Chapter).filter(models.Chapter.parent_id == chapter_id).all()
     
-    # ✅ is_portfolio 관련 로직 삭제, 단순히 chapter_photos만 삭제
-    for cp in chapter_photos:
-        db.delete(cp)
-
+    for sub in sub_chapters:
+        # 1-1. 서브 챕터 안에 담긴 '사진 매핑 데이터(ChapterPhoto)' 먼저 삭제
+        db.query(models.ChapterPhoto).filter(models.ChapterPhoto.chapter_id == sub.id).delete()
+        # 1-2. 서브 챕터 자체 삭제
+        db.delete(sub)
+        
+    # 2. 본래 삭제하려던 챕터 안에 담긴 '사진 매핑 데이터' 삭제
+    db.query(models.ChapterPhoto).filter(models.ChapterPhoto.chapter_id == chapter_id).delete()
+    
+    # 3. 모든 자식 데이터가 청소되었으므로, 안전하게 부모 챕터 삭제
     db.delete(db_chapter)
+    
     db.commit()
-    return {"message": "삭제되었습니다"}
+    return {"message": "챕터와 관련된 하위 데이터가 모두 안전하게 삭제되었습니다."}
 
 # 챕터에 사진 추가
 @router.post("/{chapter_id}/photos")

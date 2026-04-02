@@ -251,34 +251,38 @@ export default function ProjectStory({ projectId, allPhotos, onChapterChange }: 
       const currentChapter = chapters.find(c => c.id === chapterId)
       if (!currentChapter) return
 
+      // 1. 같은 부모를 가진 형제들만 모아서 순서대로 정렬
       const siblings = chapters
-        .filter(c => c.parent_id === currentChapter.parent_id)
+        .filter(c => (c.parent_id || null) === (currentChapter.parent_id || null))
         .sort((a, b) => a.order_num - b.order_num)
 
       const currentIndex = siblings.findIndex(c => c.id === chapterId)
       if (currentIndex === -1) return
 
+      // 2. 이동 불가능한 경계 조건 확인
       if (direction === 'up' && currentIndex === 0) return
       if (direction === 'down' && currentIndex === siblings.length - 1) return
 
       const targetIndex = direction === 'up' ? currentIndex - 1 : currentIndex + 1
-      const targetChapter = siblings[targetIndex]
+      
+      // 3. 로컬 배열에서 위치 변경 (Immutability 유지)
+      const newSiblings = [...siblings]
+      const [movedItem] = newSiblings.splice(currentIndex, 1)
+      newSiblings.splice(targetIndex, 0, movedItem)
 
-      await axios.put(`${API}/chapters/${currentChapter.id}`, {
-          title: currentChapter.title,
-          description: currentChapter.description,
-          order_num: targetChapter.order_num,
-          parent_id: currentChapter.parent_id
-      })
-      await axios.put(`${API}/chapters/${targetChapter.id}`, {
-          title: targetChapter.title,
-          description: targetChapter.description,
-          order_num: currentChapter.order_num,
-          parent_id: targetChapter.parent_id
-      })
-      fetchChapters()
+      try {
+        // 4. [핵심] 변경된 전체 순서의 ID 배열만 추출하여 백엔드에 딱 한 번 전송
+        const chapterIds = newSiblings.map(c => c.id)
+        await axios.put(`${API}/chapters/reorder`, { chapter_ids: chapterIds })
+        
+        // 5. 성공 후 목록 새로고침
+        fetchChapters()
+      } catch (error) {
+        console.error('Failed to reorder chapters:', error)
+        alert('순서 변경에 실패했습니다.')
+      }
     }
-    
+
   return (
     <div className="flex gap-6">
       {/* 챕터 목록 */}
