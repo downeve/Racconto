@@ -207,4 +207,6 @@ marimo/_lsp/
 __marimo__/
 
 backend/app/uploads/*
-!backend/app/uploads/.gitkeep
+!backend/app/uploads/.gitkeepfrontend/.env
+frontend/.env.production
+backend/.env
