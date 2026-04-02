@@ -34,7 +34,6 @@ export default function Portfolio() {
   const [projects, setProjects] = useState<PortfolioProject[]>([])
   const [selectedProject, setSelectedProject] = useState<PortfolioProject | null>(null)
   const [lightboxPhoto, setLightboxPhoto] = useState<Photo | null>(null)
-  const [lightboxPhotos, setLightboxPhotos] = useState<Photo[]>([])
   const [darkMode, setDarkMode] = useState(false)
   const [lightboxChapter, setLightboxChapter] = useState<string | null>(null)
   const { t } = useTranslation()
@@ -57,29 +56,59 @@ export default function Portfolio() {
     window.scrollTo(0, 0)
   }
 
-  const openLightbox = (photo: Photo, photos: Photo[], chapterTitle?: string) => {
-    setLightboxPhoto(photo)
-    setLightboxPhotos(photos)
-    setLightboxChapter(chapterTitle || null)
-  }
+  // 라이트박스용 상태 (Photo 배열이 아닌, 타이틀이 포함된 객체 배열로 관리)
+  const [lightboxItems, setLightboxItems] = useState<{ photo: Photo; title: string }[]>([])
+  
+  const openLightbox = (photo: Photo, items: { photo: Photo; title: string }[]) => {
+    const currentItem = items.find(item => item.photo.id === photo.id);
+    setLightboxPhoto(photo);
+    setLightboxItems(items);
+    setLightboxChapter(currentItem?.title || null);
+  };
+
+  // 사진과 해당 사진의 챕터 제목을 함께 묶어서 배열로 반환하는 함수
+  const getAllChapterItems = (project: PortfolioProject) => {
+    const items: { photo: Photo; title: string }[] = [];
+    
+    project.chapters?.forEach((ch, idx) => {
+      const chTitle = `Chapter ${idx + 1}: ${ch.title}`;
+      
+      // 메인 챕터 사진들 추가
+      ch.photos?.forEach(p => items.push({ photo: p, title: chTitle }));
+      
+      // 서브 챕터 사진들 추가
+      ch.sub_chapters?.forEach((sub, subIdx) => {
+        const subTitle = `Chapter ${idx + 1}.${subIdx + 1}: ${sub.title}`;
+        sub.photos?.forEach(p => items.push({ photo: p, title: subTitle }));
+      });
+    });
+    
+    return items;
+  };
 
   // 키보드 이벤트
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (!lightboxPhoto) return
-      if (e.key === 'Escape') setLightboxPhoto(null)
-      if (e.key === 'ArrowRight') {
-        const idx = lightboxPhotos.findIndex(p => p.id === lightboxPhoto.id)
-        if (idx < lightboxPhotos.length - 1) setLightboxPhoto(lightboxPhotos[idx + 1])
+      if (!lightboxPhoto || lightboxItems.length === 0) return
+      if (e.key === 'Escape') {
+        setLightboxPhoto(null)
+        return
       }
-      if (e.key === 'ArrowLeft') {
-        const idx = lightboxPhotos.findIndex(p => p.id === lightboxPhoto.id)
-        if (idx > 0) setLightboxPhoto(lightboxPhotos[idx - 1])
+      
+      const idx = lightboxItems.findIndex(item => item.photo.id === lightboxPhoto.id)
+      
+      if (e.key === 'ArrowRight' && idx < lightboxItems.length - 1) {
+        setLightboxPhoto(lightboxItems[idx + 1].photo)
+        setLightboxChapter(lightboxItems[idx + 1].title)
+      }
+      if (e.key === 'ArrowLeft' && idx > 0) {
+        setLightboxPhoto(lightboxItems[idx - 1].photo)
+        setLightboxChapter(lightboxItems[idx - 1].title)
       }
     }
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [lightboxPhoto, lightboxPhotos])
+  }, [lightboxPhoto, lightboxItems])
 
   const bg = darkMode ? 'bg-[#1A1A1A] text-white' : 'bg-[#F5F0EB] text-gray-900'
   const cardBg = darkMode ? 'bg-[#2A2A2A]' : 'bg-white'
@@ -176,50 +205,40 @@ export default function Portfolio() {
                       )}
                     </div>
 
-                    {/* 최상위 챕터의 직접 사진 표시 (있으면) */}
+                    {/* 1. 메인 챕터 사진 그리드 */}
                     {chapter.photos && chapter.photos.length > 0 && (
-                      <div className="grid grid-cols-3 gap-3 mb-8">
+                      <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-8">
                         {chapter.photos.map(photo => (
                           <img
                             key={photo.id}
                             src={photo.image_url}
-                            alt={photo.caption || ''}
-                            className="w-full object-contain rounded cursor-pointer hover:opacity-80 transition-opacity"
-                            onClick={() => openLightbox(photo, chapter.photos, `Chapter ${idx + 1}: ${chapter.title}`)}
+                            className="w-full aspect-[3/2] object-cover rounded cursor-pointer hover:opacity-80 transition-opacity"
+                            onClick={() => openLightbox(photo, getAllChapterItems(selectedProject))}
                           />
                         ))}
                       </div>
                     )}
 
-                    {/* 서브챕터들 표시 (있으면) */}
-                    {chapter.sub_chapters && chapter.sub_chapters.length > 0 && (
-                      <div className="space-y-8">
-                        {chapter.sub_chapters.map((subChapter, subIdx) => (
-                          <div key={subChapter.id}>
-                            <div className="mb-3 ml-4 border-l-4 border-blue-400 pl-4">
-                              <p className={`text-xs ${subText} mb-1`}>
-                                Sub-Chapter {idx + 1}.{subIdx + 1}
-                              </p>
-                              <h4 className="text-base font-semibold">{subChapter.title}</h4>
-                              {subChapter.description && (
-                                <p className={`text-sm ${subText} mt-1`}>{subChapter.description}</p>
-                              )}
-                            </div>
-                            <div className="grid grid-cols-3 gap-3">
-                              {subChapter.photos.map(photo => (
-                                <img
-                                  key={photo.id}
-                                  src={photo.image_url}
-                                  alt={photo.caption || ''}
-                                  className="w-full object-contain rounded cursor-pointer hover:opacity-80 transition-opacity"
-                                  onClick={() => openLightbox(photo, subChapter.photos, `Chapter ${idx + 1}.${subIdx + 1}: ${subChapter.title}`)}
-                                />
-                              ))}
-                            </div>
-                          </div>
-                        ))}
+                    {/* 2. 서브 챕터 전체 (들여쓰기 및 이미지 크기 축소) */}
+                    {chapter.sub_chapters?.map((sub, subIdx) => (
+                      <div key={sub.id} className="ml-4 md:ml-8 mb-8"> {/* 전체 들여쓰기 */}
+                        <div className="mb-3 border-l-4 border-blue-400 pl-4">
+                          <p className={`text-xs ${subText} mb-1`}>Sub-Chapter {idx + 1}.{subIdx + 1}</p>
+                          <h4 className="text-base font-semibold">{sub.title}</h4>
+                        </div>
+                        {/* 이미지 크기를 더 작게 하기 위해 grid-cols-4 적용 */}
+                        <div className="grid grid-cols-3 md:grid-cols-4 gap-3 pl-4">
+                          {sub.photos.map(photo => (
+                            <img
+                              key={photo.id}
+                              src={photo.image_url}
+                              className="w-full aspect-[3/2] object-cover rounded cursor-pointer hover:opacity-80 transition-opacity"
+                              onClick={() => openLightbox(photo, getAllChapterItems(selectedProject))}
+                            />
+                          ))}
+                        </div>
                       </div>
-                    )}
+                    ))}
                   </div>
                 ))}
               </div>
@@ -234,7 +253,7 @@ export default function Portfolio() {
         )}
       </div>
 
-{/* 라이트박스 */}
+      {/* 라이트박스 */}
       {lightboxPhoto && (
         <div
           // 👇 bg-black 제거 후 테마에 따른 배경색 적용 (투명도 95% 유지)
@@ -254,8 +273,12 @@ export default function Portfolio() {
             className={`absolute left-6 text-5xl z-10 select-none ${darkMode ? 'text-white' : 'text-gray-900'} hover:opacity-50`}
             onClick={e => {
               e.stopPropagation()
-              const idx = lightboxPhotos.findIndex(p => p.id === lightboxPhoto.id)
-              if (idx > 0) setLightboxPhoto(lightboxPhotos[idx - 1])
+              // 👇 수정: lightboxPhotos 대신 lightboxItems 사용
+              const idx = lightboxItems.findIndex(item => item.photo.id === lightboxPhoto.id)
+              if (idx > 0) {
+                setLightboxPhoto(lightboxItems[idx - 1].photo)
+                setLightboxChapter(lightboxItems[idx - 1].title)
+              }
             }}
           >
             ‹
@@ -287,8 +310,7 @@ export default function Portfolio() {
                 </p>
               )}
               <p className={`${darkMode ? 'text-gray-500' : 'text-gray-400'} text-xs`}>
-                {lightboxPhotos.findIndex(p => p.id === lightboxPhoto.id) + 1} / {lightboxPhotos.length}
-              </p>
+                {lightboxItems.findIndex(item => item.photo.id === lightboxPhoto?.id) + 1} / {lightboxItems.length}              </p>
             </div>
           </div>
 
@@ -297,8 +319,12 @@ export default function Portfolio() {
             className={`absolute right-6 text-5xl z-10 select-none ${darkMode ? 'text-white' : 'text-gray-900'} hover:opacity-50`}
             onClick={e => {
               e.stopPropagation()
-              const idx = lightboxPhotos.findIndex(p => p.id === lightboxPhoto.id)
-              if (idx < lightboxPhotos.length - 1) setLightboxPhoto(lightboxPhotos[idx + 1])
+              // 👇 수정: lightboxPhotos 대신 lightboxItems 사용
+              const idx = lightboxItems.findIndex(item => item.photo.id === lightboxPhoto.id)
+              if (idx < lightboxItems.length - 1) {
+                setLightboxPhoto(lightboxItems[idx + 1].photo)
+                setLightboxChapter(lightboxItems[idx + 1].title)
+              }
             }}
           >
             ›

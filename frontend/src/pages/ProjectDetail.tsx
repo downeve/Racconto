@@ -649,7 +649,7 @@ export default function ProjectDetail() {
   if (!project) return <div className="p-6 text-gray-400">{t('common.loading')}</div>
 
   return (
-    <div className="max-w-5xl mx-auto p-6">
+    <div className="max-w-6xl mx-auto p-6">
       {/* 라이트박스 */}
       {lightboxPhoto && (
         <Lightbox
@@ -709,15 +709,15 @@ export default function ProjectDetail() {
       <div className="flex border-b mb-6">
         <button onClick={() => { setActiveTab('photos'); fetchChapterPhotoIds() }}
           className={`px-6 py-2 text-sm tracking-wider ${activeTab === 'photos' ? 'border-b-2 border-black font-semibold' : 'text-gray-400'}`}>
-          {t('photo.title')} ({photos.length})
+          {t('photo.title')}
         </button>
         <button onClick={() => setActiveTab('story')}
           className={`px-6 py-2 text-sm tracking-wider ${activeTab === 'story' ? 'border-b-2 border-black font-semibold' : 'text-gray-400'}`}>
-          {t('story.title')} ({chapterCount})
+          {t('story.title')}
         </button>
         <button onClick={() => setActiveTab('notes')}
           className={`px-6 py-2 text-sm tracking-wider ${activeTab === 'notes' ? 'border-b-2 border-black font-semibold' : 'text-gray-400'}`}>
-          {t('note.title')} ({notes.length})
+          {t('note.title')}
         </button>
         {DELIVERY_ENABLED && (
         <button onClick={() => setActiveTab('delivery')}
@@ -804,13 +804,19 @@ export default function ProjectDetail() {
                           className={`w-full text-left px-2 py-1 text-xs rounded flex items-center justify-between mb-1 ${filterFolder === null ? 'bg-black text-white' : 'hover:bg-gray-50'}`}>
                           <span>{t('filter.allFolders')}</span><span className="text-gray-400">{photos.length}</span>
                         </button>
-                        {[...new Set(photos.filter(p => p.folder).map(p => p.folder))].map(folder => {
+                          {[...new Set(photos.filter(p => p.folder).map(p => p.folder))].map(folder => {
                           const count = photos.filter(p => p.folder === folder).length
                           return (
                             <button key={folder} onClick={() => setFilterFolder(filterFolder === folder ? null : folder!)}
+                              title={folder!} // 마우스 올렸을 때 전체 이름 툴팁 표시
                               className={`w-full text-left px-2 py-1 text-xs rounded flex items-center justify-between ${filterFolder === folder ? 'bg-black text-white' : 'hover:bg-gray-50'}`}>
-                              <span className="flex items-center gap-1"><span>📁</span><span className="truncate">{folder}</span></span>
-                              <span className="text-gray-400">{count}</span>
+                              {/* 👇 min-w-0 을 넣어야 truncate가 작동합니다. */}
+                              <span className="flex items-center gap-1 min-w-0">
+                                <span className="shrink-0">📁</span>
+                                <span className="truncate">{folder}</span>
+                              </span>
+                              {/* 👇 숫자가 찌그러지지 않게 shrink-0 추가 */}
+                              <span className="text-gray-400 shrink-0 ml-2">{count}</span>
                             </button>
                           )
                         })}
