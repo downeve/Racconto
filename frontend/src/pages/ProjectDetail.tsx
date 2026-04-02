@@ -23,6 +23,7 @@ import DeliveryManager from '../components/DeliveryManager'
 import { useTranslation } from 'react-i18next'
 
 const API = import.meta.env.VITE_API_URL
+const DELIVERY_ENABLED = import.meta.env.VITE_ENABLE_DELIVERY === 'true'
 
 interface Project {
   id: string
@@ -718,10 +719,12 @@ export default function ProjectDetail() {
           className={`px-6 py-2 text-sm tracking-wider ${activeTab === 'notes' ? 'border-b-2 border-black font-semibold' : 'text-gray-400'}`}>
           {t('note.title')} ({notes.length})
         </button>
+        {DELIVERY_ENABLED && (
         <button onClick={() => setActiveTab('delivery')}
           className={`px-6 py-2 text-sm tracking-wider ${activeTab === 'delivery' ? 'border-b-2 border-black font-semibold' : 'text-gray-400'}`}>
           {t('delivery.title')}
         </button>
+        )}
       </div>
 
       {/* 사진 탭 */}
@@ -954,7 +957,7 @@ export default function ProjectDetail() {
         <ProjectStory projectId={id!} allPhotos={photos} onChapterChange={setChapterCount} />
       )}
 
-      {activeTab === 'delivery' && <DeliveryManager projectId={id!} />}
+      {DELIVERY_ENABLED && activeTab === 'delivery' && <DeliveryManager projectId={id!} />}
 
       {activeTab === 'notes' && (
         <div>

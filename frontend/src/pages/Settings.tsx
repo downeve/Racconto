@@ -3,6 +3,7 @@ import axios from 'axios'
 import { useTranslation } from 'react-i18next'
 
 const API = import.meta.env.VITE_API_URL
+const DELIVERY_ENABLED = import.meta.env.VITE_ENABLE_DELIVERY === 'true'
 
 const COLOR_KEYS = [
   { key: 'color_label_red',    color: 'bg-red-500',    value: 'red' },
@@ -179,6 +180,7 @@ export default function Settings() {
       </div>
 
       {/* 납품 선택 자동 태그 */}
+      {DELIVERY_ENABLED && (
       <div className="bg-white rounded-lg shadow p-6 mb-6">
         <h3 className="font-semibold mb-1">납품 선택 자동 태그</h3>
         <p className="text-xs text-gray-400 mb-4">
@@ -204,6 +206,7 @@ export default function Settings() {
           → 고객 선택 완료 시 선택된 사진에 <strong>{colorName(deliveryTagColor)}</strong> 레이블 자동 태깅
         </p>
       </div>
+      )}
 
       {/* 비밀번호 변경 */}
       <div className="bg-white rounded-lg shadow p-6 mb-6">

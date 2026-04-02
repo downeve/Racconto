@@ -9,8 +9,12 @@ from typing import Optional, List
 from datetime import datetime
 import uuid, bcrypt
 
+import os
+
 router = APIRouter(prefix="/api/delivery", tags=["delivery"])
 
+# Feature Flag
+DELIVERY_ENABLED = os.getenv("ENABLE_DELIVERY_FEATURE", "false").lower() == "true"
 
 # ── Pydantic 스키마 ────────────────────────────────────────
 
@@ -102,6 +106,9 @@ def create_link(
     db: Session = Depends(get_db),
     _=Depends(verify_token),
 ):
+    if not DELIVERY_ENABLED:  # 🆕 추가
+        raise HTTPException(status_code=404, detail="Feature not available")
+
     project = db.query(models.Project).filter(
         models.Project.id == body.project_id,
         models.Project.deleted_at == None,
@@ -135,6 +142,9 @@ def list_links(
     db: Session = Depends(get_db),
     _=Depends(verify_token),
 ):
+    if not DELIVERY_ENABLED:  # 🆕 추가
+        raise HTTPException(status_code=404, detail="Feature not available")
+
     links = (
         db.query(models.DeliveryLink)
         .filter(models.DeliveryLink.project_id == project_id)
@@ -150,6 +160,9 @@ def get_selections(
     db: Session = Depends(get_db),
     _=Depends(verify_token),
 ):
+    if not DELIVERY_ENABLED:  # 🆕 추가
+        raise HTTPException(status_code=404, detail="Feature not available")
+
     link = db.query(models.DeliveryLink).filter(models.DeliveryLink.id == link_id).first()
     if not link:
         raise HTTPException(status_code=404, detail="링크를 찾을 수 없습니다")
@@ -180,6 +193,9 @@ def delete_link(
     db: Session = Depends(get_db),
     _=Depends(verify_token),
 ):
+    if not DELIVERY_ENABLED:  # 🆕 추가
+        raise HTTPException(status_code=404, detail="Feature not available")
+
     link = db.query(models.DeliveryLink).filter(models.DeliveryLink.id == link_id).first()
     if not link:
         raise HTTPException(status_code=404, detail="링크를 찾을 수 없습니다")
@@ -189,9 +205,11 @@ def delete_link(
 
 
 # ── 클라이언트용 엔드포인트 (공개) ────────────────────────
-
 @router.get("/{link_id}")
 def get_link_public(link_id: str, db: Session = Depends(get_db)):
+    if not DELIVERY_ENABLED:  # 🆕 추가
+        raise HTTPException(status_code=404, detail="Feature not available")
+
     link = _check_link(link_id, db)
     project = db.query(models.Project).filter(models.Project.id == link.project_id).first()
     return {
@@ -202,9 +220,11 @@ def get_link_public(link_id: str, db: Session = Depends(get_db)):
         "expires_at": link.expires_at,
     }
 
-
 @router.post("/{link_id}/verify")
 def verify_password(link_id: str, body: PasswordVerify, db: Session = Depends(get_db)):
+    if not DELIVERY_ENABLED:  # 🆕 추가
+        raise HTTPException(status_code=404, detail="Feature not available")
+
     link = _check_link(link_id, db)
     if not link.password_hash:
         return {"ok": True}
@@ -219,6 +239,9 @@ def get_link_photos(
     x_delivery_password: Optional[str] = Header(None),
     db: Session = Depends(get_db),
 ):
+    if not DELIVERY_ENABLED:  # 🆕 추가
+        raise HTTPException(status_code=404, detail="Feature not available")
+    
     link = _check_link(link_id, db)
 
     if link.password_hash:
@@ -250,7 +273,6 @@ def get_link_photos(
         for p in photos
     ]
 
-
 @router.put("/{link_id}/selections")
 def save_selections(
     link_id: str,
@@ -258,6 +280,9 @@ def save_selections(
     x_delivery_password: Optional[str] = Header(None),
     db: Session = Depends(get_db),
 ):
+    if not DELIVERY_ENABLED:  # 🆕 추가
+        raise HTTPException(status_code=404, detail="Feature not available")
+
     link = _check_link(link_id, db)
 
     if link.password_hash:
