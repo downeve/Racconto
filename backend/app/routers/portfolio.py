@@ -47,11 +47,14 @@ def get_portfolio(db: Session = Depends(get_db)):
                         "photos": sub_photos
                     })
                 
+                # 🆕 부모 챕터의 직접 사진도 가져오기
+                parent_photos = get_chapter_photos(db, top_chapter.id, chapter_photo_ids)
+
                 chapter_list.append({
                     "id": top_chapter.id,
                     "title": top_chapter.title,
                     "description": top_chapter.description,
-                    "photos": [],  # 최상위 챕터는 사진 없음, 서브챕터에만
+                    "photos": parent_photos,  # 최상위 챕터는 사진 없음, 서브챕터에만
                     "sub_chapters": sub_chapter_list
                 })
             else:

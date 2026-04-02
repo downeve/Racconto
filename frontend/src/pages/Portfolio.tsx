@@ -16,6 +16,7 @@ interface Chapter {
   title: string
   description: string | null
   photos: Photo[]
+  sub_chapters: Chapter[]
 }
 
 interface PortfolioProject {
@@ -166,6 +167,7 @@ export default function Portfolio() {
               <div className="space-y-12">
                 {selectedProject.chapters.map((chapter, idx) => (
                   <div key={chapter.id}>
+                    {/* 최상위 챕터 */}
                     <div className="mb-4">
                       <p className={`text-xs ${subText} mb-1`}>Chapter {idx + 1}</p>
                       <h3 className="text-lg font-semibold">{chapter.title}</h3>
@@ -173,17 +175,51 @@ export default function Portfolio() {
                         <p className={`text-sm ${subText} mt-1`}>{chapter.description}</p>
                       )}
                     </div>
-                    <div className="grid grid-cols-3 gap-3">
-                      {chapter.photos.map(photo => (
-                        <img
-                          key={photo.id}
-                          src={photo.image_url}
-                          alt={photo.caption || ''}
-                          className="w-full aspect-[3/2] object-contain rounded cursor-pointer hover:opacity-80 transition-opacity"
-                          onClick={() => openLightbox(photo, chapter.photos, `Chapter ${idx + 1}: ${chapter.title}`)}
-                        />
-                      ))}
-                    </div>
+
+                    {/* 최상위 챕터의 직접 사진 표시 (있으면) */}
+                    {chapter.photos && chapter.photos.length > 0 && (
+                      <div className="grid grid-cols-3 gap-3 mb-8">
+                        {chapter.photos.map(photo => (
+                          <img
+                            key={photo.id}
+                            src={photo.image_url}
+                            alt={photo.caption || ''}
+                            className="w-full object-contain rounded cursor-pointer hover:opacity-80 transition-opacity"
+                            onClick={() => openLightbox(photo, chapter.photos, `Chapter ${idx + 1}: ${chapter.title}`)}
+                          />
+                        ))}
+                      </div>
+                    )}
+
+                    {/* 서브챕터들 표시 (있으면) */}
+                    {chapter.sub_chapters && chapter.sub_chapters.length > 0 && (
+                      <div className="space-y-8">
+                        {chapter.sub_chapters.map((subChapter, subIdx) => (
+                          <div key={subChapter.id}>
+                            <div className="mb-3 ml-4 border-l-4 border-blue-400 pl-4">
+                              <p className={`text-xs ${subText} mb-1`}>
+                                Sub-Chapter {idx + 1}.{subIdx + 1}
+                              </p>
+                              <h4 className="text-base font-semibold">{subChapter.title}</h4>
+                              {subChapter.description && (
+                                <p className={`text-sm ${subText} mt-1`}>{subChapter.description}</p>
+                              )}
+                            </div>
+                            <div className="grid grid-cols-3 gap-3">
+                              {subChapter.photos.map(photo => (
+                                <img
+                                  key={photo.id}
+                                  src={photo.image_url}
+                                  alt={photo.caption || ''}
+                                  className="w-full object-contain rounded cursor-pointer hover:opacity-80 transition-opacity"
+                                  onClick={() => openLightbox(photo, subChapter.photos, `Chapter ${idx + 1}.${subIdx + 1}: ${subChapter.title}`)}
+                                />
+                              ))}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 ))}
               </div>
