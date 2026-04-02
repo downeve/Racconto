@@ -423,7 +423,6 @@ export default function ProjectDetail() {
   const [showExif, setShowExif] = useState(true)
   const [showFilter, setShowFilter] = useState(true)
   const [editingCaption, setEditingCaption] = useState<string | null>(null)
-  const [chapterCount, setChapterCount] = useState(0)
   const [captionKo, setCaptionKo] = useState('')
   const [chapterPhotoIds, setChapterPhotoIds] = useState<Set<string>>(new Set())
   const [lightboxPhoto, setLightboxPhoto] = useState<Photo | null>(null)
@@ -449,7 +448,6 @@ export default function ProjectDetail() {
   const fetchChapterPhotoIds = async () => {
     if (!id) return
     const res = await axios.get(`${API}/chapters/?project_id=${id}`)
-    setChapterCount(res.data.length)
     setChapters(res.data.map((c: any) => ({ id: c.id, title: c.title }))) // 추가
     const ids = new Set<string>()
     for (const chapter of res.data) {
@@ -960,7 +958,7 @@ export default function ProjectDetail() {
       )}
 
       {activeTab === 'story' && (
-        <ProjectStory projectId={id!} allPhotos={photos} onChapterChange={setChapterCount} />
+        <ProjectStory projectId={id!} allPhotos={photos} onChapterChange={() => fetchChapterPhotoIds()} />
       )}
 
       {DELIVERY_ENABLED && activeTab === 'delivery' && <DeliveryManager projectId={id!} />}
