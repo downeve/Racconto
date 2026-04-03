@@ -350,19 +350,23 @@ export default function ProjectStory({
       }
     }
 
-    // 👇 [추가 1] 화면에 보이는 순서대로 모든 사진을 한 줄로 연결하는 함수
+  // 💡 [추가] 휴지통에 가지 않은(allPhotos에 존재하는) 챕터 사진만 걸러내는 함수
+    const getVisibleChapterPhotos = (chapterId: string) => {
+      return (chapterPhotos[chapterId] || []).filter(cp => 
+        allPhotos.some(p => p.id === cp.photo_id)
+      );
+    };
+
+    // 1. 화면에 보이는 순서대로 모든 사진을 연결하는 함수 (수정됨)
     const getFlattenedPhotos = () => {
       let flat: ChapterPhoto[] = [];
-      const mainChapters = chapters.filter(c => !c.parent_id); // 최상위 챕터들
+      const mainChapters = chapters.filter(c => !c.parent_id); 
       
       mainChapters.forEach(mainChap => {
-        // 1. 메인 챕터 사진 담기
-        flat = flat.concat(chapterPhotos[mainChap.id] || []);
-        
-        // 2. 해당 메인 챕터의 서브 챕터 사진 담기
+        flat = flat.concat(getVisibleChapterPhotos(mainChap.id)); // 수정됨
         const subChapters = chapters.filter(c => c.parent_id === mainChap.id);
         subChapters.forEach(subChap => {
-          flat = flat.concat(chapterPhotos[subChap.id] || []);
+          flat = flat.concat(getVisibleChapterPhotos(subChap.id)); // 수정됨
         });
       });
       return flat;
@@ -554,10 +558,11 @@ export default function ProjectStory({
                   {/* 챕터 사진 */}
                   <div className="p-4">
                     <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={(e) => handleDragEnd(e, chapter.id)}>
-                      <SortableContext items={(chapterPhotos[chapter.id] || []).map(p => p.id)} strategy={rectSortingStrategy}>
+                      <SortableContext items={getVisibleChapterPhotos(chapter.id).map(p => p.id)} strategy={rectSortingStrategy}>
                         <div className="grid grid-cols-3 gap-2 mb-3">
-                          {(chapterPhotos[chapter.id] || []).map((cp) => (
+                          {getVisibleChapterPhotos(chapter.id).map(cp => (
                             <SortablePhotoChapter
+                              // ... (이 안에 들어가는 key, id 등의 props는 기존 그대로 둡니다)                              
                               key={cp.id}
                               id={cp.id}
                               imageUrl={cp.image_url}
@@ -683,10 +688,11 @@ export default function ProjectStory({
                     {/* 서브챕터 사진 */}
                     <div className="p-4">
                       <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={(e) => handleDragEnd(e, subChapter.id)}>
-                        <SortableContext items={(chapterPhotos[subChapter.id] || []).map(p => p.id)} strategy={rectSortingStrategy}>
+                        <SortableContext items={getVisibleChapterPhotos(chapter.id).map(p => p.id)} strategy={rectSortingStrategy}>
                           <div className="grid grid-cols-3 gap-2 mb-3">
-                            {(chapterPhotos[subChapter.id] || []).map((cp) => (
+                            {getVisibleChapterPhotos(subChapter.id).map(cp => (
                               <SortablePhotoChapter
+                                // ... (이 안에 들어가는 key, id 등의 props는 기존 그대로 둡니다)
                                 key={cp.id}
                                 id={cp.id}
                                 imageUrl={cp.image_url}

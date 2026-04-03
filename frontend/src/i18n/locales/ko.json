@@ -65,7 +65,8 @@
     "addCaption": "코멘트 편집",
     "addCaptionDesc": "코멘트를 입력하세요.",
     "exifOn": "EXIF 보기 켬",
-    "exifOff": "EXIF 보기 끔"
+    "exifOff": "EXIF 보기 끔",
+    "autoDeleteIn": "{{days}}일 후 자동 삭제"
   },
   "filter": {
     "filter": "탭 숨기기",
@@ -195,7 +196,7 @@
     "passwordInputAll": "모든 항목을 입력해 주세요."
   },
   "trash": {
-    "title": "휴지통",
+    "title": "프로젝트 휴지통",
     "description": "삭제 후 30일이 지나면 자동으로 영구 삭제됩니다.",
     "empty": "휴지통이 비어있어요",
     "deletedAt": "일 후 자동 삭제",

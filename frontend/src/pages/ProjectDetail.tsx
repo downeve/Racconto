@@ -505,7 +505,10 @@ export default function ProjectDetail() {
   const handleDeletePhoto = async (photoId: string) => {
     await axios.delete(`${API}/photos/${photoId}`)
     if (lightboxPhoto?.id === photoId) setLightboxPhoto(null)
-    fetchPhotos()
+    
+    // 삭제 후 두 정보를 모두 갱신하여 UI를 완벽히 동기화합니다.
+    await fetchPhotos()
+    await fetchChapterPhotoIds() 
   }
 
   const handleSetRating = async (photo: Photo, rating: number) => {
@@ -675,7 +678,12 @@ const filteredPhotos = photos.filter(photo => {
 
       {/* 탭 */}
       <div className="flex border-b mb-6">
-        <button onClick={() => { setActiveTab('photos'); fetchPhotos(); fetchChapterPhotoIds() }}
+        <button onClick={() => { 
+            setActiveTab('photos'); 
+            setPhotoSubTab('all'); // 💡 이 줄이 추가되었습니다! 무조건 'all' 탭으로 열리게 합니다.
+            fetchPhotos(); 
+            fetchChapterPhotoIds() 
+          }}
           className={`px-6 py-2 text-sm tracking-wider ${activeTab === 'photos' ? 'border-b-2 border-black font-semibold' : 'text-gray-400'}`}>
           {t('photo.title')}
         </button>
@@ -886,42 +894,43 @@ const filteredPhotos = photos.filter(photo => {
             </div>
           )}
 
-          {/* 🆕 휴지통 뷰 */}
+          {/* 🆕 휴지통 뷰 (그리드 스타일로 개편) */}
           {photoSubTab === 'trash' && (
-            <div className="max-w-4xl">
+            <div className="flex-1"> {/* 메인 그리드와 좌측 간격을 맞추기 위해 flex-1 적용 */}
               {trashedPhotos.length === 0 ? (
-                <div className="text-center py-20 text-gray-400">
+                <div className="text-center py-20 text-gray-400 border rounded-xl bg-gray-50">
                   <p className="text-lg mb-2">{t('photo.trashEmpty')}</p>
+                  <p className="text-sm">삭제된 사진은 30일 동안 보관 후 영구 삭제됩니다.</p>
                 </div>
               ) : (
-                <div className="space-y-3">
+                // 1. 3열 그리드, ProjectDetail 메인 그리드와 동일한 gap-4 적용
+                <div className="grid grid-cols-5 gap-4">
                   {trashedPhotos.map(photo => {
                     const deletedDate = new Date(photo.deleted_at!)
                     const daysLeft = 30 - Math.floor((Date.now() - deletedDate.getTime()) / (1000 * 60 * 60 * 24))
                     
                     return (
-                      <div key={photo.id} className="bg-white rounded-lg shadow p-4 flex items-center gap-4">
+                      <div key={photo.id} className="rounded overflow-hidden bg-transparent group relative shadow-sm">
+                        {/* 이미지: 3:2 비율, object-contain (배경색 없이 깔끔하게) */}
                         <img 
                           src={photo.image_url} 
                           alt={photo.caption || ''} 
-                          className="w-24 h-24 object-cover rounded"
+                          className="w-full aspect-[3/2] object-contain"
                         />
-                        <div className="flex-1">
-                          <p className="text-sm font-medium">{photo.caption || t('photo.noCaption')}</p>
-                          <p className="text-xs text-red-400 mt-1">
-                            {t('photo.autoDeleteIn', { days: daysLeft })}
-                          </p>
-                        </div>
-                        <div className="flex gap-2">
+
+                        {/* 2. 호버 오버레이 (복구/삭제 버튼만 존재) */}
+                        <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity bg-black/70 flex flex-col items-center justify-center gap-2 px-4 z-10">
                           <button
                             onClick={async () => {
                               await axios.post(`${API}/photos/${photo.id}/restore`)
-                              fetchTrash()
-                              fetchPhotos()
+                              // 💡 완벽한 동기화를 위해 fetch 추가 (앞선 대화 내용 반영)
+                              await fetchTrash()
+                              await fetchPhotos()
+                              await fetchChapterPhotoIds()
                             }}
-                            className="border px-3 py-1 text-sm hover:bg-gray-50 rounded"
+                            className="w-full text-center px-4 py-1.5 text-xs bg-white text-black rounded hover:bg-gray-200 font-medium shadow-lg"
                           >
-                            {t('common.restore')}
+                             ↺ {t('trash.restore')}
                           </button>
                           <button
                             onClick={async () => {
@@ -929,10 +938,17 @@ const filteredPhotos = photos.filter(photo => {
                               await axios.delete(`${API}/photos/${photo.id}/permanent`)
                               fetchTrash()
                             }}
-                            className="bg-red-500 text-white px-3 py-1 text-sm hover:bg-red-600 rounded"
+                            className="w-full text-center px-4 py-1.5 text-xs bg-red-600 text-white rounded hover:bg-red-700 font-medium shadow-lg"
                           >
-                            {t('common.deleteForever')}
+                            ✕ {t('trash.permanentDelete')}
                           </button>
+                        </div>
+
+                        {/* 3. 하단 정보 영역 (캡션 등 불필요한 정보 제거, 메인 뷰와 높이만 통일) */}
+                        <div className="p-2 bg-transparent flex items-center justify-center h-10">
+                          <p className="text-xs text-red-400 font-medium">
+                            {t('photo.autoDeleteIn', { days: daysLeft })}
+                          </p>
                         </div>
                       </div>
                     )
@@ -948,7 +964,8 @@ const filteredPhotos = photos.filter(photo => {
         // 변경 후 (onPhotoUpdate 추가)
         <ProjectStory 
           projectId={id!} 
-          allPhotos={photos} 
+          // 💡 휴지통에 있는 사진(deleted_at이 있는 사진)은 빼고 넘겨줍니다.
+          allPhotos={photos.filter(p => !p.deleted_at)} 
           onChapterChange={() => fetchChapterPhotoIds()} 
           onPhotoUpdate={fetchPhotos} 
         />
