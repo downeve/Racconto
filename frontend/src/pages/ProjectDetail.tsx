@@ -705,7 +705,7 @@ export default function ProjectDetail() {
 
       {/* 탭 */}
       <div className="flex border-b mb-6">
-        <button onClick={() => { setActiveTab('photos'); fetchChapterPhotoIds() }}
+        <button onClick={() => { setActiveTab('photos'); fetchPhotos(); fetchChapterPhotoIds() }}
           className={`px-6 py-2 text-sm tracking-wider ${activeTab === 'photos' ? 'border-b-2 border-black font-semibold' : 'text-gray-400'}`}>
           {t('photo.title')}
         </button>
@@ -958,7 +958,13 @@ export default function ProjectDetail() {
       )}
 
       {activeTab === 'story' && (
-        <ProjectStory projectId={id!} allPhotos={photos} onChapterChange={() => fetchChapterPhotoIds()} />
+        // 변경 후 (onPhotoUpdate 추가)
+        <ProjectStory 
+          projectId={id!} 
+          allPhotos={photos} 
+          onChapterChange={() => fetchChapterPhotoIds()} 
+          onPhotoUpdate={fetchPhotos} 
+        />
       )}
 
       {DELIVERY_ENABLED && activeTab === 'delivery' && <DeliveryManager projectId={id!} />}

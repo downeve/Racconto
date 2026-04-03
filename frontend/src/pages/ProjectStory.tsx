@@ -2,7 +2,6 @@ import { useEffect, useState } from 'react'
 import axios from 'axios'
 import { useTranslation } from 'react-i18next'
 
-// 👇 [추가] dnd-kit 임포트
 import {
   DndContext,
   closestCenter,
@@ -52,15 +51,17 @@ interface Photo {
 
 // 개별 사진 드래그 컴포넌트
 interface SortablePhotoChapterProps {
-  id: string; // dnd-kit 고유 ID (ChapterPhoto의 id)
+  id: string; 
   imageUrl: string;
   photoId: string;
   chapterId: string;
+  caption: string | null; // 👇 [추가] 캡션 데이터
   onRemove: (chapterId: string, photoId: string) => void;
   onClick: () => void;
+  onEditCaption: (photoId: string, currentCaption: string) => void; // 👇 [추가] 캡션 편집 이벤트
 }
 
-function SortablePhotoChapter({ id, imageUrl, photoId, chapterId, onRemove, onClick }: SortablePhotoChapterProps) {
+function SortablePhotoChapter({ id, imageUrl, photoId, chapterId, caption, onRemove, onClick, onEditCaption }: SortablePhotoChapterProps) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id });
 
   const style = {
@@ -71,48 +72,79 @@ function SortablePhotoChapter({ id, imageUrl, photoId, chapterId, onRemove, onCl
   };
 
   return (
-    // 1. 최상단 프레임: 3:2 비율 유지, overflow-hidden으로 버튼이나 여백이 튀어나오지 않게 함.
-    <div ref={setNodeRef} style={style} className="relative group rounded overflow-hidden aspect-[3/2] bg-gray-100">
+    // 👇 [수정] 최상위를 flex-col로 변경하여 이미지는 고정하고 텍스트만 아래로 늘어나게 설정 (제안 B)
+    <div ref={setNodeRef} style={style} className="flex flex-col w-full h-full">
       
-      {/* 2. 실제 이미지: object-contain으로 잘림 없이 표시 */}
-      <img
-        src={imageUrl}
-        alt=""
-        className="absolute inset-0 w-full h-full object-contain cursor-pointer"
-        onClick={onClick}
-      />
+      {/* 1. 이미지 컨테이너 (3:2 비율 유지) */}
+      <div className="relative group rounded overflow-hidden aspect-[3/2] shadow-sm">
+        <img
+          src={imageUrl}
+          alt={caption || ''}
+          className="absolute inset-0 w-full h-full object-contain cursor-pointer"
+          onClick={onClick}
+        />
 
-      {/* 3. [신규 추가] 호버 오버레이 (ProjectDetail 스타일) */}
-      <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity z-10 pointer-events-none" />
+        <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity z-10 pointer-events-none" />
 
-      {/* 4. 드래그 핸들 */}
-      <div
-        {...attributes}
-        {...listeners}
-        className="absolute top-1.5 left-1.5 p-1.5 rounded cursor-grab opacity-0 group-hover:opacity-100 transition-opacity z-20"
-      >
-        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <path d="M6 3C6 3.55228 5.55228 4 5 4C4.44772 4 4 3.55228 4 3C4 2.44772 4.44772 2 5 2C5.55228 2 6 2.44772 6 3Z" fill="white"/>
-          <path d="M6 8C6 8.55228 5.55228 9 5 9C4.44772 9 4 8.55228 4 8C4 7.44772 4.44772 7 5 7C5.55228 7 6 7.44772 6 8Z" fill="white"/>
-          <path d="M6 13C6 13.5523 5.55228 14 5 14C4.44772 14 4 13.5523 4 13C4 12.4477 4.44772 12 5 12C5.55228 12 6 12.4477 6 13Z" fill="white"/>
-          <path d="M12 3C12 3.55228 11.5523 4 11 4C10.4477 4 10 3.55228 10 3C10 2.44772 10.4477 2 11 2C11.5523 2 12 2.44772 12 3Z" fill="white"/>
-          <path d="M12 8C12 8.55228 11.5523 9 11 9C10.4477 9 10 8.55228 10 8C10 7.44772 10.4477 7 11 7C11.5523 7 12 7.44772 12 8Z" fill="white"/>
-          <path d="M12 13C12 13.5523 11.5523 14 11 14C10.4477 14 10 13.5523 10 13C10 12.4477 10.4477 12 11 12C11.5523 12 12 12.4477 12 13Z" fill="white"/>
-        </svg>
+        {/* 2. 드래그 핸들 */}
+        <div
+          {...attributes}
+          {...listeners}
+          className="absolute top-1.5 left-1.5 p-1.5 rounded cursor-grab opacity-0 group-hover:opacity-100 transition-opacity z-20"
+        >
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M6 3C6 3.55228 5.55228 4 5 4C4.44772 4 4 3.55228 4 3C4 2.44772 4.44772 2 5 2C5.55228 2 6 2.44772 6 3Z" fill="white"/>
+            <path d="M6 8C6 8.55228 5.55228 9 5 9C4.44772 9 4 8.55228 4 8C4 7.44772 4.44772 7 5 7C5.55228 7 6 7.44772 6 8Z" fill="white"/>
+            <path d="M6 13C6 13.5523 5.55228 14 5 14C4.44772 14 4 13.5523 4 13C4 12.4477 4.44772 12 5 12C5.55228 12 6 12.4477 6 13Z" fill="white"/>
+            <path d="M12 3C12 3.55228 11.5523 4 11 4C10.4477 4 10 3.55228 10 3C10 2.44772 10.4477 2 11 2C11.5523 2 12 2.44772 12 3Z" fill="white"/>
+            <path d="M12 8C12 8.55228 11.5523 9 11 9C10.4477 9 10 8.55228 10 8C10 7.44772 10.4477 7 11 7C11.5523 7 12 7.44772 12 8Z" fill="white"/>
+            <path d="M12 13C12 13.5523 11.5523 14 11 14C10.4477 14 10 13.5523 10 13C10 12.4477 10.4477 12 11 12C11.5523 12 12 12.4477 12 13Z" fill="white"/>
+          </svg>
+        </div>
+
+        {/* 3. 삭제 버튼 */}
+        <button
+          onClick={(e) => { e.stopPropagation(); onRemove(chapterId, photoId); }}
+          className="absolute top-1 right-1 bg-red-600 text-white rounded-full w-5 h-5 text-xs font-bold opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity z-20"
+        >
+          ×
+        </button>
+
+        {/* 👇 [추가] 4. 캡션 편집(물방울) 버튼 */}
+        <button
+          onClick={(e) => { e.stopPropagation(); onEditCaption(photoId, caption || ''); }}
+          className="absolute bottom-2 right-2 p-2 bg-black/60 hover:bg-black/80 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity z-20"
+          title="캡션 추가/수정"
+        >
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+          </svg>
+        </button>
       </div>
 
-      {/* 5. 삭제 버튼 */}
-      <button
-        onClick={(e) => { e.stopPropagation(); onRemove(chapterId, photoId); }}
-        className="absolute top-1 right-1 bg-red-600 text-white rounded-full w-5 h-5 text-xs font-bold opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity z-20"
-      >
-        ×
-      </button>
+      {/* 👇 [추가] 5. 이미지 하단 캡션 노출 영역 (ProjectDetail과 연동) */}
+      {caption && (
+        <div className="mt-2 px-1 pb-2">
+          <p className="text-xs text-gray-500 line-clamp-2 leading-relaxed whitespace-pre-wrap">
+            {caption}
+          </p>
+        </div>
+      )}
     </div>
   );
 }
 
-export default function ProjectStory({ projectId, allPhotos, onChapterChange }: { projectId: string, allPhotos: Photo[], onChapterChange?: (count: number) => void }) {
+export default function ProjectStory({ 
+  projectId, 
+  allPhotos, 
+  onChapterChange, 
+  onPhotoUpdate 
+}: { 
+  projectId: string, 
+  allPhotos: Photo[], 
+  onChapterChange?: (count: number) => void,
+  onPhotoUpdate?: () => void // 👈 바로 이 부분(타입 정의)이 없어서 빨간 줄이 났던 것입니다!
+}) {
   const [chapters, setChapters] = useState<Chapter[]>([])
   const [chapterPhotos, setChapterPhotos] = useState<Record<string, ChapterPhoto[]>>({})
   const [newTitle, setNewTitle] = useState('')
@@ -128,6 +160,10 @@ export default function ProjectStory({ projectId, allPhotos, onChapterChange }: 
   // 라이트박스 상태
   const [selectedPhotoIndex, setSelectedPhotoIndex] = useState<number | null>(null);
   const [currentChapterPhotos, setCurrentChapterPhotos] = useState<ChapterPhoto[]>([]);
+
+  // 👇 [추가] 캡션(코멘트) 편집 상태
+  const [editingCaptionPhotoId, setEditingCaptionPhotoId] = useState<string | null>(null);
+  const [captionDraft, setCaptionDraft] = useState('');
 
   // 드래그 센서
   const sensors = useSensors(
@@ -170,6 +206,43 @@ export default function ProjectStory({ projectId, allPhotos, onChapterChange }: 
     const res = await axios.get(`${API}/chapters/${chapterId}/photos`)
     setChapterPhotos(prev => ({ ...prev, [chapterId]: res.data }))
   }
+
+  // 👇 [수정] 캡션 저장 로직 (PUT 방식으로 변경)
+  const handleSaveCaption = async () => {
+    if (!editingCaptionPhotoId) return;
+    try {
+      // 1. 전체 사진 목록(allPhotos)에서 현재 수정 중인 원본 사진 데이터를 찾습니다.
+      const originalPhoto = allPhotos.find(p => p.id === editingCaptionPhotoId);
+      if (!originalPhoto) throw new Error("원본 사진 데이터를 찾을 수 없습니다.");
+
+      // 2. patch 대신 put을 사용하고, 기존 사진 데이터에 caption만 새것으로 교체하여 서버에 전체를 보냅니다.
+      await axios.put(`${API}/photos/${editingCaptionPhotoId}`, { 
+        ...originalPhoto, 
+        caption: captionDraft 
+      });
+      
+      // 화면에 즉시 반영되도록 상태 업데이트
+      setChapterPhotos(prev => {
+        const next = { ...prev };
+        for (const [chId, photos] of Object.entries(next)) {
+          next[chId] = photos.map(p => 
+            p.photo_id === editingCaptionPhotoId ? { ...p, caption: captionDraft } : p
+          );
+        }
+        return next;
+      });
+
+      setEditingCaptionPhotoId(null);
+      setCaptionDraft('');
+
+      if (onPhotoUpdate) {
+        onPhotoUpdate();
+      }
+    } catch (error) {
+      console.error("캡션 저장 실패:", error);
+      alert("저장에 실패했습니다.");
+    }
+  };
 
   // 라이트박스 키보드 네비게이션
   useEffect(() => {
@@ -251,7 +324,6 @@ export default function ProjectStory({ projectId, allPhotos, onChapterChange }: 
       const currentChapter = chapters.find(c => c.id === chapterId)
       if (!currentChapter) return
 
-      // 1. 같은 부모를 가진 형제들만 모아서 순서대로 정렬
       const siblings = chapters
         .filter(c => (c.parent_id || null) === (currentChapter.parent_id || null))
         .sort((a, b) => a.order_num - b.order_num)
@@ -259,23 +331,18 @@ export default function ProjectStory({ projectId, allPhotos, onChapterChange }: 
       const currentIndex = siblings.findIndex(c => c.id === chapterId)
       if (currentIndex === -1) return
 
-      // 2. 이동 불가능한 경계 조건 확인
       if (direction === 'up' && currentIndex === 0) return
       if (direction === 'down' && currentIndex === siblings.length - 1) return
 
       const targetIndex = direction === 'up' ? currentIndex - 1 : currentIndex + 1
       
-      // 3. 로컬 배열에서 위치 변경 (Immutability 유지)
       const newSiblings = [...siblings]
       const [movedItem] = newSiblings.splice(currentIndex, 1)
       newSiblings.splice(targetIndex, 0, movedItem)
 
       try {
-        // 4. [핵심] 변경된 전체 순서의 ID 배열만 추출하여 백엔드에 딱 한 번 전송
         const chapterIds = newSiblings.map(c => c.id)
         await axios.put(`${API}/chapters/reorder`, { chapter_ids: chapterIds })
-        
-        // 5. 성공 후 목록 새로고침
         fetchChapters()
       } catch (error) {
         console.error('Failed to reorder chapters:', error)
@@ -283,8 +350,46 @@ export default function ProjectStory({ projectId, allPhotos, onChapterChange }: 
       }
     }
 
+    // 👇 [추가 1] 화면에 보이는 순서대로 모든 사진을 한 줄로 연결하는 함수
+    const getFlattenedPhotos = () => {
+      let flat: ChapterPhoto[] = [];
+      const mainChapters = chapters.filter(c => !c.parent_id); // 최상위 챕터들
+      
+      mainChapters.forEach(mainChap => {
+        // 1. 메인 챕터 사진 담기
+        flat = flat.concat(chapterPhotos[mainChap.id] || []);
+        
+        // 2. 해당 메인 챕터의 서브 챕터 사진 담기
+        const subChapters = chapters.filter(c => c.parent_id === mainChap.id);
+        subChapters.forEach(subChap => {
+          flat = flat.concat(chapterPhotos[subChap.id] || []);
+        });
+      });
+      return flat;
+    };
+
+    // 👇 [추가 2] 라이트박스에서 'Chapter 1.1 - 제목' 형태로 정확히 표시해 주는 함수
+    const getChapterDisplayTitle = (chapterId: string) => {
+      const chapter = chapters.find(c => c.id === chapterId);
+      if (!chapter) return '';
+
+      const mainChapters = chapters.filter(c => !c.parent_id);
+
+      if (chapter.parent_id) {
+        // 서브 챕터인 경우 (예: Chapter 1.1)
+        const parentIndex = mainChapters.findIndex(c => c.id === chapter.parent_id);
+        const subChapters = chapters.filter(c => c.parent_id === chapter.parent_id);
+        const subIndex = subChapters.findIndex(c => c.id === chapterId);
+        return `Chapter ${parentIndex + 1}.${subIndex + 1} - ${chapter.title}`;
+      } else {
+        // 최상위 챕터인 경우 (예: Chapter 1)
+        const mainIndex = mainChapters.findIndex(c => c.id === chapterId);
+        return `Chapter ${mainIndex + 1}. ${chapter.title}`;
+      }
+    };
+
   return (
-    <div className="flex gap-6">
+    <div className="flex gap-6 relative">
       {/* 챕터 목록 */}
       <div className="flex-1">
         {/* 챕터 추가 버튼 */}
@@ -332,7 +437,7 @@ export default function ProjectStory({ projectId, allPhotos, onChapterChange }: 
               }}
               className="bg-black text-white px-4 py-2 text-sm tracking-wider hover:bg-gray-800"
             >
-              + {t('story.addChapter')}
+              {t('story.addChapter')}
             </button>
           )}
         </div>
@@ -348,7 +453,6 @@ export default function ProjectStory({ projectId, allPhotos, onChapterChange }: 
               <div key={chapter.id}>
                 {/* 최상위 챕터 */}
                 <div className="bg-white rounded-lg shadow overflow-hidden">
-                  {/* 챕터 헤더 */}
                   <div className="p-4 border-b">
                     {editingChapter === chapter.id ? (
                       <div>
@@ -371,7 +475,7 @@ export default function ProjectStory({ projectId, allPhotos, onChapterChange }: 
                     ) : (
                       <div className="flex items-start justify-between">
                         <div>
-                          <span className="text-xs text-gray-400 mr-2">Chapter {idx + 1}</span>
+                          <span className="text-xs text-gray-400 mr-2">{t('story.chapter')} {idx + 1}</span>
                           <span className="font-semibold">{chapter.title}</span>
                           {chapter.description && <p className="text-sm text-gray-500 mt-1">{chapter.description}</p>}
                         </div>
@@ -413,10 +517,42 @@ export default function ProjectStory({ projectId, allPhotos, onChapterChange }: 
                     )}
                   </div>
 
+                  {/* 서브 챕터 추가 폼 */}
+                  {addingSubChapterTo === chapter.id && (
+                    <div className="ml-8 mt-3 p-4 bg-gray-50 border border-gray-200 rounded-lg shadow-inner">
+                      <p className="text-xs text-gray-500 mb-2">↳ '{chapter.title}'의 서브 챕터 추가</p>
+                      <input
+                        className="w-full border rounded px-3 py-2 text-sm mb-2"
+                        placeholder={t('story.chapterTitle')}
+                        value={newTitle}
+                        onChange={e => setNewTitle(e.target.value)}
+                      />
+                      <textarea
+                        className="w-full border rounded px-3 py-2 text-sm mb-3"
+                        placeholder={t('story.chapterDescription')}
+                        rows={2}
+                        value={newDesc}
+                        onChange={e => setNewDesc(e.target.value)}
+                      />
+                      <div className="flex gap-2">
+                        <button onClick={handleAddChapter} className="bg-black text-white px-4 py-2 text-sm hover:bg-gray-800">
+                          {t('common.add')}
+                        </button>
+                        <button 
+                          onClick={() => {
+                            setShowAddChapter(false)
+                            setAddingSubChapterTo(null)
+                          }} 
+                          className="border px-4 py-2 text-sm hover:bg-gray-50"
+                        >
+                          {t('common.cancel')}
+                        </button>
+                      </div>
+                    </div>
+                  )}
+
                   {/* 챕터 사진 */}
                   <div className="p-4">
-                    
-                    {/* 👇 [핵심 수정 1] 일반 img 태그 대신 DND 컴포넌트와 컨텍스트로 교체했습니다. */}
                     <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={(e) => handleDragEnd(e, chapter.id)}>
                       <SortableContext items={(chapterPhotos[chapter.id] || []).map(p => p.id)} strategy={rectSortingStrategy}>
                         <div className="grid grid-cols-3 gap-2 mb-3">
@@ -427,12 +563,18 @@ export default function ProjectStory({ projectId, allPhotos, onChapterChange }: 
                               imageUrl={cp.image_url}
                               photoId={cp.photo_id}
                               chapterId={chapter.id}
+                              caption={cp.caption} // 👇 연동
                               onRemove={handleRemovePhoto}
                               onClick={() => {
-                                // 👇 클릭 시 라이트박스에 현재 챕터 사진들을 전달합니다.
-                                setCurrentChapterPhotos(chapterPhotos[chapter.id] || []);
-                                setSelectedPhotoIndex(cpIdx);
+                                const flatPhotos = getFlattenedPhotos(); // 1. 전체 사진 목록 가져오기
+                                const globalIndex = flatPhotos.findIndex(p => p.id === cp.id); // 2. 전체 목록에서 내가 클릭한 사진의 번호 찾기
+                                setCurrentChapterPhotos(flatPhotos); // 3. 라이트박스에 전체 사진 전달
+                                setSelectedPhotoIndex(globalIndex); // 4. 라이트박스 시작 번호 설정
                               }}
+                                onEditCaption={(photoId, caption) => {
+                                setEditingCaptionPhotoId(photoId);
+                                setCaptionDraft(caption);
+                              }} // 👇 물방울 클릭 시 모달 열기
                             />
                           ))}
                         </div>
@@ -459,7 +601,7 @@ export default function ProjectStory({ projectId, allPhotos, onChapterChange }: 
                                 className={`relative cursor-pointer ${isAdded ? 'opacity-40' : 'hover:opacity-80'}`}
                                 onClick={() => !isAdded && handleAddPhoto(chapter.id, photo.id)}
                               >
-                                <img src={photo.image_url} alt={photo.caption || ''} className="w-full h-16 object-contain rounded bg-gray-100" />
+                                <img src={photo.image_url} alt={photo.caption || ''} className="w-full aspect-[3/2] p-1 object-contain rounded bg-gray-100" />
                                 {isAdded && (
                                   <div className="absolute inset-0 flex items-center justify-center">
                                     <span className="text-green-500 text-lg">✓</span>
@@ -479,40 +621,6 @@ export default function ProjectStory({ projectId, allPhotos, onChapterChange }: 
                     )}
                   </div>
                 </div>
-
-                {/* 서브 챕터 추가 폼 */}
-                {addingSubChapterTo === chapter.id && (
-                  <div className="ml-8 mt-3 p-4 bg-gray-50 border border-gray-200 rounded-lg shadow-inner">
-                    <p className="text-xs text-gray-500 mb-2">↳ '{chapter.title}'의 서브 챕터 추가</p>
-                    <input
-                      className="w-full border rounded px-3 py-2 text-sm mb-2"
-                      placeholder={t('story.chapterTitle')}
-                      value={newTitle}
-                      onChange={e => setNewTitle(e.target.value)}
-                    />
-                    <textarea
-                      className="w-full border rounded px-3 py-2 text-sm mb-3"
-                      placeholder={t('story.chapterDescription')}
-                      rows={2}
-                      value={newDesc}
-                      onChange={e => setNewDesc(e.target.value)}
-                    />
-                    <div className="flex gap-2">
-                      <button onClick={handleAddChapter} className="bg-black text-white px-4 py-2 text-sm hover:bg-gray-800">
-                        {t('common.add')}
-                      </button>
-                      <button 
-                        onClick={() => {
-                          setShowAddChapter(false)
-                          setAddingSubChapterTo(null)
-                        }} 
-                        className="border px-4 py-2 text-sm hover:bg-gray-50"
-                      >
-                        {t('common.cancel')}
-                      </button>
-                    </div>
-                  </div>
-                )}
 
                 {/* 서브챕터들 (인덴트) */}
                 {subChapters.map((subChapter, subIdx) => (
@@ -540,7 +648,7 @@ export default function ProjectStory({ projectId, allPhotos, onChapterChange }: 
                       ) : (
                         <div className="flex items-start justify-between">
                           <div>
-                            <span className="text-xs text-blue-500 mr-2">Sub-Chapter {idx + 1}.{subIdx + 1}</span>
+                            <span className="text-xs text-blue-500 mr-2">Chapter {idx + 1}.{subIdx + 1}</span>
                             <span className="font-semibold">{subChapter.title}</span>
                             {subChapter.description && <p className="text-sm text-gray-500 mt-1">{subChapter.description}</p>}
                           </div>
@@ -574,8 +682,6 @@ export default function ProjectStory({ projectId, allPhotos, onChapterChange }: 
 
                     {/* 서브챕터 사진 */}
                     <div className="p-4">
-                      
-                      {/* 👇 [핵심 수정 2] 서브 챕터 사진도 동일하게 DND 컴포넌트로 교체했습니다. */}
                       <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={(e) => handleDragEnd(e, subChapter.id)}>
                         <SortableContext items={(chapterPhotos[subChapter.id] || []).map(p => p.id)} strategy={rectSortingStrategy}>
                           <div className="grid grid-cols-3 gap-2 mb-3">
@@ -586,12 +692,18 @@ export default function ProjectStory({ projectId, allPhotos, onChapterChange }: 
                                 imageUrl={cp.image_url}
                                 photoId={cp.photo_id}
                                 chapterId={subChapter.id}
+                                caption={cp.caption} // 👇 연동
                                 onRemove={handleRemovePhoto}
                                 onClick={() => {
-                                  // 👇 서브 챕터의 사진도 라이트박스에 잘 전달되도록 연결했습니다.
-                                  setCurrentChapterPhotos(chapterPhotos[subChapter.id] || []);
-                                  setSelectedPhotoIndex(cpIdx);
+                                  const flatPhotos = getFlattenedPhotos(); // 1. 전체 사진 목록 가져오기
+                                  const globalIndex = flatPhotos.findIndex(p => p.id === cp.id); // 2. 전체 목록에서 내가 클릭한 사진의 번호 찾기
+                                  setCurrentChapterPhotos(flatPhotos); // 3. 라이트박스에 전체 사진 전달
+                                  setSelectedPhotoIndex(globalIndex); // 4. 라이트박스 시작 번호 설정
                                 }}
+                                onEditCaption={(photoId, caption) => {
+                                  setEditingCaptionPhotoId(photoId);
+                                  setCaptionDraft(caption);
+                                }} // 👇 연동
                               />
                             ))}
                           </div>
@@ -618,7 +730,7 @@ export default function ProjectStory({ projectId, allPhotos, onChapterChange }: 
                                   className={`relative cursor-pointer ${isAdded ? 'opacity-40' : 'hover:opacity-80'}`}
                                   onClick={() => !isAdded && handleAddPhoto(subChapter.id, photo.id)}
                                 >
-                                  <img src={photo.image_url} alt={photo.caption || ''} className="w-full h-16 object-contain rounded bg-gray-100" />
+                                  <img src={photo.image_url} alt={photo.caption || ''} className="w-full aspect-[3/2] p-1 object-contain rounded bg-gray-100" />
                                   {isAdded && (
                                     <div className="absolute inset-0 flex items-center justify-center">
                                       <span className="text-green-500 text-lg">✓</span>
@@ -669,35 +781,38 @@ export default function ProjectStory({ projectId, allPhotos, onChapterChange }: 
           </button>
 
           {/* 중앙 이미지 및 정보 */}
-          <div className="flex-1 flex flex-col items-center justify-center p-4 relative" onClick={e => e.stopPropagation()}>
-            <img 
-              src={currentChapterPhotos[selectedPhotoIndex].image_url} 
-              alt={currentChapterPhotos[selectedPhotoIndex].caption || ''} 
-              className="max-w-full max-h-[80vh] object-contain shadow-lg" 
-            />
+          <div className="flex-1 flex flex-col items-center justify-center p-4 relative w-full overflow-hidden" onClick={e => e.stopPropagation()}>
             
-            {/* 캡션 */}
-            {currentChapterPhotos[selectedPhotoIndex].caption && (
-              <p className="text-white text-sm mt-4 text-center">
-                {currentChapterPhotos[selectedPhotoIndex].caption}
-              </p>
-            )}
-            
-            {/* 챕터 이름 + 페이지 번호 */}
-            <div className="text-center mt-2">
-              <p className="text-gray-400 text-xs mb-1">
-                {(() => {
-                  const currentChapterId = currentChapterPhotos[selectedPhotoIndex].chapter_id;
-                  const chapterIndex = chapters.findIndex(c => c.id === currentChapterId);
-                  const chapter = chapters[chapterIndex];
-                  return chapter ? `Chapter ${chapterIndex + 1}. ${chapter.title}` : '';
-                })()}
-              </p>
-              <p className="text-gray-500 text-xs">
-                {selectedPhotoIndex + 1} / {currentChapterPhotos.length}
-              </p>
-            </div>
+            {/* 💡 1. 이미지 박스의 높이를 기존 80vh에서 70vh(모바일은 65vh)로 줄여 텍스트가 들어갈 '안전 공간'을 확보합니다. */}
+            <div className="relative flex items-center justify-center w-full h-[65vh] sm:h-[70vh]">
+              <img 
+                src={currentChapterPhotos[selectedPhotoIndex].image_url} 
+                alt={currentChapterPhotos[selectedPhotoIndex].caption || ''} 
+                className="max-w-full max-h-full object-contain shadow-lg" 
+              />
+              
+              {/* 💡 2. 텍스트 영역 (이미지 바로 아래에 위치) */}
+              <div className="absolute top-full mt-2 left-0 w-full flex flex-col items-center">
+                {/* 캡션 (만약 글이 너무 길어질 경우를 대비해 스크롤이 생기도록 안전장치 max-h 추가) */}
+                {currentChapterPhotos[selectedPhotoIndex].caption && (
+                  <p className="text-white text-sm text-center max-w-3xl px-4 max-h-[15vh] overflow-y-auto custom-scrollbar">
+                    {currentChapterPhotos[selectedPhotoIndex].caption}
+                  </p>
+                )}
 
+                {/* 챕터 이름 + 페이지 번호 */}
+                <div className="flex items-center justify-center gap-2 mt-2 text-xs">
+                  <span className="text-gray-400">
+                    {getChapterDisplayTitle(currentChapterPhotos[selectedPhotoIndex].chapter_id)}
+                  </span>
+                  <span className="text-gray-600">|</span>
+                  <span className="text-gray-500">
+                    {selectedPhotoIndex + 1} / {currentChapterPhotos.length}
+                  </span>
+                </div>
+              </div>
+            </div>
+          
             {/* 좌우 네비게이션 */}
             {currentChapterPhotos.length > 1 && (
               <>
@@ -720,6 +835,42 @@ export default function ProjectStory({ projectId, allPhotos, onChapterChange }: 
                 </button>
               </>
             )}
+          </div>
+        </div>
+      )}
+
+      {/* 👇 [핵심 추가] 캡션 편집 모달 창 (DeliveryPage 스타일 적용) */}
+      {editingCaptionPhotoId && (
+        <div
+          className="fixed inset-0 bg-black/60 z-[100] flex items-center justify-center p-4 backdrop-blur-sm"
+          onClick={() => setEditingCaptionPhotoId(null)}
+        >
+          <div
+            className="w-full max-w-sm bg-white rounded-2xl p-6 shadow-2xl"
+            onClick={e => e.stopPropagation()}
+          >
+            <h3 className="text-base font-semibold mb-3 text-gray-900">{t('photo.addCaption')}</h3>
+            <textarea
+              className="w-full h-28 px-3 py-2 text-sm rounded-lg border border-gray-300 bg-white text-gray-900 resize-none focus:outline-none focus:ring-2 focus:ring-gray-900"
+              placeholder={t('photo.addCaptionDesc')}
+              value={captionDraft}
+              onChange={e => setCaptionDraft(e.target.value)}
+              autoFocus
+            />
+            <div className="flex gap-2 justify-end mt-4">
+              <button
+                onClick={() => setEditingCaptionPhotoId(null)}
+                className="px-4 py-2 text-sm rounded-lg border border-gray-300 text-gray-600 hover:bg-gray-50 font-medium"
+              >
+                {t('common.cancel')}
+              </button>
+              <button
+                onClick={handleSaveCaption}
+                className="px-4 py-2 text-sm rounded-lg bg-gray-900 hover:bg-gray-700 text-white font-medium shadow-sm"
+              >
+                저장
+              </button>
+            </div>
           </div>
         </div>
       )}
