@@ -556,7 +556,7 @@ export default function ProjectStory({
                     <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={(e) => handleDragEnd(e, chapter.id)}>
                       <SortableContext items={(chapterPhotos[chapter.id] || []).map(p => p.id)} strategy={rectSortingStrategy}>
                         <div className="grid grid-cols-3 gap-2 mb-3">
-                          {(chapterPhotos[chapter.id] || []).map((cp, cpIdx) => (
+                          {(chapterPhotos[chapter.id] || []).map((cp) => (
                             <SortablePhotoChapter
                               key={cp.id}
                               id={cp.id}
@@ -685,7 +685,7 @@ export default function ProjectStory({
                       <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={(e) => handleDragEnd(e, subChapter.id)}>
                         <SortableContext items={(chapterPhotos[subChapter.id] || []).map(p => p.id)} strategy={rectSortingStrategy}>
                           <div className="grid grid-cols-3 gap-2 mb-3">
-                            {(chapterPhotos[subChapter.id] || []).map((cp, cpIdx) => (
+                            {(chapterPhotos[subChapter.id] || []).map((cp) => (
                               <SortablePhotoChapter
                                 key={cp.id}
                                 id={cp.id}
