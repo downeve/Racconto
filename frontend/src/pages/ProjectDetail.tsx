@@ -1,23 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useParams } from 'react-router-dom'
 import axios from 'axios'
-import {
-  DndContext,
-  closestCenter,
-  KeyboardSensor,
-  PointerSensor,
-  useSensor,
-  useSensors,
-} from '@dnd-kit/core'
-import type { DragEndEvent } from '@dnd-kit/core'
-import {
-  SortableContext,
-  sortableKeyboardCoordinates,
-  rectSortingStrategy,
-  useSortable,
-  arrayMove
-} from '@dnd-kit/sortable'
-import { CSS } from '@dnd-kit/utilities'
+
 import ProjectStory from './ProjectStory'
 import DeliveryManager from '../components/DeliveryManager'
 import { useTranslation } from 'react-i18next'
@@ -196,8 +180,8 @@ function Lightbox({
   )
 }
 
-// ── SortablePhoto ──────────────────────────────────────────
-function SortablePhoto({
+// ── PhotoCard (기존 SortablePhoto) ──────────────────────────────────────────
+function PhotoCard({
   photo, project, editingCaption, captionKo, setCaptionKo, setEditingCaption,
   onSetCover, onDelete, onSaveCaption, onSetRating, onSetColorLabel,
   onOpenLightbox, showExif, gridCols, colorLabels, chapterPhotoIds, chapters, onShowChapterMenu
@@ -221,15 +205,13 @@ function SortablePhoto({
   chapters: { id: string; title: string }[]
   onShowChapterMenu: (photoId: string) => void
 }) {
-  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: photo.id })
-  const style = { transform: CSS.Transform.toString(transform), transition, opacity: isDragging ? 0.5 : 1 }
   const { t, i18n } = useTranslation()
 
   // 목록형
   if (gridCols === 1) {
     return (
-      <div ref={setNodeRef} style={style} className="bg-white rounded overflow-hidden flex items-center gap-4 p-2 border-b">
-        <div {...attributes} {...listeners} className="text-gray-300 cursor-grab px-1">⠿</div>
+      <div className="bg-white rounded overflow-hidden flex items-center gap-4 p-2 border-b">
+        {/* 드래그 핸들(⠿) 삭제됨 */}
         <img src={photo.image_url} alt={photo.caption}
           className="w-16 h-16 object-cover rounded shrink-0 cursor-pointer hover:opacity-80 transition-opacity"
           onClick={() => onOpenLightbox(photo)} />
@@ -293,41 +275,33 @@ function SortablePhoto({
 
   // 그리드
   return (
-    <div ref={setNodeRef} style={style} className="rounded overflow-hidden bg-gray-100">
+    <div className="rounded overflow-hidden bg-gray-100">
       <div className="relative group">
-        {/* 드래그 핸들 */}
-        <div {...attributes} {...listeners}
-          className="absolute top-2 left-2 z-10 bg-black/50 text-white px-2 py-1 text-xs rounded cursor-grab active:cursor-grabbing">⠿</div>
+        {/* 드래그 핸들(⠿) 삭제됨 */}
 
         {/* 사진 */}
         <img
           src={photo.image_url} alt={photo.caption}
-          // 핵심 변경: object-cover를 지우고 aspect-[3/2]와 object-contain을 적용합니다.
           className="w-full aspect-[3/2] object-contain cursor-pointer"
           onClick={() => onOpenLightbox(photo)}
         />
 
-        {/* 호버 오버레이 — 배경은 라이트박스로, 버튼만 stopPropagation */}
+        {/* 호버 오버레이 */}
         <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity">
-          {/* 배경 클릭 → 라이트박스 */}
           <div className="absolute inset-0 bg-black/50" onClick={() => onOpenLightbox(photo)} />
-          {/* 버튼들 — 배경 위에 z-10으로 올림 */}
           <div className="absolute bottom-2 right-2 flex gap-1 z-10">
             <button
               onClick={e => { e.stopPropagation(); onSetCover(photo) }}
               className={`${gridCols >= 4 ? 'px-1 py-0.5 text-xs' : 'px-2 py-1 text-xs'} rounded ${project?.cover_image_url === photo.image_url ? 'bg-yellow-400 text-black' : 'bg-white text-black'}`}>
               {project?.cover_image_url === photo.image_url ? t('photo.isCover') : t('photo.setCover')}
             </button>
-            {/* 챕터 추가 버튼 */}
             {chapters.length > 0 && (
               chapterPhotoIds.has(photo.id) ? (
-                // 이미 챕터에 있으면 비활성 표시
                 <button
                   className={`${gridCols >= 4 ? 'px-1 py-0.5 text-xs' : 'px-2 py-1 text-xs'} rounded bg-blue-500 text-white opacity-70 cursor-default`}
                   title="이미 챕터에 포함된 사진"
                 >📖</button>
               ) : (
-                // 챕터에 없으면 클릭 가능
                 <button
                   onClick={e => { e.stopPropagation(); onShowChapterMenu(photo.id) }}
                   className={`${gridCols >= 4 ? 'px-1 py-0.5 text-xs' : 'px-2 py-1 text-xs'} rounded bg-white text-black`}
@@ -335,7 +309,6 @@ function SortablePhoto({
                 >📖</button>
               )
             )}
-            {/* 삭제 — 빨간 X */}
             <button
               onClick={e => { e.stopPropagation(); onDelete(photo.id) }}
               className="w-6 h-6 flex items-center justify-center bg-red-500 text-white rounded-full text-xs font-bold">
@@ -345,7 +318,7 @@ function SortablePhoto({
         </div>
       </div>
 
-      {/* 별점 & 컬러 레이블 */}
+      {/* 별점 & 컬러 레이블 등 생략 없이 기존과 동일 */}
       <div className="px-2 py-2 bg-white flex items-center justify-between">
         <div className="flex gap-0.5">
           {[1, 2, 3, 4, 5].map(star => (
@@ -361,7 +334,6 @@ function SortablePhoto({
         </div>
       </div>
 
-      {/* 캡션 */}
       {editingCaption === photo.id ? (
         <div className="p-2 bg-white">
           <input className="w-full border rounded px-2 py-1 text-xs mb-1" placeholder="캡션"
@@ -380,7 +352,6 @@ function SortablePhoto({
         </div>
       )}
 
-      {/* EXIF */}
       {showExif && (photo.camera || photo.taken_at) && (
         <div className="px-2 pb-2 bg-white">
           <div className="border-t pt-2 mt-1">
@@ -429,10 +400,7 @@ export default function ProjectDetail() {
   const [chapterMenuPhoto, setChapterMenuPhoto] = useState<string | null>(null)
   const [chapters, setChapters] = useState<{ id: string; title: string }[]>([])
 
-  const sensors = useSensors(
-    useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
-    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
-  )
+  const [sortBy, setSortBy] = useState<'default' | 'taken_at' | 'name'>('default')
 
   const fetchPhotos = async () => {
     if (!id) return
@@ -619,7 +587,7 @@ export default function ProjectDetail() {
     { value: 'purple', color: 'bg-purple-500', label: labelSettings['color_label_purple'] },
   ]
 
-  const filteredPhotos = photos.filter(photo => {
+const filteredPhotos = photos.filter(photo => {
     //삭제된 사진 제외
     if (photo.deleted_at) return false
 
@@ -630,19 +598,21 @@ export default function ProjectDetail() {
     if (filterColor !== null && photo.color_label !== filterColor) return false
     if (filterFolder !== null && photo.folder !== filterFolder) return false
     return true
-  })
-
-  const handleDragEnd = async (event: DragEndEvent) => {
-    const { active, over } = event
-    if (!over || active.id === over.id) return
-    const oldIndex = photos.findIndex(p => p.id === active.id)
-    const newIndex = photos.findIndex(p => p.id === over.id)
-    const newPhotos = arrayMove(photos, oldIndex, newIndex)
-    setPhotos(newPhotos)
-    for (let i = 0; i < newPhotos.length; i++) {
-      await axios.put(`${API}/photos/${newPhotos[i].id}`, { ...newPhotos[i], order: i })
+  }).sort((a, b) => {
+    // 👇 방금 추가한 상태에 따른 정렬 로직
+    if (sortBy === 'taken_at') {
+      if (!a.taken_at && !b.taken_at) return 0
+      if (!a.taken_at) return 1 // 촬영 정보가 없으면 뒤로 보냄
+      if (!b.taken_at) return -1
+      return new Date(a.taken_at).getTime() - new Date(b.taken_at).getTime() // 과거 -> 최신순
     }
-  }
+    if (sortBy === 'name') {
+      const nameA = a.image_url.split('/').pop() || ''
+      const nameB = b.image_url.split('/').pop() || ''
+      return nameA.localeCompare(nameB) // 파일 이름 A-Z 순
+    }
+    return 0 // default: 서버에서 받아온 기본 순서
+  })
 
   if (!project) return <div className="p-6 text-gray-400">{t('common.loading')}</div>
 
@@ -790,6 +760,26 @@ export default function ProjectDetail() {
                       </button>
                     </div>
 
+                    {/* 👇 여기서부터 새로 추가되는 "정렬 기준" UI 입니다. */}
+                    <div className="mb-4">
+                      <p className="text-xs font-semibold text-gray-500 mb-2">정렬 기준</p>
+                      <div className="flex flex-col gap-1">
+                        <button onClick={() => setSortBy('default')}
+                          className={`w-full text-left px-2 py-1 text-xs rounded ${sortBy === 'default' ? 'bg-black text-white' : 'hover:bg-gray-50'}`}>
+                          기본 (업로드순)
+                        </button>
+                        <button onClick={() => setSortBy('taken_at')}
+                          className={`w-full text-left px-2 py-1 text-xs rounded ${sortBy === 'taken_at' ? 'bg-black text-white' : 'hover:bg-gray-50'}`}>
+                          촬영 시간순
+                        </button>
+                        <button onClick={() => setSortBy('name')}
+                          className={`w-full text-left px-2 py-1 text-xs rounded ${sortBy === 'name' ? 'bg-black text-white' : 'hover:bg-gray-50'}`}>
+                          파일 이름순
+                        </button>
+                      </div>
+                    </div>
+                    {/* 👆 여기까지 */}
+
                     <button onClick={() => { setFilterRating(null); setFilterColor(null); setFilterFolder(null) }}
                       className={`w-full text-left px-2 py-1 text-xs rounded mb-3 ${!filterRating && !filterColor ? 'bg-black text-white' : 'hover:bg-gray-50'}`}>
                       {t('filter.allPhotos')} ({photos.length})
@@ -865,29 +855,26 @@ export default function ProjectDetail() {
               </div>
 
               <div className="flex-1">
-                <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
-                  <SortableContext items={filteredPhotos.map(p => p.id)} strategy={rectSortingStrategy}>
-                    <div className={`grid gap-4 ${
-                      gridCols === 1 ? 'grid-cols-1' : gridCols === 2 ? 'grid-cols-2' :
-                      gridCols === 3 ? 'grid-cols-3' : 'grid-cols-4'}`}>
-                      {filteredPhotos.map(photo => (
-                        <SortablePhoto
-                          key={photo.id} photo={photo} project={project}
-                          editingCaption={editingCaption} captionKo={captionKo}
-                          setCaptionKo={setCaptionKo} setEditingCaption={setEditingCaption}
-                          onSetCover={handleSetCover} 
-                          onDelete={handleDeletePhoto} onSaveCaption={handleSaveCaption}
-                          onSetRating={handleSetRating} onSetColorLabel={handleSetColorLabel}
-                          onOpenLightbox={setLightboxPhoto}
-                          chapters={chapters}
-                          onShowChapterMenu={setChapterMenuPhoto}
-                          showExif={showExif} gridCols={gridCols}
-                          colorLabels={colorLabels} chapterPhotoIds={chapterPhotoIds}
-                        />
-                      ))}
-                    </div>
-                  </SortableContext>
-                </DndContext>
+                <div className={`grid gap-4 ${
+                  gridCols === 1 ? 'grid-cols-1' : gridCols === 2 ? 'grid-cols-2' :
+                  gridCols === 3 ? 'grid-cols-3' : 'grid-cols-4'}`}>
+                  {filteredPhotos.map(photo => (
+                    <PhotoCard
+                      key={photo.id} photo={photo} project={project}
+                      editingCaption={editingCaption} captionKo={captionKo}
+                      setCaptionKo={setCaptionKo} setEditingCaption={setEditingCaption}
+                      onSetCover={handleSetCover} 
+                      onDelete={handleDeletePhoto} onSaveCaption={handleSaveCaption}
+                      onSetRating={handleSetRating} onSetColorLabel={handleSetColorLabel}
+                      onOpenLightbox={setLightboxPhoto}
+                      chapters={chapters}
+                      onShowChapterMenu={setChapterMenuPhoto}
+                      showExif={showExif} gridCols={gridCols}
+                      colorLabels={colorLabels} chapterPhotoIds={chapterPhotoIds}
+                    />
+                  ))}
+                </div>
+
                 {filteredPhotos.length === 0 && !uploading && (
                   <div className="text-center py-20 text-gray-400">
                     {photos.length === 0

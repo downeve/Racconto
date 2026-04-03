@@ -70,7 +70,7 @@
   "filter": {
     "filter": "Hide tab",
     "view": "Columns",
-    "exifOnOff": "Exif Info.",
+    "exifOnOff": "EXIF Info.",
     "allPhotos": "All Photos",
     "folder": "Folders",
     "allFolders": "All Folders",
@@ -177,7 +177,7 @@
     "deliveryAutoTagDesc": "When a client completes their photo selection, the specified color label will be automatically applied to the selected photos.",
     "defaultView": "Default View Settings",
     "defaultGridCols": "Default Grid Columns",
-    "defaultExif": "Show Exif Info",
+    "defaultExif": "Show EXIF Info",
     "portfolioTheme": "Portfolio Theme",
     "portfolioThemeDesc": "Default background color theme for Portfolios.",
     "themeDark": "Dark",

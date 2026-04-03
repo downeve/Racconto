@@ -64,13 +64,13 @@
     "isPortfolio": "✓ 포트폴리오",
     "addCaption": "코멘트 편집",
     "addCaptionDesc": "코멘트를 입력하세요.",
-    "exifOn": "EXIF 켬",
-    "exifOff": "EXIF 끔"
+    "exifOn": "EXIF 보기 켬",
+    "exifOff": "EXIF 보기 끔"
   },
   "filter": {
     "filter": "탭 숨기기",
     "view": "컬럼 보기",
-    "exifOnOff": "Exif 정보",
+    "exifOnOff": "EXIF 정보",
     "allPhotos": "모든 사진",
     "folder": "폴더 리스트",
     "allFolders": "모든 폴더",
