@@ -331,29 +331,35 @@ def restore_photo(photo_id: str, db: Session = Depends(get_db)):
     db.refresh(photo)
     return photo
 
-
 @router.delete("/{photo_id}/permanent")
 def permanent_delete_photo(photo_id: str, db: Session = Depends(get_db)):
-    """영구 삭제 (파일도 삭제)"""
+    """영구 삭제 (파일 및 관련 데이터 모두 삭제)"""
     photo = db.query(models.Photo).filter(
         models.Photo.id == photo_id,
         models.Photo.deleted_at != None
     ).first()
+    
     if not photo:
         raise HTTPException(status_code=404, detail="Photo not found in trash")
     
-    # CF 또는 로컬 파일 삭제
+    # 1. ⭐ [추가] 챕터 매핑 데이터(ChapterPhoto) 먼저 삭제
+    # 이 부분이 빠져서 에러가 났던 것입니다.
+    db.query(models.ChapterPhoto).filter(models.ChapterPhoto.photo_id == photo_id).delete(synchronize_session=False)
+
+    # 2. [기존 로직] CF 또는 로컬 파일 물리적 삭제
     try:
-        if "imagedelivery.net" in photo.image_url:
+        if photo.image_url and "imagedelivery.net" in photo.image_url:
             delete_from_cloudflare(photo.image_url)
-        else:
+        elif photo.image_url:
             file_path = photo.image_url.split('/uploads/')[-1]
-            full_path = f"{UPLOAD_DIR}/{file_path}"
+            full_path = f"app/uploads/{file_path}"
             if os.path.exists(full_path):
                 os.remove(full_path)
     except Exception as e:
-        print(f"File deletion error: {e}")
-    
+        print(f"파일 삭제 실패 (무시하고 계속 진행): {e}")
+
+    # 3. 사진 데이터 삭제 및 커밋
     db.delete(photo)
     db.commit()
+    
     return {"message": "Permanently deleted"}

@@ -374,6 +374,7 @@ export default function ProjectDetail() {
     if (!id) return
     axios.get(`${API}/projects/${id}`).then(res => setProject(res.data))
     fetchPhotos()
+    fetchTrash()
     fetchNotes()
   }, [id])
 
@@ -452,7 +453,8 @@ export default function ProjectDetail() {
     await axios.delete(`${API}/photos/${photoId}`)
     if (lightboxPhoto?.id === photoId) setLightboxPhoto(null)
     await fetchPhotos()
-    await fetchChapterPhotoIds() 
+    await fetchChapterPhotoIds()
+    await fetchTrash()
   }
 
   const handleSetRating = async (photo: Photo, rating: number) => {
