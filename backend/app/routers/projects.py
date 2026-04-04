@@ -5,6 +5,7 @@ from app import models
 from pydantic import BaseModel
 from typing import Optional
 from datetime import datetime
+from app.auth import get_current_user
 import uuid
 import os
 # ⭕️ 다음과 같이 수정 (같은 폴더에 있으므로 상대 경로나 라우터 경로 사용)
@@ -41,22 +42,38 @@ class ProjectResponse(BaseModel):
     class Config:
         from_attributes = True
 
+# GET /projects/
 @router.get("/", response_model=list[ProjectResponse])
-def get_projects(db: Session = Depends(get_db)):
+def get_projects(
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user)
+):
     return db.query(models.Project).filter(
+        models.Project.user_id == current_user.id,
         models.Project.deleted_at == None
     ).order_by(models.Project.created_at.desc()).all()
 
+# GET /projects/trash
 @router.get("/trash", response_model=list[ProjectResponse])
-def get_trash(db: Session = Depends(get_db)):
+def get_trash(
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user)
+):
     return db.query(models.Project).filter(
+        models.Project.user_id == current_user.id,
         models.Project.deleted_at != None
     ).order_by(models.Project.deleted_at.desc()).all()
 
+# POST /projects/
 @router.post("/", response_model=ProjectResponse)
-def create_project(project: ProjectCreate, db: Session = Depends(get_db)):
+def create_project(
+    project: ProjectCreate,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user)
+):
     db_project = models.Project(
         id=str(uuid.uuid4()),
+        user_id=current_user.id,
         title=project.title,
         title_en=project.title_en,
         description=project.description,
@@ -71,20 +88,33 @@ def create_project(project: ProjectCreate, db: Session = Depends(get_db)):
     db.refresh(db_project)
     return db_project
 
+# GET /projects/{project_id}
 @router.get("/{project_id}", response_model=ProjectResponse)
-def get_project(project_id: str, db: Session = Depends(get_db)):
+def get_project(
+    project_id: str,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user)
+):
     project = db.query(models.Project).filter(
         models.Project.id == project_id,
+        models.Project.user_id == current_user.id,
         models.Project.deleted_at == None
     ).first()
     if not project:
         raise HTTPException(status_code=404, detail="프로젝트를 찾을 수 없습니다")
     return project
 
+# PUT /projects/{project_id}
 @router.put("/{project_id}", response_model=ProjectResponse)
-def update_project(project_id: str, project: ProjectCreate, db: Session = Depends(get_db)):
+def update_project(
+    project_id: str,
+    project: ProjectCreate,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user)
+):
     db_project = db.query(models.Project).filter(
         models.Project.id == project_id,
+        models.Project.user_id == current_user.id,
         models.Project.deleted_at == None
     ).first()
     if not db_project:
@@ -98,10 +128,16 @@ def update_project(project_id: str, project: ProjectCreate, db: Session = Depend
     db.refresh(db_project)
     return db_project
 
+# DELETE /projects/{project_id}
 @router.delete("/{project_id}")
-def delete_project(project_id: str, db: Session = Depends(get_db)):
+def delete_project(
+    project_id: str,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user)
+):
     project = db.query(models.Project).filter(
         models.Project.id == project_id,
+        models.Project.user_id == current_user.id,
         models.Project.deleted_at == None
     ).first()
     if not project:
@@ -110,34 +146,41 @@ def delete_project(project_id: str, db: Session = Depends(get_db)):
     db.commit()
     return {"message": "휴지통으로 이동했습니다"}
 
+# POST /projects/{project_id}/restore
 @router.post("/{project_id}/restore", response_model=ProjectResponse)
-def restore_project(project_id: str, db: Session = Depends(get_db)):
+def restore_project(
+    project_id: str,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user)
+):
     project = db.query(models.Project).filter(
         models.Project.id == project_id,
+        models.Project.user_id == current_user.id,
         models.Project.deleted_at != None
     ).first()
-    
     if not project:
         raise HTTPException(status_code=404, detail="프로젝트를 찾을 수 없습니다")
-    
     project.deleted_at = None
-
     db.commit()
     db.refresh(project)
     return project
 
+# DELETE /projects/{project_id}/permanent
 @router.delete("/{project_id}/permanent")
-def permanent_delete(project_id: str, db: Session = Depends(get_db)):
+def permanent_delete(
+    project_id: str,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user)
+):
     project = db.query(models.Project).filter(
         models.Project.id == project_id,
+        models.Project.user_id == current_user.id,
         models.Project.deleted_at != None
     ).first()
-    
     if not project:
         raise HTTPException(status_code=404, detail="프로젝트를 찾을 수 없습니다")
     
     # --- 🚨 외래키 충돌 방지를 위해 자식 데이터들을 명시적으로 먼저 삭제합니다 ---
-
     # 1. 챕터-사진 매핑 데이터(ChapterPhoto) 먼저 삭제
     chapters = db.query(models.Chapter).filter(models.Chapter.project_id == project_id).all()
     chapter_ids = [c.id for c in chapters]

@@ -1,8 +1,18 @@
-from sqlalchemy import Column, String, Text, DateTime, Enum, ForeignKey, Integer, Boolean
+from sqlalchemy import Column, String, Text, DateTime, Enum, ForeignKey, Integer, Boolean, UniqueConstraint
 from sqlalchemy.orm import relationship
 from app.database import Base
 from datetime import datetime
 import enum
+
+class User(Base):
+    __tablename__ = "users"
+    id = Column(String, primary_key=True)
+    email = Column(String, unique=True, nullable=False, index=True)
+    password_hash = Column(String, nullable=False)
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+    projects = relationship("Project", back_populates="owner")
+    settings = relationship("Setting", back_populates="owner")
 
 class ProjectStatus(enum.Enum):
     IN_PROGRESS = "in_progress"
@@ -13,6 +23,8 @@ class ProjectStatus(enum.Enum):
 class Project(Base):
     __tablename__ = "projects"
     id = Column(String, primary_key=True)
+    user_id = Column(String, ForeignKey("users.id"), nullable=False)
+    owner = relationship("User", back_populates="projects")
     title = Column(String, nullable=False)
     title_en = Column(String)
     description = Column(Text)
@@ -99,9 +111,11 @@ class ChapterPhoto(Base):
 
 class Setting(Base):
     __tablename__ = "settings"
+    user_id = Column(String, ForeignKey("users.id"), primary_key=True)
     key = Column(String, primary_key=True)
     value = Column(String, nullable=False)
 
+    owner = relationship("User", back_populates="settings")
 
 # ── 납품 링크 ──────────────────────────────────────────────
 

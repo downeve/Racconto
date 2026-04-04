@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 from sqlalchemy import or_
 from app.database import get_db
 from app import models
-from app.routers.auth import verify_token
+from app.auth import get_current_user
 from pydantic import BaseModel
 from typing import Optional, List
 from datetime import datetime
@@ -104,7 +104,7 @@ def _get_delivery_tag_color(db: Session) -> Optional[str]:
 def create_link(
     body: DeliveryLinkCreate,
     db: Session = Depends(get_db),
-    _=Depends(verify_token),
+    _=Depends(get_current_user),
 ):
     if not DELIVERY_ENABLED:  # 🆕 추가
         raise HTTPException(status_code=404, detail="Feature not available")
@@ -140,7 +140,7 @@ def create_link(
 def list_links(
     project_id: str,
     db: Session = Depends(get_db),
-    _=Depends(verify_token),
+    _=Depends(get_current_user),
 ):
     if not DELIVERY_ENABLED:  # 🆕 추가
         raise HTTPException(status_code=404, detail="Feature not available")
@@ -158,7 +158,7 @@ def list_links(
 def get_selections(
     link_id: str,
     db: Session = Depends(get_db),
-    _=Depends(verify_token),
+    _=Depends(get_current_user),
 ):
     if not DELIVERY_ENABLED:  # 🆕 추가
         raise HTTPException(status_code=404, detail="Feature not available")
@@ -191,7 +191,7 @@ def get_selections(
 def delete_link(
     link_id: str,
     db: Session = Depends(get_db),
-    _=Depends(verify_token),
+    _=Depends(get_current_user),
 ):
     if not DELIVERY_ENABLED:  # 🆕 추가
         raise HTTPException(status_code=404, detail="Feature not available")

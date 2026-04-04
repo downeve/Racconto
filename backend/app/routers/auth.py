@@ -1,72 +1,73 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordRequestForm
-from app.auth import verify_password, create_access_token, verify_token, get_password_hash
+from app.auth import verify_password, create_access_token, get_password_hash, get_current_user
 from app.database import get_db
 from sqlalchemy.orm import Session
 from app import models
-from pydantic import BaseModel
-import os
+from pydantic import BaseModel, EmailStr
+import uuid
 
 router = APIRouter(prefix="/auth", tags=["auth"])
-
-ADMIN_USERNAME = os.getenv("ADMIN_USERNAME", "admin")
-ADMIN_PASSWORD_HASH = os.getenv("ADMIN_PASSWORD_HASH", "")
 
 class Token(BaseModel):
     access_token: str
     token_type: str
 
+class UserRegister(BaseModel):
+    email: EmailStr
+    password: str
+
 class PasswordChange(BaseModel):
     current_password: str
     new_password: str
 
-def get_password_hash_from_db(db: Session) -> str:
-    setting = db.query(models.Setting).filter(models.Setting.key == "admin_password_hash").first()
-    if setting and setting.value:
-        return setting.value
-    return ADMIN_PASSWORD_HASH
+
+@router.post("/register", status_code=201)
+def register(body: UserRegister, db: Session = Depends(get_db)):
+    existing = db.query(models.User).filter(models.User.email == body.email).first()
+    if existing:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="이미 사용 중인 이메일입니다"
+        )
+    user = models.User(
+        id=str(uuid.uuid4()),
+        email=body.email,
+        password_hash=get_password_hash(body.password),
+    )
+    db.add(user)
+    db.commit()
+    return {"message": "회원가입이 완료되었습니다", "user_id": user.id}
+
 
 @router.post("/login", response_model=Token)
 def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)):
-    if form_data.username != ADMIN_USERNAME:
+    user = db.query(models.User).filter(models.User.email == form_data.username).first()
+    if not user or not verify_password(form_data.password, user.password_hash):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="아이디 또는 비밀번호가 틀렸습니다"
+            detail="이메일 또는 비밀번호가 틀렸습니다"
         )
-    current_hash = get_password_hash_from_db(db)
-    if not current_hash or not verify_password(form_data.password, current_hash):
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="아이디 또는 비밀번호가 틀렸습니다"
-        )
-    access_token = create_access_token(data={"sub": form_data.username})
+    access_token = create_access_token(data={"sub": user.id})
     return {"access_token": access_token, "token_type": "bearer"}
 
+
 @router.get("/me")
-def get_me(username: str = Depends(verify_token)):
-    return {"username": username}
+def get_me(current_user: models.User = Depends(get_current_user)):
+    return {"user_id": current_user.id, "email": current_user.email}
+
 
 @router.put("/password")
 def change_password(
     body: PasswordChange,
-    username: str = Depends(verify_token),
+    current_user: models.User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
-    current_hash = get_password_hash_from_db(db)
-    if not verify_password(body.current_password, current_hash):
+    if not verify_password(body.current_password, current_user.password_hash):
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="현재 비밀번호가 틀렸습니다"
         )
-    new_hash = get_password_hash(body.new_password)
-    
-    # DB에 새 해시 저장
-    setting = db.query(models.Setting).filter(models.Setting.key == "admin_password_hash").first()
-    if setting:
-        setting.value = new_hash
-    else:
-        setting = models.Setting(key="admin_password_hash", value=new_hash)
-        db.add(setting)
+    current_user.password_hash = get_password_hash(body.new_password)
     db.commit()
-    
     return {"message": "비밀번호가 변경되었습니다"}
