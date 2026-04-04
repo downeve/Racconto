@@ -176,7 +176,7 @@ function Lightbox({
 function PhotoCard({
   photo, project, editingCaption, captionKo, setCaptionKo, setEditingCaption,
   onSetCover, onDelete, onSaveCaption, onSetRating, onSetColorLabel,
-  onOpenLightbox, showExif, gridCols, colorLabels, chapterPhotoIds, chapters, onShowChapterMenu
+  onOpenLightbox, showExif, gridCols, colorLabels, chapterPhotoIds, onShowChapterMenu
 }: {
   photo: Photo
   project: Project
@@ -194,7 +194,6 @@ function PhotoCard({
   gridCols: number
   colorLabels: { value: string; color: string; label: string }[]
   chapterPhotoIds: Set<string>
-  chapters: { id: string; title: string }[]
   onShowChapterMenu: (photoId: string) => void
 }) {
   const { t, i18n } = useTranslation()
@@ -874,7 +873,6 @@ export default function ProjectDetail() {
                       onDelete={handleDeletePhoto} onSaveCaption={handleSaveCaption}
                       onSetRating={handleSetRating} onSetColorLabel={handleSetColorLabel}
                       onOpenLightbox={setLightboxPhoto}
-                      chapters={chapters}
                       onShowChapterMenu={setChapterMenuPhoto}
                       showExif={showExif} gridCols={gridCols}
                       colorLabels={colorLabels} chapterPhotoIds={chapterPhotoIds}
