@@ -126,8 +126,37 @@ def permanent_delete(project_id: str, db: Session = Depends(get_db)):
         models.Project.id == project_id,
         models.Project.deleted_at != None
     ).first()
+    
     if not project:
         raise HTTPException(status_code=404, detail="프로젝트를 찾을 수 없습니다")
+    
+    # --- 🚨 외래키 충돌 방지를 위해 자식 데이터들을 명시적으로 먼저 삭제합니다 ---
+
+    # 1. 챕터-사진 매핑 데이터(ChapterPhoto) 먼저 삭제
+    chapters = db.query(models.Chapter).filter(models.Chapter.project_id == project_id).all()
+    chapter_ids = [c.id for c in chapters]
+    if chapter_ids:
+        db.query(models.ChapterPhoto).filter(models.ChapterPhoto.chapter_id.in_(chapter_ids)).delete(synchronize_session=False)
+        
+    # 2. 챕터(Chapter) 본체 삭제
+    db.query(models.Chapter).filter(models.Chapter.project_id == project_id).delete(synchronize_session=False)
+
+    # 3. 납품 링크의 사진 선택 데이터(DeliverySelection) 삭제
+    links = db.query(models.DeliveryLink).filter(models.DeliveryLink.project_id == project_id).all()
+    link_ids = [l.id for l in links]
+    if link_ids:
+        db.query(models.DeliverySelection).filter(models.DeliverySelection.link_id.in_(link_ids)).delete(synchronize_session=False)
+
+    # 4. 납품 링크(DeliveryLink) 본체 삭제
+    db.query(models.DeliveryLink).filter(models.DeliveryLink.project_id == project_id).delete(synchronize_session=False)
+
+    # 5. 기타 자식 데이터들(Note, Pitch, Photo) 삭제
+    db.query(models.Note).filter(models.Note.project_id == project_id).delete(synchronize_session=False)
+    db.query(models.Pitch).filter(models.Pitch.project_id == project_id).delete(synchronize_session=False)
+    db.query(models.Photo).filter(models.Photo.project_id == project_id).delete(synchronize_session=False)
+
+    # 6. 모든 자식이 청소되었으므로, 최종적으로 프로젝트 본체 삭제
     db.delete(project)
     db.commit()
+    
     return {"message": "영구 삭제되었습니다"}
