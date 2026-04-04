@@ -6,6 +6,7 @@ from pydantic import BaseModel
 from typing import Optional
 from datetime import datetime
 import uuid
+import os
 # ⭕️ 다음과 같이 수정 (같은 폴더에 있으므로 상대 경로나 라우터 경로 사용)
 from app.routers.photos import delete_from_cloudflare
 
@@ -115,9 +116,12 @@ def restore_project(project_id: str, db: Session = Depends(get_db)):
         models.Project.id == project_id,
         models.Project.deleted_at != None
     ).first()
+    
     if not project:
         raise HTTPException(status_code=404, detail="프로젝트를 찾을 수 없습니다")
+    
     project.deleted_at = None
+
     db.commit()
     db.refresh(project)
     return project

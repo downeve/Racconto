@@ -56,7 +56,7 @@
     "trashEmpty": "삭제한 사진이 없습니다.",
     "uploadPhotos": "+ 사진",
     "uploadFolder": "+ 폴더",
-    "uploading": "...",
+    "uploading": "진행 중...",
     "uploadFail": "업로드  실패",
     "noPhotos": "사진이 없습니다. 사진을 업로드하세요.",
     "setCover": "커버",
@@ -209,7 +209,7 @@
     "deletedAt": "일 후 자동 삭제",
     "restore": "복구",
     "permanentDelete": "영구 삭제",
-    "permanentDeleteConfirm": "영구 삭제할까요? 복구할 수 없습니다."
+    "permanentDeleteConfirm": "영구히 삭제할까요? 복구할 수 없습니다."
   },
   "actions": {
     "resetAllRatings": "전체 별점 초기화",

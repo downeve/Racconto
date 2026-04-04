@@ -909,7 +909,7 @@ export default function ProjectDetail() {
                             </button>
                             <button
                               onClick={async () => {
-                                if (!confirm(t('photo.confirmPermanentDelete'))) return
+                                if (!confirm(t('trash.confirmPermanentDelete'))) return
                                 await axios.delete(`${API}/photos/${photo.id}/permanent`)
                                 fetchTrash()
                               }}
