@@ -6,6 +6,8 @@ from pydantic import BaseModel
 from typing import Optional
 from datetime import datetime
 import uuid
+# ⭕️ 다음과 같이 수정 (같은 폴더에 있으므로 상대 경로나 라우터 경로 사용)
+from .photos import delete_from_cloudflare
 
 router = APIRouter(prefix="/projects", tags=["projects"])
 
@@ -150,12 +152,27 @@ def permanent_delete(project_id: str, db: Session = Depends(get_db)):
     # 4. 납품 링크(DeliveryLink) 본체 삭제
     db.query(models.DeliveryLink).filter(models.DeliveryLink.project_id == project_id).delete(synchronize_session=False)
 
-    # 5. 기타 자식 데이터들(Note, Pitch, Photo) 삭제
+    # 5. [수정됨] 사진 파일 실제 삭제 (클라우드플레어 및 로컬)
+    photos = db.query(models.Photo).filter(models.Photo.project_id == project_id).all()
+    for photo in photos:
+        try:
+            if photo.image_url and "imagedelivery.net" in photo.image_url:
+                delete_from_cloudflare(photo.image_url)
+            else:
+                file_path = photo.image_url.split('/uploads/')[-1]
+                full_path = f"app/uploads/{file_path}"
+                if os.path.exists(full_path):
+                    os.remove(full_path)
+        except Exception as e:
+            print(f"프로젝트 삭제 중 이미지 삭제 오류: {e}")
+            pass
+
+    # 6. 기타 자식 데이터들(Note, Pitch, Photo DB) 삭제
     db.query(models.Note).filter(models.Note.project_id == project_id).delete(synchronize_session=False)
     db.query(models.Pitch).filter(models.Pitch.project_id == project_id).delete(synchronize_session=False)
     db.query(models.Photo).filter(models.Photo.project_id == project_id).delete(synchronize_session=False)
 
-    # 6. 모든 자식이 청소되었으므로, 최종적으로 프로젝트 본체 삭제
+    # 7. 모든 자식이 청소되었으므로, 최종적으로 프로젝트 본체 삭제
     db.delete(project)
     db.commit()
     

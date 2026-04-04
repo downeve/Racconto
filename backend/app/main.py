@@ -7,6 +7,8 @@ from app.routers import projects, photos, portfolio, notes, auth, chapters, sett
 from apscheduler.schedulers.background import BackgroundScheduler
 from datetime import datetime, timedelta
 import os
+# ⭕️ 다음과 같이 수정 (app.routers.photos 로 변경)
+from app.routers.photos import delete_from_cloudflare
 
 models.Base.metadata.create_all(bind=engine)
 
@@ -45,11 +47,17 @@ def auto_delete_trash():
             photos = db.query(models.Photo).filter(models.Photo.project_id == project.id).all()
             for photo in photos:
                 try:
-                    file_path = photo.image_url.split('/uploads/')[-1]
-                    full_path = f"app/uploads/{file_path}"
-                    if os.path.exists(full_path):
-                        os.remove(full_path)
-                except:
+                    # [수정됨] 클라우드플레어 이미지인지 확인 후 삭제
+                    if photo.image_url and "imagedelivery.net" in photo.image_url:
+                        delete_from_cloudflare(photo.image_url)
+                    else:
+                        # 로컬 이미지 삭제 로직
+                        file_path = photo.image_url.split('/uploads/')[-1]
+                        full_path = f"app/uploads/{file_path}"
+                        if os.path.exists(full_path):
+                            os.remove(full_path)
+                except Exception as e:
+                    print(f"자동 삭제 중 이미지 삭제 오류: {e}")
                     pass
             db.delete(project)
         db.commit()

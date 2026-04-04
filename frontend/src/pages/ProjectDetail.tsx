@@ -382,16 +382,43 @@ export default function ProjectDetail() {
   const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!e.target.files || !id) return
     setUploading(true)
-    for (const file of Array.from(e.target.files)) {
-      const formData = new FormData()
-      formData.append('file', file)
-      const relativePath = (file as any).webkitRelativePath
-      const folder = relativePath ? relativePath.split('/')[0] : null
-      const url = folder
-        ? `${API}/photos/upload?project_id=${id}&folder=${encodeURIComponent(folder)}`
-        : `${API}/photos/upload?project_id=${id}`
-      await axios.post(url, formData, { headers: { 'Content-Type': 'multipart/form-data' } })
+
+    // 💡 1. 백엔드가 허용하는 이미지 형식만 남기고 필터링 (.DS_Store 등 제외)
+    const allowedTypes = ['image/jpeg', 'image/png', 'image/webp']
+    const validFiles = Array.from(e.target.files).filter(file => allowedTypes.includes(file.type))
+
+    // 안내 메시지 (옵션)
+    if (validFiles.length !== e.target.files.length) {
+      console.warn(`지원하지 않는 파일 ${e.target.files.length - validFiles.length}개가 제외되었습니다.`)
     }
+
+    // 💡 2. 필터링된 정상 파일들만 업로드 진행
+    for (const file of validFiles) {
+      try {
+        const formData = new FormData()
+        formData.append('file', file)
+        const relativePath = (file as any).webkitRelativePath
+        const folder = relativePath ? relativePath.split('/')[0] : null
+        
+        const url = folder
+          ? `${API}/photos/upload?project_id=${id}&folder=${encodeURIComponent(folder)}`
+          : `${API}/photos/upload?project_id=${id}`
+          
+        // 정상 업로드 시도
+        await axios.post(url, formData, { headers: { 'Content-Type': 'multipart/form-data' } })
+        
+      } catch (error) {
+        // 💡 3. [핵심] 특정 파일 업로드 중 에러가 나더라도 함수를 멈추지 않고, 
+        // 콘솔에 에러만 찍은 뒤 다음 파일로 계속 진행하도록 try-catch로 감쌌습니다.
+        // 💡 t('photo.uploadFail')을 템플릿 리터럴 안에 삽입
+        console.error(`❌ ${file.name} ${t('photo.uploadFail')}:`, error)
+        
+        // (선택 사항) 만약 사용자 화면에도 에러 알림을 띄우고 싶다면 아래처럼 활용할 수 있습니다.
+        alert(`❌ ${file.name} ${t('photo.uploadFail')}`)
+      }
+    }
+
+    // 모든 루프가 끝난 뒤에 상태 업데이트 및 새로고침
     await fetchPhotos()
     setUploading(false)
     e.target.value = ''
@@ -658,11 +685,11 @@ export default function ProjectDetail() {
                   {/* 💡 양쪽 버튼이 1:1 비율을 가지도록 flex-1을 추가하고 rounded를 넣었습니다 */}
                   <label className="flex-1 cursor-pointer bg-black text-white px-1.5 py-1.5 text-xs tracking-wider hover:bg-gray-800 inline-block text-center rounded">
                     {uploading ? t('photo.uploading') : t('photo.uploadPhotos')}
-                    <input type="file" accept="image/*" multiple className="hidden" onChange={handleUpload} disabled={uploading} />
+                    <input type="file" accept="image/jpeg, image/png, image/webp" multiple className="hidden" onChange={handleUpload} disabled={uploading} />
                   </label>
                   <label className="flex-1 cursor-pointer bg-gray-700 text-white px-1.5 py-1.5 text-xs tracking-wider hover:bg-gray-600 inline-block text-center rounded">
                     {uploading ? t('photo.uploading') : t('photo.uploadFolder')}
-                    <input type="file" accept="image/*" multiple className="hidden" onChange={handleUpload} disabled={uploading} {...{ webkitdirectory: '' } as any} />
+                    <input type="file" accept="image/jpeg, image/png, image/webp" multiple className="hidden" onChange={handleUpload} disabled={uploading} {...{ webkitdirectory: '' } as any} />
                   </label>
                 </div>
 

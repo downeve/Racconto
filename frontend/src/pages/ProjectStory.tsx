@@ -306,15 +306,23 @@ export default function ProjectStory({
     fetchChapters()
   }
 
-  const handleAddPhoto = async (chapterId: string, photoId: string) => {
+// 💡 사진이 있으면 챕터에서 삭제하고, 없으면 추가하는 토글 함수
+  const handleAddPhoto = async (chapterId: string, photoId: string, isAdded: boolean) => {
     try {
-      await axios.post(`${API}/chapters/${chapterId}/photos`, { photo_id: photoId })
-      fetchChapterPhotos(chapterId)
-    } catch {
-      // 이미 추가된 사진
+      if (isAdded) {
+        // 이미 추가된 사진이면 제거
+        await axios.delete(`${API}/chapters/${chapterId}/photos/${photoId}`)
+      } else {
+        // 없는 사진이면 추가
+        await axios.post(`${API}/chapters/${chapterId}/photos`, { photo_id: photoId })
+      }
+      fetchChapterPhotos(chapterId) // 화면 즉시 새로고침
+    } catch (error) {
+      console.error(error)
+      alert('사진 상태 변경에 실패했습니다.')
     }
   }
-
+  
   const handleRemovePhoto = async (chapterId: string, photoId: string) => {
     await axios.delete(`${API}/chapters/${chapterId}/photos/${photoId}`)
     fetchChapterPhotos(chapterId)
@@ -598,23 +606,24 @@ export default function ProjectStory({
                       <div className="mt-3 p-3 bg-gray-50 rounded">
                         <p className="text-xs text-gray-500 mb-2">{t('story.selectPhotos')}</p>
                         <div className="grid grid-cols-4 gap-2 max-h-96 overflow-y-auto">
-                          {allPhotos.map(photo => {
-                            const isAdded = (chapterPhotos[chapter.id] || []).some(cp => cp.photo_id === photo.id)
-                            return (
-                              <div
-                                key={photo.id}
-                                className={`relative cursor-pointer ${isAdded ? 'opacity-40' : 'hover:opacity-80'}`}
-                                onClick={() => !isAdded && handleAddPhoto(chapter.id, photo.id)}
-                              >
-                                <img src={photo.image_url} alt={photo.caption || ''} className="w-full aspect-[3/2] p-1 object-contain rounded bg-gray-100" />
-                                {isAdded && (
-                                  <div className="absolute inset-0 flex items-center justify-center">
-                                    <span className="text-green-500 text-lg">✓</span>
-                                  </div>
-                                )}
-                              </div>
-                            )
-                          })}
+                        {allPhotos
+                          // 💡 1. 여기서 이미 추가된 사진을 걸러냅니다 (숨김 처리)
+                          .filter(photo => {
+                            const isAdded = chapterPhotos[showPhotoSelector]?.some(cp => cp.photo_id === photo.id)
+                            return !isAdded; // 추가 안 된 사진만 남김
+                          })
+                          // 💡 2. 남은 사진만 화면에 그립니다
+                          .map(photo => (
+                            <div
+                              key={photo.id}
+                              className="relative w-24 h-24 shrink-0 bg-gray-100 rounded overflow-hidden cursor-pointer transition hover:opacity-80"
+                              // 여기서는 추가(isAdded = false)만 일어납니다.
+                              onClick={() => handleAddPhoto(showPhotoSelector, photo.id, false)}
+                            >
+                              <img src={photo.image_url} alt="photo" className="w-full h-full object-cover" />
+                            </div>
+                          ))
+                        }
                         </div>
                         <button
                           onClick={() => setShowPhotoSelector(null)}
@@ -728,23 +737,24 @@ export default function ProjectStory({
                         <div className="mt-3 p-3 bg-gray-50 rounded">
                           <p className="text-xs text-gray-500 mb-2">{t('story.selectPhotos')}</p>
                           <div className="grid grid-cols-4 gap-2 max-h-96 overflow-y-auto">
-                            {allPhotos.map(photo => {
-                              const isAdded = (chapterPhotos[subChapter.id] || []).some(cp => cp.photo_id === photo.id)
-                              return (
-                                <div
-                                  key={photo.id}
-                                  className={`relative cursor-pointer ${isAdded ? 'opacity-40' : 'hover:opacity-80'}`}
-                                  onClick={() => !isAdded && handleAddPhoto(subChapter.id, photo.id)}
-                                >
-                                  <img src={photo.image_url} alt={photo.caption || ''} className="w-full aspect-[3/2] p-1 object-contain rounded bg-gray-100" />
-                                  {isAdded && (
-                                    <div className="absolute inset-0 flex items-center justify-center">
-                                      <span className="text-green-500 text-lg">✓</span>
-                                    </div>
-                                  )}
-                                </div>
-                              )
-                            })}
+                            {allPhotos
+                            // 💡 1. 여기서 이미 추가된 사진을 걸러냅니다 (숨김 처리)
+                            .filter(photo => {
+                              const isAdded = chapterPhotos[showPhotoSelector]?.some(cp => cp.photo_id === photo.id)
+                              return !isAdded; // 추가 안 된 사진만 남김
+                            })
+                            // 💡 2. 남은 사진만 화면에 그립니다
+                            .map(photo => (
+                              <div
+                                key={photo.id}
+                                className="relative w-24 h-24 shrink-0 bg-gray-100 rounded overflow-hidden cursor-pointer transition hover:opacity-80"
+                                // 여기서는 추가(isAdded = false)만 일어납니다.
+                                onClick={() => handleAddPhoto(showPhotoSelector, photo.id, false)}
+                              >
+                                <img src={photo.image_url} alt="photo" className="w-full h-full object-cover" />
+                              </div>
+                            ))
+                          }
                           </div>
                           <button
                             onClick={() => setShowPhotoSelector(null)}

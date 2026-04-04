@@ -254,6 +254,8 @@ async def upload_photo(
 ):
     ext = file.filename.split(".")[-1].lower()
     if ext not in ["jpg", "jpeg", "png", "webp"]:
+        # 💡 [수정] 400 에러를 던지면 업로드가 멈추므로, 무시할 수 있는 메시지로 처리하거나 프론트엔드에서 필터링해야 합니다.
+        # 일단 백엔드에서는 에러를 던지되, 프론트에서 이 파일을 걸러서 올리는 것이 가장 좋습니다.
         raise HTTPException(status_code=400, detail="지원하지 않는 파일 형식이에요")
 
     file_id = str(uuid.uuid4())
@@ -263,15 +265,17 @@ async def upload_photo(
     with open(file_path, "wb") as buffer:
         shutil.copyfileobj(file.file, buffer)
 
-    # CF에 업로드하고 URL 받기
-    image_url = upload_to_cloudflare(file_path, filename)
+    try:
+        # 💡 1. 파일을 지우기 전에 EXIF 데이터를 가장 먼저 추출합니다!
+        exif = extract_exif(file_path)
 
-    # 로컬 임시 파일 삭제
-    if os.path.exists(file_path):
-        os.remove(file_path)
-
-    # EXIF 추출
-    exif = extract_exif(file_path)
+        # 💡 2. CF에 업로드하고 URL 받기
+        image_url = upload_to_cloudflare(file_path, filename)
+        
+    finally:
+        # 💡 3. 로컬 임시 파일 삭제 (성공하든 에러가 나든 무조건 마지막에 지우도록 finally로 감쌈)
+        if os.path.exists(file_path):
+            os.remove(file_path)
 
     # 현재 프로젝트의 마지막 order 값 + 1
     last_photo = db.query(models.Photo).filter(
