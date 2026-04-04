@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 
 export default function Login() {
-  const [username, setUsername] = useState('')
+  const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
@@ -11,14 +11,14 @@ export default function Login() {
   const navigate = useNavigate()
 
   const handleSubmit = async () => {
-    if (!username || !password) return
+    if (!email || !password) return
     setLoading(true)
     setError('')
-    const success = await login(username, password)
+    const success = await login(email, password)
     if (success) {
       navigate('/projects')
     } else {
-      setError('아이디 또는 비밀번호가 틀렸습니다')
+      setError('이메일 또는 비밀번호가 틀렸습니다')
     }
     setLoading(false)
   }
@@ -31,9 +31,10 @@ export default function Login() {
         <div className="space-y-4">
           <input
             className="w-full border rounded px-3 py-2 text-sm"
-            placeholder="아이디"
-            value={username}
-            onChange={e => setUsername(e.target.value)}
+            type="email"
+            placeholder="이메일"
+            value={email}
+            onChange={e => setEmail(e.target.value)}
             onKeyDown={e => e.key === 'Enter' && handleSubmit()}
           />
           <input

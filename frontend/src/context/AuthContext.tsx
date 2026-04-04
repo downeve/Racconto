@@ -6,7 +6,7 @@ const API = import.meta.env.VITE_API_URL
 interface AuthContextType {
   isAuthenticated: boolean
   isLoading: boolean
-  login: (username: string, password: string) => Promise<boolean>
+  login: (email: string, password: string) => Promise<boolean>
   logout: () => void
 }
 
@@ -25,10 +25,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setIsLoading(false)
   }, [])
 
-  const login = async (username: string, password: string) => {
+  const login = async (email: string, password: string) => {
     try {
       const formData = new FormData()
-      formData.append('username', username)
+      formData.append('username', email)
       formData.append('password', password)
       const res = await axios.post(`${API}/auth/login`, formData)
       const token = res.data.access_token
