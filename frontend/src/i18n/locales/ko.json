@@ -50,8 +50,9 @@
   },
   "photo": {
     "title": "사진",
-    "allPhotos": "사진 관리",
-    "trash": "삭제한 사진",
+    "allPhotos": "전체 사진",
+    "library": "라이브러리",
+    "trash": "지운 사진",
     "trashEmpty": "삭제한 사진이 없습니다.",
     "uploadPhotos": "+ 사진 업로드",
     "uploadFolder": "+ 폴더 업로드",
@@ -115,7 +116,8 @@
     "selectChapter": "챕터 선택",
     "chapterIncl": "챕터 포함",
     "chapterDeleteWarning": "챕터를 삭제할까요? 사진 연결도 해제됩니다.",
-    "noChapter": "등록된 챕터가 없습니다."
+    "noChapter": "등록된 챕터가 없습니다.",
+    "noChapter2": "스토리 탭에서 챕터를 추가해 주세요."
   },
   "note": {
     "title": "노트",

@@ -89,13 +89,11 @@ function Lightbox({
 
   return (
     <div className="fixed inset-0 bg-black/90 z-50 flex flex-col" onClick={onClose}>
-      {/* 상단 */}
       <div className="flex items-center justify-between px-6 py-3 shrink-0" onClick={e => e.stopPropagation()}>
         <span className="text-white/50 text-sm">{idx + 1} / {photos.length}</span>
         <button onClick={onClose} className="text-white/70 hover:text-white text-2xl">✕</button>
       </div>
 
-      {/* 이미지 + 화살표 */}
       <div className="flex-1 flex items-center justify-center relative min-h-0" onClick={onClose}>
         {idx > 0 && (
           <button className="absolute left-4 z-10 text-white/70 hover:text-white text-5xl select-none"
@@ -112,11 +110,9 @@ function Lightbox({
         )}
       </div>
 
-      {/* 하단 컨트롤 */}
       <div className="shrink-0 bg-black/80 border-t border-white/10 px-6 py-4" onClick={e => e.stopPropagation()}>
         <div className="max-w-3xl mx-auto space-y-3">
           <div className="flex items-center gap-4 flex-wrap">
-            {/* 별점 */}
             <div className="flex gap-1">
               {[1, 2, 3, 4, 5].map(star => (
                 <button key={star} onClick={() => onSetRating(photo, star)}
@@ -124,7 +120,6 @@ function Lightbox({
               ))}
             </div>
             <div className="w-px h-5 bg-white/20" />
-            {/* 컬러 레이블 */}
             <div className="flex gap-1.5">
               {colorLabels.map(label => (
                 <button key={label.value} onClick={() => onSetColorLabel(photo, label.value)} title={label.label}
@@ -136,11 +131,9 @@ function Lightbox({
               ))}
             </div>
             <div className="w-px h-5 bg-white/20" />
-            {/* 포트폴리오 */}
             {inChapter && (
               <span className="text-xs text-blue-400">📖 {t('story.chapterIncl')}</span>
             )}
-            {/* EXIF */}
             {(photo.camera || photo.focal_length) && (
               <>
                 <div className="w-px h-5 bg-white/20" />
@@ -150,7 +143,6 @@ function Lightbox({
               </>
             )}
           </div>
-          {/* 캡션 */}
           {editingCaption ? (
             <div className="flex gap-2">
               <input
@@ -180,7 +172,7 @@ function Lightbox({
   )
 }
 
-// ── PhotoCard (기존 SortablePhoto) ──────────────────────────────────────────
+// ── PhotoCard (💡 여기에 챕터 버튼이 100% 안전하게 들어있습니다!) ──────────────────────────────────────────
 function PhotoCard({
   photo, project, editingCaption, captionKo, setCaptionKo, setEditingCaption,
   onSetCover, onDelete, onSaveCaption, onSetRating, onSetColorLabel,
@@ -207,11 +199,9 @@ function PhotoCard({
 }) {
   const { t, i18n } = useTranslation()
 
-  // 목록형
   if (gridCols === 1) {
     return (
       <div className="bg-white rounded overflow-hidden flex items-center gap-4 p-2 border-b">
-        {/* 드래그 핸들(⠿) 삭제됨 */}
         <img src={photo.image_url} alt={photo.caption}
           className="w-16 h-16 object-cover rounded shrink-0 cursor-pointer hover:opacity-80 transition-opacity"
           onClick={() => onOpenLightbox(photo)} />
@@ -273,20 +263,15 @@ function PhotoCard({
     )
   }
 
-  // 그리드
   return (
     <div className="rounded overflow-hidden bg-gray-100">
       <div className="relative group">
-        {/* 드래그 핸들(⠿) 삭제됨 */}
-
-        {/* 사진 */}
         <img
           src={photo.image_url} alt={photo.caption}
           className="w-full aspect-[3/2] object-contain cursor-pointer"
           onClick={() => onOpenLightbox(photo)}
         />
 
-        {/* 호버 오버레이 */}
         <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity">
           <div className="absolute inset-0 bg-black/50" onClick={() => onOpenLightbox(photo)} />
           <div className="absolute bottom-2 right-2 flex gap-1 z-10">
@@ -295,19 +280,18 @@ function PhotoCard({
               className={`${gridCols >= 4 ? 'px-1 py-0.5 text-xs' : 'px-2 py-1 text-xs'} rounded ${project?.cover_image_url === photo.image_url ? 'bg-yellow-400 text-black' : 'bg-white text-black'}`}>
               {project?.cover_image_url === photo.image_url ? t('photo.isCover') : t('photo.setCover')}
             </button>
-            {chapters.length > 0 && (
-              chapterPhotoIds.has(photo.id) ? (
-                <button
-                  className={`${gridCols >= 4 ? 'px-1 py-0.5 text-xs' : 'px-2 py-1 text-xs'} rounded bg-blue-500 text-white opacity-70 cursor-default`}
-                  title="이미 챕터에 포함된 사진"
-                >📖</button>
-              ) : (
-                <button
-                  onClick={e => { e.stopPropagation(); onShowChapterMenu(photo.id) }}
-                  className={`${gridCols >= 4 ? 'px-1 py-0.5 text-xs' : 'px-2 py-1 text-xs'} rounded bg-white text-black`}
-                  title="챕터에 추가"
-                >📖</button>
-              )
+            {/* 💡 chapters.length > 0 조건을 지워서 항상 아이콘이 나오게 수정! */}
+            {chapterPhotoIds.has(photo.id) ? (
+              <button
+                className={`${gridCols >= 4 ? 'px-1 py-0.5 text-xs' : 'px-2 py-1 text-xs'} rounded bg-blue-500 text-white opacity-70 cursor-default`}
+                title="이미 챕터에 포함된 사진"
+              >📖</button>
+            ) : (
+              <button
+                onClick={e => { e.stopPropagation(); onShowChapterMenu(photo.id) }}
+                className={`${gridCols >= 4 ? 'px-1 py-0.5 text-xs' : 'px-2 py-1 text-xs'} rounded bg-white text-black`}
+                title="챕터에 추가"
+              >📖</button>
             )}
             <button
               onClick={e => { e.stopPropagation(); onDelete(photo.id) }}
@@ -318,7 +302,6 @@ function PhotoCard({
         </div>
       </div>
 
-      {/* 별점 & 컬러 레이블 등 생략 없이 기존과 동일 */}
       <div className="px-2 py-2 bg-white flex items-center justify-between">
         <div className="flex gap-0.5">
           {[1, 2, 3, 4, 5].map(star => (
@@ -382,12 +365,11 @@ export default function ProjectDetail() {
   const [newNote, setNewNote] = useState('')
   const [editingNote, setEditingNote] = useState<string | null>(null)
   const [editContent, setEditContent] = useState('')
-  // 메인 탭
+  
   const [activeTab, setActiveTab] = useState<'photos' | 'story' | 'notes' | 'delivery'>('photos')
-  // 사진 탭의 서브탭 🆕
   const [photoSubTab, setPhotoSubTab] = useState<'all' | 'trash'>('all')
-  // 휴지통 데이터 🆕
   const [trashedPhotos, setTrashedPhotos] = useState<Photo[]>([])
+  
   const [filterRating, setFilterRating] = useState<number | null>(null)
   const [filterColor, setFilterColor] = useState<string | null>(null)
   const [filterFolder, setFilterFolder] = useState<string | null>(null)
@@ -398,8 +380,7 @@ export default function ProjectDetail() {
   const [chapterPhotoIds, setChapterPhotoIds] = useState<Set<string>>(new Set())
   const [lightboxPhoto, setLightboxPhoto] = useState<Photo | null>(null)
   const [chapterMenuPhoto, setChapterMenuPhoto] = useState<string | null>(null)
-  const [chapters, setChapters] = useState<{ id: string; title: string }[]>([])
-
+  const [chapters, setChapters] = useState<{ id: string; title: string; parent_id?: string | null }[]>([])
   const [sortBy, setSortBy] = useState<'default' | 'taken_at' | 'name'>('default')
 
   const fetchPhotos = async () => {
@@ -416,7 +397,8 @@ export default function ProjectDetail() {
   const fetchChapterPhotoIds = async () => {
     if (!id) return
     const res = await axios.get(`${API}/chapters/?project_id=${id}`)
-    setChapters(res.data.map((c: any) => ({ id: c.id, title: c.title }))) // 추가
+    // 💡 서브챕터 구분을 위해 parent_id를 함께 저장합니다!
+    setChapters(res.data.map((c: any) => ({ id: c.id, title: c.title, parent_id: c.parent_id })))
     const ids = new Set<string>()
     for (const chapter of res.data) {
       const photoRes = await axios.get(`${API}/chapters/${chapter.id}/photos`)
@@ -505,8 +487,6 @@ export default function ProjectDetail() {
   const handleDeletePhoto = async (photoId: string) => {
     await axios.delete(`${API}/photos/${photoId}`)
     if (lightboxPhoto?.id === photoId) setLightboxPhoto(null)
-    
-    // 삭제 후 두 정보를 모두 갱신하여 UI를 완벽히 동기화합니다.
     await fetchPhotos()
     await fetchChapterPhotoIds() 
   }
@@ -590,8 +570,7 @@ export default function ProjectDetail() {
     { value: 'purple', color: 'bg-purple-500', label: labelSettings['color_label_purple'] },
   ]
 
-const filteredPhotos = photos.filter(photo => {
-    //삭제된 사진 제외
+  const filteredPhotos = photos.filter(photo => {
     if (photo.deleted_at) return false
 
     if (filterRating !== null) {
@@ -602,26 +581,24 @@ const filteredPhotos = photos.filter(photo => {
     if (filterFolder !== null && photo.folder !== filterFolder) return false
     return true
   }).sort((a, b) => {
-    // 👇 방금 추가한 상태에 따른 정렬 로직
     if (sortBy === 'taken_at') {
       if (!a.taken_at && !b.taken_at) return 0
-      if (!a.taken_at) return 1 // 촬영 정보가 없으면 뒤로 보냄
+      if (!a.taken_at) return 1 
       if (!b.taken_at) return -1
-      return new Date(a.taken_at).getTime() - new Date(b.taken_at).getTime() // 과거 -> 최신순
+      return new Date(a.taken_at).getTime() - new Date(b.taken_at).getTime() 
     }
     if (sortBy === 'name') {
       const nameA = a.image_url.split('/').pop() || ''
       const nameB = b.image_url.split('/').pop() || ''
-      return nameA.localeCompare(nameB) // 파일 이름 A-Z 순
+      return nameA.localeCompare(nameB) 
     }
-    return 0 // default: 서버에서 받아온 기본 순서
+    return 0
   })
 
   if (!project) return <div className="p-6 text-gray-400">{t('common.loading')}</div>
 
   return (
     <div className="max-w-6xl mx-auto p-6">
-      {/* 라이트박스 */}
       {lightboxPhoto && (
         <Lightbox
           photo={lightboxPhoto}
@@ -654,21 +631,43 @@ const filteredPhotos = photos.filter(photo => {
         )}
       </div>
 
-      {/* 챕터 선택 모달 */}
       {chapterMenuPhoto && (
         <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center"
           onClick={() => setChapterMenuPhoto(null)}>
-          <div className="bg-white rounded-xl p-5 shadow-2xl min-w-[240px]" onClick={e => { e.stopPropagation() }}>
+          <div className="bg-white rounded-xl p-5 shadow-2xl min-w-[320px]" onClick={e => { e.stopPropagation() }}>
             <h3 className="text-sm font-semibold mb-3">{t('story.selectChapter')}</h3>
             <div className="space-y-1">
-            {chapters.map((chapter, idx) => (
-              <button key={chapter.id}
-                onClick={() => handleAddToChapter(chapterMenuPhoto, chapter.id)}
-                className="w-full text-left px-3 py-2 text-sm rounded hover:bg-gray-100 text-gray-700">
-                <span className="text-gray-400 text-xs mr-2">Ch.{idx + 1}</span>
-                {chapter.title}
-              </button>
-            ))}
+            {chapters.length === 0 ? (
+              <div className="text-center py-6 text-gray-400 text-xs">
+                <p>{t('story.noChapter')}</p>
+                <p className="mt-1">{t('story.noChapter2')}</p>
+              </div>
+            ) : (
+              // 1. 부모 챕터(parent_id가 없는 것)만 먼저 골라서 순회합니다.
+              chapters.filter(c => !c.parent_id).map((parent, idx) => (
+                <div key={parent.id} className="flex flex-col mb-1">
+                  
+                  {/* 부모 챕터 UI */}
+                  <button
+                    onClick={() => handleAddToChapter(chapterMenuPhoto!, parent.id)}
+                    className="w-full text-left px-3 py-2 text-sm rounded hover:bg-gray-100 text-gray-800 font-medium flex items-center">
+                    <span className="text-gray-400 text-xs mr-2 shrink-0">{t('story.chapter')}. {idx + 1}</span>
+                    <span className="truncate">{parent.title}</span>
+                  </button>
+                  
+                  {/* 2. 현재 부모 챕터에 속한 서브챕터들만 골라서 들여쓰기(↳) 렌더링 */}
+                  {chapters.filter(child => child.parent_id === parent.id).map((child, subIdx) => (
+                    <button key={child.id}
+                      onClick={() => handleAddToChapter(chapterMenuPhoto!, child.id)}
+                      className="w-full text-left pl-11 pr-3 py-1.5 text-sm rounded hover:bg-gray-100 text-gray-600 flex items-center">
+                      <span className="text-gray-300 mr-2 text-xs shrink-0">↳ {t('story.chapter')}. {idx + 1}.{subIdx + 1}</span>
+                      <span className="truncate">{child.title}</span>
+                    </button>
+                  ))}
+                  
+                </div>
+              ))
+            )}
             </div>
             <button onClick={() => setChapterMenuPhoto(null)}
               className="mt-3 w-full text-xs text-gray-400 hover:text-black">{t('common.close')}</button>
@@ -676,11 +675,10 @@ const filteredPhotos = photos.filter(photo => {
         </div>
       )}
 
-      {/* 탭 */}
       <div className="flex border-b mb-6">
         <button onClick={() => { 
             setActiveTab('photos'); 
-            setPhotoSubTab('all'); // 💡 이 줄이 추가되었습니다! 무조건 'all' 탭으로 열리게 합니다.
+            setPhotoSubTab('all'); 
             fetchPhotos(); 
             fetchChapterPhotoIds() 
           }}
@@ -705,164 +703,165 @@ const filteredPhotos = photos.filter(photo => {
 
       {/* 사진 탭 */}
       {activeTab === 'photos' && (
-        <div>
-          {/* 🆕 서브탭 헤더 */}
-          <div className="flex items-center gap-4 mb-4 border-b">
-            <button
-              onClick={() => setPhotoSubTab('all')}
-              className={`pb-2 px-4 text-sm ${
-                photoSubTab === 'all'
-                  ? 'border-b-2 border-black font-semibold'
-                  : 'text-gray-400 hover:text-gray-600'
-              }`}
-            >
-              {t('photo.allPhotos')}
+        <div className="flex gap-6 items-start">
+          
+          {/* 👈 좌측 사이드바 (필터 & 라이브러리 통합) */}
+          <div className={`${showFilter ? 'w-48' : 'w-6'} shrink-0 transition-all duration-200`}>
+            <button onClick={() => setShowFilter(!showFilter)}
+              className="mb-2 text-gray-400 hover:text-black text-xs flex items-center gap-1">
+              {showFilter ? '◀ ' + t('filter.filter') : '▶'}
             </button>
-            <button
-              onClick={() => {
-                setPhotoSubTab('trash')
-                fetchTrash()
-              }}
-              className={`pb-2 px-4 text-sm ${
-                photoSubTab === 'trash'
-                  ? 'border-b-2 border-black font-semibold'
-                  : 'text-gray-400 hover:text-gray-600'
-              }`}
-            >
-              🗑️ {t('photo.trash')}
-            </button>
-          </div>
-
-          {/* 전체 사진 뷰 (기존 UI 그대로) */}
-          {photoSubTab === 'all' && (
-            <div className="flex gap-6">
-              <div className={`${showFilter ? 'w-48' : 'w-6'} shrink-0 transition-all duration-200`}>
-                <button onClick={() => setShowFilter(!showFilter)}
-                  className="mb-2 text-gray-400 hover:text-black text-xs flex items-center gap-1">
-                  {showFilter ? '◀ ' + t('filter.filter') : '▶'}
-                </button>
-                {showFilter && (
-                  <div className="bg-white rounded-lg shadow p-4 overflow-y-auto max-h-[calc(100vh-2rem)] sticky top-4">
-                    <div className="mb-4 flex flex-col gap-2">
-                      <label className="cursor-pointer bg-black text-white px-3 py-2 text-xs tracking-wider hover:bg-gray-800 inline-block w-full text-center">
-                        {uploading ? t('photo.uploading') : t('photo.uploadPhotos')}
-                        <input type="file" accept="image/*" multiple className="hidden" onChange={handleUpload} disabled={uploading} />
-                      </label>
-                      <label className="cursor-pointer bg-gray-700 text-white px-3 py-2 text-xs tracking-wider hover:bg-gray-600 inline-block w-full text-center">
-                        {uploading ? t('photo.uploading') : t('photo.uploadFolder')}
-                        <input type="file" accept="image/*" multiple className="hidden" onChange={handleUpload} disabled={uploading} {...{ webkitdirectory: '' } as any} />
-                      </label>
-                    </div>
-
-                    <div className="mb-4">
-                      <p className="text-xs font-semibold text-gray-500 mb-2">{t('filter.view')}</p>
-                      <div className="flex gap-1 mb-2">
-                        {[{ cols: 2, icon: '2' }, { cols: 3, icon: '3' }, { cols: 4, icon: '4' }, { cols: 1, icon: '≡' }].map(({ cols, icon }) => (
-                          <button key={cols} onClick={() => setGridCols(cols)}
-                            className={`flex-1 py-1 text-xs rounded ${gridCols === cols ? 'bg-black text-white' : 'bg-gray-100 hover:bg-gray-200'}`}>{icon}</button>
-                        ))}
-                      </div>
-                      <button onClick={() => setShowExif(!showExif)}
-                        className={`w-full text-left px-2 py-1 text-xs rounded flex items-center justify-between ${showExif ? 'bg-black text-white' : 'hover:bg-gray-50'}`}>
-                        <span>{t('filter.exifOnOff')}</span><span>{showExif ? 'ON' : 'OFF'}</span>
-                      </button>
-                    </div>
-
-                    {/* 👇 여기서부터 새로 추가되는 "정렬 기준" UI 입니다. */}
-                    <div className="mb-4">
-                      <p className="text-xs font-semibold text-gray-500 mb-2">정렬 기준</p>
-                      <div className="flex flex-col gap-1">
-                        <button onClick={() => setSortBy('default')}
-                          className={`w-full text-left px-2 py-1 text-xs rounded ${sortBy === 'default' ? 'bg-black text-white' : 'hover:bg-gray-50'}`}>
-                          기본 (업로드순)
-                        </button>
-                        <button onClick={() => setSortBy('taken_at')}
-                          className={`w-full text-left px-2 py-1 text-xs rounded ${sortBy === 'taken_at' ? 'bg-black text-white' : 'hover:bg-gray-50'}`}>
-                          촬영 시간순
-                        </button>
-                        <button onClick={() => setSortBy('name')}
-                          className={`w-full text-left px-2 py-1 text-xs rounded ${sortBy === 'name' ? 'bg-black text-white' : 'hover:bg-gray-50'}`}>
-                          파일 이름순
-                        </button>
-                      </div>
-                    </div>
-                    {/* 👆 여기까지 */}
-
-                    <button onClick={() => { setFilterRating(null); setFilterColor(null); setFilterFolder(null) }}
-                      className={`w-full text-left px-2 py-1 text-xs rounded mb-3 ${!filterRating && !filterColor ? 'bg-black text-white' : 'hover:bg-gray-50'}`}>
-                      {t('filter.allPhotos')} ({photos.length})
+            {showFilter && (
+              <div className="bg-white rounded-lg shadow p-4 overflow-y-auto max-h-[calc(100vh-2rem)] sticky top-4">
+                
+                {/* 📂 새로 추가된 라이브러리 (기존 상단 가로 탭을 이쪽으로 이동) */}
+                <div className="mb-2">
+                  <p className="text-xs font-semibold text-gray-500 mb-2">{t('photo.library')}</p>
+                  <div className="flex flex-col gap-1">
+                    <button 
+                      onClick={() => setPhotoSubTab('all')}
+                      className={`w-full text-left px-2 py-1.5 text-xs rounded flex items-center justify-between ${photoSubTab === 'all' ? 'bg-black text-white' : 'hover:bg-gray-50 text-gray-700'}`}
+                    >
+                      <span>{t('photo.allPhotos')}</span>
+                      <span className={`${photoSubTab === 'all' ? 'text-gray-300' : 'text-gray-400'}`}>
+                        {photos.filter(p => !p.deleted_at).length}
+                      </span>
                     </button>
+                    <button 
+                      onClick={() => { setPhotoSubTab('trash'); fetchTrash(); }}
+                      className={`w-full text-left px-2 py-1.5 text-xs rounded flex items-center justify-between ${photoSubTab === 'trash' ? 'bg-red-600 text-white font-medium shadow-md' : 'hover:bg-red-50 text-gray-700'}`}
+                    >
+                      <span>{t('photo.trash')}</span>
+                      <span className={`${photoSubTab === 'trash' ? 'text-red-200' : 'text-gray-400'}`}>
+                        {trashedPhotos.length}
+                      </span>
+                    </button>
+                  </div>
+                </div>
+                
+                <div className="border-t border-gray-100 my-4"></div>
 
-                    {photos.some(p => p.folder) && (
-                      <div className="mt-4 mb-4">
-                        <p className="text-xs font-semibold text-gray-500 mb-2">{t('filter.folder')}</p>
-                        <button onClick={() => setFilterFolder(null)}
-                          className={`w-full text-left px-2 py-1 text-xs rounded flex items-center justify-between mb-1 ${filterFolder === null ? 'bg-black text-white' : 'hover:bg-gray-50'}`}>
-                          <span>{t('filter.allFolders')}</span><span className="text-gray-400">{photos.length}</span>
+                <div className="mb-4 flex flex-col gap-2">
+                  <label className="cursor-pointer bg-black text-white px-3 py-2 text-xs tracking-wider hover:bg-gray-800 inline-block w-full text-center">
+                    {uploading ? t('photo.uploading') : t('photo.uploadPhotos')}
+                    <input type="file" accept="image/*" multiple className="hidden" onChange={handleUpload} disabled={uploading} />
+                  </label>
+                  <label className="cursor-pointer bg-gray-700 text-white px-3 py-2 text-xs tracking-wider hover:bg-gray-600 inline-block w-full text-center">
+                    {uploading ? t('photo.uploading') : t('photo.uploadFolder')}
+                    <input type="file" accept="image/*" multiple className="hidden" onChange={handleUpload} disabled={uploading} {...{ webkitdirectory: '' } as any} />
+                  </label>
+                </div>
+
+                <div className="mb-4">
+                  <p className="text-xs font-semibold text-gray-500 mb-2">{t('filter.view')}</p>
+                  <div className="flex gap-1 mb-2">
+                    {[{ cols: 2, icon: '2' }, { cols: 3, icon: '3' }, { cols: 4, icon: '4' }, { cols: 1, icon: '≡' }].map(({ cols, icon }) => (
+                      <button key={cols} onClick={() => setGridCols(cols)}
+                        className={`flex-1 py-1 text-xs rounded ${gridCols === cols ? 'bg-black text-white' : 'bg-gray-100 hover:bg-gray-200'}`}>{icon}</button>
+                    ))}
+                  </div>
+                  <button onClick={() => setShowExif(!showExif)}
+                    className={`w-full text-left px-2 py-1 text-xs rounded flex items-center justify-between ${showExif ? 'bg-black text-white' : 'hover:bg-gray-50'}`}>
+                    <span>{t('filter.exifOnOff')}</span><span>{showExif ? 'ON' : 'OFF'}</span>
+                  </button>
+                </div>
+
+                <div className="mb-4">
+                  <p className="text-xs font-semibold text-gray-500 mb-2">정렬 기준</p>
+                  <div className="flex flex-col gap-1">
+                    <button onClick={() => setSortBy('default')}
+                      className={`w-full text-left px-2 py-1 text-xs rounded ${sortBy === 'default' ? 'bg-black text-white' : 'hover:bg-gray-50'}`}>
+                      기본 (업로드순)
+                    </button>
+                    <button onClick={() => setSortBy('taken_at')}
+                      className={`w-full text-left px-2 py-1 text-xs rounded ${sortBy === 'taken_at' ? 'bg-black text-white' : 'hover:bg-gray-50'}`}>
+                      촬영 시간순
+                    </button>
+                    <button onClick={() => setSortBy('name')}
+                      className={`w-full text-left px-2 py-1 text-xs rounded ${sortBy === 'name' ? 'bg-black text-white' : 'hover:bg-gray-50'}`}>
+                      파일 이름순
+                    </button>
+                  </div>
+                </div>
+
+                <button onClick={() => { setFilterRating(null); setFilterColor(null); setFilterFolder(null) }}
+                  className={`w-full text-left px-2 py-1 text-xs rounded mb-3 ${!filterRating && !filterColor ? 'bg-black text-white' : 'hover:bg-gray-50'}`}>
+                  {t('filter.allPhotos')} ({photos.length})
+                </button>
+
+                {photos.some(p => p.folder) && (
+                  <div className="mt-4 mb-4">
+                    <p className="text-xs font-semibold text-gray-500 mb-2">{t('filter.folder')}</p>
+                    <button onClick={() => setFilterFolder(null)}
+                      className={`w-full text-left px-2 py-1 text-xs rounded flex items-center justify-between mb-1 ${filterFolder === null ? 'bg-black text-white' : 'hover:bg-gray-50'}`}>
+                      <span>{t('filter.allFolders')}</span><span className="text-gray-400">{photos.length}</span>
+                    </button>
+                      {[...new Set(photos.filter(p => p.folder).map(p => p.folder))].map(folder => {
+                      const count = photos.filter(p => p.folder === folder).length
+                      return (
+                        <button key={folder} onClick={() => setFilterFolder(filterFolder === folder ? null : folder!)}
+                          title={folder!}
+                          className={`w-full text-left px-2 py-1 text-xs rounded flex items-center justify-between ${filterFolder === folder ? 'bg-black text-white' : 'hover:bg-gray-50'}`}>
+                          <span className="flex items-center gap-1 min-w-0">
+                            <span className="shrink-0">📁</span>
+                            <span className="truncate">{folder}</span>
+                          </span>
+                          <span className="text-gray-400 shrink-0 ml-2">{count}</span>
                         </button>
-                          {[...new Set(photos.filter(p => p.folder).map(p => p.folder))].map(folder => {
-                          const count = photos.filter(p => p.folder === folder).length
-                          return (
-                            <button key={folder} onClick={() => setFilterFolder(filterFolder === folder ? null : folder!)}
-                              title={folder!} // 마우스 올렸을 때 전체 이름 툴팁 표시
-                              className={`w-full text-left px-2 py-1 text-xs rounded flex items-center justify-between ${filterFolder === folder ? 'bg-black text-white' : 'hover:bg-gray-50'}`}>
-                              {/* 👇 min-w-0 을 넣어야 truncate가 작동합니다. */}
-                              <span className="flex items-center gap-1 min-w-0">
-                                <span className="shrink-0">📁</span>
-                                <span className="truncate">{folder}</span>
-                              </span>
-                              {/* 👇 숫자가 찌그러지지 않게 shrink-0 추가 */}
-                              <span className="text-gray-400 shrink-0 ml-2">{count}</span>
-                            </button>
-                          )
-                        })}
-                      </div>
-                    )}
-
-                    <div className="mb-4">
-                      <div className="flex items-center justify-between mb-2">
-                        <p className="text-xs font-semibold text-gray-500">{t('filter.rating')}</p>
-                        <button onClick={handleClearRatings} className="text-xs text-gray-400 hover:text-red-500">{t('common.reset')}</button>
-                      </div>
-                      {[5, 4, 3, 2, 1].map(star => {
-                        const count = photos.filter(p => p.rating === star).length
-                        return (
-                          <button key={star} onClick={() => setFilterRating(filterRating === star ? null : star)}
-                            className={`w-full text-left px-2 py-1 text-xs rounded flex items-center justify-between ${filterRating === star ? 'bg-black text-white' : 'hover:bg-gray-50'}`}>
-                            <span>{'★'.repeat(star)}{'☆'.repeat(5 - star)}</span>
-                            <span className="text-gray-400">{count}</span>
-                          </button>
-                        )
-                      })}
-                      <button onClick={() => setFilterRating(filterRating === 0 ? null : 0)}
-                        className={`w-full text-left px-2 py-1 text-xs rounded flex items-center justify-between ${filterRating === 0 ? 'bg-black text-white' : 'hover:bg-gray-50'}`}>
-                        <span className="text-gray-400">{t('filter.unrated')}</span>
-                        <span className="text-gray-400">{photos.filter(p => !p.rating).length}</span>
-                      </button>
-                    </div>
-
-                    <div className="mb-4">
-                      <div className="flex items-center justify-between mb-2">
-                        <p className="text-xs font-semibold text-gray-500">{t('filter.colors')}</p>
-                        <button onClick={handleClearColorLabels} className="text-xs text-gray-400 hover:text-red-500">{t('common.reset')}</button>
-                      </div>
-                      {colorLabels.map(label => {
-                        const count = photos.filter(p => p.color_label === label.value).length
-                        return (
-                          <button key={label.value} onClick={() => setFilterColor(filterColor === label.value ? null : label.value)}
-                            className={`w-full text-left px-2 py-1 text-xs rounded flex items-center justify-between ${filterColor === label.value ? 'bg-black text-white' : 'hover:bg-gray-50'}`}>
-                            <span className="flex items-center gap-2"><span className={`w-3 h-3 rounded-full ${label.color}`} />{label.label}</span>
-                            <span className="text-gray-400">{count}</span>
-                          </button>
-                        )
-                      })}
-                    </div>
-
+                      )
+                    })}
                   </div>
                 )}
-              </div>
 
-              <div className="flex-1">
+                <div className="mb-4">
+                  <div className="flex items-center justify-between mb-2">
+                    <p className="text-xs font-semibold text-gray-500">{t('filter.rating')}</p>
+                    <button onClick={handleClearRatings} className="text-xs text-gray-400 hover:text-red-500">{t('common.reset')}</button>
+                  </div>
+                  {[5, 4, 3, 2, 1].map(star => {
+                    const count = photos.filter(p => p.rating === star).length
+                    return (
+                      <button key={star} onClick={() => setFilterRating(filterRating === star ? null : star)}
+                        className={`w-full text-left px-2 py-1 text-xs rounded flex items-center justify-between ${filterRating === star ? 'bg-black text-white' : 'hover:bg-gray-50'}`}>
+                        <span>{'★'.repeat(star)}{'☆'.repeat(5 - star)}</span>
+                        <span className="text-gray-400">{count}</span>
+                      </button>
+                    )
+                  })}
+                  <button onClick={() => setFilterRating(filterRating === 0 ? null : 0)}
+                    className={`w-full text-left px-2 py-1 text-xs rounded flex items-center justify-between ${filterRating === 0 ? 'bg-black text-white' : 'hover:bg-gray-50'}`}>
+                    <span className="text-gray-400">{t('filter.unrated')}</span>
+                    <span className="text-gray-400">{photos.filter(p => !p.rating).length}</span>
+                  </button>
+                </div>
+
+                <div className="mb-4">
+                  <div className="flex items-center justify-between mb-2">
+                    <p className="text-xs font-semibold text-gray-500">{t('filter.colors')}</p>
+                    <button onClick={handleClearColorLabels} className="text-xs text-gray-400 hover:text-red-500">{t('common.reset')}</button>
+                  </div>
+                  {colorLabels.map(label => {
+                    const count = photos.filter(p => p.color_label === label.value).length
+                    return (
+                      <button key={label.value} onClick={() => setFilterColor(filterColor === label.value ? null : label.value)}
+                        className={`w-full text-left px-2 py-1 text-xs rounded flex items-center justify-between ${filterColor === label.value ? 'bg-black text-white' : 'hover:bg-gray-50'}`}>
+                        <span className="flex items-center gap-2"><span className={`w-3 h-3 rounded-full ${label.color}`} />{label.label}</span>
+                        <span className="text-gray-400">{count}</span>
+                      </button>
+                    )
+                  })}
+                </div>
+
+              </div>
+            )}
+          </div>
+
+          {/* 👉 우측 메인 사진 갤러리 영역 */}
+          <div className="flex-1 min-w-0">
+            
+            {/* 전체 사진 뷰 */}
+            {photoSubTab === 'all' && (
+              <div>
                 <div className={`grid gap-4 ${
                   gridCols === 1 ? 'grid-cols-1' : gridCols === 2 ? 'grid-cols-2' :
                   gridCols === 3 ? 'grid-cols-3' : 'grid-cols-4'}`}>
@@ -891,80 +890,72 @@ const filteredPhotos = photos.filter(photo => {
                   </div>
                 )}
               </div>
-            </div>
-          )}
+            )}
 
-          {/* 🆕 휴지통 뷰 (그리드 스타일로 개편) */}
-          {photoSubTab === 'trash' && (
-            <div className="flex-1"> {/* 메인 그리드와 좌측 간격을 맞추기 위해 flex-1 적용 */}
-              {trashedPhotos.length === 0 ? (
-                <div className="text-center py-20 text-gray-400 border rounded-xl bg-gray-50">
-                  <p className="text-lg mb-2">{t('photo.trashEmpty')}</p>
-                  <p className="text-sm">삭제된 사진은 30일 동안 보관 후 영구 삭제됩니다.</p>
-                </div>
-              ) : (
-                // 1. 3열 그리드, ProjectDetail 메인 그리드와 동일한 gap-4 적용
-                <div className="grid grid-cols-5 gap-4">
-                  {trashedPhotos.map(photo => {
-                    const deletedDate = new Date(photo.deleted_at!)
-                    const daysLeft = 30 - Math.floor((Date.now() - deletedDate.getTime()) / (1000 * 60 * 60 * 24))
-                    
-                    return (
-                      <div key={photo.id} className="rounded overflow-hidden bg-transparent group relative shadow-sm">
-                        {/* 이미지: 3:2 비율, object-contain (배경색 없이 깔끔하게) */}
-                        <img 
-                          src={photo.image_url} 
-                          alt={photo.caption || ''} 
-                          className="w-full aspect-[3/2] object-contain"
-                        />
-
-                        {/* 2. 호버 오버레이 (복구/삭제 버튼만 존재) */}
-                        <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity bg-black/70 flex flex-col items-center justify-center gap-2 px-4 z-10">
-                          <button
-                            onClick={async () => {
-                              await axios.post(`${API}/photos/${photo.id}/restore`)
-                              // 💡 완벽한 동기화를 위해 fetch 추가 (앞선 대화 내용 반영)
-                              await fetchTrash()
-                              await fetchPhotos()
-                              await fetchChapterPhotoIds()
-                            }}
-                            className="w-full text-center px-4 py-1.5 text-xs bg-white text-black rounded hover:bg-gray-200 font-medium shadow-lg"
-                          >
-                             ↺ {t('trash.restore')}
-                          </button>
-                          <button
-                            onClick={async () => {
-                              if (!confirm(t('photo.confirmPermanentDelete'))) return
-                              await axios.delete(`${API}/photos/${photo.id}/permanent`)
-                              fetchTrash()
-                            }}
-                            className="w-full text-center px-4 py-1.5 text-xs bg-red-600 text-white rounded hover:bg-red-700 font-medium shadow-lg"
-                          >
-                            ✕ {t('trash.permanentDelete')}
-                          </button>
+            {/* 휴지통 뷰 */}
+            {photoSubTab === 'trash' && (
+              <div>
+                {trashedPhotos.length === 0 ? (
+                  <div className="text-center py-20 text-gray-400 border rounded-xl bg-gray-50">
+                    <p className="text-lg mb-2">{t('photo.trashEmpty')}</p>
+                    <p className="text-sm">삭제된 사진은 30일 동안 보관 후 영구 삭제됩니다.</p>
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-3 gap-4">
+                    {trashedPhotos.map(photo => {
+                      const deletedDate = new Date(photo.deleted_at!)
+                      const daysLeft = 30 - Math.floor((Date.now() - deletedDate.getTime()) / (1000 * 60 * 60 * 24))
+                      
+                      return (
+                        <div key={photo.id} className="rounded overflow-hidden bg-transparent group relative shadow-sm border border-gray-200">
+                          <img 
+                            src={photo.image_url} 
+                            alt={photo.caption || ''} 
+                            className="w-full aspect-[3/2] object-contain"
+                          />
+                          <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity bg-black/70 flex flex-col items-center justify-center gap-2 px-4 z-10">
+                            <button
+                              onClick={async () => {
+                                await axios.post(`${API}/photos/${photo.id}/restore`)
+                                await fetchTrash()
+                                await fetchPhotos()
+                                await fetchChapterPhotoIds()
+                              }}
+                              className="w-full text-center px-4 py-1.5 text-xs bg-white text-black rounded hover:bg-gray-200 font-medium shadow-lg"
+                            >
+                               ↺ {t('trash.restore')}
+                            </button>
+                            <button
+                              onClick={async () => {
+                                if (!confirm(t('photo.confirmPermanentDelete'))) return
+                                await axios.delete(`${API}/photos/${photo.id}/permanent`)
+                                fetchTrash()
+                              }}
+                              className="w-full text-center px-4 py-1.5 text-xs bg-red-600 text-white rounded hover:bg-red-700 font-medium shadow-lg"
+                            >
+                              ✕ {t('trash.permanentDelete')}
+                            </button>
+                          </div>
+                          <div className="p-2 bg-transparent flex items-center justify-center h-10">
+                            {/* 💡 날짜 표시 버그 수정 (이전에 요청하신 {daysLeft}일 후 영구 삭제로 복구) */}
+                            <p className="text-xs text-red-500 font-medium">
+                              {daysLeft}일 후 영구 삭제
+                            </p>
+                          </div>
                         </div>
-
-                        {/* 3. 하단 정보 영역 (캡션 등 불필요한 정보 제거, 메인 뷰와 높이만 통일) */}
-                        <div className="p-2 bg-transparent flex items-center justify-center h-10">
-                          <p className="text-xs text-red-400 font-medium">
-                            {t('photo.autoDeleteIn', { days: daysLeft })}
-                          </p>
-                        </div>
-                      </div>
-                    )
-                  })}
-                </div>
-              )}
-            </div>
-          )}
+                      )
+                    })}
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
         </div>
       )}
 
       {activeTab === 'story' && (
-        // 변경 후 (onPhotoUpdate 추가)
         <ProjectStory 
           projectId={id!} 
-          // 💡 휴지통에 있는 사진(deleted_at이 있는 사진)은 빼고 넘겨줍니다.
           allPhotos={photos.filter(p => !p.deleted_at)} 
           onChapterChange={() => fetchChapterPhotoIds()} 
           onPhotoUpdate={fetchPhotos} 

@@ -50,7 +50,8 @@
   },
   "photo": {
     "title": "Photos",
-    "allPhotos": "Management",
+    "allPhotos": "All photos",
+    "library": "Library",
     "trash": "Deleted photos",
     "trashEmpty": "No deleted photos",
     "uploadPhotos": "+ Upload Photos",
@@ -101,7 +102,7 @@
   },
   "story": {
     "title": "Story",
-    "chapter": "Chapter",
+    "chapter": "Ch",
     "addChapter": "+ Add New Chapter",
     "deleteChapter": "Delete Chapter",
     "chapterTitle": "Enter chapter title (required)",
@@ -114,7 +115,8 @@
     "selectChapter": "Select Chapter",
     "chapterIncl": "In Chapter",
     "chapterDeleteWarning": "Do you want to delete chapter? Image connection will be lost.",
-    "noChapter": "No chapters"
+    "noChapter": "No chapters",
+    "noChapter2": "Please make a chapter in the Story tab."
   },
   "note": {
     "title": "Note",
