@@ -54,8 +54,8 @@
     "library": "Library",
     "trash": "Deleted photos",
     "trashEmpty": "No deleted photos",
-    "uploadPhotos": "+ Upload Photos",
-    "uploadFolder": "+ Upload Folder",
+    "uploadPhotos": "+ Photos",
+    "uploadFolder": "+ Folder",
     "uploading": "Uploading...",
     "noPhotos": "No photos yet. Click the buttons above to upload.",
     "setCover": "Cover",
@@ -66,7 +66,12 @@
     "addCaption": "Add comment",
     "addCpationDesc": "Comment...",
     "exifOn": "EXIF On",
-    "exifOff": "EXIF Off"
+    "exifOff": "EXIF Off",
+    "autoDeleteIn": "Auto delete after {{days}}",
+    "listOrder": "Order by",
+    "orderUpload": "Upload",
+    "orderTaken": "Date",
+    "orderName": "Name"
   },
   "filter": {
     "filter": "Hide tab",

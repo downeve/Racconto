@@ -54,6 +54,7 @@ interface Note {
 function Lightbox({
   photo, photos, colorLabels, chapterPhotoIds,
   onClose, onNavigate, onSetRating, onSetColorLabel, onSaveCaption,
+  showExif,
 }: {
   photo: Photo
   photos: Photo[]
@@ -64,6 +65,7 @@ function Lightbox({
   onSetRating: (p: Photo, r: number) => void
   onSetColorLabel: (p: Photo, l: string) => void
   onSaveCaption: (p: Photo, c: string) => void
+  showExif: boolean
 }) {
   const idx = photos.findIndex(p => p.id === photo.id)
   const [editingCaption, setEditingCaption] = useState(false)
@@ -134,7 +136,7 @@ function Lightbox({
             {inChapter && (
               <span className="text-xs text-blue-400">📖 {t('story.chapterIncl')}</span>
             )}
-            {(photo.camera || photo.focal_length) && (
+            {showExif && (photo.camera || photo.focal_length) && (
               <>
                 <div className="w-px h-5 bg-white/20" />
                 <span className="text-xs text-white/40">
@@ -197,70 +199,6 @@ function PhotoCard({
   onShowChapterMenu: (photoId: string) => void
 }) {
   const { t, i18n } = useTranslation()
-
-  if (gridCols === 1) {
-    return (
-      <div className="bg-white rounded overflow-hidden flex items-center gap-4 p-2 border-b">
-        <img src={photo.image_url} alt={photo.caption}
-          className="w-16 h-16 object-cover rounded shrink-0 cursor-pointer hover:opacity-80 transition-opacity"
-          onClick={() => onOpenLightbox(photo)} />
-        <div className="flex gap-0.5 shrink-0">
-          {[1, 2, 3, 4, 5].map(star => (
-            <button key={star} onClick={() => onSetRating(photo, star)}
-              className={`text-xs ${photo.rating && photo.rating >= star ? 'text-yellow-400' : 'text-gray-300'}`}>★</button>
-          ))}
-        </div>
-        <div className="flex gap-0.5 shrink-0">
-          {colorLabels.map(label => (
-            <button key={label.value} onClick={() => onSetColorLabel(photo, label.value)} title={label.label}
-              className={`w-3 h-3 rounded-full ${label.color} ${photo.color_label === label.value ? 'ring-2 ring-offset-1 ring-gray-400' : 'opacity-40'}`} />
-          ))}
-        </div>
-        <div className="flex-1 min-w-0 cursor-pointer"
-          onClick={() => { setEditingCaption(photo.id); setCaptionKo(photo.caption || '') }}>
-          {editingCaption === photo.id ? (
-            <div className="flex gap-1" onClick={e => e.stopPropagation()}>
-              <input className="border rounded px-2 py-0.5 text-xs flex-1" placeholder="캡션"
-                value={captionKo} onChange={e => setCaptionKo(e.target.value)} />
-              <button onClick={() => onSaveCaption(photo)} className="bg-black text-white px-2 py-0.5 text-xs rounded">저장</button>
-              <button onClick={() => setEditingCaption(null)} className="border px-2 py-0.5 text-xs rounded">취소</button>
-            </div>
-          ) : (
-            photo.caption
-              ? <p className="text-sm text-gray-700 truncate">{photo.caption}</p>
-              : <p className="text-sm text-gray-300">{t('photo.addCaption')}</p>
-          )}
-        </div>
-        {showExif && editingCaption !== photo.id && (
-          <div className="text-xs text-gray-400 shrink-0 text-right">
-            {photo.camera && <p>{photo.camera}</p>}
-            {photo.taken_at && (
-              <p>
-                {new Date(photo.taken_at).toLocaleDateString(
-                  i18n.language?.startsWith('ko') ? 'ko-KR' : 'en-US'
-                )}
-              </p>
-            )}
-            {(photo.focal_length || photo.aperture || photo.shutter_speed || photo.iso) && (
-              <p>{[photo.focal_length, photo.aperture, photo.shutter_speed, photo.iso].filter(Boolean).join(' · ')}</p>
-            )}
-          </div>
-        )}
-        {editingCaption !== photo.id && (
-          <div className="flex gap-1 shrink-0">
-            <button onClick={() => onSetCover(photo)}
-              className={`px-2 py-1 text-xs rounded ${project?.cover_image_url === photo.image_url ? 'bg-yellow-400 text-black' : 'bg-gray-100 hover:bg-gray-200'}`}>
-              {project?.cover_image_url === photo.image_url ? t('photo.isCover') : t('photo.setCover')}
-            </button>
-            {chapterPhotoIds.has(photo.id) && (
-              <button className="px-2 py-1 text-xs rounded bg-blue-100 text-blue-500 cursor-default">📖 챕터</button>
-            )}
-            <button onClick={() => onDelete(photo.id)} className="px-2 py-1 text-xs bg-red-100 text-red-500 rounded hover:bg-red-200">삭제</button>
-          </div>
-        )}
-      </div>
-    )
-  }
 
   return (
     <div className="rounded overflow-hidden bg-gray-100">
@@ -609,6 +547,7 @@ export default function ProjectDetail() {
           onSetRating={handleSetRating}
           onSetColorLabel={handleSetColorLabel}
           onSaveCaption={handleSaveCaptionLightbox}
+          showExif={showExif}
         />
       )}
 
@@ -710,9 +649,23 @@ export default function ProjectDetail() {
               className="mb-2 text-gray-400 hover:text-black text-xs flex items-center gap-1">
               {showFilter ? '◀ ' + t('filter.filter') : '▶'}
             </button>
+
             {showFilter && (
-              <div className="bg-white rounded-lg shadow p-4 overflow-y-auto max-h-[calc(100vh-2rem)] sticky top-4">
+              <div className="bg-white rounded-lg shadow p-4 overflow-y-auto max-h-[calc(100vh-2rem)] min-h-[calc(100vh-8rem)] sticky top-4">
                 
+                {/* 💡 flex-col을 지워서 가로 배치(flex-row 기본값)로 변경했습니다 */}
+                <div className="mb-3 flex gap-2">
+                  {/* 💡 양쪽 버튼이 1:1 비율을 가지도록 flex-1을 추가하고 rounded를 넣었습니다 */}
+                  <label className="flex-1 cursor-pointer bg-black text-white px-1.5 py-1.5 text-xs tracking-wider hover:bg-gray-800 inline-block text-center rounded">
+                    {uploading ? t('photo.uploading') : t('photo.uploadPhotos')}
+                    <input type="file" accept="image/*" multiple className="hidden" onChange={handleUpload} disabled={uploading} />
+                  </label>
+                  <label className="flex-1 cursor-pointer bg-gray-700 text-white px-1.5 py-1.5 text-xs tracking-wider hover:bg-gray-600 inline-block text-center rounded">
+                    {uploading ? t('photo.uploading') : t('photo.uploadFolder')}
+                    <input type="file" accept="image/*" multiple className="hidden" onChange={handleUpload} disabled={uploading} {...{ webkitdirectory: '' } as any} />
+                  </label>
+                </div>
+
                 {/* 📂 새로 추가된 라이브러리 (기존 상단 가로 탭을 이쪽으로 이동) */}
                 <div className="mb-2">
                   <p className="text-xs font-semibold text-gray-500 mb-2">{t('photo.library')}</p>
@@ -738,58 +691,59 @@ export default function ProjectDetail() {
                   </div>
                 </div>
                 
-                <div className="border-t border-gray-100 my-4"></div>
+                <div className="border-t border-gray-100 my-2"></div>
 
-                <div className="mb-4 flex flex-col gap-2">
-                  <label className="cursor-pointer bg-black text-white px-3 py-2 text-xs tracking-wider hover:bg-gray-800 inline-block w-full text-center">
-                    {uploading ? t('photo.uploading') : t('photo.uploadPhotos')}
-                    <input type="file" accept="image/*" multiple className="hidden" onChange={handleUpload} disabled={uploading} />
-                  </label>
-                  <label className="cursor-pointer bg-gray-700 text-white px-3 py-2 text-xs tracking-wider hover:bg-gray-600 inline-block w-full text-center">
-                    {uploading ? t('photo.uploading') : t('photo.uploadFolder')}
-                    <input type="file" accept="image/*" multiple className="hidden" onChange={handleUpload} disabled={uploading} {...{ webkitdirectory: '' } as any} />
-                  </label>
-                </div>
-
-                <div className="mb-4">
-                  <p className="text-xs font-semibold text-gray-500 mb-2">{t('filter.view')}</p>
-                  <div className="flex gap-1 mb-2">
-                    {[{ cols: 2, icon: '2' }, { cols: 3, icon: '3' }, { cols: 4, icon: '4' }, { cols: 1, icon: '≡' }].map(({ cols, icon }) => (
-                      <button key={cols} onClick={() => setGridCols(cols)}
-                        className={`flex-1 py-1 text-xs rounded ${gridCols === cols ? 'bg-black text-white' : 'bg-gray-100 hover:bg-gray-200'}`}>{icon}</button>
-                    ))}
+                <div className="mt-2 mb-2">
+                  {/* 💡 flex를 사용해 라벨과 버튼 그룹을 한 줄로 만들었습니다! */}
+                  <div className="flex items-center justify-between mb-2">
+                    <p className="text-xs font-semibold text-gray-500 mr-3 shrink-0">{t('filter.view')}</p>
+                    <div className="flex gap-1 flex-1">
+                      {/* 💡 cols: 1 (목록형) 옵션을 삭제했습니다! */}
+                      {[{ cols: 2, icon: '2' }, { cols: 3, icon: '3' }, { cols: 4, icon: '4' }].map(({ cols, icon }) => (
+                        <button key={cols} onClick={() => setGridCols(cols)}
+                          className={`flex-1 py-1 text-xs rounded ${gridCols === cols ? 'bg-black text-white' : 'bg-gray-100 hover:bg-gray-200'}`}>{icon}</button>
+                      ))}
+                    </div>
                   </div>
-                  <button onClick={() => setShowExif(!showExif)}
-                    className={`w-full text-left px-2 py-1 text-xs rounded flex items-center justify-between ${showExif ? 'bg-black text-white' : 'hover:bg-gray-50'}`}>
-                    <span>{t('filter.exifOnOff')}</span><span>{showExif ? 'ON' : 'OFF'}</span>
-                  </button>
                 </div>
 
-                <div className="mb-4">
-                  <p className="text-xs font-semibold text-gray-500 mb-2">정렬 기준</p>
-                  <div className="flex flex-col gap-1">
+                <div className="mb-2">
+                  <p className="text-xs font-semibold text-gray-500 mb-2">{t('photo.listOrder')}</p>
+                  {/* 💡 flex-col을 지우고 flex-1과 text-center를 사용해 가로로 꽉 차게 3등분 했습니다 */}
+                  <div className="flex gap-1">
                     <button onClick={() => setSortBy('default')}
-                      className={`w-full text-left px-2 py-1 text-xs rounded ${sortBy === 'default' ? 'bg-black text-white' : 'hover:bg-gray-50'}`}>
-                      기본 (업로드순)
+                      className={`flex-1 text-center py-1 text-[11px] rounded tracking-tight ${sortBy === 'default' ? 'bg-black text-white' : 'bg-gray-100 hover:bg-gray-200'}`}>
+                      {t('photo.orderUpload')}
                     </button>
                     <button onClick={() => setSortBy('taken_at')}
-                      className={`w-full text-left px-2 py-1 text-xs rounded ${sortBy === 'taken_at' ? 'bg-black text-white' : 'hover:bg-gray-50'}`}>
-                      촬영 시간순
+                      className={`flex-1 text-center py-1 text-[11px] rounded tracking-tight ${sortBy === 'taken_at' ? 'bg-black text-white' : 'bg-gray-100 hover:bg-gray-200'}`}>
+                      {t('photo.orderTaken')}
                     </button>
                     <button onClick={() => setSortBy('name')}
-                      className={`w-full text-left px-2 py-1 text-xs rounded ${sortBy === 'name' ? 'bg-black text-white' : 'hover:bg-gray-50'}`}>
-                      파일 이름순
+                      className={`flex-1 text-center py-1 text-[11px] rounded tracking-tight ${sortBy === 'name' ? 'bg-black text-white' : 'bg-gray-100 hover:bg-gray-200'}`}>
+                      {t('photo.orderName')}
                     </button>
                   </div>
                 </div>
 
-                <button onClick={() => { setFilterRating(null); setFilterColor(null); setFilterFolder(null) }}
-                  className={`w-full text-left px-2 py-1 text-xs rounded mb-3 ${!filterRating && !filterColor ? 'bg-black text-white' : 'hover:bg-gray-50'}`}>
-                  {t('filter.allPhotos')} ({photos.length})
-                </button>
+                <div className="mb-2 flex items-center justify-between">
+                    <p className="text-xs font-semibold text-gray-500 mr-3 shrink-0">{t('filter.exifOnOff')}</p>
+                    <div className="flex gap-1 flex-1">
+                      <button onClick={() => setShowExif(true)}
+                        className={`flex-1 py-1 text-xs rounded ${showExif ? 'bg-black text-white' : 'bg-gray-100 hover:bg-gray-200'}`}>
+                        On
+                      </button>
+                      <button onClick={() => setShowExif(false)}
+                        className={`flex-1 py-1 text-xs rounded ${!showExif ? 'bg-black text-white' : 'bg-gray-100 hover:bg-gray-200'}`}>
+                        Off
+                      </button>
+                    </div>
+                </div>
+                
+                <div className="border-t border-gray-100 my-2"></div>
 
                 {photos.some(p => p.folder) && (
-                  <div className="mt-4 mb-4">
+                  <div className="mt-3 mb-3">
                     <p className="text-xs font-semibold text-gray-500 mb-2">{t('filter.folder')}</p>
                     <button onClick={() => setFilterFolder(null)}
                       className={`w-full text-left px-2 py-1 text-xs rounded flex items-center justify-between mb-1 ${filterFolder === null ? 'bg-black text-white' : 'hover:bg-gray-50'}`}>
@@ -862,8 +816,9 @@ export default function ProjectDetail() {
             {photoSubTab === 'all' && (
               <div>
                 <div className={`grid gap-4 ${
-                  gridCols === 1 ? 'grid-cols-1' : gridCols === 2 ? 'grid-cols-2' :
-                  gridCols === 3 ? 'grid-cols-3' : 'grid-cols-4'}`}>
+                  gridCols === 2 ? 'grid-cols-2' : 
+                  gridCols === 3 ? 'grid-cols-3' : 'grid-cols-4'
+                }`}>
                   {filteredPhotos.map(photo => (
                     <PhotoCard
                       key={photo.id} photo={photo} project={project}
@@ -1011,6 +966,16 @@ export default function ProjectDetail() {
             </div>
           )}
         </div>
+      )}
+      {/* ⬆️ 맨 위로 가기 플로팅 버튼 */}
+      {!lightboxPhoto && (
+      <button
+        onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+        className="fixed bottom-8 right-8 w-12 h-12 bg-black/70 hover:bg-black text-white rounded-full flex items-center justify-center shadow-2xl transition-all z-50 backdrop-blur-sm"
+        title="맨 위로"
+      >
+        <span className="text-2xl font-bold">↑</span>
+      </button>
       )}
     </div>
   )

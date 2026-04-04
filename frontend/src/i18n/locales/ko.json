@@ -54,8 +54,8 @@
     "library": "라이브러리",
     "trash": "지운 사진",
     "trashEmpty": "삭제한 사진이 없습니다.",
-    "uploadPhotos": "+ 사진 업로드",
-    "uploadFolder": "+ 폴더 업로드",
+    "uploadPhotos": "+ 사진",
+    "uploadFolder": "+ 폴더",
     "uploading": "업로드 중...",
     "noPhotos": "사진이 없습니다. 위 버튼을 눌러 사진을 업로드하세요.",
     "setCover": "커버",
@@ -67,7 +67,11 @@
     "addCaptionDesc": "코멘트를 입력하세요.",
     "exifOn": "EXIF 보기 켬",
     "exifOff": "EXIF 보기 끔",
-    "autoDeleteIn": "{{days}}일 후 자동 삭제"
+    "autoDeleteIn": "{{days}}일 후 자동 삭제",
+    "listOrder": "정렬 기준",
+    "orderUpload": "업로드",
+    "orderTaken": "촬영일",
+    "orderName": "파일명"
   },
   "filter": {
     "filter": "탭 숨기기",
