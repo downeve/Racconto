@@ -7,7 +7,7 @@ from typing import Optional
 from datetime import datetime
 import uuid
 # ⭕️ 다음과 같이 수정 (같은 폴더에 있으므로 상대 경로나 라우터 경로 사용)
-from .photos import delete_from_cloudflare
+from app.routers.photos import delete_from_cloudflare
 
 router = APIRouter(prefix="/projects", tags=["projects"])
 

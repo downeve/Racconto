@@ -275,7 +275,10 @@ async def upload_photo(
     finally:
         # 💡 3. 로컬 임시 파일 삭제 (성공하든 에러가 나든 무조건 마지막에 지우도록 finally로 감쌈)
         if os.path.exists(file_path):
-            os.remove(file_path)
+            try:
+                os.remove(file_path)
+            except Exception as e:
+                print(f"⚠️ 임시 파일 삭제 실패: {file_path} - {e}")
 
     # 현재 프로젝트의 마지막 order 값 + 1
     last_photo = db.query(models.Photo).filter(
