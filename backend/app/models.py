@@ -9,6 +9,12 @@ class User(Base):
     id = Column(String, primary_key=True)
     email = Column(String, unique=True, nullable=False, index=True)
     password_hash = Column(String, nullable=False)
+    projects = relationship("Project", back_populates="owner")
+    settings = relationship("Setting", back_populates="owner")
+    is_verified = Column(Boolean, default=False)
+    verify_token = Column(String, nullable=True)
+    verify_token_expires_at = Column(DateTime, nullable=True)
+    photo_limit = Column(Integer, default=1000)
     created_at = Column(DateTime, default=datetime.utcnow)
 
     projects = relationship("Project", back_populates="owner")

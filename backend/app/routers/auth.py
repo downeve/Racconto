@@ -6,6 +6,9 @@ from sqlalchemy.orm import Session
 from app import models
 from pydantic import BaseModel, EmailStr
 import uuid
+from app.email import send_verification_email
+from datetime import datetime, timedelta
+import secrets
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
@@ -30,14 +33,24 @@ def register(body: UserRegister, db: Session = Depends(get_db)):
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="이미 사용 중인 이메일입니다"
         )
+    
+    verify_token = secrets.token_urlsafe(32)
+    
     user = models.User(
         id=str(uuid.uuid4()),
         email=body.email,
         password_hash=get_password_hash(body.password),
+        is_verified=False,
+        verify_token=verify_token,
+        verify_token_expires_at=datetime.utcnow() + timedelta(hours=24),
+        photo_limit=1000,
     )
     db.add(user)
     db.commit()
-    return {"message": "회원가입이 완료되었습니다", "user_id": user.id}
+
+    send_verification_email(body.email, verify_token)
+
+    return {"message": "가입이 완료되었습니다. 이메일을 확인해주세요."}
 
 
 @router.post("/login", response_model=Token)
@@ -47,6 +60,11 @@ def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depend
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="이메일 또는 비밀번호가 틀렸습니다"
+        )
+    if not user.is_verified:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="이메일 인증이 필요합니다"
         )
     access_token = create_access_token(data={"sub": user.id})
     return {"access_token": access_token, "token_type": "bearer"}
@@ -71,3 +89,23 @@ def change_password(
     current_user.password_hash = get_password_hash(body.new_password)
     db.commit()
     return {"message": "비밀번호가 변경되었습니다"}
+
+
+@router.get("/verify-email")
+def verify_email(token: str, db: Session = Depends(get_db)):
+    user = db.query(models.User).filter(
+        models.User.verify_token == token
+    ).first()
+    
+    if not user:
+        raise HTTPException(status_code=400, detail="유효하지 않은 인증 토큰입니다")
+    
+    if user.verify_token_expires_at < datetime.utcnow():
+        raise HTTPException(status_code=400, detail="만료된 인증 토큰입니다")
+    
+    user.is_verified = True
+    user.verify_token = None
+    user.verify_token_expires_at = None
+    db.commit()
+    
+    return {"message": "이메일 인증이 완료되었습니다. 로그인해주세요."}
