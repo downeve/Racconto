@@ -15,6 +15,7 @@ class User(Base):
     verify_token = Column(String, nullable=True)
     verify_token_expires_at = Column(DateTime, nullable=True)
     photo_limit = Column(Integer, default=1000)
+    project_limit = Column(Integer, default=3)
     created_at = Column(DateTime, default=datetime.utcnow)
 
     projects = relationship("Project", back_populates="owner")

@@ -1,0 +1,84 @@
+.
+├── \033\033\033\033
+├── \033\033\033\033.pub
+├── backend
+│   ├── app
+│   │   ├── __init__.py
+│   │   ├── auth.py
+│   │   ├── database.py
+│   │   ├── email.py
+│   │   ├── main.py
+│   │   ├── models.py
+│   │   ├── routers
+│   │   │   ├── __init__.py
+│   │   │   ├── auth.py
+│   │   │   ├── chapters.py
+│   │   │   ├── delivery.py
+│   │   │   ├── notes.py
+│   │   │   ├── photos.py
+│   │   │   ├── portfolio.py
+│   │   │   ├── projects.py
+│   │   │   └── settings.py
+│   │   └── uploads
+│   └── requirements.txt
+├── dev.sh
+├── fotpm_backup_20260404.sql
+├── frontend
+│   ├── dist
+│   │   ├── assets
+│   │   │   ├── index-CBsIqerk.css
+│   │   │   └── index-WtDx2UxS.js
+│   │   ├── favicon.svg
+│   │   ├── icons.svg
+│   │   └── index.html
+│   ├── eslint.config.js
+│   ├── index.html
+│   ├── package-lock.json
+│   ├── package.json
+│   ├── postcss.config.js
+│   ├── public
+│   │   ├── favicon.svg
+│   │   └── icons.svg
+│   ├── README.md
+│   ├── src
+│   │   ├── App.css
+│   │   ├── App.tsx
+│   │   ├── assets
+│   │   │   ├── hero.png
+│   │   │   ├── react.svg
+│   │   │   └── vite.svg
+│   │   ├── components
+│   │   │   ├── DeliveryManager.tsx
+│   │   │   ├── Navbar.tsx
+│   │   │   └── ProjectCard.tsx
+│   │   ├── context
+│   │   │   └── AuthContext.tsx
+│   │   ├── i18n
+│   │   │   ├── index.ts
+│   │   │   └── locales
+│   │   │       ├── en.json
+│   │   │       └── ko.json
+│   │   ├── index.css
+│   │   ├── main.tsx
+│   │   └── pages
+│   │       ├── DeliveryPage.tsx
+│   │       ├── Login.tsx
+│   │       ├── Portfolio.tsx
+│   │       ├── ProjectDetail.tsx
+│   │       ├── ProjectEdit.tsx
+│   │       ├── Projects.tsx
+│   │       ├── ProjectStory.tsx
+│   │       ├── Register.tsx
+│   │       ├── Settings.tsx
+│   │       ├── Trash.tsx
+│   │       └── VerifyEmail.tsx
+│   ├── tailwind.config.js
+│   ├── tsconfig.app.json
+│   ├── tsconfig.json
+│   ├── tsconfig.node.json
+│   └── vite.config.ts
+├── README.md
+├── structure.txt
+└── tmp
+
+17 directories, 65 files

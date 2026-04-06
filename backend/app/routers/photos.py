@@ -10,11 +10,11 @@ import os
 import shutil
 import requests
 from PIL import Image as PilImage
+from app.auth import get_current_user
 import io
 
 from PIL import Image
 from PIL.ExifTags import TAGS, GPSTAGS
-from datetime import datetime as dt
 
 CF_ACCOUNT_ID = os.getenv("CF_ACCOUNT_ID")
 CF_API_TOKEN = os.getenv("CF_API_TOKEN")
@@ -33,7 +33,7 @@ def extract_exif(file_path: str) -> dict:
         # 촬영일
         if 'DateTimeOriginal' in exif:
             try:
-                exif_data['taken_at'] = dt.strptime(exif['DateTimeOriginal'], '%Y:%m:%d %H:%M:%S')
+                exif_data['taken_at'] = datetime.strptime(exif['DateTimeOriginal'], '%Y:%m:%d %H:%M:%S')
             except:
                 pass
 
@@ -250,8 +250,21 @@ async def upload_photo(
     project_id: str,
     file: UploadFile = File(...),
     folder: Optional[str] = None,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user)
 ):
+        # 프로젝트당 사진 업로드 제한 체크
+    photo_count = db.query(models.Photo).filter(
+        models.Photo.project_id == project_id,
+        models.Photo.deleted_at == None
+    ).count()
+    
+    if photo_count >= current_user.photo_limit:
+        raise HTTPException(
+            status_code=403,
+            detail=f"프로젝트당 최대 {current_user.photo_limit}장까지 업로드할 수 있습니다"
+        )
+    
     ext = file.filename.split(".")[-1].lower()
     if ext not in ["jpg", "jpeg", "png", "webp"]:
         # 💡 [수정] 400 에러를 던지면 업로드가 멈추므로, 무시할 수 있는 메시지로 처리하거나 프론트엔드에서 필터링해야 합니다.

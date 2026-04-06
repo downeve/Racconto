@@ -71,6 +71,18 @@ def create_project(
     db: Session = Depends(get_db),
     current_user: models.User = Depends(get_current_user)
 ):
+        # 프로젝트 생성 제한 체크
+    project_count = db.query(models.Project).filter(
+        models.Project.user_id == current_user.id,
+        models.Project.deleted_at == None
+    ).count()
+    
+    if project_count >= current_user.project_limit:
+        raise HTTPException(
+            status_code=403,
+            detail=f"프로젝트는 최대 {current_user.project_limit}개까지 생성할 수 있습니다"
+        )
+    
     db_project = models.Project(
         id=str(uuid.uuid4()),
         user_id=current_user.id,
