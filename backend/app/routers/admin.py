@@ -26,7 +26,7 @@ def get_users(
     db: Session = Depends(get_db),
     _: models.User = Depends(require_admin)
 ):
-    users = db.query(models.User).all()
+    users = db.query(models.User).order_by(models.User.created_at.asc()).all()
     return [
         {
             "id": u.id,
