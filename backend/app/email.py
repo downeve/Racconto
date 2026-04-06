@@ -14,7 +14,9 @@ def send_verification_email(to_email: str, verify_token: str):
         sib_api_v3_sdk.ApiClient(configuration)
     )
 
-    verify_url = f"https://racconto.app/verify-email?token={verify_token}"
+    # 변경
+    BASE_URL = os.getenv("BASE_URL", "https://racconto.app")
+    verify_url = f"{BASE_URL}/verify-email?token={verify_token}"
 
     send_smtp_email = sib_api_v3_sdk.SendSmtpEmail(
         to=[{"email": to_email}],

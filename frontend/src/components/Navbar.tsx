@@ -21,7 +21,7 @@ export default function Navbar({ onLogout }: NavbarProps) {
   return (
     <nav className="bg-black text-white px-6 py-4">
       <div className="max-w-6xl mx-auto flex items-center justify-between">
-        <Link to="/" className="text-xl font-bold tracking-widest">FotoPM</Link>
+        <Link to="/" className="text-xl font-bold tracking-widest">Racconto</Link>
         <div className="flex gap-8 items-center">
           <Link to="/projects" className="text-sm tracking-wider hover:text-gray-300">{t('nav.projects')}</Link>
           <Link to="/portfolio" className="text-sm tracking-wider hover:text-gray-300">{t('nav.portfolio')}</Link>

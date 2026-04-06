@@ -11,6 +11,8 @@ export default function Register() {
   const [error, setError] = useState('')
   const [success, setSuccess] = useState(false)
   const [loading, setLoading] = useState(false)
+  const [resending, setResending] = useState(false)
+  const [resendMessage, setResendMessage] = useState('')
   const navigate = useNavigate()
 
   const handleSubmit = async () => {
@@ -34,6 +36,17 @@ export default function Register() {
     setLoading(false)
   }
 
+  const handleResend = async () => {
+    setResending(true)
+    try {
+      await axios.post(`${API}/auth/resend-verification`, { email })
+      setResendMessage('재발송했습니다. 이메일을 확인해주세요.')
+    } catch {
+      setResendMessage('재발송에 실패했습니다. 잠시 후 다시 시도해주세요.')
+    }
+    setResending(false)
+  }
+
   if (success) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -41,6 +54,14 @@ export default function Register() {
           <h1 className="text-2xl font-bold tracking-widest mb-6">Racconto</h1>
           <p className="text-sm text-gray-600 mb-2">인증 이메일을 발송했습니다.</p>
           <p className="text-sm text-gray-600 mb-6">이메일을 확인하고 인증을 완료해주세요.</p>
+          {resendMessage && <p className="text-xs text-gray-500 mb-4">{resendMessage}</p>}
+          <button
+            onClick={handleResend}
+            disabled={resending}
+            className="w-full border border-black text-black py-2 text-sm tracking-wider hover:bg-gray-50 disabled:opacity-50 mb-3"
+          >
+            {resending ? '발송 중...' : '인증 이메일 재발송'}
+          </button>
           <button
             onClick={() => navigate('/login')}
             className="w-full bg-black text-white py-2 text-sm tracking-wider hover:bg-gray-800"

@@ -24,6 +24,27 @@ class PasswordChange(BaseModel):
     current_password: str
     new_password: str
 
+class ResendVerification(BaseModel):
+    email: str
+
+
+@router.post("/resend-verification")
+def resend_verification(body: ResendVerification, db: Session = Depends(get_db)):
+    user = db.query(models.User).filter(models.User.email == body.email).first()
+    if not user:
+        # 보안상 존재 여부 노출 안 함
+        return {"message": "인증 이메일을 발송했습니다"}
+    if user.is_verified:
+        raise HTTPException(
+            status_code=400,
+            detail="이미 인증된 이메일입니다"
+        )
+    user.verify_token = secrets.token_urlsafe(32)
+    user.verify_token_expires_at = datetime.utcnow() + timedelta(hours=24)
+    db.commit()
+    send_verification_email(body.email, user.verify_token)
+    return {"message": "인증 이메일을 발송했습니다"}
+
 
 @router.post("/register", status_code=201)
 def register(body: UserRegister, db: Session = Depends(get_db)):
