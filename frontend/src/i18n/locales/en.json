@@ -57,6 +57,41 @@
       "failed": "Email verification failed."
     }
   },
+
+  "api": {
+    "success": {
+      "VERIFICATION_EMAIL_SENT": "Verification email sent. Please check your inbox.",
+      "REGISTER_SUCCESS": "Register succeed. Please check the verification email sent."
+    },
+    "error": {
+      "USER_NOT_FOUND": "User not found.",
+      "UNKNOWN_ERROR": "An unknown error occurred. Please try again later.",
+      "INVALID_CREDENTIALS": "Invalid email or password.",
+      "EMAIL_NOT_VERIFIED": "Email verification required.",
+      "EMAIL_ALREADY_EXISTS": "This email is already in use.",
+      "ALREADY_VERIFIED": "This email is already verified.",
+      "INVALID_TOKEN": "Invalid verification token.",
+      "TOKEN_EXPIRED": "Verification token has expired.",
+      "PASSWORD_CHANGED": "Password changed successfully.",
+      "REGISTER_SUCCESS": "Registration complete. Please check your email.",
+      "VERIFICATION_SENT": "Verification email sent.",
+      "PROJECT_NOT_FOUND": "Project not found.",
+      "MOVED_TO_TRASH": "Moved to trash.",
+      "PERMANENTLY_DELETED": "Permanently deleted.",
+      "PROJECT_LIMIT_EXCEEDED": "You have reached the maximum number of projects.",
+      "PHOTO_NOT_FOUND": "Photo not found.",
+      "UNSUPPORTED_FILE_FORMAT": "Unsupported file format.",
+      "PHOTO_LIMIT_EXCEEDED": "You have reached the upload limit for this project.",
+      "PHOTO_ALREADY_IN_CHAPTER": "This photo is already in the chapter.",
+      "PHOTO_NOT_IN_CHAPTER": "Photo not found in this chapter.",
+      "NOTE_NOT_FOUND": "Note not found.",
+      "LINK_NOT_FOUND": "Link not found.",
+      "LINK_EXPIRED": "This link has expired.",
+      "INCORRECT_PASSWORD": "Incorrect password.",
+      "PASSWORD_REQUIRED": "Password required.",
+      "DEFAULT": "An error occurred. Please try again."
+    }
+  },  
   "nav": {
     "projects": "PROJECTS",
     "trash": "🗑",

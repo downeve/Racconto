@@ -27,7 +27,7 @@ export default function Login() {
     if (success) {
       navigate('/projects')
     } else {
-      setError(i18n.language === 'ko' ? '이메일 또는 비밀번호가 틀렸습니다' : 'Invalid email or password')
+      setError((t('api.error.INVALID_CREDENTIALS')))
     }
     setLoading(false)
   }

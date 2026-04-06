@@ -41,7 +41,8 @@ export default function Register() {
       setSuccess(true)
     } catch (e: any) {
       // 서버에서 보내주는 에러 메시지가 있으면 띄우고, 없으면 기본 에러 번역문 출력
-      setError(e.response?.data?.detail || t('register.error.signupFailed'))
+      const code = e?.response?.data?.detail
+      setError(t(`api.error.${code}`, t('register.error.signupFailed')))
     }
     setLoading(false)
   }

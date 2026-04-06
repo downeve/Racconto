@@ -48,7 +48,7 @@ def create_note(note: NoteCreate, db: Session = Depends(get_db)):
 def update_note(note_id: str, note: NoteUpdate, db: Session = Depends(get_db)):
     db_note = db.query(models.Note).filter(models.Note.id == note_id).first()
     if not db_note:
-        raise HTTPException(status_code=404, detail="노트를 찾을 수 없습니다")
+        raise HTTPException(status_code=404, detail="NOTE_NOT_FOUND")
     db_note.content = note.content
     db.commit()
     db.refresh(db_note)
@@ -58,7 +58,7 @@ def update_note(note_id: str, note: NoteUpdate, db: Session = Depends(get_db)):
 def delete_note(note_id: str, db: Session = Depends(get_db)):
     db_note = db.query(models.Note).filter(models.Note.id == note_id).first()
     if not db_note:
-        raise HTTPException(status_code=404, detail="노트를 찾을 수 없습니다")
+        raise HTTPException(status_code=404, detail="NOTE_NOT_FOUND")
     db.delete(db_note)
     db.commit()
     return {"message": "삭제되었습니다"}

@@ -149,7 +149,7 @@ def update_chapter(chapter_id: str, chapter: ChapterUpdate, db: Session = Depend
 def delete_chapter(chapter_id: str, db: Session = Depends(get_db)):
     db_chapter = db.query(models.Chapter).filter(models.Chapter.id == chapter_id).first()
     if not db_chapter:
-        raise HTTPException(status_code=404, detail="Chapter not found")
+        raise HTTPException(status_code=404, detail="CHAPTER_NOT_FOUND")
     
     # 1. 삭제하려는 챕터에 딸린 '서브 챕터'들을 모두 검색
     sub_chapters = db.query(models.Chapter).filter(models.Chapter.parent_id == chapter_id).all()
@@ -177,7 +177,7 @@ def add_photo_to_chapter(chapter_id: str, body: ChapterPhotoAdd, db: Session = D
         models.ChapterPhoto.photo_id == body.photo_id
     ).first()
     if existing:
-        raise HTTPException(status_code=400, detail="이미 추가된 사진이에요")
+        raise HTTPException(status_code=400, detail="PHOTO_ALREADY_IN_CHAPTER")
 
     last = db.query(models.ChapterPhoto).filter(
         models.ChapterPhoto.chapter_id == chapter_id
@@ -203,7 +203,7 @@ def remove_photo_from_chapter(chapter_id: str, photo_id: str, db: Session = Depe
         models.ChapterPhoto.photo_id == photo_id
     ).first()
     if not cp:
-        raise HTTPException(status_code=404, detail="사진을 찾을 수 없습니다")
+        raise HTTPException(status_code=404, detail="PHOTO_NOT_FOUND")
     db.delete(cp)
 
     db.commit()
@@ -224,7 +224,7 @@ def update_chapter_photo_order(
     ).first()
     
     if not cp:
-        raise HTTPException(status_code=404, detail="해당 챕터에서 사진을 찾을 수 없습니다")
+        raise HTTPException(status_code=404, detail="PHOTO_NOT_IN_CHAPTER")
     
     # 순서 업데이트
     cp.order_num = body.order_num

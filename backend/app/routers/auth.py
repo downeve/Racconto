@@ -33,7 +33,7 @@ def resend_verification(body: ResendVerification, db: Session = Depends(get_db))
     user = db.query(models.User).filter(models.User.email == body.email).first()
     if not user:
         # 보안상 존재 여부 노출 안 함
-        return {"message": "VERFICATION_EMAIL_SENT"}
+        return {"message": "VERFICATION_SENT"}
     if user.is_verified:
         raise HTTPException(
             status_code=400,
@@ -43,7 +43,7 @@ def resend_verification(body: ResendVerification, db: Session = Depends(get_db))
     user.verify_token_expires_at = datetime.utcnow() + timedelta(hours=24)
     db.commit()
     send_verification_email(body.email, user.verify_token)
-    return {"message": "VERIFICATION_EMAIL_SENT"}
+    return {"message": "VERIFICATION_SENT"}
 
 
 @router.post("/register", status_code=201)
@@ -80,12 +80,12 @@ def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depend
     if not user or not verify_password(form_data.password, user.password_hash):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="이메일 또는 비밀번호가 틀렸습니다"
+            detail="INVALID_CREDENTIALS"
         )
     if not user.is_verified:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="이메일 인증이 필요합니다"
+            detail="EMAIL_NOT_VERIFIED"
         )
     access_token = create_access_token(data={"sub": user.id})
     return {"access_token": access_token, "token_type": "bearer"}
@@ -109,7 +109,7 @@ def change_password(
         )
     current_user.password_hash = get_password_hash(body.new_password)
     db.commit()
-    return {"message": "비밀번호가 변경되었습니다"}
+    return {"message": "PASSWORD_CHANGED"}
 
 
 @router.get("/verify-email")
@@ -122,11 +122,11 @@ def verify_email(token: str, db: Session = Depends(get_db)):
         raise HTTPException(status_code=400, detail="INVALID_TOKEN")
     
     if user.verify_token_expires_at < datetime.utcnow():
-        raise HTTPException(status_code=400, detail="만료된 인증 토큰입니다")
+        raise HTTPException(status_code=400, detail="INVALID_TOKEN")
     
     user.is_verified = True
     user.verify_token = None
     user.verify_token_expires_at = None
     db.commit()
     
-    return {"message": "이메일 인증이 완료되었습니다. 로그인해주세요."}
+    return {"message": "EMAIL_VERIFIED"}

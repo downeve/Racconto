@@ -202,7 +202,7 @@ def get_photos(project_id: Optional[str] = None, db: Session = Depends(get_db)):
 def get_photo(photo_id: str, db: Session = Depends(get_db)):
     photo = db.query(models.Photo).filter(models.Photo.id == photo_id).first()
     if not photo:
-        raise HTTPException(status_code=404, detail="사진을 찾을 수 없습니다")
+        raise HTTPException(status_code=404, detail="PHOTO_NOT_FOUND")
     return photo
 
 @router.post("/", response_model=PhotoResponse)
@@ -224,7 +224,7 @@ def create_photo(photo: PhotoCreate, db: Session = Depends(get_db)):
 def update_photo(photo_id: str, photo: PhotoCreate, db: Session = Depends(get_db)):
     db_photo = db.query(models.Photo).filter(models.Photo.id == photo_id).first()
     if not db_photo:
-        raise HTTPException(status_code=404, detail="사진을 찾을 수 없습니다")
+        raise HTTPException(status_code=404, detail="PHOTO_NOT_FOUND")
     for key, value in photo.dict(exclude_unset=True).items():
         setattr(db_photo, key, value)
     db.commit()
@@ -239,7 +239,7 @@ def delete_photo(photo_id: str, db: Session = Depends(get_db)):
         models.Photo.deleted_at == None  # 이미 삭제된 사진 제외
     ).first()
     if not photo:
-        raise HTTPException(status_code=404, detail="Photo not found")
+        raise HTTPException(status_code=404, detail="PHOTO_NOT_FOUND")
     
     photo.deleted_at = datetime.utcnow()
     db.commit()
@@ -262,14 +262,14 @@ async def upload_photo(
     if photo_count >= current_user.photo_limit:
         raise HTTPException(
             status_code=403,
-            detail=f"프로젝트당 최대 {current_user.photo_limit}장까지 업로드할 수 있습니다"
+            detail="PHOTO_LIMIT_EXCEEDED"
         )
     
     ext = file.filename.split(".")[-1].lower()
     if ext not in ["jpg", "jpeg", "png", "webp"]:
         # 💡 [수정] 400 에러를 던지면 업로드가 멈추므로, 무시할 수 있는 메시지로 처리하거나 프론트엔드에서 필터링해야 합니다.
         # 일단 백엔드에서는 에러를 던지되, 프론트에서 이 파일을 걸러서 올리는 것이 가장 좋습니다.
-        raise HTTPException(status_code=400, detail="지원하지 않는 파일 형식이에요")
+        raise HTTPException(status_code=400, detail="UNSUPPORTED_FILE_FORMAT")
 
     file_id = str(uuid.uuid4())
     filename = f"{file_id}.{ext}"
@@ -337,7 +337,7 @@ def restore_photo(photo_id: str, db: Session = Depends(get_db)):
         models.Photo.deleted_at != None
     ).first()
     if not photo:
-        raise HTTPException(status_code=404, detail="Photo not found in trash")
+        raise HTTPException(status_code=404, detail="PHOTO_NOT_FOUND")
     
     photo.deleted_at = None
     db.commit()
@@ -353,7 +353,7 @@ def permanent_delete_photo(photo_id: str, db: Session = Depends(get_db)):
     ).first()
     
     if not photo:
-        raise HTTPException(status_code=404, detail="Photo not found in trash")
+        raise HTTPException(status_code=404, detail="PHOTO_NOT_FOUND")
     
     # 1. ⭐ [추가] 챕터 매핑 데이터(ChapterPhoto) 먼저 삭제
     # 이 부분이 빠져서 에러가 났던 것입니다.
@@ -375,4 +375,4 @@ def permanent_delete_photo(photo_id: str, db: Session = Depends(get_db)):
     db.delete(photo)
     db.commit()
     
-    return {"message": "Permanently deleted"}
+    return {"message": "PERMANENTLY_DELETED"}

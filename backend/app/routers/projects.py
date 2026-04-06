@@ -80,7 +80,7 @@ def create_project(
     if project_count >= current_user.project_limit:
         raise HTTPException(
             status_code=403,
-            detail=f"프로젝트는 최대 {current_user.project_limit}개까지 생성할 수 있습니다"
+            detail="PROJECT_LIMIT_EXCEEDED"
         )
     
     db_project = models.Project(
@@ -113,7 +113,7 @@ def get_project(
         models.Project.deleted_at == None
     ).first()
     if not project:
-        raise HTTPException(status_code=404, detail="프로젝트를 찾을 수 없습니다")
+        raise HTTPException(status_code=404, detail="PROJECT_NOT_FOUND")
     return project
 
 # PUT /projects/{project_id}
@@ -130,7 +130,7 @@ def update_project(
         models.Project.deleted_at == None
     ).first()
     if not db_project:
-        raise HTTPException(status_code=404, detail="프로젝트를 찾을 수 없습니다")
+        raise HTTPException(status_code=404, detail="PROJECT_NOT_FOUND")
     for key, value in project.dict(exclude_unset=True).items():
         if key == "status":
             setattr(db_project, key, models.ProjectStatus(value))
@@ -153,10 +153,10 @@ def delete_project(
         models.Project.deleted_at == None
     ).first()
     if not project:
-        raise HTTPException(status_code=404, detail="프로젝트를 찾을 수 없습니다")
+        raise HTTPException(status_code=404, detail="PROJECT_NOT_FOUND")
     project.deleted_at = datetime.utcnow()
     db.commit()
-    return {"message": "휴지통으로 이동했습니다"}
+    return {"message": "MOVED_TO_TRASH"}
 
 # POST /projects/{project_id}/restore
 @router.post("/{project_id}/restore", response_model=ProjectResponse)
@@ -171,7 +171,7 @@ def restore_project(
         models.Project.deleted_at != None
     ).first()
     if not project:
-        raise HTTPException(status_code=404, detail="프로젝트를 찾을 수 없습니다")
+        raise HTTPException(status_code=404, detail="PROJECT_NOT_FOUND")
     project.deleted_at = None
     db.commit()
     db.refresh(project)
@@ -190,7 +190,7 @@ def permanent_delete(
         models.Project.deleted_at != None
     ).first()
     if not project:
-        raise HTTPException(status_code=404, detail="프로젝트를 찾을 수 없습니다")
+        raise HTTPException(status_code=404, detail="PROJECT_NOT_FOUND")
     
     # --- 🚨 외래키 충돌 방지를 위해 자식 데이터들을 명시적으로 먼저 삭제합니다 ---
     # 1. 챕터-사진 매핑 데이터(ChapterPhoto) 먼저 삭제
@@ -235,4 +235,4 @@ def permanent_delete(
     db.delete(project)
     db.commit()
     
-    return {"message": "영구 삭제되었습니다"}
+    return {"message": "PERMANENTLY_DELETED"}

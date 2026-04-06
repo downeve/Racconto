@@ -1,16 +1,16 @@
 #!/bin/bash
 
 echo "📦 1. Docker DB를 시작합니다..."
-docker start fotpm-db
+docker start racconto_db
 
 echo "🐍 2. 백엔드(FastAPI) 서버를 시작합니다..."
-cd ~/FotoPM/backend
+cd ~/Racconto/backend
 source venv/bin/activate
 uvicorn app.main:app --reload &
 BACKEND_PID=$!  # 백엔드 프로세스 ID 저장
 
 echo "⚛️ 3. 프론트엔드(React) 서버를 시작합니다..."
-cd ~/FotoPM/frontend
+cd ~/Racconto/frontend
 npm run dev &
 FRONTEND_PID=$! # 프론트엔드 프로세스 ID 저장
 

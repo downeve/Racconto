@@ -2,7 +2,7 @@
 -- PostgreSQL database dump
 --
 
-\restrict 8rMwDv17IuiFdFUO7oepupSGhZ50GJwl2sQVy0RITqLxeUDW8yK3O6GEqoRtjCd
+\restrict Yy1z307SEJFiSX25yctkiQd8MgpoDm3D6JfsLKfFUsE1EoCPSKtCFRrndUTJzus
 
 -- Dumped from database version 18.3 (Debian 18.3-1.pgdg13+1)
 -- Dumped by pg_dump version 18.3 (Debian 18.3-1.pgdg13+1)
@@ -183,7 +183,8 @@ CREATE TABLE public.projects (
     is_public character varying,
     created_at timestamp without time zone,
     updated_at timestamp without time zone,
-    deleted_at timestamp without time zone
+    deleted_at timestamp without time zone,
+    user_id character varying NOT NULL
 );
 
 
@@ -194,12 +195,32 @@ ALTER TABLE public.projects OWNER TO racconto_user;
 --
 
 CREATE TABLE public.settings (
+    user_id character varying NOT NULL,
     key character varying NOT NULL,
-    value text NOT NULL
+    value character varying NOT NULL
 );
 
 
 ALTER TABLE public.settings OWNER TO racconto_user;
+
+--
+-- Name: users; Type: TABLE; Schema: public; Owner: racconto_user
+--
+
+CREATE TABLE public.users (
+    id character varying NOT NULL,
+    email character varying NOT NULL,
+    password_hash character varying NOT NULL,
+    created_at timestamp without time zone DEFAULT now(),
+    is_verified boolean DEFAULT false,
+    verify_token character varying,
+    verify_token_expires_at timestamp without time zone,
+    photo_limit integer DEFAULT 1000,
+    project_limit integer DEFAULT 3
+);
+
+
+ALTER TABLE public.users OWNER TO racconto_user;
 
 --
 -- Data for Name: chapter_photos; Type: TABLE DATA; Schema: public; Owner: racconto_user
@@ -266,15 +287,15 @@ d9488176-8294-48d2-b720-09f115dd32d6	\N	http://localhost:8000/uploads/d9488176-8
 815f5eda-8acd-4716-aef1-1ef495fd7ad5	\N	http://localhost:8000/uploads/815f5eda-8acd-4716-aef1-1ef495fd7ad5.jpg	\N	\N	4	2026-03-29 17:21:06.919061	2025-02-25 16:21:41	FUJIFILM GFX 50R	GF50mmF3.5 R LM WR	ISO 1600	1/300s	f/11.0	50mm	\N	\N	\N	\N	\N	\N
 cfa228a9-c7be-4f4d-b315-15ccb31dd53d	\N	http://localhost:8000/uploads/cfa228a9-c7be-4f4d-b315-15ccb31dd53d.jpg	\N	\N	5	2026-03-29 17:21:06.948393	2025-02-25 16:19:28	FUJIFILM GFX 50R	GF50mmF3.5 R LM WR	ISO 1600	1/420s	f/11.0	50mm	\N	\N	\N	\N	\N	\N
 e65af919-9963-46f3-989d-00eec51bd432	\N	http://localhost:8000/uploads/e65af919-9963-46f3-989d-00eec51bd432.jpg	\N	\N	3	2026-03-29 17:17:33.029547	\N	\N	\N	\N	\N	\N	\N	\N	\N	\N	\N	\N	\N
-1ca36154-e966-4fa1-a8b2-de9a6d06447d	74b252ee-b975-4a09-9493-da24d7fe285c	https://imagedelivery.net/IlNDDkUU6uQ47m9Ef8lhvw/0382a182-e041-4695-ea54-a8d797fd1e00/public	\N	\N	0	2026-04-04 15:00:10.102178	\N	\N	\N	\N	\N	\N	\N	\N	\N	\N	\N	GFX50R_COP_developed	\N
-22dec7b3-d3e9-4255-b426-faa64ab7f713	74b252ee-b975-4a09-9493-da24d7fe285c	https://imagedelivery.net/IlNDDkUU6uQ47m9Ef8lhvw/ac8b36be-6f2c-4f05-2c6b-9bb333777e00/public	\N	\N	1	2026-04-04 15:00:12.316675	\N	\N	\N	\N	\N	\N	\N	\N	\N	\N	\N	GFX50R_COP_developed	\N
+1ca36154-e966-4fa1-a8b2-de9a6d06447d	74b252ee-b975-4a09-9493-da24d7fe285c	https://imagedelivery.net/IlNDDkUU6uQ47m9Ef8lhvw/0382a182-e041-4695-ea54-a8d797fd1e00/public	\N	\N	0	2026-04-04 15:00:10.102178	\N	\N	\N	\N	\N	\N	\N	\N	\N	\N	\N	GFX50R_COP_developed	2026-04-04 20:21:06.081274
+105807bf-3bc0-4407-9ead-769ba0779eaa	74b252ee-b975-4a09-9493-da24d7fe285c	https://imagedelivery.net/IlNDDkUU6uQ47m9Ef8lhvw/5257463f-4738-4970-92d8-bc3d5128b600/public	\N	\N	2	2026-04-04 15:00:14.563894	\N	\N	\N	\N	\N	\N	\N	\N	\N	\N	\N	GFX50R_COP_developed	2026-04-04 20:21:08.029168
+22dec7b3-d3e9-4255-b426-faa64ab7f713	74b252ee-b975-4a09-9493-da24d7fe285c	https://imagedelivery.net/IlNDDkUU6uQ47m9Ef8lhvw/ac8b36be-6f2c-4f05-2c6b-9bb333777e00/public	\N	\N	1	2026-04-04 15:00:12.316675	\N	\N	\N	\N	\N	\N	\N	\N	\N	\N	\N	GFX50R_COP_developed	2026-04-04 20:21:07.276757
+f041f136-83d8-439f-aef1-2a3f6a0aab1e	74b252ee-b975-4a09-9493-da24d7fe285c	https://imagedelivery.net/IlNDDkUU6uQ47m9Ef8lhvw/6820fa26-83c5-44d2-0ca2-59b5db157900/public	\N	\N	11	2026-04-04 15:00:34.255003	\N	\N	\N	\N	\N	\N	\N	\N	\N	\N	\N	GFX50R_COP_developed	2026-04-04 20:21:18.008544
 07afe2a1-5282-49c6-b617-93c69fa3f8f9	74b252ee-b975-4a09-9493-da24d7fe285c	https://imagedelivery.net/IlNDDkUU6uQ47m9Ef8lhvw/16e5d66a-52a1-459a-26ba-b67ed09c1700/public	\N	\N	5	2026-04-04 15:00:20.845522	\N	\N	\N	\N	\N	\N	\N	\N	\N	\N	\N	GFX50R_COP_developed	2026-04-04 18:31:15.884809
 998fd3d8-9c99-48a9-807a-56149e22e590	74b252ee-b975-4a09-9493-da24d7fe285c	https://imagedelivery.net/IlNDDkUU6uQ47m9Ef8lhvw/3009b265-80fd-43eb-f02e-2ec9a475e100/public	\N	\N	3	2026-04-04 15:00:16.714498	\N	\N	\N	\N	\N	\N	\N	\N	\N	\N	\N	GFX50R_COP_developed	\N
 4dbcc67d-2e91-4f8a-b855-92c786fea34e	74b252ee-b975-4a09-9493-da24d7fe285c	https://imagedelivery.net/IlNDDkUU6uQ47m9Ef8lhvw/50c4f9b5-7280-4b8d-48c2-565a08dd9c00/public	\N	\N	4	2026-04-04 15:00:18.697849	\N	\N	\N	\N	\N	\N	\N	\N	\N	\N	\N	GFX50R_COP_developed	\N
 a5708ecd-e150-4895-b875-9270a0120f1f	74b252ee-b975-4a09-9493-da24d7fe285c	https://imagedelivery.net/IlNDDkUU6uQ47m9Ef8lhvw/62041c06-a9d5-43c2-8a0b-37a42c494200/public	\N	\N	6	2026-04-04 15:00:23.207861	\N	\N	\N	\N	\N	\N	\N	\N	\N	\N	\N	GFX50R_COP_developed	\N
-105807bf-3bc0-4407-9ead-769ba0779eaa	74b252ee-b975-4a09-9493-da24d7fe285c	https://imagedelivery.net/IlNDDkUU6uQ47m9Ef8lhvw/5257463f-4738-4970-92d8-bc3d5128b600/public	\N	\N	2	2026-04-04 15:00:14.563894	\N	\N	\N	\N	\N	\N	\N	\N	\N	\N	\N	GFX50R_COP_developed	\N
 b800ad2f-b324-4a8e-aeb5-f9074bcbc22c	74b252ee-b975-4a09-9493-da24d7fe285c	https://imagedelivery.net/IlNDDkUU6uQ47m9Ef8lhvw/5494b3f3-ac0f-436e-218c-baf9ca4a8d00/public	\N	\N	10	2026-04-04 15:00:31.905762	\N	\N	\N	\N	\N	\N	\N	\N	\N	\N	\N	GFX50R_COP_developed	\N
-f041f136-83d8-439f-aef1-2a3f6a0aab1e	74b252ee-b975-4a09-9493-da24d7fe285c	https://imagedelivery.net/IlNDDkUU6uQ47m9Ef8lhvw/6820fa26-83c5-44d2-0ca2-59b5db157900/public	\N	\N	11	2026-04-04 15:00:34.255003	\N	\N	\N	\N	\N	\N	\N	\N	\N	\N	\N	GFX50R_COP_developed	\N
 16169f01-ffca-42f5-aac6-099249c1419b	74b252ee-b975-4a09-9493-da24d7fe285c	https://imagedelivery.net/IlNDDkUU6uQ47m9Ef8lhvw/094170ab-2a76-46eb-7efb-5c7c708b8a00/public	\N	\N	12	2026-04-04 15:00:36.441036	\N	\N	\N	\N	\N	\N	\N	\N	\N	\N	\N	GFX50R_COP_developed	\N
 605b4ef3-8665-41c2-9f50-3ec0c91cb1d9	74b252ee-b975-4a09-9493-da24d7fe285c	https://imagedelivery.net/IlNDDkUU6uQ47m9Ef8lhvw/56ae43ae-5112-4513-31eb-1d1992019700/public	\N	\N	13	2026-04-04 15:00:38.604823	\N	\N	\N	\N	\N	\N	\N	\N	\N	\N	\N	GFX50R_COP_developed	\N
 29460d51-a21c-4803-9d57-c71654290bf9	74b252ee-b975-4a09-9493-da24d7fe285c	https://imagedelivery.net/IlNDDkUU6uQ47m9Ef8lhvw/ac2128e9-ec1a-4167-acac-45c147639100/public	\N	\N	14	2026-04-04 15:00:41.843247	\N	\N	\N	\N	\N	\N	\N	\N	\N	\N	\N	GFX50R_COP_developed	\N
@@ -403,7 +424,6 @@ dc050ebe-ac14-4c82-b92c-b8696b0825a2	74b252ee-b975-4a09-9493-da24d7fe285c	https:
 7424901d-17dd-43ac-bef2-9c26e0a7c3e5	74b252ee-b975-4a09-9493-da24d7fe285c	https://imagedelivery.net/IlNDDkUU6uQ47m9Ef8lhvw/ca77ed8b-458c-4604-2412-b8ea4cfe6400/public	\N	\N	135	2026-04-04 15:39:54.756942	\N	\N	\N	\N	\N	\N	\N	\N	\N	\N	\N	최다운_이혜진_결혼식장_꾸미기 사진	\N
 7f803cb7-8dbf-4502-8a6e-143bea9933fc	74b252ee-b975-4a09-9493-da24d7fe285c	https://imagedelivery.net/IlNDDkUU6uQ47m9Ef8lhvw/c1389e06-007e-41c0-0555-781d45915800/public	\N	\N	136	2026-04-04 15:39:56.356069	\N	\N	\N	\N	\N	\N	\N	\N	\N	\N	\N	최다운_이혜진_결혼식장_꾸미기 사진	\N
 d08a4eb9-1c82-40c8-8659-667c73ea7225	74b252ee-b975-4a09-9493-da24d7fe285c	https://imagedelivery.net/IlNDDkUU6uQ47m9Ef8lhvw/2d8f02eb-cd3a-438c-98b4-a7b9772b7a00/public	\N	\N	137	2026-04-04 15:39:58.326322	\N	\N	\N	\N	\N	\N	\N	\N	\N	\N	\N	최다운_이혜진_결혼식장_꾸미기 사진	\N
-4460b1e4-b57c-4e2e-878f-83b92c494bbc	74b252ee-b975-4a09-9493-da24d7fe285c	https://imagedelivery.net/IlNDDkUU6uQ47m9Ef8lhvw/6f66ce10-f400-46cc-19a9-4725bfcfa200/public	\N	\N	138	2026-04-04 15:40:00.562537	\N	\N	\N	\N	\N	\N	\N	\N	\N	\N	\N	최다운_이혜진_결혼식장_꾸미기 사진	\N
 d17c627c-5543-49b1-a245-52e047e3e0b6	74b252ee-b975-4a09-9493-da24d7fe285c	https://imagedelivery.net/IlNDDkUU6uQ47m9Ef8lhvw/0ce62d4f-d175-47e1-ff59-84e3d07b7500/public	\N	\N	139	2026-04-04 15:40:03.52199	\N	\N	\N	\N	\N	\N	\N	\N	\N	\N	\N	최다운_이혜진_결혼식장_꾸미기 사진	\N
 60f30472-3c84-423b-be34-74cee361ba95	74b252ee-b975-4a09-9493-da24d7fe285c	https://imagedelivery.net/IlNDDkUU6uQ47m9Ef8lhvw/2af5d93e-9eb9-47e8-4df5-12b89672f200/public	\N	\N	140	2026-04-04 15:40:06.080041	\N	\N	\N	\N	\N	\N	\N	\N	\N	\N	\N	최다운_이혜진_결혼식장_꾸미기 사진	\N
 003e24c8-807b-4c05-84f6-547ad46bd87c	74b252ee-b975-4a09-9493-da24d7fe285c	https://imagedelivery.net/IlNDDkUU6uQ47m9Ef8lhvw/35654b17-4bb7-4d18-f254-c667995b3400/public	\N	\N	141	2026-04-04 15:40:08.032497	\N	\N	\N	\N	\N	\N	\N	\N	\N	\N	\N	최다운_이혜진_결혼식장_꾸미기 사진	\N
@@ -412,6 +432,7 @@ fcd23b5b-1e28-401e-b638-c1531b39e53e	74b252ee-b975-4a09-9493-da24d7fe285c	https:
 b9fb822c-b577-4fe0-a46d-a02bb1437f12	74b252ee-b975-4a09-9493-da24d7fe285c	https://imagedelivery.net/IlNDDkUU6uQ47m9Ef8lhvw/3535430e-e6e7-461a-69b3-0087dca54400/public	\N	\N	144	2026-04-04 15:40:12.845069	\N	\N	\N	\N	\N	\N	\N	\N	\N	\N	\N	최다운_이혜진_결혼식장_꾸미기 사진	\N
 b7a0cfe8-80ec-4bc1-be2d-b325e1dd4736	74b252ee-b975-4a09-9493-da24d7fe285c	https://imagedelivery.net/IlNDDkUU6uQ47m9Ef8lhvw/b39810ce-d3b1-4e47-6f3e-df1c17662400/public	\N	\N	145	2026-04-04 15:40:14.490625	\N	\N	\N	\N	\N	\N	\N	\N	\N	\N	\N	최다운_이혜진_결혼식장_꾸미기 사진	\N
 a1c0b548-2215-4014-a9b2-8429df68d727	74b252ee-b975-4a09-9493-da24d7fe285c	https://imagedelivery.net/IlNDDkUU6uQ47m9Ef8lhvw/3557a663-135c-47c0-b0ed-dca3753c4d00/public	\N	\N	146	2026-04-04 15:40:16.993346	\N	\N	\N	\N	\N	\N	\N	\N	\N	\N	\N	최다운_이혜진_결혼식장_꾸미기 사진	\N
+4460b1e4-b57c-4e2e-878f-83b92c494bbc	74b252ee-b975-4a09-9493-da24d7fe285c	https://imagedelivery.net/IlNDDkUU6uQ47m9Ef8lhvw/6f66ce10-f400-46cc-19a9-4725bfcfa200/public	\N	\N	138	2026-04-04 15:40:00.562537	\N	\N	\N	\N	\N	\N	\N	\N	\N	\N	\N	최다운_이혜진_결혼식장_꾸미기 사진	2026-04-06 12:36:36.167172
 9e0dca58-b04b-4f34-b96e-6592e13230ec	74b252ee-b975-4a09-9493-da24d7fe285c	https://imagedelivery.net/IlNDDkUU6uQ47m9Ef8lhvw/c44ac879-2684-457e-0fde-41842a0d7200/public	\N	\N	17	2026-04-04 15:31:12.472139	\N	\N	\N	\N	\N	\N	\N	\N	\N	\N	\N	GFX50R_COP_developed	\N
 \.
 
@@ -428,8 +449,8 @@ COPY public.pitches (id, project_id, media_name, editor_name, editor_email, sent
 -- Data for Name: projects; Type: TABLE DATA; Schema: public; Owner: racconto_user
 --
 
-COPY public.projects (id, title, title_en, description, description_en, status, cover_image_url, location, shot_date, is_public, created_at, updated_at, deleted_at) FROM stdin;
-74b252ee-b975-4a09-9493-da24d7fe285c	GFX Test		GFX 파일 정리 테스트		IN_PROGRESS	https://imagedelivery.net/IlNDDkUU6uQ47m9Ef8lhvw/0173bc30-2a05-4852-7b28-fc0606dcd800/public		\N	false	2026-04-04 14:59:47.142685	2026-04-04 18:12:31.842043	\N
+COPY public.projects (id, title, title_en, description, description_en, status, cover_image_url, location, shot_date, is_public, created_at, updated_at, deleted_at, user_id) FROM stdin;
+74b252ee-b975-4a09-9493-da24d7fe285c	GFX Test		GFX 파일 정리 테스트		IN_PROGRESS	https://imagedelivery.net/IlNDDkUU6uQ47m9Ef8lhvw/0173bc30-2a05-4852-7b28-fc0606dcd800/public		\N	false	2026-04-04 14:59:47.142685	2026-04-04 18:12:31.842043	\N	owner-migration-001
 \.
 
 
@@ -437,17 +458,27 @@ COPY public.projects (id, title, title_en, description, description_en, status, 
 -- Data for Name: settings; Type: TABLE DATA; Schema: public; Owner: racconto_user
 --
 
-COPY public.settings (key, value) FROM stdin;
-color_label_yellow	보류
-delivery_tag_color	purple
-portfolio_theme	light
-admin_password_hash	$2b$12$svFXj0Jhzj0u.dbqwu2UEuLrwa9OvbgYY6ZcVzydiv9T9fLkg.6MG
-color_label_blue	외부 공유
-color_label_green	1차 선택
-color_label_purple	최종 선택
-color_label_red	제외
-default_grid_cols	3
-default_show_exif	true
+COPY public.settings (user_id, key, value) FROM stdin;
+owner-migration-001	color_label_yellow	보류
+owner-migration-001	delivery_tag_color	purple
+owner-migration-001	portfolio_theme	light
+owner-migration-001	admin_password_hash	$2b$12$svFXj0Jhzj0u.dbqwu2UEuLrwa9OvbgYY6ZcVzydiv9T9fLkg.6MG
+owner-migration-001	color_label_blue	외부 공유
+owner-migration-001	color_label_green	1차 선택
+owner-migration-001	color_label_purple	최종 선택
+owner-migration-001	color_label_red	제외
+owner-migration-001	default_grid_cols	3
+owner-migration-001	default_show_exif	true
+\.
+
+
+--
+-- Data for Name: users; Type: TABLE DATA; Schema: public; Owner: racconto_user
+--
+
+COPY public.users (id, email, password_hash, created_at, is_verified, verify_token, verify_token_expires_at, photo_limit, project_limit) FROM stdin;
+owner-migration-001	downeve@gmail.com	$2b$12$8yv38IRO9tX03IAkigsUguT9uvVK/tKEbb9hWQ.X9PeKXpgp00KKy	2026-04-04 19:40:23.077734	t	\N	\N	500	3
+63f41612-5129-4512-8255-eb33b760fc72	dawoon.choi80@gmail.com	$2b$12$xBlI00KU2AFvTy4fPtGpnOMBZUKeQWmlVoTvlT7weemJs0AtxfXp.	2026-04-06 08:00:56.364163	t	\N	\N	1000	3
 \.
 
 
@@ -520,7 +551,37 @@ ALTER TABLE ONLY public.projects
 --
 
 ALTER TABLE ONLY public.settings
-    ADD CONSTRAINT settings_pkey PRIMARY KEY (key);
+    ADD CONSTRAINT settings_pkey PRIMARY KEY (user_id, key);
+
+
+--
+-- Name: users users_email_key; Type: CONSTRAINT; Schema: public; Owner: racconto_user
+--
+
+ALTER TABLE ONLY public.users
+    ADD CONSTRAINT users_email_key UNIQUE (email);
+
+
+--
+-- Name: users users_pkey; Type: CONSTRAINT; Schema: public; Owner: racconto_user
+--
+
+ALTER TABLE ONLY public.users
+    ADD CONSTRAINT users_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: idx_projects_user_id; Type: INDEX; Schema: public; Owner: racconto_user
+--
+
+CREATE INDEX idx_projects_user_id ON public.projects USING btree (user_id);
+
+
+--
+-- Name: idx_users_email; Type: INDEX; Schema: public; Owner: racconto_user
+--
+
+CREATE INDEX idx_users_email ON public.users USING btree (email);
 
 
 --
@@ -604,8 +665,24 @@ ALTER TABLE ONLY public.pitches
 
 
 --
+-- Name: projects projects_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: racconto_user
+--
+
+ALTER TABLE ONLY public.projects
+    ADD CONSTRAINT projects_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.users(id);
+
+
+--
+-- Name: settings settings_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: racconto_user
+--
+
+ALTER TABLE ONLY public.settings
+    ADD CONSTRAINT settings_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.users(id);
+
+
+--
 -- PostgreSQL database dump complete
 --
 
-\unrestrict 8rMwDv17IuiFdFUO7oepupSGhZ50GJwl2sQVy0RITqLxeUDW8yK3O6GEqoRtjCd
+\unrestrict Yy1z307SEJFiSX25yctkiQd8MgpoDm3D6JfsLKfFUsE1EoCPSKtCFRrndUTJzus
 
