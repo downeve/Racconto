@@ -18,7 +18,44 @@
     "login": "Login",
     "password": "Password",
     "logout": "Logout",
-    "loginFailed": "Login failed: Please check your password."
+    "loginFailed": "Login failed: Please check your password.",
+    "mail": "Email",
+    "logginIn": "Logging in...",
+    "submit": "Log in",
+    "noAccount": "Have not account yet? ",
+    "register": "Register here!"
+  },
+  "register": {
+    "email": "Email",
+    "password": "Password",
+    "passwordConfirm": "Confirm password",
+    "submit": "Register",
+    "processing": "Processing...",
+    "hasAccount": "Do you alreay have an account? ",
+    "loginLink": "Log in!",
+    "success.title": "Succeed",
+    "success.desc": "Registed succeed. Please verify through email",
+    "sending": "Sending...",
+    "resendEmail": "Resend verification email.",
+    "goToLogin": "Go to Log in.",
+    "success": {
+      "resend": "Verification email sent."
+    },
+    "error": {
+      "passwordMismatch": "Password mismatch. Please recheck.",
+      "passwordLength": "Passord should be longer than 8.",
+      "signupFailed": "Failed to sign up.",
+      "resendFailed": "Failed to send verification email."
+    }
+  },
+  "verify": {
+    "loading": "Email verication processing...",
+    "login": "Success verification.",
+    "goToLogin": "Log in!",
+    "error": {
+      "invalidToken": "Invalid access.",
+      "failed": "Email verification failed."
+    }
   },
   "nav": {
     "projects": "PROJECTS",

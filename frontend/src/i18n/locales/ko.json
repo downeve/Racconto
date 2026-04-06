@@ -16,9 +16,60 @@
   },
   "auth": {
     "login": "로그인",
+    "mail": "이메일",
     "password": "비밀번호",
     "logout": "로그아웃",
-    "loginFailed": "로그인 실패: 비밀번호를 확인해주세요."
+    "logginIn": "로그인 중",
+    "submit": "로그인",
+    "loginFailed": "로그인 실패: 비밀번호를 확인해주세요.",
+    "noAccount": "계정이 없으신가요? ",
+    "register": "회원 가입하기"
+  },
+  "register": {
+    "email": "이메일",
+    "password": "비밀번호",
+    "passwordConfirm": "비밀번호 확인",
+    "submit": "회원 가입하기",
+    "processing": "진행 중",
+    "hasAccount": "계정이 이미 있나요? ",
+    "loginLink": "로그인 하기",
+    "success.title": "가입 성공",
+    "success.desc": "회원 가입에 성공하였습니다. 이메일을 통해 인증해 주세요.",
+    "sending": "발송 중...",
+    "resendEmail": "인증 메일 다시 받기",
+    "goToLogin": "로그인 페이지로 가기",
+    "success": {
+      "resend": "인증 메일을 다시 보냈습니다."
+    },
+    "error": {
+      "passwordMismatch": "비밀번호가 일치하지 않습니다. 다시 확인해 주세요.",
+      "passwordLength": "비밀번호는 8자 이상이어야 합니다.",
+      "signupFailed": "회원 가입에 실패하였습니다.",
+      "resendFailed": "인증 메일을 보내는데 실패하였습니다."
+    }
+  },
+  "verify": {
+    "loading": "이메일 인증 진행 중...",
+    "login": "인증에 성공하였습니다.",
+    "goToLogin": "로그인 하기!",
+    "error": {
+      "invalidToken": "유효한 접근이 아닙니다.",
+      "failed": "이메일 인증에 실패하였습니다."
+    }
+  },
+  "api": {
+    "success": {
+      "VERIFICATION_EMAIL_SENT": "인증 이메일을 발송했습니다.",
+      "REGISTER_SUCCESS": "Register succeed. Please check the verification email sent."
+    },
+    "error": {
+      "EMAIL_ALREADY_EXISTS": "This email is already registered.",
+      "INVALID_TOKEN": "Invalid or expired verification link.",
+      "USER_NOT_FOUND": "User not found.",
+      "INVALID_CREDENTIALS": "Invalid email or password.",
+      "UNKNOWN_ERROR": "An unknown error occurred. Please try again later.",
+      "WRONG_PASSWORD": "비밀번호가 틀렸습니다."
+    }
   },
   "nav": {
     "projects": "프로젝트",

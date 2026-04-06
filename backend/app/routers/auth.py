@@ -33,17 +33,17 @@ def resend_verification(body: ResendVerification, db: Session = Depends(get_db))
     user = db.query(models.User).filter(models.User.email == body.email).first()
     if not user:
         # 보안상 존재 여부 노출 안 함
-        return {"message": "인증 이메일을 발송했습니다"}
+        return {"message": "VERFICATION_EMAIL_SENT"}
     if user.is_verified:
         raise HTTPException(
             status_code=400,
-            detail="이미 인증된 이메일입니다"
+            detail="EMAIL_ALREADY_VERIFIED"
         )
     user.verify_token = secrets.token_urlsafe(32)
     user.verify_token_expires_at = datetime.utcnow() + timedelta(hours=24)
     db.commit()
     send_verification_email(body.email, user.verify_token)
-    return {"message": "인증 이메일을 발송했습니다"}
+    return {"message": "VERIFICATION_EMAIL_SENT"}
 
 
 @router.post("/register", status_code=201)
@@ -52,7 +52,7 @@ def register(body: UserRegister, db: Session = Depends(get_db)):
     if existing:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="이미 사용 중인 이메일입니다"
+            detail="EMAIL_ALREADY_EXISTS"
         )
     
     verify_token = secrets.token_urlsafe(32)
@@ -71,7 +71,7 @@ def register(body: UserRegister, db: Session = Depends(get_db)):
 
     send_verification_email(body.email, verify_token)
 
-    return {"message": "가입이 완료되었습니다. 이메일을 확인해주세요."}
+    return {"message": "REGTISTER_SUCCESS"}
 
 
 @router.post("/login", response_model=Token)
@@ -105,7 +105,7 @@ def change_password(
     if not verify_password(body.current_password, current_user.password_hash):
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="현재 비밀번호가 틀렸습니다"
+            detail="WRONG_PASSWORD"
         )
     current_user.password_hash = get_password_hash(body.new_password)
     db.commit()
@@ -119,7 +119,7 @@ def verify_email(token: str, db: Session = Depends(get_db)):
     ).first()
     
     if not user:
-        raise HTTPException(status_code=400, detail="유효하지 않은 인증 토큰입니다")
+        raise HTTPException(status_code=400, detail="INVALID_TOKEN")
     
     if user.verify_token_expires_at < datetime.utcnow():
         raise HTTPException(status_code=400, detail="만료된 인증 토큰입니다")
