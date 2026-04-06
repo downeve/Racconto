@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, Link } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 
 export default function Login() {
@@ -53,6 +53,10 @@ export default function Login() {
           >
             {loading ? '로그인 중...' : '로그인'}
           </button>
+          <p className="text-center text-xs text-gray-500">
+            계정이 없으신가요?{' '}
+            <Link to="/register" className="underline">회원가입</Link>
+          </p>
         </div>
       </div>
     </div>

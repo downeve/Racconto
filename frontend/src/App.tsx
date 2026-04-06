@@ -9,6 +9,8 @@ import Portfolio from './pages/Portfolio'
 import Trash from './pages/Trash'
 import Settings from './pages/Settings'
 import DeliveryPage from './pages/DeliveryPage'
+import Register from './pages/Register'
+import VerifyEmail from './pages/VerifyEmail'
 
 function PrivateRoute({ children }: { children: React.ReactNode }) {
   const { isAuthenticated, isLoading } = useAuth()
@@ -28,6 +30,8 @@ function AppRoutes() {
       {isAuthenticated && !hideNavbar && <Navbar onLogout={logout} />}
       <Routes>
         <Route path="/login" element={<Login />} />
+        <Route path="/register" element={<Register />} />
+        <Route path="/verify-email" element={<VerifyEmail />} />
         <Route path="/" element={<PrivateRoute><Navigate to="/projects" /></PrivateRoute>} />
         <Route path="/projects" element={<PrivateRoute><Projects /></PrivateRoute>} />
         <Route path="/projects/:id" element={<PrivateRoute><ProjectDetail /></PrivateRoute>} />
