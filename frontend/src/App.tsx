@@ -11,6 +11,7 @@ import Settings from './pages/Settings'
 import DeliveryPage from './pages/DeliveryPage'
 import Register from './pages/Register'
 import VerifyEmail from './pages/VerifyEmail'
+import Admin from './pages/Admin'
 
 function PrivateRoute({ children }: { children: React.ReactNode }) {
   const { isAuthenticated, isLoading } = useAuth()
@@ -39,6 +40,7 @@ function AppRoutes() {
         <Route path="/portfolio" element={<PrivateRoute><Portfolio /></PrivateRoute>} />
         <Route path="/trash" element={<PrivateRoute><Trash /></PrivateRoute>} />
         <Route path="/settings" element={<PrivateRoute><Settings /></PrivateRoute>} />
+        <Route path="/admin" element={<PrivateRoute><Admin /></PrivateRoute>} />
 
         {/* 납품 링크 - 비로그인 공개 페이지 */}
         <Route path="/delivery/:linkId" element={<DeliveryPage />} />
