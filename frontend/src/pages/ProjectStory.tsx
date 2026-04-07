@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useMemo } from 'react'
 import axios from 'axios'
 import { useTranslation } from 'react-i18next'
 
@@ -167,6 +167,17 @@ export default function ProjectStory({
   const [editingCaptionPhotoId, setEditingCaptionPhotoId] = useState<string | null>(null);
   const [captionDraft, setCaptionDraft] = useState('');
 
+  // 👇 [추가] 3번: 클릭 연타 방지를 위한 로딩 상태 관리
+  const [processingPhotos, setProcessingPhotos] = useState<Set<string>>(new Set());
+
+  // 👇 [추가] 2번: O(N²) 성능 저하를 막기 위한 Set(해시테이블) 캐싱
+  const allPhotoIds = useMemo(() => new Set(allPhotos.map(p => p.id)), [allPhotos]);
+  
+  const selectedChapterPhotoIds = useMemo(() => {
+    if (!showPhotoSelector) return new Set();
+    return new Set((chapterPhotos[showPhotoSelector] || []).map(cp => cp.photo_id));
+  }, [showPhotoSelector, chapterPhotos]);
+
   // 드래그 센서
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
@@ -309,23 +320,31 @@ export default function ProjectStory({
     fetchChapters()
   }
 
-// 💡 사진이 있으면 챕터에서 삭제하고, 없으면 추가하는 토글 함수
+  // 👇 [수정] 3번: 중복 클릭 방지(Debounce/Lock) 적용
   const handleAddPhoto = async (chapterId: string, photoId: string, isAdded: boolean) => {
+    if (processingPhotos.has(photoId)) return; // 이미 처리 중이면 무시 (광클 방지)
+    
+    setProcessingPhotos(prev => new Set(prev).add(photoId));
     try {
       if (isAdded) {
-        // 이미 추가된 사진이면 제거
-        await axios.delete(`${API}/chapters/${chapterId}/photos/${photoId}`)
+        await axios.delete(`${API}/chapters/${chapterId}/photos/${photoId}`);
       } else {
-        // 없는 사진이면 추가
-        await axios.post(`${API}/chapters/${chapterId}/photos`, { photo_id: photoId })
+        await axios.post(`${API}/chapters/${chapterId}/photos`, { photo_id: photoId });
       }
-      fetchChapterPhotos(chapterId) // 화면 즉시 새로고침
+      await fetchChapterPhotos(chapterId); // 화면 갱신
     } catch (error) {
-      console.error(error)
-      alert('사진 상태 변경에 실패했습니다.')
+      console.error(error);
+      alert('사진 상태 변경에 실패했습니다.');
+    } finally {
+      // 처리가 끝나면 잠금 해제
+      setProcessingPhotos(prev => {
+        const next = new Set(prev);
+        next.delete(photoId);
+        return next;
+      });
     }
   }
-  
+
   const handleRemovePhoto = async (chapterId: string, photoId: string) => {
     await axios.delete(`${API}/chapters/${chapterId}/photos/${photoId}`)
     fetchChapterPhotos(chapterId)
@@ -361,10 +380,10 @@ export default function ProjectStory({
       }
     }
 
-  // 💡 [추가] 휴지통에 가지 않은(allPhotos에 존재하는) 챕터 사진만 걸러내는 함수
+  // 👇 [수정] 2번: 배열의 .some() 대신 O(1) 해시 검색인 .has()를 사용하여 성능 최적화
     const getVisibleChapterPhotos = (chapterId: string) => {
       return (chapterPhotos[chapterId] || []).filter(cp => 
-        allPhotos.some(p => p.id === cp.photo_id)
+        allPhotoIds.has(cp.photo_id) 
       );
     };
 
@@ -604,7 +623,7 @@ export default function ProjectStory({
                       <DragOverlay>
                         {activePhotoUrl && (
                           <div className="aspect-[3/2] rounded overflow-hidden shadow-2xl opacity-90 rotate-2 scale-105">
-                            <img src={activePhotoUrl} className="w-full h-full object-contain bg-gray-900" />
+                            <img src={activePhotoUrl} className="absolute inset-0 w-full h-full object-contain bg-gray-900" />
                           </div>
                         )}
                       </DragOverlay>
@@ -623,20 +642,20 @@ export default function ProjectStory({
                         <p className="text-xs text-gray-500 mb-2">{t('story.selectPhotos')}</p>
                         <div className="grid grid-cols-4 gap-2 max-h-96 overflow-y-auto">
                         {allPhotos
-                          // 💡 1. 여기서 이미 추가된 사진을 걸러냅니다 (숨김 처리)
-                          .filter(photo => {
-                            const isAdded = chapterPhotos[showPhotoSelector]?.some(cp => cp.photo_id === photo.id)
-                            return !isAdded; // 추가 안 된 사진만 남김
-                          })
-                          // 💡 2. 남은 사진만 화면에 그립니다
+                          // 💡 2번 반영: Set을 이용한 초고속 필터링
+                          .filter(photo => !selectedChapterPhotoIds.has(photo.id))
                           .map(photo => (
-                          <div
-                            key={photo.id}
-                            className="relative bg-gray-100 rounded overflow-hidden cursor-pointer transition hover:opacity-80 aspect-[3/2]"
-                            onClick={() => handleAddPhoto(showPhotoSelector, photo.id, false)}
-                          >
-                            <img src={photo.image_url} alt="photo" className="w-full h-full object-contain" />
-                          </div>                          
+                            /* 💡 1번 사파리 픽스: 그리드 자식 요소에 껍데기 div를 하나 씌워서 aspect-ratio 계산 오류 차단 */
+                            <div key={photo.id} className="w-full">
+                              <div
+                                className={`relative w-full aspect-[3/2] bg-gray-100 rounded overflow-hidden cursor-pointer transition hover:opacity-80 
+                                  ${processingPhotos.has(photo.id) ? 'opacity-50 pointer-events-none' : ''}
+                                `}
+                                onClick={() => handleAddPhoto(showPhotoSelector, photo.id, false)}
+                              >
+                                <img src={photo.image_url} alt="photo" className="absolute inset-0 w-full h-full object-contain" />
+                              </div>
+                            </div>
                           ))
                         }
                         </div>
@@ -747,7 +766,7 @@ export default function ProjectStory({
                         <DragOverlay>
                           {activePhotoUrl && (
                             <div className="aspect-[3/2] rounded overflow-hidden shadow-2xl opacity-90 rotate-2 scale-105">
-                              <img src={activePhotoUrl} className="w-full h-full object-contain bg-gray-900" />
+                              <img src={activePhotoUrl} className="absolute inset-0 w-full h-full object-contain bg-gray-900" />
                             </div>
                           )}
                         </DragOverlay>
@@ -765,20 +784,20 @@ export default function ProjectStory({
                         <div className="mt-3 p-3 bg-gray-50 rounded">
                           <p className="text-xs text-gray-500 mb-2">{t('story.selectPhotos')}</p>
                           <div className="grid grid-cols-4 gap-2 max-h-96 overflow-y-auto">
-                            {allPhotos
-                            // 💡 1. 여기서 이미 추가된 사진을 걸러냅니다 (숨김 처리)
-                            .filter(photo => {
-                              const isAdded = chapterPhotos[showPhotoSelector]?.some(cp => cp.photo_id === photo.id)
-                              return !isAdded; // 추가 안 된 사진만 남김
-                            })
-                            // 💡 2. 남은 사진만 화면에 그립니다
+                          {allPhotos
+                            // 💡 2번 반영: Set을 이용한 초고속 필터링
+                            .filter(photo => !selectedChapterPhotoIds.has(photo.id))
                             .map(photo => (
-                              <div
-                                key={photo.id}
-                                className="relative bg-gray-100 rounded overflow-hidden cursor-pointer transition hover:opacity-80 aspect-[3/2]"
-                                onClick={() => handleAddPhoto(showPhotoSelector, photo.id, false)}
-                              >
-                                <img src={photo.image_url} alt="photo" className="w-full h-full object-contain" />
+                              /* 💡 1번 사파리 픽스: 그리드 자식 요소에 껍데기 div를 하나 씌워서 aspect-ratio 계산 오류 차단 */
+                              <div key={photo.id} className="w-full">
+                                <div
+                                  className={`relative w-full aspect-[3/2] bg-gray-100 rounded overflow-hidden cursor-pointer transition hover:opacity-80 
+                                    ${processingPhotos.has(photo.id) ? 'opacity-50 pointer-events-none' : ''}
+                                  `}
+                                  onClick={() => handleAddPhoto(showPhotoSelector, photo.id, false)}
+                                >
+                                  <img src={photo.image_url} alt="photo" className="absolute inset-0 w-full h-full object-contain" />
+                                </div>
                               </div>
                             ))
                           }
