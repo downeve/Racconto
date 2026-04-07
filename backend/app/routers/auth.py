@@ -27,6 +27,9 @@ class PasswordChange(BaseModel):
 class ResendVerification(BaseModel):
     email: str
 
+class UsernameUpdate(BaseModel):
+    username: str
+
 
 @router.post("/resend-verification")
 def resend_verification(body: ResendVerification, db: Session = Depends(get_db)):
@@ -93,7 +96,11 @@ def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depend
 
 @router.get("/me")
 def get_me(current_user: models.User = Depends(get_current_user)):
-    return {"user_id": current_user.id, "email": current_user.email}
+    return {
+        "user_id": current_user.id,
+        "email": current_user.email,
+        "username": current_user.username,
+    }
 
 
 @router.put("/password")
@@ -130,3 +137,33 @@ def verify_email(token: str, db: Session = Depends(get_db)):
     db.commit()
     
     return {"message": "EMAIL_VERIFIED"}
+
+
+@router.get("/check-username/{username}")
+def check_username(username: str, db: Session = Depends(get_db)):
+    exists = db.query(models.User).filter(models.User.username == username).first()
+    return {"available": exists is None}
+
+
+@router.put("/username")
+def update_username(
+    body: UsernameUpdate,
+    current_user: models.User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    if not body.username or len(body.username) < 3:
+        raise HTTPException(status_code=400, detail="USERNAME_TOO_SHORT")
+    if len(body.username) > 30:
+        raise HTTPException(status_code=400, detail="USERNAME_TOO_LONG")
+    import re
+    if not re.match(r'^[a-zA-Z0-9_-]+$', body.username):
+        raise HTTPException(status_code=400, detail="USERNAME_INVALID_CHARS")
+    existing = db.query(models.User).filter(
+        models.User.username == body.username,
+        models.User.id != current_user.id
+    ).first()
+    if existing:
+        raise HTTPException(status_code=400, detail="USERNAME_ALREADY_TAKEN")
+    current_user.username = body.username
+    db.commit()
+    return {"message": "USERNAME_UPDATED", "username": body.username}

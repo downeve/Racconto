@@ -75,7 +75,7 @@ function Lightbox({
   const [editingCaption, setEditingCaption] = useState(false)
   const [showChapterMenu, setShowChapterMenu] = useState(false)
   const [captionDraft, setCaptionDraft] = useState(photo.caption || '')
-  const { t } = useTranslation()
+  const { t, i18n } = useTranslation()
 
   const [hoverRating, setHoverRating] = useState<{ id: string, star: number } | null>(null);
 
@@ -120,7 +120,7 @@ function Lightbox({
       </div>
 
       <div className="shrink-0 bg-black/80 border-t border-white/10 px-6 py-4" onClick={e => e.stopPropagation()}>
-        <div className="max-w-3xl mx-auto space-y-3">
+        <div className="max-w-[calc(100%-8rem)] mx-auto space-y-3">
           <div className="flex items-center gap-4 flex-wrap">
             <div 
               className="flex gap-1"
@@ -222,11 +222,21 @@ function Lightbox({
                   </div>
                 )}
               </div>
-            {showExif && (photo.camera || photo.focal_length) && (
+            {showExif && (photo.camera || photo.focal_length || photo.taken_at) && (
               <>
                 <div className="w-px h-5 bg-white/20" />
                 <span className="text-xs text-white/40">
-                  {[photo.camera, photo.focal_length, photo.aperture, photo.shutter_speed, photo.iso].filter(Boolean).join(' · ')}
+                  {[
+                    photo.taken_at ? new Date(photo.taken_at).toLocaleDateString(
+                      i18n.language === 'ko' ? 'ko-KR' : 'en-US'
+                    ) : null,
+                    photo.camera,
+                    photo.lens,
+                    photo.focal_length,
+                    photo.aperture,
+                    photo.shutter_speed,
+                    photo.iso,
+                  ].filter(Boolean).join(' · ')}
                 </span>
               </>
             )}
@@ -360,11 +370,21 @@ function PhotoCard({
 
       {showExif && (photo.camera || photo.taken_at) && (
         <div className="px-2 pb-2 bg-white">
-          <div className="border-t pt-2 mt-1">
-            {photo.taken_at && <p className="text-xs text-gray-400">📅 {new Date(photo.taken_at).toLocaleDateString(i18n.language === 'ko' ? 'ko-KR' : 'en-US')}</p>}
-            {photo.camera && <p className="text-xs text-gray-400">📷 {photo.camera}</p>}
-            {photo.lens && <p className="text-xs text-gray-400">🔭 {photo.lens}</p>}
-            {(photo.iso || photo.shutter_speed || photo.aperture || photo.focal_length) && (
+          <div className="border-t pt-1.5 mt-1 space-y-0.5">
+            {photo.taken_at && (
+              <p className="text-xs text-gray-400">
+                {new Date(photo.taken_at).toLocaleDateString(i18n.language === 'ko' ? 'ko-KR' : 'en-US')}
+                {photo.camera && <span className="text-gray-300"> · </span>}
+                {photo.camera && <span>{photo.camera}</span>}
+              </p>
+            )}
+            {!photo.taken_at && photo.camera && (
+              <p className="text-xs text-gray-400">{photo.camera}</p>
+            )}
+            {photo.lens && (
+              <p className="text-xs text-gray-400">{photo.lens}</p>
+            )}
+            {(photo.focal_length || photo.aperture || photo.shutter_speed || photo.iso) && (
               <p className="text-xs text-gray-400">
                 {[photo.focal_length, photo.aperture, photo.shutter_speed, photo.iso].filter(Boolean).join(' · ')}
               </p>

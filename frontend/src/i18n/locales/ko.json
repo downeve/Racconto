@@ -210,7 +210,8 @@
   },
   "portfolio": {
     "noChapters": "아직 챕터가 없어요",
-    "createChapterFirst": "스토리 탭에서 챕터를 만들어 사진을 공개해보세요"
+    "createChapterFirst": "스토리 탭에서 챕터를 만들어 사진을 공개해보세요.",
+    "noPublicProjects": "공개된 프로젝트가 없어요"
   },
   "delivery": {
     "title": "납품",
@@ -274,7 +275,12 @@
     "saveSuccess": "✓ 저장됨",
     "passwordChanged": "비밀번호가 변경되었습니다. 다시 로그인해주세요.",
     "passwordChangeFailed": "비밀번호 변경 실패",
-    "passwordInputAll": "모든 항목을 입력해 주세요."
+    "passwordInputAll": "모든 항목을 입력해 주세요.",
+    "publicPortfolio": "퍼블릭 포트폴리오 URL",
+    "publicPortfolioDesc": "비로그인 상태에서도 접근 가능한 나만의 포트폴리오 주소입니다.",
+    "usernameAvailable": "사용 가능한 username이에요",
+    "usernameTaken": "이미 사용 중인 username이에요",
+    "usernameInvalid": "영문, 숫자, -, _ 만 사용할 수 있어요 (3자 이상)"
   },
   "trash": {
     "title": "프로젝트 휴지통",

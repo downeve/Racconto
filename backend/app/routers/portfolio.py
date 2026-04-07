@@ -102,6 +102,100 @@ def get_portfolio(db: Session = Depends(get_db)):
     return result
 
 
+@router.get("/public/{username}")
+def get_public_portfolio(username: str, db: Session = Depends(get_db)):
+    """
+    비로그인 공개 포트폴리오 엔드포인트
+    - 인증 불필요
+    - username으로 유저 조회 후 is_public=true 프로젝트만 반환
+    """
+    user = db.query(models.User).filter(
+        models.User.username == username
+    ).first()
+    if not user:
+        from fastapi import HTTPException
+        raise HTTPException(status_code=404, detail="USER_NOT_FOUND")
+
+    projects = db.query(models.Project).filter(
+        models.Project.user_id == user.id,
+        models.Project.is_public == "true",
+        models.Project.deleted_at == None
+    ).order_by(models.Project.updated_at.desc()).all()
+
+    result = []
+    for project in projects:
+        top_chapters = db.query(models.Chapter).filter(
+            models.Chapter.project_id == project.id,
+            models.Chapter.parent_id == None
+        ).order_by(models.Chapter.order_num).all()
+
+        chapter_list = []
+        chapter_photo_ids = set()
+
+        for top_chapter in top_chapters:
+            sub_chapters = db.query(models.Chapter).filter(
+                models.Chapter.parent_id == top_chapter.id
+            ).order_by(models.Chapter.order_num).all()
+
+            if sub_chapters:
+                sub_chapter_list = []
+                for sub_chapter in sub_chapters:
+                    sub_photos = get_chapter_photos(db, sub_chapter.id, chapter_photo_ids)
+                    sub_chapter_list.append({
+                        "id": sub_chapter.id,
+                        "title": sub_chapter.title,
+                        "description": sub_chapter.description,
+                        "photos": sub_photos
+                    })
+                parent_photos = get_chapter_photos(db, top_chapter.id, chapter_photo_ids)
+                chapter_list.append({
+                    "id": top_chapter.id,
+                    "title": top_chapter.title,
+                    "description": top_chapter.description,
+                    "photos": parent_photos,
+                    "sub_chapters": sub_chapter_list
+                })
+            else:
+                top_photos = get_chapter_photos(db, top_chapter.id, chapter_photo_ids)
+                chapter_list.append({
+                    "id": top_chapter.id,
+                    "title": top_chapter.title,
+                    "description": top_chapter.description,
+                    "photos": top_photos,
+                    "sub_chapters": []
+                })
+
+        if len(chapter_list) == 0:
+            all_photos = []
+        else:
+            all_photos = db.query(models.Photo).filter(
+                models.Photo.project_id == project.id,
+                models.Photo.deleted_at == None
+            ).order_by(models.Photo.order).all()
+
+        extra_photos = []
+        for p in all_photos:
+            if p.id not in chapter_photo_ids:
+                extra_photos.append({
+                    "id": p.id,
+                    "image_url": p.image_url,
+                    "caption": p.caption
+                })
+
+        result.append({
+            "id": project.id,
+            "title": project.title,
+            "description": project.description,
+            "cover_image_url": project.cover_image_url,
+            "location": project.location,
+            "photos": [{"id": p.id, "image_url": p.image_url, "caption": p.caption} for p in all_photos],
+            "chapters": chapter_list,
+            "extra_photos": extra_photos
+        })
+
+    return {"username": username, "projects": result}
+
+
 def get_chapter_photos(db: Session, chapter_id: str, chapter_photo_ids: set):
     """챕터의 사진 목록 조회 및 ID 추적"""
     chapter_photos = db.query(models.ChapterPhoto).filter(

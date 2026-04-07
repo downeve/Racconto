@@ -7,7 +7,8 @@ import {
   ViewColumnsIcon, 
   PaintBrushIcon, 
   TagIcon, 
-  LockClosedIcon
+  LockClosedIcon,
+  UserCircleIcon,
 } from '@heroicons/react/24/outline'
 
 const API = import.meta.env.VITE_API_URL
@@ -35,6 +36,10 @@ export default function Settings() {
   const [defaultGridCols, setDefaultGridCols] = useState('3')
   const [defaultShowExif, setDefaultShowExif] = useState('true')
   const [defaultSortBy, setDefaultSortBy] = useState('default')
+
+  const [username, setUsername] = useState('')
+  const [usernameStatus, setUsernameStatus] = useState<'idle' | 'checking' | 'available' | 'taken' | 'invalid'>('idle')
+  const [usernameSaved, setUsernameSaved] = useState(false)
   
   const { t } = useTranslation()
 
@@ -77,7 +82,15 @@ export default function Settings() {
       setDeliveryTagColor(res.data['delivery_tag_color'] || 'purple')
       setDefaultGridCols(res.data['default_grid_cols'] || '3')
       setDefaultShowExif(res.data['default_show_exif'] || 'true')
-      setDefaultSortBy(res.data['default_sort_by'] || 'default') 
+      setDefaultSortBy(res.data['default_sort_by'] || 'default')
+      
+      // username은 /auth/me에서 별도 로드
+      const token = localStorage.getItem('token')
+      axios.get(`${API}/auth/me`, {
+        headers: { Authorization: `Bearer ${token}` }
+      }).then(res => {
+        setUsername(res.data.username || '')
+      })
     })
   }, [])
 
@@ -96,6 +109,34 @@ export default function Settings() {
     })
     setSaved(true)
     setTimeout(() => setSaved(false), 2000)
+  }
+
+  const handleUsernameCheck = async (value: string) => {
+    setUsername(value)
+    if (value.length < 3) { setUsernameStatus('idle'); return }
+    setUsernameStatus('checking')
+    try {
+      const res = await axios.get(`${API}/auth/check-username/${value}`)
+      setUsernameStatus(res.data.available ? 'available' : 'taken')
+    } catch {
+      setUsernameStatus('idle')
+    }
+  }
+
+  const handleUsernameSave = async () => {
+    const token = localStorage.getItem('token')
+    try {
+      await axios.put(`${API}/auth/username`, { username }, {
+        headers: { Authorization: `Bearer ${token}` }
+      })
+      setUsernameSaved(true)
+      setUsernameStatus('idle')
+      setTimeout(() => setUsernameSaved(false), 2000)
+    } catch (err: any) {
+      const code = err.response?.data?.detail
+      if (code === 'USERNAME_ALREADY_TAKEN') setUsernameStatus('taken')
+      else if (code === 'USERNAME_INVALID_CHARS') setUsernameStatus('invalid')
+    }
   }
 
   function colorName(value: string) {
@@ -220,6 +261,51 @@ export default function Settings() {
             🌙 {t('settings.themeDark')}
           </button>
         </div>
+      </div>
+
+      {/* 퍼블릭 포트폴리오 URL */}
+      <div className="bg-white rounded-lg shadow p-6 mb-6">
+        <h3 className="font-semibold mb-1 flex items-center gap-2">
+          <UserCircleIcon className="w-5 h-5 text-gray-500" />
+          {t('settings.publicPortfolio')}
+        </h3>
+        <p className="text-xs text-gray-400 mb-4 ml-7">
+          {t('settings.publicPortfolioDesc')}
+        </p>
+        <div className="flex items-center gap-2">
+          <span className="text-sm text-gray-400 shrink-0">racconto.app/p/</span>
+          <input
+            className="border rounded px-3 py-2 text-sm outline-none focus:border-black w-48"
+            placeholder="username"
+            value={username}
+            onChange={e => handleUsernameCheck(e.target.value)}
+          />
+          <button
+            onClick={handleUsernameSave}
+            disabled={usernameStatus !== 'available' && !usernameSaved}
+            className={`px-4 py-2 text-sm rounded transition-colors ${
+              usernameSaved ? 'bg-green-600 text-white' :
+              usernameStatus === 'available' ? 'bg-black text-white hover:bg-gray-800' :
+              'bg-gray-100 text-gray-400 cursor-not-allowed'
+            }`}
+          >
+            {usernameSaved ? '✓' : t('common.save')}
+          </button>
+        </div>
+        {usernameStatus === 'available' && (
+          <p className="text-xs text-green-500 mt-1.5 ml-[calc(theme(spacing.7)+theme(spacing.32)+theme(spacing.2))]">✓ {t('settings.usernameAvailable')}</p>
+        )}
+        {usernameStatus === 'taken' && (
+          <p className="text-xs text-red-500 mt-1.5">{t('settings.usernameTaken')}</p>
+        )}
+        {usernameStatus === 'invalid' && (
+          <p className="text-xs text-red-500 mt-1.5">{t('settings.usernameInvalid')}</p>
+        )}
+        {username && usernameStatus === 'idle' && (
+          <p className="text-xs text-gray-400 mt-1.5">
+            racconto.app/p/{username}
+          </p>
+        )}
       </div>
 
       {/* 납품 선택 자동 태그 */}

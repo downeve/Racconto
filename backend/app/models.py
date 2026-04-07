@@ -14,12 +14,10 @@ class User(Base):
     is_verified = Column(Boolean, default=False)
     verify_token = Column(String, nullable=True)
     verify_token_expires_at = Column(DateTime, nullable=True)
-    photo_limit = Column(Integer, default=1000)
+    photo_limit = Column(Integer, default=300)
     project_limit = Column(Integer, default=3)
+    username = Column(String, unique=True, nullable=True, index=True)
     created_at = Column(DateTime, default=datetime.utcnow)
-
-    projects = relationship("Project", back_populates="owner")
-    settings = relationship("Setting", back_populates="owner")
 
 class ProjectStatus(enum.Enum):
     IN_PROGRESS = "in_progress"

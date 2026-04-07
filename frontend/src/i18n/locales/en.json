@@ -210,7 +210,8 @@
   },
   "portfolio": {
     "noChapters": "No chapters yet",
-    "createChapterFirst": "Create a chapter in Story tab to publish photos"
+    "createChapterFirst": "Create a chapter in Story tab to publish photos",
+    "noPublicProjects": "No public projects yet"
   },
   "delivery": {
     "title": "Delivery",
@@ -274,7 +275,12 @@
     "saveSuccess": "Saved successfully.",
     "passwordChanged": "Password changed successfully. Please log in again.",
     "passwordChangeFailed": "Failed to change password.",
-    "passwordInputAll": "Please fill in all input boxes."
+    "passwordInputAll": "Please fill in all input boxes.",
+    "publicPortfolio": "Public Portfolio URL",
+    "publicPortfolioDesc": "Your public portfolio link accessible without login.",
+    "usernameAvailable": "Username is available",
+    "usernameTaken": "Username is already taken",
+    "usernameInvalid": "Only letters, numbers, - and _ allowed (min 3 chars)"
   },
   "trash": {
     "title": "Trash",

@@ -12,6 +12,7 @@ import DeliveryPage from './pages/DeliveryPage'
 import Register from './pages/Register'
 import VerifyEmail from './pages/VerifyEmail'
 import Admin from './pages/Admin'
+import PublicPortfolio from './pages/PublicPortfolio'
 
 function PrivateRoute({ children }: { children: React.ReactNode }) {
   const { isAuthenticated, isLoading } = useAuth()
@@ -44,6 +45,9 @@ function AppRoutes() {
 
         {/* 납품 링크 - 비로그인 공개 페이지 */}
         <Route path="/delivery/:linkId" element={<DeliveryPage />} />
+
+        {/* 공개 포트폴리오 - 비로그인 접근 가능 */}
+        <Route path="/p/:username" element={<PublicPortfolio />} />
       </Routes>
     </div>
   )
