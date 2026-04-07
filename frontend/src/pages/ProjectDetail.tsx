@@ -530,8 +530,13 @@ export default function ProjectDetail() {
         // 💡 t('photo.uploadFail')을 템플릿 리터럴 안에 삽입
         console.error(`❌ ${file.name} ${t('photo.uploadFail')}:`, error)
         
-        // (선택 사항) 만약 사용자 화면에도 에러 알림을 띄우고 싶다면 아래처럼 활용할 수 있습니다.
-        alert(`❌ ${file.name} ${t('photo.uploadFail')}`)
+        const code = (error as any)?.response?.data?.detail
+        if (code === 'PHOTO_LIMIT_EXCEEDED') {
+          alert(t('api.error.PHOTO_LIMIT_EXCEEDED'))
+          break  // 제한 초과 시 나머지 파일도 중단
+        } else {
+          alert(`❌ ${file.name} ${t('photo.uploadFail')}`)
+        }
       }
     }
 

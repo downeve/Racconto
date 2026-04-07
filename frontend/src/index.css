@@ -2,8 +2,10 @@
 @tailwind components;
 @tailwind utilities;
 
-/* 👇 화면 밀림 현상을 방지하기 위해 아래 코드를 추가합니다 👇 */
-body {
-  /* 내용이 짧아도 항상 우측에 스크롤바 공간을 확보해줍니다. */
-  overflow-y: scroll; 
+@layer base {
+  body {
+    background-color: #F7F4F0;
+    color: #1c1917; /* stone-900 */
+    overflow-y: scroll; 
+  }
 }

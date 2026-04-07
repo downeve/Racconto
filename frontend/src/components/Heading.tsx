@@ -9,7 +9,7 @@ interface HeadingProps {
 
 export default function Heading({ level = 2, children, className = '' }: HeadingProps) {
   // 🎯 프로젝트 전체에 공통으로 적용될 타이틀 느낌 (진한 회색, 굵게, 좁은 자간)
-  const baseStyle = "text-gray-900 font-bold tracking-tight";
+  const baseStyle = "text-stone-900 font-bold tracking-tight font-serif";
   
   // 📏 레벨에 따른 글자 크기 설정
   const sizeStyle = {

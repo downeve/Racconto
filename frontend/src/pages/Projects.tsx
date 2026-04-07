@@ -48,16 +48,23 @@ export default function Projects() {
 
   const handleSubmit = async () => {
     if (!title) return
-    await axios.post(`${API}/projects/`, {
-      title, title_en: titleEn,
-      description, description_en: descriptionEn,
-      location, status, is_public: isPublic
-    })
-    setTitle(''); setTitleEn(''); setDescription('')
-    setDescriptionEn(''); setLocation('')
-    setStatus('in_progress'); setIsPublic('false')
-    setShowForm(false)
-    fetchProjects()
+    try {
+      await axios.post(`${API}/projects/`, {
+        title, title_en: titleEn,
+        description, description_en: descriptionEn,
+        location, status, is_public: isPublic
+      })
+      setTitle(''); setTitleEn(''); setDescription('')
+      setDescriptionEn(''); setLocation('')
+      setStatus('in_progress'); setIsPublic('false')
+      setShowForm(false)
+      fetchProjects()
+    } catch (err: any) {
+      const code = err.response?.data?.detail
+      if (code === 'PROJECT_LIMIT_EXCEEDED') {
+        alert(t('api.error.PROJECT_LIMIT_EXCEEDED'))
+      }
+    }
   }
 
   return (

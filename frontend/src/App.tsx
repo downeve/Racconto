@@ -12,6 +12,7 @@ import Register from './pages/Register'
 import VerifyEmail from './pages/VerifyEmail'
 import Admin from './pages/Admin'
 import PublicPortfolio from './pages/PublicPortfolio'
+import LandingPage from './pages/LandingPage'
 
 function PrivateRoute({ children }: { children: React.ReactNode }) {
   const { isAuthenticated, isLoading } = useAuth()
@@ -33,7 +34,9 @@ function AppRoutes() {
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
         <Route path="/verify-email" element={<VerifyEmail />} />
-        <Route path="/" element={<PrivateRoute><Navigate to="/projects" /></PrivateRoute>} />
+        <Route path="/" element={
+          isAuthenticated ? <Navigate to="/projects" /> : <LandingPage />
+        } />
         <Route path="/projects" element={<PrivateRoute><Projects /></PrivateRoute>} />
         <Route path="/projects/:id" element={<PrivateRoute><ProjectDetail /></PrivateRoute>} />
         <Route path="/projects/:id/edit" element={<PrivateRoute><ProjectEdit /></PrivateRoute>} />

@@ -37,28 +37,28 @@ export default function Navbar({ onLogout }: NavbarProps) {
   }
 
   return (
-    <nav className="bg-black text-white px-6 py-4">
+    <nav className="bg-[#F7F4F0] text-stone-900 border-b border-stone-200 px-6 py-4">
       <div className="max-w-6xl mx-auto flex items-center justify-between">
-        <Link to="/" className="text-xl font-bold tracking-widest">Racconto</Link>
+        <Link to="/" className="text-xl font-bold tracking-widest" style={{ fontFamily: 'Georgia, serif' }}>Racconto</Link>
         <div className="flex gap-8 items-center">
-          <Link to="/projects" className="text-sm tracking-wider hover:text-gray-300">{t('nav.projects')}</Link>
+          <Link to="/projects" className="text-sm tracking-wider text-stone-600 hover:text-stone-900">{t('nav.projects')}</Link>
           <button
             onClick={handlePortfolioClick}
-            className="text-sm tracking-wider hover:text-gray-300"
+            className="text-sm tracking-wider text-stone-600 hover:text-stone-900"
           >
             {t('nav.portfolio')}
           </button>
-          <Link to="/trash" className="text-sm tracking-wider hover:text-gray-300">{t('nav.trash')}</Link>
-          <Link to="/settings" className="text-sm tracking-wider hover:text-gray-300">{t('nav.settings')}</Link>
+          <Link to="/trash" className="text-sm tracking-wider text-stone-600 hover:text-stone-900">{t('nav.trash')}</Link>
+          <Link to="/settings" className="text-sm tracking-wider text-stone-600 hover:text-stone-900">{t('nav.settings')}</Link>
           <button
             onClick={toggleLanguage}
-            className="text-sm font-bold text-gray-300 hover:text-white transition-colors"
+            className="text-sm font-bold text-stone-400 hover:text-stone-700 transition-colors"
           >
             {i18n.language === 'ko' ? 'EN' : 'KO'}
           </button>
           <button
             onClick={onLogout}
-            className="text-sm tracking-wider text-gray-400 hover:text-white"
+            className="text-sm tracking-wider text-stone-400 hover:text-stone-900"
           >
             {t('auth.logout')}
           </button>

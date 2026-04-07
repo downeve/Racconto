@@ -95,11 +95,39 @@ def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depend
 
 
 @router.get("/me")
-def get_me(current_user: models.User = Depends(get_current_user)):
+def get_me(
+    current_user: models.User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    project_count = db.query(models.Project).filter(
+        models.Project.user_id == current_user.id,
+        models.Project.deleted_at == None
+    ).count()
+
+    # 프로젝트별 사진 수 최대값 (가장 많은 프로젝트 기준)
+    from sqlalchemy import func
+    photo_counts = db.query(
+        models.Photo.project_id,
+        func.count(models.Photo.id).label('count')
+    ).filter(
+        models.Photo.deleted_at == None,
+        models.Photo.project_id.in_(
+            db.query(models.Project.id).filter(
+                models.Project.user_id == current_user.id
+            )
+        )
+    ).group_by(models.Photo.project_id).all()
+
+    max_photo_count = max((r.count for r in photo_counts), default=0)
+
     return {
         "user_id": current_user.id,
         "email": current_user.email,
         "username": current_user.username,
+        "project_count": project_count,
+        "project_limit": current_user.project_limit,
+        "photo_count": max_photo_count,
+        "photo_limit": current_user.photo_limit,
     }
 
 

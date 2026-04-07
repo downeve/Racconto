@@ -59,17 +59,14 @@ export default function Register() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col bg-gray-50">
+    <div className="min-h-screen flex flex-col">
       
       {/* Navbar.tsx와 동일한 상단 헤더 */}
-      <nav className="bg-black text-white px-6 py-4">
+      <nav className="bg-[#F7F4F0] border-b border-stone-200 px-6 py-4">
         <div className="max-w-6xl mx-auto flex items-center justify-between">
-          <Link to="/" className="text-xl font-bold tracking-widest">Racconto</Link>
+          <Link to="/" className="text-xl font-bold tracking-widest font-serif">Racconto</Link>
           <div className="flex gap-8 items-center">
-            <button
-              onClick={toggleLanguage}
-              className="text-sm font-bold text-gray-300 hover:text-white transition-colors"
-            >
+            <button onClick={toggleLanguage} className="text-sm font-bold text-stone-400 hover:text-stone-700 transition-colors">
               {i18n.language === 'ko' ? 'EN' : 'KO'}
             </button>
           </div>
@@ -81,20 +78,20 @@ export default function Register() {
         {success ? (
           // --- 회원가입 성공 (이메일 인증 대기) 화면 ---
           <div className="bg-white rounded-lg shadow p-8 w-full max-w-sm text-center">
-            <h1 className="text-2xl font-bold tracking-widest mb-6">Racconto</h1>
+            <h1 className="text-2xl font-bold tracking-widest mb-6 font-serif">Racconto</h1>
             <p className="text-sm text-gray-600 mb-2">{t('register.success.title')}</p>
             <p className="text-sm text-gray-600 mb-6">{t('register.success.desc')}</p>
             {resendMessage && <p className="text-xs text-gray-500 mb-4">{resendMessage}</p>}
             <button
               onClick={handleResend}
               disabled={resending}
-              className="w-full border border-black text-black py-2 text-sm tracking-wider hover:bg-gray-50 disabled:opacity-50 mb-3"
+              className="w-full border border-stone-900 text-stone-900 py-2 text-sm tracking-wider hover:bg-stone-50 disabled:opacity-50 mb-3"
             >
               {resending ? t('register.sending') : t('register.resendEmail')}
             </button>
             <button
               onClick={() => navigate('/login')}
-              className="w-full bg-black text-white py-2 text-sm tracking-wider hover:bg-gray-800"
+              className="w-full bg-stone-900 text-white py-2 text-sm tracking-wider hover:bg-stone-700"
             >
               {t('register.goToLogin')}
             </button>
@@ -102,7 +99,7 @@ export default function Register() {
         ) : (
           // --- 회원가입 입력 폼 화면 ---
           <div className="bg-white rounded-lg shadow p-8 w-full max-w-sm">
-            <h1 className="text-2xl font-bold text-center mb-8 tracking-widest">Racconto</h1>
+            <h1 className="text-2xl font-bold text-center mb-8 tracking-widest font-serif">Racconto</h1>
             <div className="space-y-4">
               <input
                 type="email"
@@ -130,7 +127,7 @@ export default function Register() {
               <button
                 onClick={handleSubmit}
                 disabled={loading}
-                className="w-full bg-black text-white py-2 text-sm tracking-wider hover:bg-gray-800 disabled:bg-gray-400"
+                className="w-full bg-stone-900 text-white py-2 text-sm tracking-wider hover:bg-stone-700 disabled:bg-stone-300"
               >
                 {loading ? t('register.processing') : t('register.submit')}
               </button>
