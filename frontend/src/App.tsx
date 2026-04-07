@@ -29,6 +29,24 @@ function AppRoutes() {
 
   return (
     <div className="min-h-screen bg-[#F7F4F0]">
+
+      {/* 모바일 차단 — 랜딩(/), 공개 포트폴리오(/p/), 납품(/delivery/) 제외 */}
+      {!['/', ].includes(location.pathname) &&
+       !location.pathname.startsWith('/p/') &&
+       !location.pathname.startsWith('/delivery/') && (
+        <div className="md:hidden fixed inset-0 bg-[#F7F4F0] z-50 flex items-center justify-center p-8 text-center">
+          <div>
+            <p className="text-3xl mb-4">📷</p>
+            <p className="text-lg font-bold text-stone-900 mb-2" style={{ fontFamily: 'Georgia, serif' }}>
+              데스크톱에서 사용해주세요
+            </p>
+            <p className="text-sm text-stone-500 leading-relaxed">
+              Racconto는 데스크톱 환경에 최적화되어 있습니다.
+            </p>
+          </div>
+        </div>
+      )}
+
       {isAuthenticated && !hideNavbar && <Navbar onLogout={logout} />}
       <Routes>
         <Route path="/login" element={<Login />} />

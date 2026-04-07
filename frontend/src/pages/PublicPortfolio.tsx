@@ -114,7 +114,7 @@ export default function PublicPortfolio() {
     {!isAuthenticated && (
       <div className={`border-b ${darkMode ? 'border-white/10' : 'border-gray-200'}`}>
         <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
-          <Link to="/" className={`text-lg font-bold tracking-widest ${darkMode ? 'text-white' : 'text-gray-900'}`}>
+          <Link to="/" className={`text-lg font-bold tracking-widest font-serif ${darkMode ? 'text-white' : 'text-gray-900'}`}>
             Racconto
           </Link>
           <a

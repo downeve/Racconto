@@ -684,7 +684,11 @@ export default function ProjectDetail() {
     return sortOrder === 'desc' ? -result : result
   })
 
-  if (!project) return <div className="p-6 text-gray-400">{t('common.loading')}</div>
+  if (!project) return (
+    <div className="min-h-screen flex items-center justify-center">
+      <div className="w-6 h-6 border-2 border-stone-300 border-t-stone-700 rounded-full animate-spin" />
+    </div>
+  )
 
   return (
     <div className="max-w-6xl mx-auto p-6">
