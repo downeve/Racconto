@@ -9,6 +9,7 @@ import {
   PointerSensor,
   useSensor,
   useSensors,
+  DragOverlay,
 } from '@dnd-kit/core';
 import type { DragEndEvent } from '@dnd-kit/core'; 
 
@@ -155,6 +156,7 @@ export default function ProjectStory({
   const [editTitle, setEditTitle] = useState('')
   const [editDesc, setEditDesc] = useState('')
   const [showPhotoSelector, setShowPhotoSelector] = useState<string | null>(null)
+  const [activePhotoUrl, setActivePhotoUrl] = useState<string | null>(null)
   const { t } = useTranslation()
 
   // 라이트박스 상태
@@ -180,6 +182,7 @@ export default function ProjectStory({
       const photos = prev[chapterId] || [];
       const oldIndex = photos.findIndex(p => p.id === active.id);
       const newIndex = photos.findIndex(p => p.id === over.id);
+      if (oldIndex === -1 || newIndex === -1) return prev; 
       
       const newPhotos = arrayMove(photos, oldIndex, newIndex);
       
@@ -565,7 +568,13 @@ export default function ProjectStory({
 
                   {/* 챕터 사진 */}
                   <div className="p-4">
-                    <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={(e) => handleDragEnd(e, chapter.id)}>
+                    <DndContext sensors={sensors} collisionDetection={closestCenter}
+                      onDragStart={(e) => {
+                        const photo = (chapterPhotos[chapter.id] || []).find(p => p.id === e.active.id)
+                        setActivePhotoUrl(photo?.image_url || null)
+                      }}
+                      onDragEnd={(e) => { handleDragEnd(e, chapter.id); setActivePhotoUrl(null) }}
+                      onDragCancel={() => setActivePhotoUrl(null)}>
                       <SortableContext items={getVisibleChapterPhotos(chapter.id).map(p => p.id)} strategy={rectSortingStrategy}>
                         <div className="grid grid-cols-3 gap-2 mb-3">
                           {getVisibleChapterPhotos(chapter.id).map(cp => (
@@ -592,6 +601,13 @@ export default function ProjectStory({
                           ))}
                         </div>
                       </SortableContext>
+                      <DragOverlay>
+                        {activePhotoUrl && (
+                          <div className="aspect-[3/2] rounded overflow-hidden shadow-2xl opacity-90 rotate-2 scale-105">
+                            <img src={activePhotoUrl} className="w-full h-full object-contain bg-gray-900" />
+                          </div>
+                        )}
+                      </DragOverlay>
                     </DndContext>
 
                     <button
@@ -614,14 +630,13 @@ export default function ProjectStory({
                           })
                           // 💡 2. 남은 사진만 화면에 그립니다
                           .map(photo => (
-                            <div
-                              key={photo.id}
-                              className="relative w-24 h-24 shrink-0 bg-gray-100 rounded overflow-hidden cursor-pointer transition hover:opacity-80"
-                              // 여기서는 추가(isAdded = false)만 일어납니다.
-                              onClick={() => handleAddPhoto(showPhotoSelector, photo.id, false)}
-                            >
-                              <img src={photo.image_url} alt="photo" className="w-full h-full object-cover" />
-                            </div>
+                          <div
+                            key={photo.id}
+                            className="relative bg-gray-100 rounded overflow-hidden cursor-pointer transition hover:opacity-80 aspect-[3/2]"
+                            onClick={() => handleAddPhoto(showPhotoSelector, photo.id, false)}
+                          >
+                            <img src={photo.image_url} alt="photo" className="w-full h-full object-contain" />
+                          </div>                          
                           ))
                         }
                         </div>
@@ -696,7 +711,13 @@ export default function ProjectStory({
 
                     {/* 서브챕터 사진 */}
                     <div className="p-4">
-                      <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={(e) => handleDragEnd(e, subChapter.id)}>
+                      <DndContext sensors={sensors} collisionDetection={closestCenter}
+                        onDragStart={(e) => {
+                          const photo = (chapterPhotos[subChapter.id] || []).find(p => p.id === e.active.id)
+                          setActivePhotoUrl(photo?.image_url || null)
+                        }}
+                        onDragEnd={(e) => { handleDragEnd(e, subChapter.id); setActivePhotoUrl(null) }}
+                        onDragCancel={() => setActivePhotoUrl(null)}>
                         <SortableContext items={getVisibleChapterPhotos(chapter.id).map(p => p.id)} strategy={rectSortingStrategy}>
                           <div className="grid grid-cols-3 gap-2 mb-3">
                             {getVisibleChapterPhotos(subChapter.id).map(cp => (
@@ -723,6 +744,13 @@ export default function ProjectStory({
                             ))}
                           </div>
                         </SortableContext>
+                        <DragOverlay>
+                          {activePhotoUrl && (
+                            <div className="aspect-[3/2] rounded overflow-hidden shadow-2xl opacity-90 rotate-2 scale-105">
+                              <img src={activePhotoUrl} className="w-full h-full object-contain bg-gray-900" />
+                            </div>
+                          )}
+                        </DragOverlay>
                       </DndContext>
 
                       <button
@@ -747,11 +775,10 @@ export default function ProjectStory({
                             .map(photo => (
                               <div
                                 key={photo.id}
-                                className="relative w-24 h-24 shrink-0 bg-gray-100 rounded overflow-hidden cursor-pointer transition hover:opacity-80"
-                                // 여기서는 추가(isAdded = false)만 일어납니다.
+                                className="relative bg-gray-100 rounded overflow-hidden cursor-pointer transition hover:opacity-80 aspect-[3/2]"
                                 onClick={() => handleAddPhoto(showPhotoSelector, photo.id, false)}
                               >
-                                <img src={photo.image_url} alt="photo" className="w-full h-full object-cover" />
+                                <img src={photo.image_url} alt="photo" className="w-full h-full object-contain" />
                               </div>
                             ))
                           }
@@ -779,78 +806,57 @@ export default function ProjectStory({
         )}
       </div>
 
-      {/* 포트폴리오 스타일 다크 테마 라이트박스 */}
+      {/* 라이트박스 */}
       {selectedPhotoIndex !== null && currentChapterPhotos[selectedPhotoIndex] && (
-        <div 
-          className="fixed inset-0 z-50 flex flex-col bg-black/95 backdrop-blur-sm" 
+        <div
+          className="fixed inset-0 bg-black/90 z-50 flex flex-col"
           onClick={() => setSelectedPhotoIndex(null)}
         >
-          {/* 우측 상단 닫기 버튼 */}
-          <button 
-            onClick={() => setSelectedPhotoIndex(null)} 
-            className="absolute top-6 right-6 text-white hover:text-gray-300 z-50"
-          >
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M18 6L6 18" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-              <path d="M6 6L18 18" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-            </svg>
-          </button>
-
-          {/* 중앙 이미지 및 정보 */}
-          <div className="flex-1 flex flex-col items-center justify-center p-4 relative w-full overflow-hidden" onClick={e => e.stopPropagation()}>
-            
-            {/* 💡 1. 이미지 박스의 높이를 기존 80vh에서 70vh(모바일은 65vh)로 줄여 텍스트가 들어갈 '안전 공간'을 확보합니다. */}
-            <div className="relative flex items-center justify-center w-full h-[65vh] sm:h-[70vh]">
-              <img 
-                src={currentChapterPhotos[selectedPhotoIndex].image_url} 
-                alt={currentChapterPhotos[selectedPhotoIndex].caption || ''} 
-                className="max-w-full max-h-full object-contain shadow-lg" 
-              />
-              
-              {/* 💡 2. 텍스트 영역 (이미지 바로 아래에 위치) */}
-              <div className="absolute top-full mt-2 left-0 w-full flex flex-col items-center">
-                {/* 캡션 (만약 글이 너무 길어질 경우를 대비해 스크롤이 생기도록 안전장치 max-h 추가) */}
-                {currentChapterPhotos[selectedPhotoIndex].caption && (
-                  <p className="text-white text-sm text-center max-w-3xl px-4 max-h-[15vh] overflow-y-auto custom-scrollbar">
-                    {currentChapterPhotos[selectedPhotoIndex].caption}
-                  </p>
-                )}
-
-                {/* 챕터 이름 + 페이지 번호 */}
-                <div className="flex items-center justify-center gap-2 mt-2 text-xs">
-                  <span className="text-gray-400">
-                    {getChapterDisplayTitle(currentChapterPhotos[selectedPhotoIndex].chapter_id)}
-                  </span>
-                  <span className="text-gray-600">|</span>
-                  <span className="text-gray-500">
-                    {selectedPhotoIndex + 1} / {currentChapterPhotos.length}
-                  </span>
-                </div>
-              </div>
+          {/* 상단: 챕터명 + 카운터 + 닫기 */}
+          <div className="flex items-center justify-between px-6 py-3 shrink-0" onClick={e => e.stopPropagation()}>
+            <div className="flex items-center gap-3">
+              <span className="text-white/50 text-sm">
+                {selectedPhotoIndex + 1} / {currentChapterPhotos.length}
+              </span>
+              <span className="text-white/30 text-sm">|</span>
+              <span className="text-white/40 text-xs">
+                {getChapterDisplayTitle(currentChapterPhotos[selectedPhotoIndex].chapter_id)}
+              </span>
             </div>
-          
-            {/* 좌우 네비게이션 */}
-            {currentChapterPhotos.length > 1 && (
-              <>
-                <button 
-                  disabled={selectedPhotoIndex === 0} 
-                  onClick={() => setSelectedPhotoIndex(prev => prev! - 1)} 
-                  className="absolute left-6 p-4 text-white text-5xl z-10 select-none 
-                             disabled:opacity-20 disabled:cursor-not-allowed hover:enabled:text-gray-300"
-                >
-                  ‹
-                </button>
-                
-                <button 
-                  disabled={selectedPhotoIndex === currentChapterPhotos.length - 1}
-                  onClick={() => setSelectedPhotoIndex(prev => prev! + 1)} 
-                  className="absolute right-6 p-4 text-white text-5xl z-10 select-none
-                             disabled:opacity-20 disabled:cursor-not-allowed hover:enabled:text-gray-300"
-                >
-                  ›
-                </button>
-              </>
+            <button onClick={() => setSelectedPhotoIndex(null)} className="text-white/70 hover:text-white text-2xl">✕</button>
+          </div>
+
+          {/* 중앙: 이미지 + 좌우 화살표 */}
+          <div className="flex-1 flex items-center justify-center relative min-h-0" onClick={() => setSelectedPhotoIndex(null)}>
+            {selectedPhotoIndex > 0 && (
+              <button
+                className="absolute left-4 z-10 text-white/70 hover:text-white text-5xl select-none"
+                onClick={e => { e.stopPropagation(); setSelectedPhotoIndex(prev => prev! - 1) }}
+              >‹</button>
             )}
+            <img
+              src={currentChapterPhotos[selectedPhotoIndex].image_url}
+              alt={currentChapterPhotos[selectedPhotoIndex].caption || ''}
+              className="max-w-[calc(100%-8rem)] max-h-full object-contain"
+              onClick={e => e.stopPropagation()}
+            />
+            {selectedPhotoIndex < currentChapterPhotos.length - 1 && (
+              <button
+                className="absolute right-4 z-10 text-white/70 hover:text-white text-5xl select-none"
+                onClick={e => { e.stopPropagation(); setSelectedPhotoIndex(prev => prev! + 1) }}
+              >›</button>
+            )}
+          </div>
+
+          {/* 하단: 캡션 */}
+          <div className="shrink-0 bg-black/80 border-t border-white/10 px-6 py-4" onClick={e => e.stopPropagation()}>
+            <div className="max-w-[calc(100%-8rem)] mx-auto min-h-[1.25rem]">
+              {currentChapterPhotos[selectedPhotoIndex].caption && (
+                <p className="text-sm text-white/70">
+                  {currentChapterPhotos[selectedPhotoIndex].caption}
+                </p>
+              )}
+            </div>
           </div>
         </div>
       )}
