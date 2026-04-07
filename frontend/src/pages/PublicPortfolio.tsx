@@ -35,11 +35,16 @@ export default function PublicPortfolio() {
   const { username } = useParams()
   const [projects, setProjects] = useState<PortfolioProject[]>([])
   const [selectedProject, setSelectedProject] = useState<PortfolioProject | null>(null)
-  const [lightboxPhoto, setLightboxPhoto] = useState<Photo | null>(null)
-  const [lightboxItems, setLightboxItems] = useState<{ photo: Photo; title: string }[]>([])
-  const [lightboxChapter, setLightboxChapter] = useState<string | null>(null)
   const [darkMode, setDarkMode] = useState(false)
   const [notFound, setNotFound] = useState(false)
+
+  // [새로운 코드]
+  const [lightboxIndex, setLightboxIndex] = useState<number | null>(null)
+  const [lightboxItems, setLightboxItems] = useState<{ photo: Photo; title: string }[]>([])
+  
+  // 상태 밑에, 현재 선택된 아이템을 쉽게 쓰기 위해 변수 하나 추가
+  const activeLightboxItem = lightboxIndex !== null ? lightboxItems[lightboxIndex] : null
+
   const { t } = useTranslation()
 
   const { isAuthenticated } = useAuth()
@@ -69,29 +74,27 @@ export default function PublicPortfolio() {
   }
 
   const openLightbox = (photo: Photo, items: { photo: Photo; title: string }[]) => {
-    const currentItem = items.find(item => item.photo.id === photo.id)
-    setLightboxPhoto(photo)
+    // 💡 photo.id 가 아니라 객체 자체(photo === photo)를 비교하여 중복 사진이라도 '클릭한 바로 그 사진'의 위치를 정확히 찾습니다.
+    const idx = items.findIndex(item => item.photo === photo)
     setLightboxItems(items)
-    setLightboxChapter(currentItem?.title || null)
+    setLightboxIndex(idx !== -1 ? idx : 0)
   }
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (!lightboxPhoto || lightboxItems.length === 0) return
-      if (e.key === 'Escape') { setLightboxPhoto(null); return }
-      const idx = lightboxItems.findIndex(item => item.photo.id === lightboxPhoto.id)
-      if (e.key === 'ArrowRight' && idx < lightboxItems.length - 1) {
-        setLightboxPhoto(lightboxItems[idx + 1].photo)
-        setLightboxChapter(lightboxItems[idx + 1].title)
+      if (lightboxIndex === null || lightboxItems.length === 0) return
+      if (e.key === 'Escape') { setLightboxIndex(null); return }
+      
+      if (e.key === 'ArrowRight' && lightboxIndex < lightboxItems.length - 1) {
+        setLightboxIndex(prev => (prev !== null ? prev + 1 : null))
       }
-      if (e.key === 'ArrowLeft' && idx > 0) {
-        setLightboxPhoto(lightboxItems[idx - 1].photo)
-        setLightboxChapter(lightboxItems[idx - 1].title)
+      if (e.key === 'ArrowLeft' && lightboxIndex > 0) {
+        setLightboxIndex(prev => (prev !== null ? prev - 1 : null))
       }
     }
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [lightboxPhoto, lightboxItems])
+  }, [lightboxIndex, lightboxItems])
 
   const bg = darkMode ? 'bg-[#1A1A1A] text-white' : 'bg-[#F5F0EB] text-gray-900'
   const cardBg = darkMode ? 'bg-[#2A2A2A]' : 'bg-white'
@@ -201,6 +204,7 @@ export default function PublicPortfolio() {
                       <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-8">
                         {chapter.photos.map(photo => (
                           <img key={photo.id} src={photo.image_url}
+                            loading="lazy"
                             className="w-full aspect-[3/2] object-cover rounded cursor-pointer hover:opacity-80 transition-opacity"
                             onClick={() => openLightbox(photo, getAllChapterItems(selectedProject))}
                           />
@@ -216,6 +220,7 @@ export default function PublicPortfolio() {
                         <div className="grid grid-cols-3 md:grid-cols-4 gap-3 pl-4">
                           {sub.photos.map(photo => (
                             <img key={photo.id} src={photo.image_url}
+                              loading="lazy"
                               className="w-full aspect-[3/2] object-cover rounded cursor-pointer hover:opacity-80 transition-opacity"
                               onClick={() => openLightbox(photo, getAllChapterItems(selectedProject))}
                             />
@@ -236,56 +241,68 @@ export default function PublicPortfolio() {
         )}
       </div>
 
-      {lightboxPhoto && (
+      {lightboxIndex !== null && activeLightboxItem && (
         <div
           className={`fixed inset-0 ${darkMode ? 'bg-[#1A1A1A]/95' : 'bg-[#F5F0EB]/95'} z-50 flex items-center justify-center transition-colors duration-300`}
-          onClick={() => setLightboxPhoto(null)}
+          onClick={() => setLightboxIndex(null)}
         >
           <button
             className={`absolute top-6 right-6 text-2xl z-10 ${darkMode ? 'text-white' : 'text-gray-900'} hover:opacity-50`}
-            onClick={() => setLightboxPhoto(null)}
+            onClick={() => setLightboxIndex(null)}
           >✕</button>
-          <button
-            className={`absolute left-6 text-5xl z-10 select-none ${darkMode ? 'text-white' : 'text-gray-900'} hover:opacity-50`}
-            onClick={e => {
-              e.stopPropagation()
-              const idx = lightboxItems.findIndex(item => item.photo.id === lightboxPhoto.id)
-              if (idx > 0) {
-                setLightboxPhoto(lightboxItems[idx - 1].photo)
-                setLightboxChapter(lightboxItems[idx - 1].title)
-              }
-            }}
-          >‹</button>
+          
+          {/* 💡 첫 번째 사진이 아닐 때만 왼쪽 화살표 표시 */}
+          {lightboxIndex > 0 && (
+            <button
+              className={`absolute left-6 text-5xl z-10 select-none ${darkMode ? 'text-white' : 'text-gray-900'} hover:opacity-50`}
+              onClick={e => {
+                e.stopPropagation()
+                setLightboxIndex(lightboxIndex - 1)
+              }}
+            >‹</button>
+          )}
+
           <div className="max-w-5xl max-h-screen p-12 flex flex-col items-center" onClick={e => e.stopPropagation()}>
             <img
-              src={lightboxPhoto.image_url} alt={lightboxPhoto.caption || ''}
+              src={activeLightboxItem.photo.image_url} alt={activeLightboxItem.photo.caption || ''}
               className="max-w-full max-h-[80vh] object-contain"
             />
-            {lightboxPhoto.caption && (
-              <p className={`text-sm mt-4 text-center ${darkMode ? 'text-white' : 'text-gray-900'}`}>
-                {lightboxPhoto.caption}
+            
+            {/* 💡 텍스트 영역: 중앙 배치 유지하되 안쪽 텍스트는 왼쪽 정렬(text-start) */}
+            <div className="text-start mt-4 w-full">
+              <p className="mb-1.5 leading-relaxed flex items-center flex-wrap">
+                {/* 1. 챕터 정보 (조금 작고 흐리게) */}
+                {activeLightboxItem.title && (
+                  <span className={`${darkMode ? 'text-gray-400' : 'text-gray-500'} text-xs mr-3 shrink-0`}>
+                    {activeLightboxItem.title}
+                  </span>
+                )}
+                
+                {/* 2. 사진 캡션 (기본 크기와 색상) */}
+                {activeLightboxItem.photo.caption && (
+                  <span className={`text-sm ${darkMode ? 'text-white' : 'text-gray-900'}`}>
+                    {activeLightboxItem.photo.caption}
+                  </span>
+                )}
               </p>
-            )}
-            <div className="text-center mt-2">
-              {lightboxChapter && (
-                <p className={`${darkMode ? 'text-gray-400' : 'text-gray-500'} text-xs mb-1`}>{lightboxChapter}</p>
-              )}
+              
+              {/* 3. 사진 인덱스 (1 / 6) */}
               <p className={`${darkMode ? 'text-gray-500' : 'text-gray-400'} text-xs`}>
-                {lightboxItems.findIndex(item => item.photo.id === lightboxPhoto?.id) + 1} / {lightboxItems.length}
+                {lightboxIndex + 1} / {lightboxItems.length}
               </p>
             </div>
           </div>
-          <button
-            className={`absolute right-6 text-5xl z-10 select-none ${darkMode ? 'text-white' : 'text-gray-900'} hover:opacity-50`}
-            onClick={e => {
-              e.stopPropagation()
-              const idx = lightboxItems.findIndex(item => item.photo.id === lightboxPhoto.id)
-              if (idx < lightboxItems.length - 1) {
-                setLightboxPhoto(lightboxItems[idx + 1].photo)
-                setLightboxChapter(lightboxItems[idx + 1].title)
-              }
-            }}
-          >›</button>
+
+          {/* 💡 마지막 사진이 아닐 때만 오른쪽 화살표 표시 */}
+          {lightboxIndex < lightboxItems.length - 1 && (
+            <button
+              className={`absolute right-6 text-5xl z-10 select-none ${darkMode ? 'text-white' : 'text-gray-900'} hover:opacity-50`}
+              onClick={e => {
+                e.stopPropagation()
+                setLightboxIndex(lightboxIndex + 1)
+              }}
+            >›</button>
+          )}
         </div>
       )}
     </div>
