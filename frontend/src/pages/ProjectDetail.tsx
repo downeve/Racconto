@@ -416,6 +416,12 @@ export default function ProjectDetail() {
     axios.get(`${API}/settings/`).then(res => {
       setGridCols(parseInt(res.data['default_grid_cols'] || '3'))
       setShowExif(res.data['default_show_exif'] !== 'false')
+
+      // 💡 설정에서 지정한 기본 정렬 기준 불러오기!
+      if (res.data['default_sort_by']) {
+        setSortBy(res.data['default_sort_by'])
+      }
+      
       setLabelSettings({
         color_label_red: res.data['color_label_red'] || t('colors.reject'),
         color_label_yellow: res.data['color_label_yellow'] || t('colors.hold'),

@@ -40,7 +40,7 @@ export default function Navbar({ onLogout }: NavbarProps) {
             onClick={onLogout}
             className="text-sm tracking-wider text-gray-400 hover:text-white"
           >
-            로그아웃
+            {t('auth.logout')}
           </button>
         </div>
       </div>

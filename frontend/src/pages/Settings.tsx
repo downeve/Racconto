@@ -1,6 +1,13 @@
 import { useEffect, useState } from 'react'
 import axios from 'axios'
 import { useTranslation } from 'react-i18next'
+import { 
+  SwatchIcon, 
+  ViewColumnsIcon, 
+  PaintBrushIcon, 
+  TagIcon, 
+  LockClosedIcon
+} from '@heroicons/react/24/outline'
 
 const API = import.meta.env.VITE_API_URL
 const DELIVERY_ENABLED = import.meta.env.VITE_ENABLE_DELIVERY === 'true'
@@ -21,10 +28,13 @@ export default function Settings() {
   const [confirmPassword, setConfirmPassword] = useState('')
   const [passwordError, setPasswordError] = useState('')
   const [passwordSuccess, setPasswordSuccess] = useState('')
+  
   const [portfolioTheme, setPortfolioTheme] = useState('light')
   const [deliveryTagColor, setDeliveryTagColor] = useState('purple')
   const [defaultGridCols, setDefaultGridCols] = useState('3')
   const [defaultShowExif, setDefaultShowExif] = useState('true')
+  const [defaultSortBy, setDefaultSortBy] = useState('default')
+  
   const { t } = useTranslation()
 
   const handlePasswordChange = async () => {
@@ -66,6 +76,7 @@ export default function Settings() {
       setDeliveryTagColor(res.data['delivery_tag_color'] || 'purple')
       setDefaultGridCols(res.data['default_grid_cols'] || '3')
       setDefaultShowExif(res.data['default_show_exif'] || 'true')
+      setDefaultSortBy(res.data['default_sort_by'] || 'default') 
     })
   }, [])
 
@@ -80,6 +91,7 @@ export default function Settings() {
       delivery_tag_color: deliveryTagColor,
       default_grid_cols: defaultGridCols,
       default_show_exif: defaultShowExif,
+      default_sort_by: defaultSortBy,
     })
     setSaved(true)
     setTimeout(() => setSaved(false), 2000)
@@ -88,8 +100,6 @@ export default function Settings() {
   function colorName(value: string) {
     const c = COLOR_KEYS.find(o => o.value === value)
     if (!c) return value
-    
-    //c.label 대신 t() 함수를 사용해 동적으로 번역을 가져옵니다.
     return settings[c.key] || t(`colorLabels.${c.value}`)
   }
 
@@ -97,16 +107,88 @@ export default function Settings() {
     <div className="max-w-2xl mx-auto p-6">
       <h2 className="text-2xl font-bold mb-8">{t('settings.title')}</h2>
 
-      {/* 컬러 레이블 */}
+      {/* 기본 보기 설정 */}
       <div className="bg-white rounded-lg shadow p-6 mb-6">
-        <h3 className="font-semibold mb-4">{t('settings.colorLabelNames')}</h3>
-        <div className="space-y-3">
+        <h3 className="font-semibold mb-4 flex items-center gap-2">
+          <ViewColumnsIcon className="w-5 h-5 text-gray-500" />
+          {t('settings.defaultView')}
+        </h3>
+        <div className="space-y-4">
+          <div className="grid grid-cols-[max-content_1fr] items-center gap-x-4 gap-y-6">
+            {/* 그리드 & EXIF 한 줄 배치 */}
+            <div className="col-span-2 flex items-center gap-12">
+              {/* 1. 그리드 컬럼 */}
+              <div className="flex items-center gap-4">
+                <span className="text-sm text-gray-500">{t('settings.defaultGridCols')}</span>
+                <div className="flex gap-2">
+                  {['2', '3', '4'].map((cols) => (
+                    <button
+                      key={cols}
+                      onClick={() => setDefaultGridCols(cols)}
+                      className={`w-8 h-8 text-xs rounded font-medium ${defaultGridCols === cols ? 'bg-black text-white' : 'bg-gray-100 hover:bg-gray-200'}`}
+                    >
+                      {cols}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* 2. EXIF 기본값 */}
+              <div className="flex items-center gap-4">
+                <span className="text-sm text-gray-500">{t('settings.defaultExif')}</span>
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => setDefaultShowExif('true')}
+                    className={`px-3 py-1.5 text-xs rounded font-medium ${defaultShowExif === 'true' ? 'bg-black text-white' : 'bg-gray-100 hover:bg-gray-200'}`}
+                  >
+                    ON
+                  </button>
+                  <button
+                    onClick={() => setDefaultShowExif('false')}
+                    className={`px-3 py-1.5 text-xs rounded font-medium ${defaultShowExif === 'false' ? 'bg-black text-white' : 'bg-gray-100 hover:bg-gray-200'}`}
+                  >
+                    OFF
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <span className="text-sm text-gray-500">{t('photo.listOrder')}</span>
+            <div className="flex gap-2">
+              {[
+                { value: 'default', label: t('photo.orderUpload') || '업로드순' },
+                { value: 'taken_at', label: t('photo.orderTaken') || '촬영일순' },
+                { value: 'name', label: t('photo.orderName') || '파일명순' }
+              ].map(opt => (
+                <button
+                  key={opt.value}
+                  onClick={() => setDefaultSortBy(opt.value)}
+                  className={`px-3 py-1.5 text-xs rounded font-medium ${defaultSortBy === opt.value ? 'bg-black text-white' : 'bg-gray-100 hover:bg-gray-200'}`}
+                >
+                  {opt.label}
+                </button>
+              ))}
+            </div>
+
+          </div>
+        </div>
+      </div>
+
+      {/* 컬러 레이블 설정 - 2, 2, 1 배열 */}
+      <div className="bg-white rounded-lg shadow p-6 mb-6">
+        <h3 className="font-semibold mb-4 flex items-center gap-2">
+          <SwatchIcon className="w-5 h-5 text-gray-500" />
+          {t('settings.colorLabelNames')}
+        </h3>
+        {/* 아까 넣었던 pr-8은 빼셔도 됩니다 */}
+        <div className="grid grid-cols-2 gap-x-8 gap-y-4">
           {COLOR_KEYS.map(({ key, color, value }) => (
-            <div key={key} className="flex items-center gap-4">
+            <div key={key} className="flex items-center gap-3">
               <div className={`w-4 h-4 rounded-full ${color} shrink-0`} />
               <span className="text-sm text-gray-500 w-12 shrink-0">{t(`colorLabels.${value}`)}</span>
+              {/* 💡 flex-1을 w-40(고정 너비)로 변경했습니다 */}
               <input
-                className="flex-1 border rounded px-3 py-1.5 text-sm"
+                className="w-40 border rounded px-3 py-1.5 text-sm outline-none focus:border-black transition-colors"
                 value={settings[key] || ''}
                 onChange={e => handleChange(key, e.target.value)}
               />
@@ -115,54 +197,12 @@ export default function Settings() {
         </div>
       </div>
 
-      {/* 기본 보기 설정 */}
-      <div className="bg-white rounded-lg shadow p-6 mb-6">
-        <h3 className="font-semibold mb-4">{t('settings.defaultView')}</h3>
-        <div className="space-y-4">
-        <div className="grid grid-cols-[max-content_1fr] items-center gap-x-4 gap-y-6">
-          
-          {/* 그리드 컬럼 */}
-          <span className="text-sm text-gray-500">{t('settings.defaultGridCols')}</span>
-          <div className="flex gap-2">
-            {[
-              { cols: '2', icon: '2' },
-              { cols: '3', icon: '3' },
-              { cols: '4', icon: '4' },
-              { cols: '1', icon: '≡' },
-            ].map(({ cols, icon }) => (
-              <button
-                key={cols}
-                onClick={() => setDefaultGridCols(cols)}
-                className={`w-8 h-8 text-xs rounded ${defaultGridCols === cols ? 'bg-black text-white' : 'bg-gray-100 hover:bg-gray-200'}`}
-              >
-                {icon}
-              </button>
-            ))}
-          </div>
-
-          {/* EXIF 기본값 */}
-          <span className="text-sm text-gray-500">{t('settings.defaultExif')}</span>
-          <div className="flex gap-2">
-            <button
-              onClick={() => setDefaultShowExif('true')}
-              className={`px-3 py-1.5 text-xs rounded ${defaultShowExif === 'true' ? 'bg-black text-white' : 'bg-gray-100 hover:bg-gray-200'}`}
-            >
-              ON
-            </button>
-            <button
-              onClick={() => setDefaultShowExif('false')}
-              className={`px-3 py-1.5 text-xs rounded ${defaultShowExif === 'false' ? 'bg-black text-white' : 'bg-gray-100 hover:bg-gray-200'}`}
-            >
-              OFF
-            </button>
-          </div>
-        </div>
-        </div>
-      </div>
-
       {/* 포트폴리오 테마 */}
       <div className="bg-white rounded-lg shadow p-6 mb-6">
-        <h3 className="font-semibold mb-4">{t('settings.portfolioThemeDesc')}</h3>
+        <h3 className="font-semibold mb-4 flex items-center gap-2">
+          <PaintBrushIcon className="w-5 h-5 text-gray-500" />
+          {t('settings.portfolioThemeDesc')}
+        </h3>
         <div className="flex gap-3">
           <button
             onClick={() => setPortfolioTheme('light')}
@@ -182,8 +222,11 @@ export default function Settings() {
       {/* 납품 선택 자동 태그 */}
       {DELIVERY_ENABLED && (
       <div className="bg-white rounded-lg shadow p-6 mb-6">
-        <h3 className="font-semibold mb-1">납품 선택 자동 태그</h3>
-        <p className="text-xs text-gray-400 mb-4">
+        <h3 className="font-semibold mb-1 flex items-center gap-2">
+          <TagIcon className="w-5 h-5 text-gray-500" />
+          납품 선택 자동 태그
+        </h3>
+        <p className="text-xs text-gray-400 mb-4 ml-7">
           고객이 납품 링크에서 선택 완료하면 해당 사진에 자동으로 이 컬러 레이블이 태깅됩니다.
         </p>
         <div className="flex gap-2 flex-wrap">
@@ -202,55 +245,69 @@ export default function Settings() {
             </button>
           ))}
         </div>
-        <p className="text-xs text-gray-400 mt-3">
-          → 고객 선택 완료 시 선택된 사진에 <strong>{colorName(deliveryTagColor)}</strong> 레이블 자동 태깅
-        </p>
       </div>
       )}
 
-      {/* 비밀번호 변경 */}
+      {/* 비밀번호 변경 - 2줄 구성 */}
       <div className="bg-white rounded-lg shadow p-6 mb-6">
-        <h3 className="font-semibold mb-4">{t('settings.managePassword')}</h3>
-        <div className="space-y-3">
-          <input
-            type="password"
-            className="w-full border rounded px-3 py-2 text-sm"
-            placeholder={t('settings.currentPassword')}
-            value={currentPassword}
-            onChange={e => setCurrentPassword(e.target.value)}
-          />
-          <input
-            type="password"
-            className="w-full border rounded px-3 py-2 text-sm"
-            placeholder={t('settings.newPassword')}
-            value={newPassword}
-            onChange={e => setNewPassword(e.target.value)}
-          />
-          <input
-            type="password"
-            className="w-full border rounded px-3 py-2 text-sm"
-            placeholder={t('settings.newPasswordConfirm')}
-            value={confirmPassword}
-            onChange={e => setConfirmPassword(e.target.value)}
-          />
-          {passwordError && <p className="text-red-500 text-xs">{t('settings.passwordChangeFailed')}</p>}
-          {passwordSuccess && <p className="text-green-500 text-xs">{t('settings.passwordChanged')}</p>}
-          <button
-            onClick={handlePasswordChange}
-            className="bg-black text-white px-4 py-2 text-sm hover:bg-gray-800"
-          >
-            {t('settings.changePassword')}
-          </button>
+        <h3 className="font-semibold mb-4 flex items-center gap-2">
+          <LockClosedIcon className="w-5 h-5 text-gray-500" />
+          {t('settings.managePassword')}
+        </h3>
+        <div className="space-y-4">
+          {/* 첫 번째 줄: 현재 비밀번호 */}
+          <div>
+            <input
+              type="password"
+              className="w-full border rounded px-3 py-2 text-sm outline-none focus:border-black"
+              placeholder={t('settings.currentPassword')}
+              value={currentPassword}
+              onChange={e => setCurrentPassword(e.target.value)}
+            />
+          </div>
+          {/* 두 번째 줄: 새 비밀번호 & 확인 */}
+          <div className="grid grid-cols-2 gap-3">
+            <input
+              type="password"
+              className="border rounded px-3 py-2 text-sm outline-none focus:border-black"
+              placeholder={t('settings.newPassword')}
+              value={newPassword}
+              onChange={e => setNewPassword(e.target.value)}
+            />
+            <input
+              type="password"
+              className="border rounded px-3 py-2 text-sm outline-none focus:border-black"
+              placeholder={t('settings.newPasswordConfirm')}
+              value={confirmPassword}
+              onChange={e => setConfirmPassword(e.target.value)}
+            />
+          </div>
+          
+          {passwordError && <p className="text-red-500 text-xs">{passwordError}</p>}
+          {passwordSuccess && <p className="text-green-500 text-xs">{passwordSuccess}</p>}
+          
+          <div className="flex justify-start pt-2">
+            <button
+              onClick={handlePasswordChange}
+              className="bg-black text-white px-4 py-2 text-sm hover:bg-gray-800 transition-colors"
+            >
+              {t('settings.changePassword')}
+            </button>
+          </div>
         </div>
       </div>
 
       {/* 저장 버튼 */}
-      <button
-        onClick={handleSave}
-        className="bg-black text-white px-6 py-2 text-sm tracking-wider hover:bg-gray-800"
-      >
-        {saved ? t('settings.saveSuccess') : t('common.save')}
-      </button>
+      <div className="flex justify-end">
+        <button
+          onClick={handleSave}
+          className={`flex items-center gap-2 px-8 py-2.5 text-sm font-bold tracking-wider rounded transition-all ${
+            saved ? 'bg-green-600 text-white' : 'bg-black text-white hover:bg-gray-800 shadow-md'
+          }`}
+        >
+          {saved ? t('settings.saveSuccess') : t('common.save')}
+        </button>
+      </div>
     </div>
   )
 }
