@@ -42,7 +42,7 @@ def get_users(
             "photo_count": db.query(models.Photo).filter(
                 models.Photo.project_id.in_(
                     db.query(models.Project.id).filter(
-                        models.Project.user_id == u.id
+                        models.Project.user_id == u.id,
                         models.Project.deleted_at == None
                     )
                 ),
