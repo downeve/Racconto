@@ -194,7 +194,9 @@
     "chapterIncl": "챕터 포함",
     "chapterDeleteWarning": "챕터를 삭제할까요? 사진 연결도 해제됩니다.",
     "noChapter": "등록된 챕터가 없습니다.",
-    "noChapter2": "스토리 탭에서 챕터를 추가해 주세요."
+    "noChapter2": "스토리 탭에서 챕터를 추가해 주세요.",
+    "addToChapter": "챕터에 추가",
+    "noChapters": "생성된 챕터가 없습니다"
   },
   "note": {
     "title": "노트",
@@ -281,7 +283,8 @@
     "deletedAt": "일 후 자동 삭제",
     "restore": "복구",
     "permanentDelete": "영구 삭제",
-    "permanentDeleteConfirm": "영구히 삭제할까요? 복구할 수 없습니다."
+    "permanentDeleteConfirm": "영구히 삭제할까요? 복구할 수 없습니다.",
+    "delete_warning": "{{daysLeft}}일 후 영구 삭제"
   },
   "actions": {
     "resetAllRatings": "전체 별점 초기화",

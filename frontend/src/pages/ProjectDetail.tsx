@@ -27,6 +27,7 @@ interface Photo {
   caption: string
   caption_en: string
   folder: string | null
+  original_filename?: string | null
   order: number
   taken_at: string | null
   camera: string | null
@@ -54,7 +55,7 @@ interface Note {
 function Lightbox({
   photo, photos, colorLabels, chapterPhotoIds,
   onClose, onNavigate, onSetRating, onSetColorLabel, onSaveCaption,
-  showExif,
+  showExif, chapters, onAddToChapter,
 }: {
   photo: Photo
   photos: Photo[]
@@ -66,9 +67,12 @@ function Lightbox({
   onSetColorLabel: (p: Photo, l: string) => void
   onSaveCaption: (p: Photo, c: string) => void
   showExif: boolean
+  chapters: { id: string; title: string; parent_id?: string | null; order_num?: number }[]
+  onAddToChapter: (photoId: string, chapterId: string) => void
 }) {
   const idx = photos.findIndex(p => p.id === photo.id)
   const [editingCaption, setEditingCaption] = useState(false)
+  const [showChapterMenu, setShowChapterMenu] = useState(false)
   const [captionDraft, setCaptionDraft] = useState(photo.caption || '')
   const { t } = useTranslation()
 
@@ -133,9 +137,57 @@ function Lightbox({
               ))}
             </div>
             <div className="w-px h-5 bg-white/20" />
-            {inChapter && (
-              <span className="text-xs text-blue-400">📖 {t('story.chapterIncl')}</span>
-            )}
+              <div className="relative">
+                {inChapter ? (
+                  <span className="text-xs text-blue-400">📖 {t('story.chapterIncl')}</span>
+                ) : (
+                  <button
+                    onClick={() => setShowChapterMenu(v => !v)}
+                    className="text-xs px-2 py-1 border border-white/20 text-white/60 hover:text-white hover:border-white/50 rounded"
+                  >
+                    📖 {t('story.addToChapter')}
+                  </button>
+                )}
+                {showChapterMenu && !inChapter && (
+                  <div className="absolute bottom-8 left-0 bg-white rounded shadow-lg z-50 min-w-[180px] py-1">
+                    {chapters.length === 0 ? (
+                      <p className="text-xs text-gray-400 px-3 py-2">{t('story.noChapters')}</p>
+                    ) : (
+                      chapters
+                        .filter(c => !c.parent_id)
+                        .map((parent, parentIdx) => (
+                          <>
+                            <button
+                              key={parent.id}
+                              onClick={() => {
+                                onAddToChapter(photo.id, parent.id)
+                                setShowChapterMenu(false)
+                              }}
+                              className="w-full text-left text-xs px-3 py-2 hover:bg-gray-100 text-gray-700 font-medium"
+                            >
+                              {t('story.chapter')} {parentIdx + 1}. {parent.title}
+                            </button>
+                            {chapters
+                              .filter(c => c.parent_id === parent.id)
+                              .map((child, childIdx) => (
+                                <button
+                                  key={child.id}
+                                  onClick={() => {
+                                    onAddToChapter(photo.id, child.id)
+                                    setShowChapterMenu(false)
+                                  }}
+                                  className="w-full text-left text-xs px-3 py-2 hover:bg-gray-100 text-gray-500 pl-6"
+                                >
+                                  ↳ {t('story.chapter')} {parentIdx + 1}.{childIdx + 1}. {child.title}
+                                </button>
+                              ))
+                            }
+                          </>
+                        ))
+                    )}
+                  </div>
+                )}
+              </div>
             {showExif && (photo.camera || photo.focal_length) && (
               <>
                 <div className="w-px h-5 bg-white/20" />
@@ -317,8 +369,9 @@ export default function ProjectDetail() {
   const [chapterPhotoIds, setChapterPhotoIds] = useState<Set<string>>(new Set())
   const [lightboxPhoto, setLightboxPhoto] = useState<Photo | null>(null)
   const [chapterMenuPhoto, setChapterMenuPhoto] = useState<string | null>(null)
-  const [chapters, setChapters] = useState<{ id: string; title: string; parent_id?: string | null }[]>([])
+  const [chapters, setChapters] = useState<{ id: string; title: string; parent_id?: string | null; order_num?: number }[]>([])
   const [sortBy, setSortBy] = useState<'default' | 'taken_at' | 'name'>('default')
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc')
 
   const fetchPhotos = async () => {
     if (!id) return
@@ -334,8 +387,11 @@ export default function ProjectDetail() {
   const fetchChapterPhotoIds = async () => {
     if (!id) return
     const res = await axios.get(`${API}/chapters/?project_id=${id}`)
-    // 💡 서브챕터 구분을 위해 parent_id를 함께 저장합니다!
-    setChapters(res.data.map((c: any) => ({ id: c.id, title: c.title, parent_id: c.parent_id })))
+    setChapters(
+      res.data
+        .sort((a: any, b: any) => a.order_num - b.order_num)
+        .map((c: any) => ({ id: c.id, title: c.title, parent_id: c.parent_id, order_num: c.order_num }))
+    )
     const ids = new Set<string>()
     for (const chapter of res.data) {
       const photoRes = await axios.get(`${API}/chapters/${chapter.id}/photos`)
@@ -547,18 +603,20 @@ export default function ProjectDetail() {
     if (filterFolder !== null && photo.folder !== filterFolder) return false
     return true
   }).sort((a, b) => {
+    let result = 0
     if (sortBy === 'taken_at') {
-      if (!a.taken_at && !b.taken_at) return 0
-      if (!a.taken_at) return 1 
-      if (!b.taken_at) return -1
-      return new Date(a.taken_at).getTime() - new Date(b.taken_at).getTime() 
+      if (!a.taken_at && !b.taken_at) result = 0
+      else if (!a.taken_at) result = 1
+      else if (!b.taken_at) result = -1
+      else result = new Date(a.taken_at).getTime() - new Date(b.taken_at).getTime()
+    } else if (sortBy === 'name') {
+      const nameA = a.original_filename || ''
+      const nameB = b.original_filename || ''
+      result = nameA.localeCompare(nameB)
+    } else {
+      result = (a.order ?? 0) - (b.order ?? 0)
     }
-    if (sortBy === 'name') {
-      const nameA = a.image_url.split('/').pop() || ''
-      const nameB = b.image_url.split('/').pop() || ''
-      return nameA.localeCompare(nameB) 
-    }
-    return 0
+    return sortOrder === 'desc' ? -result : result
   })
 
   if (!project) return <div className="p-6 text-gray-400">{t('common.loading')}</div>
@@ -577,6 +635,11 @@ export default function ProjectDetail() {
           onSetColorLabel={handleSetColorLabel}
           onSaveCaption={handleSaveCaptionLightbox}
           showExif={showExif}
+          chapters={chapters}
+          onAddToChapter={async (photoId, chapterId) => {
+            await axios.post(`${API}/chapters/${chapterId}/photos`, { photo_id: photoId })
+            await fetchChapterPhotoIds()
+          }}
         />
       )}
 
@@ -737,8 +800,15 @@ export default function ProjectDetail() {
                 </div>
 
                 <div className="mb-2">
-                  <p className="text-xs font-semibold text-gray-500 mb-2">{t('photo.listOrder')}</p>
-                  {/* 💡 flex-col을 지우고 flex-1과 text-center를 사용해 가로로 꽉 차게 3등분 했습니다 */}
+                  <div className="flex items-center justify-between mb-2">
+                    <p className="text-xs font-semibold text-gray-500">{t('photo.listOrder')}</p>
+                    <button
+                      onClick={() => setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')}
+                      className="text-xs text-gray-500 hover:text-black flex items-center gap-0.5"
+                    >
+                      {sortOrder === 'asc' ? '↑' : '↓'}
+                    </button>
+                  </div>
                   <div className="flex gap-1">
                     <button onClick={() => setSortBy('default')}
                       className={`flex-1 text-center py-1 text-[11px] rounded tracking-tight ${sortBy === 'default' ? 'bg-black text-white' : 'bg-gray-100 hover:bg-gray-200'}`}>
@@ -921,7 +991,7 @@ export default function ProjectDetail() {
                           <div className="p-2 bg-transparent flex items-center justify-center h-10">
                             {/* 💡 날짜 표시 버그 수정 (이전에 요청하신 {daysLeft}일 후 영구 삭제로 복구) */}
                             <p className="text-xs text-red-500 font-medium">
-                              {daysLeft}일 후 영구 삭제
+                              {t('trash.delete_warning', { daysLeft: daysLeft })}
                             </p>
                           </div>
                         </div>

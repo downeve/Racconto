@@ -194,7 +194,9 @@
     "chapterIncl": "In Chapter",
     "chapterDeleteWarning": "Do you want to delete chapter? Image connection will be lost.",
     "noChapter": "No chapters",
-    "noChapter2": "Please make a chapter in the Story tab."
+    "noChapter2": "Please make a chapter in the Story tab.",
+    "addToChapter": "Add to Chapter",
+    "noChapters": "No chapters yet"
   },
   "note": {
     "title": "Note",
@@ -281,7 +283,8 @@
     "deletedAt": " days left",
     "restore": "Restore",
     "permanentDelete": "Delete Permanently",
-    "permanentDeleteConfirm": "Are you sure you want to permanently delete this? This action cannot be undone."
+    "permanentDeleteConfirm": "Are you sure you want to permanently delete this? This action cannot be undone.",
+    "delete_warning": "{{daysLeft}} days left"
   },
   "actions": {
     "resetAllRatings": "Reset All Ratings",

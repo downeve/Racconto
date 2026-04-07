@@ -187,6 +187,7 @@ class PhotoResponse(BaseModel):
     color_label: Optional[str] = None
     created_at: datetime
     folder: Optional[str] = None
+    original_filename: Optional[str] = None
 
 class Config:
     from_attributes = True
@@ -272,6 +273,7 @@ async def upload_photo(
         raise HTTPException(status_code=400, detail="UNSUPPORTED_FILE_FORMAT")
 
     file_id = str(uuid.uuid4())
+    original_filename = file.filename
     filename = f"{file_id}.{ext}"
     file_path = f"{UPLOAD_DIR}/{filename}"
 
@@ -313,7 +315,8 @@ async def upload_photo(
         aperture=exif.get('aperture'),
         focal_length=exif.get('focal_length'),
         gps_lat=exif.get('gps_lat'),
-        gps_lng=exif.get('gps_lng')
+        gps_lng=exif.get('gps_lng'),
+        original_filename=original_filename
     )
     db.add(db_photo)
     db.commit()
