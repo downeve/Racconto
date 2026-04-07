@@ -43,6 +43,7 @@ def get_users(
                 models.Photo.project_id.in_(
                     db.query(models.Project.id).filter(
                         models.Project.user_id == u.id
+                        models.Project.deleted_at == None
                     )
                 ),
                 models.Photo.deleted_at == None
