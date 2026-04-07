@@ -405,11 +405,11 @@ export default function ProjectStory({
       {/* 챕터 목록 */}
       <div className="flex-1">
         {/* 챕터 추가 버튼 */}
-        <div className="mb-6">
+        <div className="mb-3">
           {showAddChapter && !addingSubChapterTo ? (
-            <div className="bg-white rounded-lg shadow p-4">
+            <div className="bg-white rounded-lg shadow p-2">
               {addingSubChapterTo && (
-                <p className="text-xs text-gray-500 mb-2">
+                <p className="text-xs text-gray-500 mb-2 rounded">
                   {t('story.addingSubChapter')}
                 </p>
               )}

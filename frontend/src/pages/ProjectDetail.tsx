@@ -77,6 +77,8 @@ function Lightbox({
   const [captionDraft, setCaptionDraft] = useState(photo.caption || '')
   const { t } = useTranslation()
 
+  const [hoverRating, setHoverRating] = useState<{ id: string, star: number } | null>(null);
+
   useEffect(() => {
     setEditingCaption(false)
     setCaptionDraft(photo.caption || '')
@@ -120,11 +122,37 @@ function Lightbox({
       <div className="shrink-0 bg-black/80 border-t border-white/10 px-6 py-4" onClick={e => e.stopPropagation()}>
         <div className="max-w-3xl mx-auto space-y-3">
           <div className="flex items-center gap-4 flex-wrap">
-            <div className="flex gap-1">
-              {[1, 2, 3, 4, 5].map(star => (
-                <button key={star} onClick={() => onSetRating(photo, star)}
-                  className={`text-xl transition-colors ${photo.rating && photo.rating >= star ? 'text-yellow-400' : 'text-white/20 hover:text-yellow-300'}`}>★</button>
-              ))}
+            <div 
+              className="flex gap-1"
+              onMouseLeave={() => setHoverRating(null)} // 마우스가 별점 영역을 벗어나면 초기화
+            >
+              {[1, 2, 3, 4, 5].map(star => {
+                // 1. 현재 마우스가 올라간 사진인지 확인
+                const isHoveringThis = hoverRating?.id === photo.id;
+                // 2. 현재 마우스가 위치한 별(star)보다 작거나 같은 번호인지 확인
+                const isHoveredStar = isHoveringThis && hoverRating.star >= star;
+                // 3. 기존에 확정된 평점인지 확인
+                const isRatedStar = photo.rating && photo.rating >= star;
+
+                // 색상 결정 로직
+                let colorClass = 'text-white/20'; // 기본 회색 (비활성)
+                if (isHoveredStar) {
+                  colorClass = 'text-yellow-300'; // 마우스 오버 시 채워지는 색상
+                } else if (!isHoveringThis && isRatedStar) {
+                  colorClass = 'text-yellow-400'; // 기존 저장된 평점 색상 (마우스 오버 중이 아닐 때만 표시)
+                }
+
+                return (
+                  <button 
+                    key={star} 
+                    onMouseEnter={() => setHoverRating({ id: photo.id, star })}
+                    onClick={() => onSetRating(photo, star)}
+                    className={`text-xl transition-colors ${colorClass}`}
+                  >
+                    ★
+                  </button>
+                )
+              })}
             </div>
             <div className="w-px h-5 bg-white/20" />
             <div className="flex gap-1.5">
@@ -138,13 +166,18 @@ function Lightbox({
               ))}
             </div>
             <div className="w-px h-5 bg-white/20" />
-              <div className="relative">
+              {/* 💡 부모 div에 flex items-center를 주어 수직 중앙 정렬 기반 마련 */}
+              <div className="relative flex items-center">
                 {inChapter ? (
-                  <span className="text-xs text-blue-400">📖 {t('story.chapterIncl')}</span>
+                  /* 💡 버튼과 동일한 패딩(px-2 py-1)과 투명 보더(border-transparent)를 주어 박스 크기를 똑같이 맞춥니다 */
+                  <span className="flex items-center text-xs text-blue-400 px-2 py-1 border border-transparent">
+                    📖 {t('story.chapterIncl')}
+                  </span>
                 ) : (
+                  /* 💡 버튼에도 flex items-center를 주어 이모지와 텍스트의 중심을 완벽히 맞춥니다 */
                   <button
                     onClick={() => setShowChapterMenu(v => !v)}
-                    className="text-xs px-2 py-1 border border-white/20 text-white/60 hover:text-white hover:border-white/50 rounded"
+                    className="flex items-center text-xs px-2 py-1 border border-white/20 text-white/60 hover:text-white hover:border-white/50 rounded transition-colors"
                   >
                     📖 {t('story.addToChapter')}
                   </button>
@@ -988,7 +1021,7 @@ export default function ProjectDetail() {
                             </button>
                             <button
                               onClick={async () => {
-                                if (!confirm(t('trash.confirmPermanentDelete'))) return
+                                if (!confirm(t('trash.permanentDeleteConfirm'))) return
                                 await axios.delete(`${API}/photos/${photo.id}/permanent`)
                                 fetchTrash()
                               }}
