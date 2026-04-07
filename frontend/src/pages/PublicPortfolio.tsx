@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react'
-import { useParams } from 'react-router-dom'
+import { useParams, Link } from 'react-router-dom'
 import axios from 'axios'
 import { useTranslation } from 'react-i18next'
-import Heading from '../components/Heading'
+import { useAuth } from '../context/AuthContext'
 
 const API = import.meta.env.VITE_API_URL
 
@@ -41,6 +41,8 @@ export default function PublicPortfolio() {
   const [darkMode, setDarkMode] = useState(false)
   const [notFound, setNotFound] = useState(false)
   const { t } = useTranslation()
+
+  const { isAuthenticated } = useAuth()
 
   useEffect(() => {
     axios.get(`${API}/portfolio/public/${username}`)
@@ -106,6 +108,21 @@ export default function PublicPortfolio() {
 
   return (
     <div className={`min-h-screen ${bg} transition-colors duration-300`}>
+    {!isAuthenticated && (
+      <div className={`border-b ${darkMode ? 'border-white/10' : 'border-gray-200'}`}>
+        <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
+          <Link to="/" className={`text-lg font-bold tracking-widest ${darkMode ? 'text-white' : 'text-gray-900'}`}>
+            Racconto
+          </Link>
+          <a
+            href={`/p/${username}`}
+            className={`text-sm ${darkMode ? 'text-gray-400 hover:text-white' : 'text-gray-500 hover:text-gray-900'}`}
+          >
+            @{username}
+          </a>
+        </div>
+      </div>
+    )}
       <div className="max-w-6xl mx-auto p-6">
 
         <div className="flex items-center justify-between mb-8">
@@ -118,9 +135,9 @@ export default function PublicPortfolio() {
                 {t('nav.backToList')}
               </button>
             )}
-            <Heading level={2} className="mb-2">
+            <h2 className={`text-2xl font-bold tracking-wide mb-2 ${darkMode ? 'text-white' : 'text-gray-900'}`}>
               {selectedProject ? selectedProject.title : `@${username}`}
-            </Heading>
+            </h2>
           </div>
           <button
             onClick={() => setDarkMode(!darkMode)}
@@ -174,7 +191,7 @@ export default function PublicPortfolio() {
                 {selectedProject.chapters.map((chapter, idx) => (
                   <div key={chapter.id}>
                     <div className="mb-4">
-                      <p className={`text-xs ${subText} mb-1`}>Chapter {idx + 1}</p>
+                      <p className={`text-xs ${subText} mb-1`}>{t('story.chapter')} {idx + 1}</p>
                       <h3 className="text-lg font-semibold">{chapter.title}</h3>
                       {chapter.description && (
                         <p className={`text-sm ${subText} mt-1`}>{chapter.description}</p>
@@ -193,7 +210,7 @@ export default function PublicPortfolio() {
                     {chapter.sub_chapters?.map((sub, subIdx) => (
                       <div key={sub.id} className="ml-4 md:ml-8 mb-8">
                         <div className="mb-3 border-l-4 border-blue-400 pl-4">
-                          <p className={`text-xs ${subText} mb-1`}>Sub-Chapter {idx + 1}.{subIdx + 1}</p>
+                          <p className={`text-xs ${subText} mb-1`}>{t('story.chapter')} {idx + 1}.{subIdx + 1}</p>
                           <h4 className="text-base font-semibold">{sub.title}</h4>
                         </div>
                         <div className="grid grid-cols-3 md:grid-cols-4 gap-3 pl-4">

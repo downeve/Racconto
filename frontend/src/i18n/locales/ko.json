@@ -19,7 +19,7 @@
     "mail": "이메일",
     "password": "비밀번호",
     "logout": "로그아웃",
-    "logginIn": "로그인 중",
+    "loggingIn": "로그인 중",
     "submit": "로그인",
     "loginFailed": "로그인 실패: 비밀번호를 확인해주세요.",
     "noAccount": "계정이 없으신가요? ",

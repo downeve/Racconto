@@ -5,7 +5,6 @@ import Login from './pages/Login'
 import Projects from './pages/Projects'
 import ProjectDetail from './pages/ProjectDetail'
 import ProjectEdit from './pages/ProjectEdit'
-import Portfolio from './pages/Portfolio'
 import Trash from './pages/Trash'
 import Settings from './pages/Settings'
 import DeliveryPage from './pages/DeliveryPage'
@@ -38,7 +37,6 @@ function AppRoutes() {
         <Route path="/projects" element={<PrivateRoute><Projects /></PrivateRoute>} />
         <Route path="/projects/:id" element={<PrivateRoute><ProjectDetail /></PrivateRoute>} />
         <Route path="/projects/:id/edit" element={<PrivateRoute><ProjectEdit /></PrivateRoute>} />
-        <Route path="/portfolio" element={<PrivateRoute><Portfolio /></PrivateRoute>} />
         <Route path="/trash" element={<PrivateRoute><Trash /></PrivateRoute>} />
         <Route path="/settings" element={<PrivateRoute><Settings /></PrivateRoute>} />
         <Route path="/admin" element={<PrivateRoute><Admin /></PrivateRoute>} />

@@ -114,6 +114,7 @@ export default function Settings() {
   const handleUsernameCheck = async (value: string) => {
     setUsername(value)
     if (value.length < 3) { setUsernameStatus('idle'); return }
+    if (!/^[a-zA-Z0-9_-]+$/.test(value)) { setUsernameStatus('invalid'); return }
     setUsernameStatus('checking')
     try {
       const res = await axios.get(`${API}/auth/check-username/${value}`)

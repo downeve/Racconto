@@ -20,7 +20,7 @@
     "logout": "Logout",
     "loginFailed": "Login failed: Please check your password.",
     "mail": "Email",
-    "logginIn": "Logging in...",
+    "loggingIn": "Logging in...",
     "submit": "Log in",
     "noAccount": "Have not account yet? ",
     "register": "Register here!"
@@ -180,7 +180,7 @@
   },
   "story": {
     "title": "Story",
-    "chapter": "Ch",
+    "chapter": "Chapter",
     "addChapter": "+ Add New Chapter",
     "deleteChapter": "Delete Chapter",
     "chapterTitle": "Enter chapter title (required)",
