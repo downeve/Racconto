@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import axios from 'axios'
+import { useTranslation } from 'react-i18next'
+import Heading from '../components/Heading' //
 
 const API = import.meta.env.VITE_API_URL
 
@@ -14,6 +16,8 @@ export default function ProjectEdit() {
   const [location, setLocation] = useState('')
   const [status, setStatus] = useState('in_progress')
   const [isPublic, setIsPublic] = useState('false')
+
+  const { t } = useTranslation()
 
   useEffect(() => {
     if (!id) return
@@ -41,7 +45,9 @@ export default function ProjectEdit() {
 
   return (
     <div className="max-w-2xl mx-auto p-6">
-      <h2 className="text-2xl font-bold mb-8">프로젝트 수정</h2>
+      <Heading level={2} className="mb-2">
+        {t('project.editProject')}
+      </Heading>
 
       <div className="bg-white rounded-lg shadow p-6">
         <div className="grid grid-cols-2 gap-4 mb-4">

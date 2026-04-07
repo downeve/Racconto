@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { useLocation } from 'react-router-dom'
 import axios from 'axios'
 import { useTranslation } from 'react-i18next'
+import Heading from '../components/Heading' //
 
 const API = import.meta.env.VITE_API_URL
 
@@ -129,9 +130,9 @@ export default function Portfolio() {
                 {t('nav.backToList')}
               </button>
             )}
-            <h2 className="text-2xl font-bold tracking-wider">
+            <Heading level={2} className="mb-2">
               {selectedProject ? selectedProject.title : t('nav.portfolio')}
-            </h2>
+            </Heading>
           </div>
           {/* 배경 토글 */}
           <button

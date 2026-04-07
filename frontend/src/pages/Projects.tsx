@@ -3,6 +3,7 @@ import axios from 'axios'
 import ProjectCard from '../components/ProjectCard'
 import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
+import Heading from '../components/Heading' //
 
 const API = import.meta.env.VITE_API_URL
 
@@ -62,7 +63,9 @@ export default function Projects() {
   return (
     <div className="max-w-6xl mx-auto p-6">
       <div className="flex items-center justify-between mb-8">
-        <h2 className="text-2xl font-bold">{t('nav.projects')}</h2>
+          <Heading level={2} className="mb-2">
+            {t('nav.projects')}
+          </Heading>
         <button
           onClick={() => setShowForm(!showForm)}
           className="bg-black text-white px-4 py-2 text-sm tracking-wider hover:bg-gray-800"

@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import axios from 'axios'
 import { useTranslation } from 'react-i18next'
+import Heading from '../components/Heading' //
 
 const API = import.meta.env.VITE_API_URL
 
@@ -46,7 +47,9 @@ export default function Trash() {
 
   return (
     <div className="max-w-4xl mx-auto p-6">
-      <h2 className="text-2xl font-bold mb-2">{t('trash.title')}</h2>
+      <Heading level={2} className="mb-2">
+        {t('trash.title')}
+      </Heading>
       <p className="text-sm text-gray-400 mb-8">{t('trash.description')}</p>
 
       {projects.length === 0 ? (

@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import axios from 'axios'
 import { useTranslation } from 'react-i18next'
+import Heading from '../components/Heading' //
 import { 
   SwatchIcon, 
   ViewColumnsIcon, 
@@ -105,7 +106,9 @@ export default function Settings() {
 
   return (
     <div className="max-w-2xl mx-auto p-6">
-      <h2 className="text-2xl font-bold mb-8">{t('settings.title')}</h2>
+      <Heading level={2} className="mb-2">
+        {t('settings.title')}
+      </Heading>
 
       {/* 기본 보기 설정 */}
       <div className="bg-white rounded-lg shadow p-6 mb-6">

@@ -5,6 +5,7 @@ import axios from 'axios'
 import ProjectStory from './ProjectStory'
 import DeliveryManager from '../components/DeliveryManager'
 import { useTranslation } from 'react-i18next'
+import Heading from '../components/Heading' //
 
 const API = import.meta.env.VITE_API_URL
 const DELIVERY_ENABLED = import.meta.env.VITE_ENABLE_DELIVERY === 'true'
@@ -421,7 +422,7 @@ export default function ProjectDetail() {
       if (res.data['default_sort_by']) {
         setSortBy(res.data['default_sort_by'])
       }
-      
+
       setLabelSettings({
         color_label_red: res.data['color_label_red'] || t('colors.reject'),
         color_label_yellow: res.data['color_label_yellow'] || t('colors.hold'),
@@ -649,13 +650,15 @@ export default function ProjectDetail() {
         />
       )}
 
-      <div className="mb-4">
+      <div className="mb-2">
         <a href="/projects" className="text-sm text-gray-400 hover:text-black">{t('nav.backToProjects')}</a>
       </div>
 
-      <div className="mb-8 flex items-start justify-between gap-6">
+      <div className="mb-4 flex items-start justify-between gap-6">
         <div className="flex-1">
-          <h2 className="text-3xl font-bold mb-1">{project.title}</h2>
+          <Heading level={2} className="mb-2">
+            {project.title}
+          </Heading>
           {project.location && <p className="text-sm text-gray-500 mb-4">📍 {project.location}</p>}
           {project.description && <p className="text-gray-700 mb-2">{project.description}</p>}
         </div>
