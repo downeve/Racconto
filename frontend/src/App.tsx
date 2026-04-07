@@ -16,7 +16,7 @@ import LandingPage from './pages/LandingPage'
 
 function PrivateRoute({ children }: { children: React.ReactNode }) {
   const { isAuthenticated, isLoading } = useAuth()
-  if (isLoading) return <div className="min-h-screen bg-gray-50" />
+  if (isLoading) return <div className="min-h-screen bg-[#F7F4F0]" />
   return isAuthenticated ? <>{children}</> : <Navigate to="/login" />
 }
 
@@ -28,7 +28,7 @@ function AppRoutes() {
   const hideNavbar = location.pathname.startsWith('/delivery/')
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-[#F7F4F0]">
       {isAuthenticated && !hideNavbar && <Navbar onLogout={logout} />}
       <Routes>
         <Route path="/login" element={<Login />} />

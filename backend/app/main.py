@@ -12,11 +12,11 @@ from app.routers.photos import delete_from_cloudflare
 
 models.Base.metadata.create_all(bind=engine)
 
-app = FastAPI(title="FotoPM API")
+app = FastAPI(title="Racconto API")
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173", "https://fotopm.fototime.kr"],
+    allow_origins=["http://localhost:5173", "https://racconto.app"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -73,4 +73,4 @@ scheduler.start()
 
 @app.get("/")
 def root():
-    return {"message": "FotoPM API is running"}
+    return {"message": "Racconto API is running"}

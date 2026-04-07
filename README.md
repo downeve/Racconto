@@ -1,2 +1,2 @@
-# FotoPM
-FotoPM Development Project with Claude and Gemini
+# Racconto
+Racconto Development Project with Claude and Gemini
