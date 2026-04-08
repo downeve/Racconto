@@ -71,6 +71,7 @@ class Photo(Base):
     deleted_at = Column(DateTime, nullable=True)
     folder = Column(String, nullable=True)
     original_filename = Column(String, nullable=True)
+    local_missing = Column(Boolean, default=False, nullable=False)
 
 class Pitch(Base):
     __tablename__ = "pitches"

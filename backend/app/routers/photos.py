@@ -188,6 +188,7 @@ class PhotoResponse(BaseModel):
     created_at: datetime
     folder: Optional[str] = None
     original_filename: Optional[str] = None
+    local_missing: bool = False
 
 class Config:
     from_attributes = True
@@ -323,6 +324,7 @@ async def upload_photo(
     db.refresh(db_photo)
     return db_photo
 
+
 @router.get("/trash/{project_id}")
 def get_project_trash(project_id: str, db: Session = Depends(get_db)):
     """프로젝트별 휴지통 조회"""
@@ -360,6 +362,7 @@ def restore_photo(
     db.refresh(photo)
     return photo
 
+
 @router.delete("/{photo_id}/permanent")
 def permanent_delete_photo(photo_id: str, db: Session = Depends(get_db)):
     """영구 삭제 (파일 및 관련 데이터 모두 삭제)"""
@@ -392,3 +395,27 @@ def permanent_delete_photo(photo_id: str, db: Session = Depends(get_db)):
     db.commit()
     
     return {"message": "PERMANENTLY_DELETED"}
+
+
+class LocalMissingUpdate(BaseModel):
+    local_missing: bool
+
+@router.patch("/{photo_id}/local-missing")
+def update_local_missing(
+    photo_id: str,
+    body: LocalMissingUpdate,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user)
+):
+    """로컬 파일 누락 상태 업데이트 (Electron 앱에서 호출)"""
+    photo = db.query(models.Photo).filter(
+        models.Photo.id == photo_id,
+        models.Photo.deleted_at == None
+    ).first()
+    if not photo:
+        raise HTTPException(status_code=404, detail="PHOTO_NOT_FOUND")
+    
+    photo.local_missing = body.local_missing
+    db.commit()
+    db.refresh(photo)
+    return photo

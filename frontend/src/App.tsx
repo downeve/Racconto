@@ -13,6 +13,7 @@ import VerifyEmail from './pages/VerifyEmail'
 import Admin from './pages/Admin'
 import PublicPortfolio from './pages/PublicPortfolio'
 import LandingPage from './pages/LandingPage'
+import FolderWatcher from './pages/FolderWatcher'
 
 function PrivateRoute({ children }: { children: React.ReactNode }) {
   const { isAuthenticated, isLoading } = useAuth()
@@ -69,6 +70,7 @@ function AppRoutes() {
         <Route path="/trash" element={<PrivateRoute><Trash /></PrivateRoute>} />
         <Route path="/settings" element={<PrivateRoute><Settings /></PrivateRoute>} />
         <Route path="/admin" element={<PrivateRoute><Admin /></PrivateRoute>} />
+        <Route path="/folder-watcher" element={<FolderWatcher />} />
 
         {/* 납품 링크 - 비로그인 공개 페이지 */}
         <Route path="/delivery/:linkId" element={<DeliveryPage />} />
