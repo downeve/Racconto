@@ -40,9 +40,17 @@ function AppRoutes() {
             <p className="text-lg font-bold text-stone-900 mb-2" style={{ fontFamily: 'Georgia, serif' }}>
               데스크톱에서 사용해주세요
             </p>
-            <p className="text-sm text-stone-500 leading-relaxed">
+            <p className="text-sm text-stone-500 leading-relaxed mb-6">
               Racconto는 데스크톱 환경에 최적화되어 있습니다.
             </p>
+            {isAuthenticated && (
+              <button
+                onClick={logout}
+                className="text-xs text-stone-400 hover:text-stone-600 underline underline-offset-2"
+              >
+                로그아웃
+              </button>
+            )}
           </div>
         </div>
       )}

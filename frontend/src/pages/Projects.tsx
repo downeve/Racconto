@@ -60,9 +60,12 @@ export default function Projects() {
       setShowForm(false)
       fetchProjects()
     } catch (err: any) {
-      const code = err.response?.data?.detail
+      const detail = err.response?.data?.detail
+      const code = typeof detail === 'object' ? detail.code : detail
+      const limit = typeof detail === 'object' ? detail.limit : undefined
+
       if (code === 'PROJECT_LIMIT_EXCEEDED') {
-        alert(t('api.error.PROJECT_LIMIT_EXCEEDED'))
+        alert(t('api.error.PROJECT_LIMIT_EXCEEDED', { limit }))
       }
     }
   }

@@ -530,10 +530,13 @@ export default function ProjectDetail() {
         // 💡 t('photo.uploadFail')을 템플릿 리터럴 안에 삽입
         console.error(`❌ ${file.name} ${t('photo.uploadFail')}:`, error)
         
-        const code = (error as any)?.response?.data?.detail
+        const detail = (error as any)?.response?.data?.detail
+        const code = typeof detail === 'object' ? detail.code : detail
+        const limit = typeof detail === 'object' ? detail.limit : undefined
+
         if (code === 'PHOTO_LIMIT_EXCEEDED') {
-          alert(t('api.error.PHOTO_LIMIT_EXCEEDED'))
-          break  // 제한 초과 시 나머지 파일도 중단
+          alert(t('api.error.PHOTO_LIMIT_EXCEEDED', { limit }))
+          break
         } else {
           alert(`❌ ${file.name} ${t('photo.uploadFail')}`)
         }
@@ -1039,10 +1042,20 @@ export default function ProjectDetail() {
                           <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity bg-black/70 flex flex-col items-center justify-center gap-2 px-4 z-10">
                             <button
                               onClick={async () => {
-                                await axios.post(`${API}/photos/${photo.id}/restore`)
-                                await fetchTrash()
-                                await fetchPhotos()
-                                await fetchChapterPhotoIds()
+                                try {
+                                  await axios.post(`${API}/photos/${photo.id}/restore`)
+                                  await fetchTrash()
+                                  await fetchPhotos()
+                                  await fetchChapterPhotoIds()
+                                } catch (err: any) {
+                                  const detail = err.response?.data?.detail
+                                  const code = typeof detail === 'object' ? detail.code : detail
+                                  const limit = typeof detail === 'object' ? detail.limit : undefined
+
+                                  if (code === 'PHOTO_LIMIT_EXCEEDED') {
+                                    alert(t('api.error.PHOTO_LIMIT_EXCEEDED', { limit }))
+                                  }
+                                }
                               }}
                               className="w-full text-center px-4 py-1.5 text-xs bg-white text-black rounded hover:bg-gray-200 font-medium shadow-lg"
                             >

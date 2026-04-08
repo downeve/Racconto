@@ -28,8 +28,18 @@ export default function Trash() {
   }, [])
 
   const handleRestore = async (projectId: string) => {
-    await axios.post(`${API}/projects/${projectId}/restore`)
-    fetchTrash()
+    try {
+      await axios.post(`${API}/projects/${projectId}/restore`)
+      fetchTrash()
+    } catch (err: any) {
+      const detail = err.response?.data?.detail
+      const code = typeof detail === 'object' ? detail.code : detail
+      const limit = typeof detail === 'object' ? detail.limit : undefined
+
+      if (code === 'PROJECT_LIMIT_EXCEEDED') {
+        alert(t('api.error.PROJECT_LIMIT_EXCEEDED', { limit }))
+      }
+    }
   }
 
   const handlePermanentDelete = async (projectId: string) => {

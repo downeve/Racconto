@@ -263,7 +263,7 @@ async def upload_photo(
     if photo_count >= current_user.photo_limit:
         raise HTTPException(
             status_code=403,
-            detail="PHOTO_LIMIT_EXCEEDED"
+            detail={"code": "PHOTO_LIMIT_EXCEEDED", "limit": current_user.photo_limit}
         )
     
     ext = file.filename.split(".")[-1].lower()
@@ -333,15 +333,28 @@ def get_project_trash(project_id: str, db: Session = Depends(get_db)):
 
 
 @router.post("/{photo_id}/restore")
-def restore_photo(photo_id: str, db: Session = Depends(get_db)):
-    """휴지통에서 복구"""
+def restore_photo(
+    photo_id: str,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user)
+):
     photo = db.query(models.Photo).filter(
         models.Photo.id == photo_id,
         models.Photo.deleted_at != None
     ).first()
     if not photo:
         raise HTTPException(status_code=404, detail="PHOTO_NOT_FOUND")
-    
+
+    photo_count = db.query(models.Photo).filter(
+        models.Photo.project_id == photo.project_id,
+        models.Photo.deleted_at == None
+    ).count()
+    if photo_count >= current_user.photo_limit:
+        raise HTTPException(
+            status_code=403,
+            detail={"code": "PHOTO_LIMIT_EXCEEDED", "limit": current_user.photo_limit}
+        )
+
     photo.deleted_at = None
     db.commit()
     db.refresh(photo)

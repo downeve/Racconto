@@ -80,7 +80,7 @@ def create_project(
     if project_count >= current_user.project_limit:
         raise HTTPException(
             status_code=403,
-            detail="PROJECT_LIMIT_EXCEEDED"
+            detail={"code": "PROJECT_LIMIT_EXCEEDED", "limit": current_user.project_limit}
         )
     
     db_project = models.Project(
@@ -165,6 +165,17 @@ def restore_project(
     db: Session = Depends(get_db),
     current_user: models.User = Depends(get_current_user)
 ):
+        # 💡 복구 전 제한 체크 추가
+    project_count = db.query(models.Project).filter(
+        models.Project.user_id == current_user.id,
+        models.Project.deleted_at == None
+    ).count()
+    if project_count >= current_user.project_limit:
+        raise HTTPException(
+            status_code=403,
+            detail={"code": "PROJECT_LIMIT_EXCEEDED", "limit": current_user.project_limit}
+        )
+    
     project = db.query(models.Project).filter(
         models.Project.id == project_id,
         models.Project.user_id == current_user.id,
