@@ -52,6 +52,19 @@ async function fetchWithAuth(url, options = {}) {
 }
 
 async function uploadFile(item) {
+  // DB 중복 체크 (앱 시작 시 토큰 없어서 스킵된 경우 여기서 최종 확인)
+  const filename = path.basename(item.filePath)
+  const checkRes = await fetchWithAuth(
+    `${API_BASE}/photos/exists?project_id=${encodeURIComponent(item.projectId)}&filename=${encodeURIComponent(filename)}`
+  )
+  if (checkRes.ok) {
+    const checkData = await checkRes.json()
+    if (checkData.exists) {
+      console.log('DB 중복 확인, 업로드 스킵:', filename)
+      return null // null 반환으로 스킵 표시
+    }
+  }
+
   // 1. FastAPI에서 CF 업로드 URL 발급
   const urlRes = await fetchWithAuth(`${API_BASE}/photos/cf-upload-url`)
   
@@ -114,6 +127,10 @@ async function processQueue() {
   for (const item of pending) {
     try {
       const photo = await uploadFile(item)
+      if (photo === null) {
+        markSuccess(item.id) // 스킵도 성공으로 처리해서 큐에서 제거
+        continue
+      }
       markSuccess(item.id)
       mainWindow?.webContents.send('upload:success', { item, photo })
       console.log('업로드 성공:', item.filePath)
@@ -124,6 +141,10 @@ async function processQueue() {
     }
   }
   isProcessing = false
+
+  // 처리 중 새로 추가된 항목이 있으면 다시 실행
+  const remaining = getPendingItems()
+  if (remaining.length > 0) processQueue()
 }
 
 // ── 파일 감시 ────────────────────────────────────────
@@ -141,7 +162,7 @@ function startWatcherForPath(folderPath) {
     },
   })
 
-  w.on('add', (filePath) => {
+  w.on('add', async (filePath) => {
     const ext = path.extname(filePath).toLowerCase()
     if (!IMAGE_EXTENSIONS.includes(ext)) return
 
@@ -153,6 +174,25 @@ function startWatcherForPath(folderPath) {
       console.log('매핑된 프로젝트 없음:', filePath)
       mainWindow?.webContents.send('watcher:unmapped', filePath)
       return
+    }
+
+    // DB 중복 체크
+    if (authToken) {
+      try {
+        const { default: fetch } = await import('node-fetch')
+        const filename = path.basename(filePath)
+        const res = await fetch(
+          `${API_BASE}/photos/exists?project_id=${encodeURIComponent(mapping.projectId)}&filename=${encodeURIComponent(filename)}`,
+          { headers: { 'Authorization': `Bearer ${authToken}` } }
+        )
+        const data = await res.json()
+        if (data.exists) {
+          console.log('이미 업로드된 파일 스킵:', filename)
+          return
+        }
+      } catch (err) {
+        console.error('중복 체크 실패, 일단 큐에 추가:', err.message)
+      }
     }
 
     addToQueue({ filePath, projectId: mapping.projectId })

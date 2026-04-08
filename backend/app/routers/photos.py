@@ -166,6 +166,7 @@ class PhotoCreate(BaseModel):
     rating: Optional[int] = None
     color_label: Optional[str] = None
     folder: Optional[str] = None
+    original_filename: Optional[str] = None  # ← 추가
 
 class PhotoResponse(BaseModel):
     id: str
@@ -223,6 +224,22 @@ def get_upload_url(
     }
 
 
+@router.get("/exists")
+def check_photo_exists(
+    project_id: str,
+    filename: str,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user)
+):
+    """Electron 앱용 파일 중복 체크"""
+    exists = db.query(models.Photo).filter(
+        models.Photo.project_id == project_id,
+        models.Photo.original_filename == filename,
+        models.Photo.deleted_at == None
+    ).first()
+    return { "exists": exists is not None }
+
+
 @router.get("/{photo_id}", response_model=PhotoResponse)
 def get_photo(photo_id: str, db: Session = Depends(get_db)):
     photo = db.query(models.Photo).filter(models.Photo.id == photo_id).first()
@@ -230,20 +247,31 @@ def get_photo(photo_id: str, db: Session = Depends(get_db)):
         raise HTTPException(status_code=404, detail="PHOTO_NOT_FOUND")
     return photo
 
+
 @router.post("/", response_model=PhotoResponse)
 def create_photo(photo: PhotoCreate, db: Session = Depends(get_db)):
+    # order 자동 계산
+    last_photo = db.query(models.Photo).filter(
+        models.Photo.project_id == photo.project_id,
+        models.Photo.deleted_at == None
+    ).order_by(models.Photo.order.desc()).first()
+    next_order = (last_photo.order + 1) if last_photo else 0
+
     db_photo = models.Photo(
         id=str(uuid.uuid4()),
         project_id=photo.project_id,
         image_url=photo.image_url,
         caption=photo.caption,
         caption_en=photo.caption_en,
-        order=photo.order,
+        order=photo.order if photo.order else next_order,
+        folder=photo.folder,
+        original_filename=photo.original_filename,
     )
     db.add(db_photo)
     db.commit()
     db.refresh(db_photo)
     return db_photo
+
 
 @router.put("/{photo_id}", response_model=PhotoResponse)
 def update_photo(photo_id: str, photo: PhotoCreate, db: Session = Depends(get_db)):
