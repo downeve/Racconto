@@ -210,3 +210,7 @@ backend/app/uploads/*
 !backend/app/uploads/.gitkeepfrontend/.env
 frontend/.env.production
 backend/.env
+
+# Electron
+electron/node_modules/
+electron/dist/
