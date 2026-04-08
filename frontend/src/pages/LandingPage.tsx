@@ -157,7 +157,7 @@ export default function LandingPage() {
       </nav>
 
       {/* Hero */}
-      <section className="min-h-screen flex flex-col items-center justify-center px-6 pt-20 relative overflow-hidden">
+      <section className="min-h-screen flex flex-col items-center justify-center px-6 pt-20 pb-32 relative overflow-hidden">
 
         {/* 배경 그리드 장식 */}
         <div
@@ -194,12 +194,12 @@ export default function LandingPage() {
             {t('landing.heroEyebrow')}
           </p>
           <h1
-            className="text-5xl md:text-7xl font-bold leading-tight mb-6 text-stone-900"
+            className="text-5xl md:text-7xl font-bold leading-tight mb-6 text-stone-900 break-keep"
             style={{ fontFamily: "'Georgia', serif", letterSpacing: '-0.02em' }}
           >
             {t('landing.heroTitle')}
           </h1>
-          <p className="text-lg md:text-xl text-stone-500 leading-relaxed mb-10 max-w-xl mx-auto"
+          <p className="text-lg md:text-xl text-stone-500 leading-relaxed mb-10 max-w-xl mx-auto break-keep"
             style={{ fontFamily: "'Georgia', serif", fontStyle: 'italic' }}>
             {t('landing.heroSubtitle')}
           </p>
