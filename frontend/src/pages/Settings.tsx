@@ -130,6 +130,10 @@ export default function Settings() {
       await axios.put(`${API}/auth/username`, { username }, {
         headers: { Authorization: `Bearer ${token}` }
       })
+
+      // 💡 [추가] 저장이 성공하면, 변경된 유저네임을 담아서 커스텀 이벤트를 발생시킴!
+      window.dispatchEvent(new CustomEvent('usernameChanged', { detail: username }));
+      
       setUsernameSaved(true)
       setUsernameStatus('idle')
       setTimeout(() => setUsernameSaved(false), 2000)
@@ -283,10 +287,11 @@ export default function Settings() {
           />
           <button
             onClick={handleUsernameSave}
-            disabled={usernameStatus !== 'available' && !usernameSaved}
+            // 💡 수정: '사용 가능' 상태이거나 '빈 칸'일 때 버튼 활성화
+            disabled={(usernameStatus !== 'available' && username !== '') && !usernameSaved}
             className={`px-4 py-2 text-sm rounded transition-colors ${
               usernameSaved ? 'bg-green-600 text-white' :
-              usernameStatus === 'available' ? 'bg-black text-white hover:bg-gray-800' :
+              (usernameStatus === 'available' || username === '') ? 'bg-black text-white hover:bg-gray-800' :
               'bg-gray-100 text-gray-400 cursor-not-allowed'
             }`}
           >

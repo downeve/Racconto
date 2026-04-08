@@ -20,6 +20,19 @@ export default function Navbar({ onLogout }: NavbarProps) {
     axios.get(`${API}/auth/me`, {
       headers: { Authorization: `Bearer ${token}` }
     }).then(res => setUsername(res.data.username || null))
+
+    // 💡 [추가] 'usernameChanged' 이벤트가 발생하면 새 유저네임으로 상태 업데이트
+    const handleUsernameChange = (e: Event) => {
+      const customEvent = e as CustomEvent;
+      setUsername(customEvent.detail || null);
+    };
+
+    window.addEventListener('usernameChanged', handleUsernameChange);
+
+    // 컴포넌트가 언마운트될 때 리스너 정리
+    return () => {
+      window.removeEventListener('usernameChanged', handleUsernameChange);
+    };
   }, [])
 
   const toggleLanguage = () => {

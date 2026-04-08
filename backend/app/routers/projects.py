@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, BackgroundTasks
 from sqlalchemy.orm import Session
 from app.database import get_db
 from app import models
@@ -188,10 +188,26 @@ def restore_project(
     db.refresh(project)
     return project
 
+# 💡 2. 시간이 오래 걸리는 파일 삭제 로직을 밖으로 빼냅니다.
+def delete_photo_files_in_background(photo_urls: list[str]):
+    for url in photo_urls:
+        try:
+            if "imagedelivery.net" in url:
+                delete_from_cloudflare(url)
+            else:
+                import os
+                file_path = url.split('/uploads/')[-1]
+                full_path = f"app/uploads/{file_path}"
+                if os.path.exists(full_path):
+                    os.remove(full_path)
+        except Exception as e:
+            print(f"백그라운드 이미지 삭제 오류: {e}")
+
 # DELETE /projects/{project_id}/permanent
 @router.delete("/{project_id}/permanent")
 def permanent_delete(
     project_id: str,
+    background_tasks: BackgroundTasks, # 💡 3. 파라미터에 background_tasks 추가
     db: Session = Depends(get_db),
     current_user: models.User = Depends(get_current_user)
 ):
@@ -203,47 +219,39 @@ def permanent_delete(
     if not project:
         raise HTTPException(status_code=404, detail="PROJECT_NOT_FOUND")
     
-    # --- 🚨 외래키 충돌 방지를 위해 자식 데이터들을 명시적으로 먼저 삭제합니다 ---
-    # 1. 챕터-사진 매핑 데이터(ChapterPhoto) 먼저 삭제
+    # --- 외래키 충돌 방지를 위해 자식 데이터들을 명시적으로 먼저 삭제 ---
+    # 1. 챕터-사진 매핑, 2. 챕터 본체, 3. 납품 링크 선택, 4. 납품 링크 본체 삭제 (기존 코드와 동일)
     chapters = db.query(models.Chapter).filter(models.Chapter.project_id == project_id).all()
     chapter_ids = [c.id for c in chapters]
     if chapter_ids:
         db.query(models.ChapterPhoto).filter(models.ChapterPhoto.chapter_id.in_(chapter_ids)).delete(synchronize_session=False)
         
-    # 2. 챕터(Chapter) 본체 삭제
     db.query(models.Chapter).filter(models.Chapter.project_id == project_id).delete(synchronize_session=False)
 
-    # 3. 납품 링크의 사진 선택 데이터(DeliverySelection) 삭제
     links = db.query(models.DeliveryLink).filter(models.DeliveryLink.project_id == project_id).all()
     link_ids = [l.id for l in links]
     if link_ids:
         db.query(models.DeliverySelection).filter(models.DeliverySelection.link_id.in_(link_ids)).delete(synchronize_session=False)
 
-    # 4. 납품 링크(DeliveryLink) 본체 삭제
     db.query(models.DeliveryLink).filter(models.DeliveryLink.project_id == project_id).delete(synchronize_session=False)
 
-    # 5. [수정됨] 사진 파일 실제 삭제 (클라우드플레어 및 로컬)
+    # 💡 5. [수정됨] 사진 파일 삭제를 백그라운드 작업으로 넘김
     photos = db.query(models.Photo).filter(models.Photo.project_id == project_id).all()
-    for photo in photos:
-        try:
-            if photo.image_url and "imagedelivery.net" in photo.image_url:
-                delete_from_cloudflare(photo.image_url)
-            else:
-                file_path = photo.image_url.split('/uploads/')[-1]
-                full_path = f"app/uploads/{file_path}"
-                if os.path.exists(full_path):
-                    os.remove(full_path)
-        except Exception as e:
-            print(f"프로젝트 삭제 중 이미지 삭제 오류: {e}")
-            pass
+    # 주의: DB 세션이 닫힌 뒤에 객체에 접근하면 에러가 나므로, URL만 뽑아서 리스트로 만듭니다.
+    photo_urls = [photo.image_url for photo in photos if photo.image_url]
+    
+    if photo_urls:
+        # 백그라운드 큐(Queue)에 파일 삭제 함수를 밀어넣습니다.
+        background_tasks.add_task(delete_photo_files_in_background, photo_urls)
 
-    # 6. 기타 자식 데이터들(Note, Pitch, Photo DB) 삭제
+    # 6. 기타 자식 데이터들(Note, Pitch, Photo DB) 삭제 (기존과 동일)
     db.query(models.Note).filter(models.Note.project_id == project_id).delete(synchronize_session=False)
     db.query(models.Pitch).filter(models.Pitch.project_id == project_id).delete(synchronize_session=False)
     db.query(models.Photo).filter(models.Photo.project_id == project_id).delete(synchronize_session=False)
 
-    # 7. 모든 자식이 청소되었으므로, 최종적으로 프로젝트 본체 삭제
+    # 7. 최종적으로 프로젝트 본체 삭제
     db.delete(project)
     db.commit()
     
+    # 💡 파일은 아직 안 지워졌어도, DB는 지웠으니 바로 프론트엔드에 응답을 줍니다! (딜레이 0초)
     return {"message": "PERMANENTLY_DELETED"}

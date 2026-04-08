@@ -1106,7 +1106,7 @@ export default function ProjectDetail() {
             <textarea className="w-full border rounded px-3 py-2 text-sm mb-2 focus:outline-none focus:ring-1 focus:ring-black"
               placeholder={t('note.placeholder')}
               rows={4} value={newNote} onChange={e => setNewNote(e.target.value)} />
-            <button onClick={handleAddNote} className="bg-black text-white px-4 py-2 text-sm tracking-wider hover:bg-gray-800">
+            <button onClick={handleAddNote} className="bg-stone-600 text-white px-4 py-2 text-sm tracking-wider hover:bg-stone-700 transition-colors rounded">
               {t('note.addNote')}
             </button>
           </div>
@@ -1118,8 +1118,8 @@ export default function ProjectDetail() {
                     <textarea className="w-full border rounded px-3 py-2 text-sm mb-2 focus:outline-none focus:ring-1 focus:ring-black"
                       rows={4} value={editContent} onChange={e => setEditContent(e.target.value)} />
                     <div className="flex gap-2">
-                      <button onClick={() => handleUpdateNote(note.id)} className="bg-black text-white px-3 py-1 text-xs hover:bg-gray-800">저장</button>
-                      <button onClick={() => setEditingNote(null)} className="border px-3 py-1 text-xs hover:bg-gray-50">취소</button>
+                      <button onClick={() => handleUpdateNote(note.id)} className="bg-stone-600 text-white px-3 py-1 text-xs tracking-wider hover:bg-stone-700 transition-colors rounded">{t('common.save')}</button>
+                      <button onClick={() => setEditingNote(null)} className="border px-3 py-1 text-xs hover:bg-gray-50 rounded">{t('common.cancel')}</button>
                     </div>
                   </div>
                 ) : (

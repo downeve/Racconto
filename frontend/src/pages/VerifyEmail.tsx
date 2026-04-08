@@ -44,17 +44,15 @@ export default function VerifyEmail() {
     <div className="min-h-screen flex flex-col bg-gray-50">
 
       {/* Navbar.tsx와 동일한 상단 헤더 */}
-      <nav className="bg-black text-white px-6 py-4">
+      <nav className="bg-[#F7F4F0] text-stone-900 border-b border-stone-200 px-6 py-4">
         <div className="max-w-6xl mx-auto flex items-center justify-between">
-          <Link to="/" className="text-xl font-bold tracking-widest">Racconto</Link>
-          <div className="flex gap-8 items-center">
+          <Link to="/" className="text-xl font-bold tracking-widest" style={{ fontFamily: 'Georgia, serif' }}>Racconto</Link>
             <button
               onClick={toggleLanguage}
-              className="text-sm font-bold text-gray-300 hover:text-white transition-colors"
+              className="text-sm font-bold text-stone-400 hover:text-stone-700 transition-colors"
             >
               {i18n.language === 'ko' ? 'EN' : 'KO'}
             </button>
-          </div>
         </div>
       </nav>
 

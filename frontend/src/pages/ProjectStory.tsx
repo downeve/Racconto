@@ -449,15 +449,17 @@ export default function ProjectStory({
                 onChange={e => setNewDesc(e.target.value)}
               />
               <div className="flex gap-2">
-                <button onClick={handleAddChapter} className="bg-black text-white px-4 py-2 text-sm hover:bg-gray-800">
+                <button onClick={handleAddChapter} className="bg-stone-600 text-white px-3 py-1 text-sm tracking-wider hover:bg-stone-700 transition-colors rounded">
                   {t('common.add')}
                 </button>
                 <button 
                   onClick={() => {
                     setShowAddChapter(false)
                     setAddingSubChapterTo(null)
+                    setNewTitle('')
+                    setNewDesc('')
                   }} 
-                  className="border px-4 py-2 text-sm hover:bg-gray-50"
+                  className="border px-3 py-1 text-sm hover:bg-gray-50 rounded"
                 >
                   {t('common.cancel')}
                 </button>
@@ -469,7 +471,7 @@ export default function ProjectStory({
                 setShowAddChapter(true)
                 setAddingSubChapterTo(null) 
               }}
-              className="bg-black text-white px-4 py-2 text-sm tracking-wider hover:bg-gray-800"
+              className="bg-stone-600 text-white px-4 py-2 text-sm tracking-wider hover:bg-stone-700 transition-colors rounded"
             >
               {t('story.addChapter')}
             </button>
@@ -502,8 +504,8 @@ export default function ProjectStory({
                           onChange={e => setEditDesc(e.target.value)}
                         />
                         <div className="flex gap-2">
-                          <button onClick={() => handleUpdateChapter(chapter)} className="bg-black text-white px-3 py-1 text-xs">{t('common.save')}</button>
-                          <button onClick={() => setEditingChapter(null)} className="border px-3 py-1 text-xs">{t('common.cancel')}</button>
+                          <button onClick={() => handleUpdateChapter(chapter)} className="bg-stone-600 text-white px-3 py-1 text-xs tracking-wider hover:bg-stone-700 transition-colors rounded">{t('common.save')}</button>
+                          <button onClick={() => setEditingChapter(null)} className="border px-3 py-1 text-xs rounded">{t('common.cancel')}</button>
                         </div>
                       </div>
                     ) : (
@@ -569,7 +571,7 @@ export default function ProjectStory({
                         onChange={e => setNewDesc(e.target.value)}
                       />
                       <div className="flex gap-2">
-                        <button onClick={handleAddChapter} className="bg-black text-white px-4 py-2 text-sm hover:bg-gray-800">
+                        <button onClick={handleAddChapter} className="bg-stone-600 text-white px-3 py-1 text-xs tracking-wider hover:bg-stone-700 transition-colors rounded">
                           {t('common.add')}
                         </button>
                         <button 
@@ -577,7 +579,7 @@ export default function ProjectStory({
                             setShowAddChapter(false)
                             setAddingSubChapterTo(null)
                           }} 
-                          className="border px-4 py-2 text-sm hover:bg-gray-50"
+                          className="border px-3 py-1 text-xs hover:bg-gray-50 rounded"
                         >
                           {t('common.cancel')}
                         </button>
@@ -633,7 +635,7 @@ export default function ProjectStory({
                       onClick={() => setShowPhotoSelector(showPhotoSelector === chapter.id ? null : chapter.id)}
                       className="text-xs text-gray-400 hover:text-black border px-3 py-1 rounded"
                     >
-                      + {t('story.addPhoto')}
+                      {t('story.addPhoto')}
                     </button>
 
                     {/* 사진 선택기 */}
@@ -689,8 +691,8 @@ export default function ProjectStory({
                             onChange={e => setEditDesc(e.target.value)}
                           />
                           <div className="flex gap-2">
-                            <button onClick={() => handleUpdateChapter(subChapter)} className="bg-black text-white px-3 py-1 text-xs">{t('common.save')}</button>
-                            <button onClick={() => setEditingChapter(null)} className="border px-3 py-1 text-xs">{t('common.cancel')}</button>
+                            <button onClick={() => handleUpdateChapter(subChapter)} className="bg-stone-600 text-white px-3 py-1 text-xs tracking-wider hover:bg-stone-700 transition-colors rounded">{t('common.save')}</button>
+                            <button onClick={() => setEditingChapter(null)} className="border px-3 py-1 text-xs rounded">{t('common.cancel')}</button>
                           </div>
                         </div>
                       ) : (

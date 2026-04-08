@@ -17,7 +17,7 @@ import LandingPage from './pages/LandingPage'
 function PrivateRoute({ children }: { children: React.ReactNode }) {
   const { isAuthenticated, isLoading } = useAuth()
   if (isLoading) return <div className="min-h-screen bg-[#F7F4F0]" />
-  return isAuthenticated ? <>{children}</> : <Navigate to="/login" />
+  return isAuthenticated ? <>{children}</> : <Navigate to="/" />
 }
 
 function AppRoutes() {

@@ -42,10 +42,19 @@ export default function Trash() {
     }
   }
 
+  // 수정된 코드
   const handlePermanentDelete = async (projectId: string) => {
     if (!confirm(t('trash.permanentDeleteConfirm'))) return
-    await axios.delete(`${API}/projects/${projectId}/permanent`)
-    fetchTrash()
+    
+    try {
+      await axios.delete(`${API}/projects/${projectId}/permanent`)
+      fetchTrash() // 삭제 성공 시 목록 갱신
+    } catch (err: any) {
+      console.error(err);
+      // 서버에서 보내주는 에러 메시지가 있다면 띄워주고, 없다면 기본 메시지 출력
+      const errorMessage = err.response?.data?.detail || '프로젝트를 삭제하는 중 오류가 발생했습니다. (내부에 사진이 남아있을 수 있습니다.)';
+      alert(errorMessage);
+    }
   }
 
   const getDaysLeft = (deletedAt: string) => {

@@ -33,13 +33,13 @@
     "processing": "Processing...",
     "hasAccount": "Do you alreay have an account? ",
     "loginLink": "Log in!",
-    "success.title": "Succeed",
-    "success.desc": "Registed succeed. Please verify through email",
     "sending": "Sending...",
     "resendEmail": "Resend verification email.",
     "goToLogin": "Go to Log in.",
     "success": {
-      "resend": "Verification email sent."
+      "resend": "Verification email sent.",
+      "title": "Succeed",
+      "desc": "Registed succeed. Please verify through email"
     },
     "error": {
       "passwordMismatch": "Password mismatch. Please recheck.",

@@ -179,19 +179,31 @@ def update_username(
     current_user: models.User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
-    if not body.username or len(body.username) < 3:
+    # 💡 [추가] 1. 값이 없거나 빈 칸("")인 경우: 유저네임 삭제 처리
+    if not body.username:
+        current_user.username = None # DB에는 Null로 저장하는 것이 안전합니다.
+        db.commit()
+        return {"message": "USERNAME_CLEARED", "username": ""}
+
+    # 💡 2. 값이 입력된 경우: 기존 유효성 검사 진행
+    if len(body.username) < 3:
         raise HTTPException(status_code=400, detail="USERNAME_TOO_SHORT")
     if len(body.username) > 30:
         raise HTTPException(status_code=400, detail="USERNAME_TOO_LONG")
+    
     import re
     if not re.match(r'^[a-zA-Z0-9_-]+$', body.username):
         raise HTTPException(status_code=400, detail="USERNAME_INVALID_CHARS")
+        
     existing = db.query(models.User).filter(
         models.User.username == body.username,
         models.User.id != current_user.id
     ).first()
+    
     if existing:
         raise HTTPException(status_code=400, detail="USERNAME_ALREADY_TAKEN")
+        
     current_user.username = body.username
     db.commit()
+    
     return {"message": "USERNAME_UPDATED", "username": body.username}

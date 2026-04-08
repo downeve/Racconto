@@ -78,7 +78,7 @@ export default function Projects() {
           </Heading>
         <button
           onClick={() => setShowForm(!showForm)}
-          className="bg-black text-white px-4 py-2 text-sm tracking-wider hover:bg-gray-800"
+          className="bg-stone-600 text-white px-4 py-2 text-sm tracking-wider hover:bg-stone-700 transition-colors rounded"
         >
           {t('project.newProject')}
         </button>
@@ -103,8 +103,13 @@ export default function Projects() {
             </select>
           </div>
           <div className="flex gap-2">
-            <button onClick={handleSubmit} className="bg-black text-white px-6 py-2 text-sm hover:bg-gray-800">{t('common.save')}</button>
-            <button onClick={() => setShowForm(false)} className="border px-6 py-2 text-sm hover:bg-gray-50">{t('common.cancel')}</button>
+            <button onClick={handleSubmit} className="bg-stone-600 text-white px-6 py-2 text-sm tracking-wider hover:bg-stone-700 transition-colors rounded">{t('common.save')}</button>
+            <button onClick={() => {
+              setShowForm(false)
+              setTitle(''); setTitleEn(''); setDescription('')
+              setDescriptionEn(''); setLocation('')
+              setStatus('in_progress'); setIsPublic('false')
+            }} className="border border-stone-300 px-6 py-2 text-sm text-stone-600 hover:bg-stone-50 rounded">{t('common.cancel')}</button>
           </div>
         </div>
       )}
