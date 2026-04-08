@@ -13,6 +13,7 @@ import VerifyEmail from './pages/VerifyEmail'
 import Admin from './pages/Admin'
 import PublicPortfolio from './pages/PublicPortfolio'
 import LandingPage from './pages/LandingPage'
+import UploadToast from './components/UploadToast'
 
 function PrivateRoute({ children }: { children: React.ReactNode }) {
   const { isAuthenticated, isLoading } = useAuth()
@@ -76,6 +77,7 @@ function AppRoutes() {
         {/* 공개 포트폴리오 - 비로그인 접근 가능 */}
         <Route path="/p/:username" element={<PublicPortfolio />} />
       </Routes>
+      <UploadToast />
     </div>
   )
 }

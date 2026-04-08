@@ -191,7 +191,7 @@ async function processQueue() {
 
   console.log(`큐 처리 시작: ${pending.length}개`)
 
-  // 배치 중복 체크 — 프로젝트별로 묶어서 1회 요청
+  // 배치 중복 체크
   const byProject = {}
   for (const item of pending) {
     if (!byProject[item.projectId]) byProject[item.projectId] = []
@@ -217,25 +217,56 @@ async function processQueue() {
     }
   }
 
+  // 실제 업로드할 항목만 추려서 전체 수 계산
+  const uploadItems = pending.filter(item => {
+    const key = `${item.projectId}::${path.basename(item.filePath)}`
+    return !existingFiles.has(key)
+  })
+
+  // 중복 항목 즉시 스킵 처리
   for (const item of pending) {
-    const filename = path.basename(item.filePath)
-    const key = `${item.projectId}::${filename}`
+    const key = `${item.projectId}::${path.basename(item.filePath)}`
     if (existingFiles.has(key)) {
-      console.log('DB 중복 확인, 업로드 스킵:', filename)
+      console.log('DB 중복 확인, 업로드 스킵:', path.basename(item.filePath))
       markSuccess(item.id)
-      continue
-    }
-    try {
-      const photo = await uploadFile(item)
-      markSuccess(item.id)
-      mainWindow?.webContents.send('upload:success', { item, photo })
-      console.log('업로드 성공:', item.filePath)
-    } catch (err) {
-      markFailed(item.id)
-      mainWindow?.webContents.send('upload:failed', { item, error: err.message })
-      console.error('업로드 실패:', item.filePath, err.message)
     }
   }
+
+  const total = uploadItems.length
+  let successCount = 0
+  let failedCount = 0
+
+  if (total > 0) {
+    // 진행 바 시작
+    mainWindow?.webContents.send('upload:progress', { done: 0, total, failed: 0 })
+
+    for (const item of uploadItems) {
+      try {
+        const photo = await uploadFile(item)
+        markSuccess(item.id)
+        successCount++
+        mainWindow?.webContents.send('upload:progress', {
+          done: successCount + failedCount,
+          total,
+          failed: failedCount,
+        })
+        console.log('업로드 성공:', item.filePath)
+      } catch (err) {
+        markFailed(item.id)
+        failedCount++
+        mainWindow?.webContents.send('upload:progress', {
+          done: successCount + failedCount,
+          total,
+          failed: failedCount,
+        })
+        console.error('업로드 실패:', item.filePath, err.message)
+      }
+    }
+
+    // 완료 이벤트
+    mainWindow?.webContents.send('upload:done', { total, success: successCount, failed: failedCount })
+  }
+
   isProcessing = false
 
   const remaining = getPendingItems()
@@ -272,7 +303,10 @@ function startWatcherForPath(folderPath) {
     }
 
     addToQueue({ filePath, projectId: mapping.projectId })
-    if (isOnline) processQueue()
+    if (isOnline) {
+      // 300ms 대기 후 실행 — 연속 파일 감지 시 큐에 모아서 한 번에 처리
+      setTimeout(() => processQueue(), 300)
+    }
   })
 
 
