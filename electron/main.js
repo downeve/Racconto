@@ -176,25 +176,6 @@ function startWatcherForPath(folderPath) {
       return
     }
 
-    // DB 중복 체크
-    if (authToken) {
-      try {
-        const { default: fetch } = await import('node-fetch')
-        const filename = path.basename(filePath)
-        const res = await fetch(
-          `${API_BASE}/photos/exists?project_id=${encodeURIComponent(mapping.projectId)}&filename=${encodeURIComponent(filename)}`,
-          { headers: { 'Authorization': `Bearer ${authToken}` } }
-        )
-        const data = await res.json()
-        if (data.exists) {
-          console.log('이미 업로드된 파일 스킵:', filename)
-          return
-        }
-      } catch (err) {
-        console.error('중복 체크 실패, 일단 큐에 추가:', err.message)
-      }
-    }
-
     addToQueue({ filePath, projectId: mapping.projectId })
     if (isOnline) processQueue()
   })

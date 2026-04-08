@@ -508,6 +508,16 @@ export default function ProjectDetail() {
 
   useEffect(() => { if (id) fetchChapterPhotoIds() }, [id])
 
+  useEffect(() => {
+    if (!window.racconto) return
+    window.racconto.onDeletedFile((filePath: string) => {
+      const filename = filePath.split('/').pop()
+      setPhotos(prev => prev.map(p =>
+        p.original_filename === filename ? { ...p, local_missing: true } : p
+      ))
+    })
+  }, [])
+
   const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!e.target.files || !id) return
     setUploading(true)
