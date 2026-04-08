@@ -199,12 +199,46 @@ function startWatcherForPath(folderPath) {
     if (isOnline) processQueue()
   })
 
-  w.on('unlink', (filePath) => {
+
+  w.on('unlink', async (filePath) => {
     const ext = path.extname(filePath).toLowerCase()
     if (!IMAGE_EXTENSIONS.includes(ext)) return
 
     console.log('파일 삭제 감지:', filePath)
     mainWindow?.webContents.send('watcher:deletedFile', filePath)
+
+    if (!authToken) return
+
+    try {
+      const { default: fetch } = await import('node-fetch')
+      const filename = path.basename(filePath)
+      const mapping = getProjectForFolder(path.dirname(filePath))
+      if (!mapping) return
+
+      // DB에서 해당 파일 찾기
+      const searchRes = await fetch(
+        `${API_BASE}/photos/exists?project_id=${encodeURIComponent(mapping.projectId)}&filename=${encodeURIComponent(filename)}`,
+        { headers: { 'Authorization': `Bearer ${authToken}` } }
+      )
+      const searchData = await searchRes.json()
+      if (!searchData.exists) return
+
+      // local_missing = true 업데이트
+      await fetch(
+        `${API_BASE}/photos/by-filename/local-missing?project_id=${encodeURIComponent(mapping.projectId)}&filename=${encodeURIComponent(filename)}`,
+        {
+          method: 'PATCH',
+          headers: {
+            'Authorization': `Bearer ${authToken}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ local_missing: true }),
+        }
+      )
+      console.log('local_missing 업데이트:', filename)
+    } catch (err) {
+      console.error('local_missing 업데이트 실패:', err.message)
+    }
   })
 
   watchers[folderPath] = w

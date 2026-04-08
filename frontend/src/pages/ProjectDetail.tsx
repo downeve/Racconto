@@ -41,6 +41,7 @@ interface Photo {
   gps_lng: string | null
   rating: number | null
   color_label: string | null
+  local_missing?: boolean
   deleted_at?: string | null 
 }
 
@@ -100,6 +101,11 @@ function Lightbox({
     <div className="fixed inset-0 bg-black/90 z-50 flex flex-col" onClick={onClose}>
       <div className="flex items-center justify-between px-6 py-3 shrink-0" onClick={e => e.stopPropagation()}>
         <span className="text-white/50 text-sm">{idx + 1} / {photos.length}</span>
+        {photo.local_missing && (
+          <span className="text-yellow-400 text-xs font-bold px-2 py-0.5 bg-yellow-400/20 rounded-full">
+            ⚠️ 로컬 파일 없음
+          </span>
+        )}
         <button onClick={onClose} className="text-white/70 hover:text-white text-2xl">✕</button>
       </div>
 
@@ -304,6 +310,12 @@ function PhotoCard({
           className="w-full aspect-[3/2] object-contain cursor-pointer"
           onClick={() => onOpenLightbox(photo)}
         />
+
+        {photo.local_missing && (
+          <div className="absolute top-2 left-2 z-10 bg-yellow-400 text-black text-xs font-bold px-2 py-0.5 rounded-full flex items-center gap-1">
+            ⚠️ 로컬 파일 없음
+          </div>
+        )}
 
         <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity">
           <div className="absolute inset-0 bg-black/50" onClick={() => onOpenLightbox(photo)} />

@@ -240,6 +240,28 @@ def check_photo_exists(
     return { "exists": exists is not None }
 
 
+@router.patch("/by-filename/local-missing")
+def update_local_missing_by_filename(
+    project_id: str,
+    filename: str,
+    body: LocalMissingUpdate,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user)
+):
+    """파일명으로 local_missing 업데이트 (Electron 삭제 감지용)"""
+    photo = db.query(models.Photo).filter(
+        models.Photo.project_id == project_id,
+        models.Photo.original_filename == filename,
+        models.Photo.deleted_at == None
+    ).first()
+    if not photo:
+        raise HTTPException(status_code=404, detail="PHOTO_NOT_FOUND")
+    photo.local_missing = body.local_missing
+    db.commit()
+    db.refresh(photo)
+    return photo
+
+
 @router.get("/{photo_id}", response_model=PhotoResponse)
 def get_photo(photo_id: str, db: Session = Depends(get_db)):
     photo = db.query(models.Photo).filter(models.Photo.id == photo_id).first()
