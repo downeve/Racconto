@@ -250,6 +250,26 @@ def check_photo_exists(
     return { "exists": exists is not None }
 
 
+class BulkExistsRequest(BaseModel):
+    project_id: str
+    filenames: list[str]
+
+@router.post("/bulk-exists")
+def bulk_check_exists(
+    body: BulkExistsRequest,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user)
+):
+    """Electron 앱용 파일 중복 배치 체크"""
+    existing = db.query(models.Photo.original_filename).filter(
+        models.Photo.project_id == body.project_id,
+        models.Photo.original_filename.in_(body.filenames),
+        models.Photo.deleted_at == None
+    ).all()
+    existing_set = {row[0] for row in existing}
+    return {"existing": list(existing_set)}
+
+
 @router.patch("/by-filename/local-missing")
 def update_local_missing_by_filename(
     project_id: str,

@@ -59,19 +59,6 @@ async function fetchWithAuth(url, options = {}) {
 }
 
 async function uploadFile(item) {
-  // DB 중복 체크 (앱 시작 시 토큰 없어서 스킵된 경우 여기서 최종 확인)
-  const filename = path.basename(item.filePath)
-  const checkRes = await fetchWithAuth(
-    `${API_BASE}/photos/exists?project_id=${encodeURIComponent(item.projectId)}&filename=${encodeURIComponent(filename)}`
-  )
-  if (checkRes.ok) {
-    const checkData = await checkRes.json()
-    if (checkData.exists) {
-      console.log('DB 중복 확인, 업로드 스킵:', filename)
-      return null // null 반환으로 스킵 표시
-    }
-  }
-
   // 1. FastAPI에서 CF 업로드 URL 발급
   const urlRes = await fetchWithAuth(`${API_BASE}/photos/cf-upload-url`)
   
@@ -203,13 +190,43 @@ async function processQueue() {
   }
 
   console.log(`큐 처리 시작: ${pending.length}개`)
+
+  // 배치 중복 체크 — 프로젝트별로 묶어서 1회 요청
+  const byProject = {}
   for (const item of pending) {
+    if (!byProject[item.projectId]) byProject[item.projectId] = []
+    byProject[item.projectId].push(item)
+  }
+
+  const existingFiles = new Set()
+  for (const [projectId, items] of Object.entries(byProject)) {
+    try {
+      const res = await fetchWithAuth(`${API_BASE}/photos/bulk-exists`, {
+        method: 'POST',
+        body: JSON.stringify({
+          project_id: projectId,
+          filenames: items.map(i => path.basename(i.filePath)),
+        }),
+      })
+      if (res.ok) {
+        const data = await res.json()
+        data.existing.forEach(f => existingFiles.add(`${projectId}::${f}`))
+      }
+    } catch (e) {
+      console.error('배치 중복 체크 실패:', e.message)
+    }
+  }
+
+  for (const item of pending) {
+    const filename = path.basename(item.filePath)
+    const key = `${item.projectId}::${filename}`
+    if (existingFiles.has(key)) {
+      console.log('DB 중복 확인, 업로드 스킵:', filename)
+      markSuccess(item.id)
+      continue
+    }
     try {
       const photo = await uploadFile(item)
-      if (photo === null) {
-        markSuccess(item.id) // 스킵도 성공으로 처리해서 큐에서 제거
-        continue
-      }
       markSuccess(item.id)
       mainWindow?.webContents.send('upload:success', { item, photo })
       console.log('업로드 성공:', item.filePath)
@@ -221,7 +238,6 @@ async function processQueue() {
   }
   isProcessing = false
 
-  // 처리 중 새로 추가된 항목이 있으면 다시 실행
   const remaining = getPendingItems()
   if (remaining.length > 0) processQueue()
 }
