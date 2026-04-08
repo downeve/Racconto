@@ -11,5 +11,9 @@ interface Window {
     onUploadSuccess: (callback: (data: { item: any; photo: any }) => void) => void
     onUploadFailed: (callback: (data: { item: any; error: string }) => void) => void
     setAuthToken: (token: string) => Promise<void>
+    linkFolder: (folderPath: string, projectId: string, projectName: string) => Promise<{ success: boolean }>
+    unlinkFolder: (folderPath: string) => Promise<{ success: boolean }>
+    getAllMappings: () => Promise<Record<string, { projectId: string; projectName: string; linkedAt: string }>>
+    onUnmapped: (callback: (filePath: string) => void) => void
   }
 }

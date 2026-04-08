@@ -2,24 +2,43 @@ const { app, BrowserWindow, ipcMain, dialog, net } = require('electron')
 const path = require('path')
 const chokidar = require('chokidar')
 const fs = require('fs')
-const https = require('https')
 const { addToQueue, getPendingItems, markSuccess, markFailed, resetFailedToPending } = require('./queue')
+const { linkFolder, unlinkFolder, getProjectForFolder, getAllMappings } = require('./folderMap')
 
 const isDev = !app.isPackaged
 
 let mainWindow = null
-
 let isOnline = true
-const API_BASE = 'https://racconto.app/api'
-
-let watcher = null
-
-// JWT 토큰은 렌더러에서 받아서 메인에 저장
+let watchers = {} // 폴더별 watcher 관리 (단일 → 복수로 변경)
 let authToken = null
+
+const API_BASE = isDev ? 'http://localhost:8000' : 'https://racconto.app/api'
+const IMAGE_EXTENSIONS = ['.jpg', '.jpeg', '.png', '.tif', '.tiff', '.webp']
+
+// ── 인증 ────────────────────────────────────────────
 ipcMain.handle('auth:setToken', (event, token) => {
   authToken = token
+  // 토큰 받으면 큐 처리 시도
+  if (isOnline) processQueue()
 })
 
+// ── 폴더 매핑 ────────────────────────────────────────
+ipcMain.handle('folderMap:link', (event, { folderPath, projectId, projectName }) => {
+  linkFolder(folderPath, projectId, projectName)
+  return { success: true }
+})
+
+ipcMain.handle('folderMap:unlink', (event, folderPath) => {
+  unlinkFolder(folderPath)
+  stopWatcherForPath(folderPath)
+  return { success: true }
+})
+
+ipcMain.handle('folderMap:getAll', () => {
+  return getAllMappings()
+})
+
+// ── 업로드 ────────────────────────────────────────────
 async function fetchWithAuth(url, options = {}) {
   const { default: fetch } = await import('node-fetch')
   return fetch(url, {
@@ -34,11 +53,16 @@ async function fetchWithAuth(url, options = {}) {
 
 async function uploadFile(item) {
   // 1. FastAPI에서 CF 업로드 URL 발급
-  const urlRes = await fetchWithAuth(`${API_BASE}/photos/upload-url`, {
-    method: 'POST',
-  })
-  if (!urlRes.ok) throw new Error('업로드 URL 발급 실패')
-  const { uploadURL, id: cfImageId } = await urlRes.json()
+  const urlRes = await fetchWithAuth(`${API_BASE}/photos/cf-upload-url`)
+  
+  // 상세 에러 로깅
+  if (!urlRes.ok) {
+    const errText = await urlRes.text()
+    console.error('업로드 URL 발급 실패 상세:', urlRes.status, errText)
+    throw new Error(`업로드 URL 발급 실패: ${urlRes.status} ${errText}`)
+  }
+
+  const { uploadURL } = await urlRes.json()
 
   // 2. CF에 직접 업로드
   const { default: fetch } = await import('node-fetch')
@@ -59,6 +83,7 @@ async function uploadFile(item) {
       project_id: item.projectId,
       image_url: imageUrl,
       folder: path.dirname(item.filePath),
+      original_filename: path.basename(item.filePath),
     }),
   })
   if (!metaRes.ok) throw new Error('메타데이터 저장 실패')
@@ -66,11 +91,24 @@ async function uploadFile(item) {
   return await metaRes.json()
 }
 
+let isProcessing = false
+
 async function processQueue() {
-  if (!isOnline || !authToken) return
+  if (!isOnline || !authToken) {
+    console.log('큐 처리 스킵:', !isOnline ? '오프라인' : '토큰 없음')
+    return
+  }
+  if (isProcessing) {
+    console.log('큐 처리 중복 실행 방지')
+    return
+  }
+  isProcessing = true
   resetFailedToPending()
   const pending = getPendingItems()
-  if (pending.length === 0) return
+  if (pending.length === 0) {
+    isProcessing = false
+    return
+  }
 
   console.log(`큐 처리 시작: ${pending.length}개`)
   for (const item of pending) {
@@ -85,8 +123,89 @@ async function processQueue() {
       console.error('업로드 실패:', item.filePath, err.message)
     }
   }
+  isProcessing = false
 }
 
+// ── 파일 감시 ────────────────────────────────────────
+function startWatcherForPath(folderPath) {
+  if (watchers[folderPath]) return // 이미 감시 중
+
+  console.log('감시 시작:', folderPath)
+  const w = chokidar.watch(folderPath, {
+    ignored: /(^|[\/\\])\../,
+    persistent: true,
+    ignoreInitial: false,
+    awaitWriteFinish: {
+      stabilityThreshold: 2000,
+      pollInterval: 500,
+    },
+  })
+
+  w.on('add', (filePath) => {
+    const ext = path.extname(filePath).toLowerCase()
+    if (!IMAGE_EXTENSIONS.includes(ext)) return
+
+    console.log('새 이미지 감지:', filePath)
+    mainWindow?.webContents.send('watcher:newFile', filePath)
+
+    const mapping = getProjectForFolder(path.dirname(filePath))
+    if (!mapping) {
+      console.log('매핑된 프로젝트 없음:', filePath)
+      mainWindow?.webContents.send('watcher:unmapped', filePath)
+      return
+    }
+
+    addToQueue({ filePath, projectId: mapping.projectId })
+    if (isOnline) processQueue()
+  })
+
+  w.on('unlink', (filePath) => {
+    const ext = path.extname(filePath).toLowerCase()
+    if (!IMAGE_EXTENSIONS.includes(ext)) return
+
+    console.log('파일 삭제 감지:', filePath)
+    mainWindow?.webContents.send('watcher:deletedFile', filePath)
+  })
+
+  watchers[folderPath] = w
+}
+
+async function stopWatcherForPath(folderPath) {
+  if (watchers[folderPath]) {
+    await watchers[folderPath].close()
+    delete watchers[folderPath]
+    console.log('감시 중지:', folderPath)
+  }
+}
+
+// ── IPC: 감시 시작/중지 ──────────────────────────────
+ipcMain.handle('watcher:start', (event, folderPath) => {
+  startWatcherForPath(folderPath)
+  return { success: true, path: folderPath }
+})
+
+ipcMain.handle('watcher:stop', async (event, folderPath) => {
+  if (folderPath) {
+    await stopWatcherForPath(folderPath)
+  } else {
+    // 전체 중지
+    for (const p of Object.keys(watchers)) {
+      await stopWatcherForPath(p)
+    }
+  }
+  return { success: true }
+})
+
+// ── 폴더 선택 다이얼로그 ─────────────────────────────
+ipcMain.handle('dialog:openFolder', async () => {
+  const result = await dialog.showOpenDialog({
+    properties: ['openDirectory'],
+  })
+  if (result.canceled) return null
+  return result.filePaths[0]
+})
+
+// ── 윈도우 생성 ──────────────────────────────────────
 function createWindow() {
   mainWindow = new BrowserWindow({
     width: 1280,
@@ -100,78 +219,24 @@ function createWindow() {
   })
 
   if (isDev) {
-    mainWindow.loadURL('http://localhost:5173/folder-watcher')
+    mainWindow.loadURL('http://localhost:5173')
     mainWindow.webContents.openDevTools()
   } else {
     mainWindow.loadFile(path.join(__dirname, '../frontend/dist/index.html'))
   }
 }
 
-// 폴더 선택 다이얼로그
-ipcMain.handle('dialog:openFolder', async () => {
-  const result = await dialog.showOpenDialog({
-    properties: ['openDirectory'],
-  })
-  if (result.canceled) return null
-  return result.filePaths[0]
-})
-
-// 폴더 감시 시작
-ipcMain.handle('watcher:start', async (event, folderPath) => {
-  if (watcher) {
-    await watcher.close()
-    watcher = null
-  }
-
-  watcher = chokidar.watch(folderPath, {
-    ignored: /(^|[\/\\])\../,  // 숨김 파일 무시
-    persistent: true,
-    ignoreInitial: false,      // 앱 시작 시 기존 파일도 감지
-    awaitWriteFinish: {
-      stabilityThreshold: 2000, // 파일 쓰기 완료 후 2초 대기
-      pollInterval: 500,
-    },
-  })
-
-  const IMAGE_EXTENSIONS = ['.jpg', '.jpeg', '.png', '.tif', '.tiff', '.webp']
-
-  watcher.on('add', (filePath) => {
-    const ext = path.extname(filePath).toLowerCase()
-    if (!IMAGE_EXTENSIONS.includes(ext)) return
-
-    console.log('새 이미지 감지:', filePath)
-    mainWindow.webContents.send('watcher:newFile', filePath)
-
-    // 큐에 추가 (projectId는 나중에 연동, 일단 null)
-    addToQueue({ filePath, projectId: null })
-
-    // 온라인이면 바로 업로드 시도
-    if (isOnline) processQueue()
-  })
-
-  watcher.on('unlink', (filePath) => {
-    const ext = path.extname(filePath).toLowerCase()
-    if (!IMAGE_EXTENSIONS.includes(ext)) return
-
-    console.log('파일 삭제 감지:', filePath)
-    mainWindow.webContents.send('watcher:deletedFile', filePath)
-  })
-
-  return { success: true, path: folderPath }
-})
-
-// 폴더 감시 중지
-ipcMain.handle('watcher:stop', async () => {
-  if (watcher) {
-    await watcher.close()
-    watcher = null
-  }
-  return { success: true }
-})
-
+// ── 앱 시작 ──────────────────────────────────────────
 app.whenReady().then(() => {
   createWindow()
-  // 네트워크 상태 감지
+
+  // 기존 매핑된 폴더 자동 감시 시작
+  const mappings = getAllMappings()
+  Object.keys(mappings).forEach(folderPath => {
+    startWatcherForPath(folderPath)
+  })
+
+  // 네트워크 상태 감지 (5초 폴링)
   setInterval(() => {
     const online = net.isOnline()
     if (!isOnline && online) {
@@ -179,7 +244,8 @@ app.whenReady().then(() => {
       processQueue()
     }
     isOnline = online
-  }, 5000) // 5초마다 체크
+  }, 5000)
+
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) createWindow()
   })

@@ -200,6 +200,29 @@ def get_photos(project_id: Optional[str] = None, db: Session = Depends(get_db)):
         query = query.filter(models.Photo.project_id == project_id)
     return query.order_by(models.Photo.order).all()
 
+
+@router.get("/cf-upload-url")
+def get_upload_url(
+    current_user: models.User = Depends(get_current_user)
+):
+    """Electron 앱용 CF 업로드 일회성 URL 발급"""
+    print(f"CF_ACCOUNT_ID: {CF_ACCOUNT_ID}")
+    print(f"CF_API_TOKEN: {CF_API_TOKEN[:10] if CF_API_TOKEN else None}")
+    res = requests.post(
+        f"https://api.cloudflare.com/client/v4/accounts/{CF_ACCOUNT_ID}/images/v2/direct_upload",
+        headers={"Authorization": f"Bearer {CF_API_TOKEN}"},
+    )
+    print(f"CF 응답: {res.status_code} {res.text}")
+    data = res.json()
+    if not data.get("success"):
+        raise HTTPException(status_code=500, detail="CF_UPLOAD_URL_FAILED")
+    
+    return {
+        "uploadURL": data["result"]["uploadURL"],
+        "id": data["result"]["id"]
+    }
+
+
 @router.get("/{photo_id}", response_model=PhotoResponse)
 def get_photo(photo_id: str, db: Session = Depends(get_db)):
     photo = db.query(models.Photo).filter(models.Photo.id == photo_id).first()
@@ -419,22 +442,3 @@ def update_local_missing(
     db.commit()
     db.refresh(photo)
     return photo
-
-
-@router.post("/upload-url")
-def get_upload_url(
-    current_user: models.User = Depends(get_current_user)
-):
-    """Electron 앱용 CF 업로드 일회성 URL 발급"""
-    res = requests.post(
-        f"https://api.cloudflare.com/client/v4/accounts/{CF_ACCOUNT_ID}/images/v2/direct_upload",
-        headers={"Authorization": f"Bearer {CF_API_TOKEN}"},
-    )
-    data = res.json()
-    if not data.get("success"):
-        raise HTTPException(status_code=500, detail="CF_UPLOAD_URL_FAILED")
-    
-    return {
-        "uploadURL": data["result"]["uploadURL"],
-        "id": data["result"]["id"]
-    }

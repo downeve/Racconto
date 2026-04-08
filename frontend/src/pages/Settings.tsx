@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import axios from 'axios'
 import { useTranslation } from 'react-i18next'
 import Heading from '../components/Heading' //
+import FolderProjectMapper from '../components/FolderProjectMapper'
 import { 
   SwatchIcon, 
   ViewColumnsIcon, 
@@ -313,6 +314,9 @@ export default function Settings() {
           </p>
         )}
       </div>
+
+      {/* 로컬 폴더 연결 - Electron 앱에서만 표시 */}
+      <FolderProjectMapper />
 
       {/* 납품 선택 자동 태그 */}
       {DELIVERY_ENABLED && (

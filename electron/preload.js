@@ -10,4 +10,8 @@ contextBridge.exposeInMainWorld('racconto', {
   onUploadSuccess: (callback) => ipcRenderer.on('upload:success', (event, data) => callback(data)),
   onUploadFailed: (callback) => ipcRenderer.on('upload:failed', (event, data) => callback(data)),
   setAuthToken: (token) => ipcRenderer.invoke('auth:setToken', token),
+  linkFolder: (folderPath, projectId, projectName) => ipcRenderer.invoke('folderMap:link', { folderPath, projectId, projectName }),
+  unlinkFolder: (folderPath) => ipcRenderer.invoke('folderMap:unlink', folderPath),
+  getAllMappings: () => ipcRenderer.invoke('folderMap:getAll'),
+  onUnmapped: (callback) => ipcRenderer.on('watcher:unmapped', (event, filePath) => callback(filePath)),
 })

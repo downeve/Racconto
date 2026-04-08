@@ -20,6 +20,9 @@ function saveQueue(queue) {
 
 function addToQueue(item) {
   const queue = loadQueue()
+  // 이미 pending 상태로 같은 파일이 있으면 스킵
+  const exists = queue.some(q => q.filePath === item.filePath && q.status === 'pending')
+  if (exists) return
   queue.push({
     id: `${Date.now()}-${Math.random().toString(36).slice(2)}`,
     filePath: item.filePath,
