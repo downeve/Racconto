@@ -8,5 +8,8 @@ interface Window {
     stopWatcher: () => Promise<{ success: boolean }>
     onNewFile: (callback: (filePath: string) => void) => void
     onDeletedFile: (callback: (filePath: string) => void) => void
+    onUploadSuccess: (callback: (data: { item: any; photo: any }) => void) => void
+    onUploadFailed: (callback: (data: { item: any; error: string }) => void) => void
+    setAuthToken: (token: string) => Promise<void>
   }
 }

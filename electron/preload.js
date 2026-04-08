@@ -7,4 +7,7 @@ contextBridge.exposeInMainWorld('racconto', {
   stopWatcher: () => ipcRenderer.invoke('watcher:stop'),
   onNewFile: (callback) => ipcRenderer.on('watcher:newFile', (event, filePath) => callback(filePath)),
   onDeletedFile: (callback) => ipcRenderer.on('watcher:deletedFile', (event, filePath) => callback(filePath)),
+  onUploadSuccess: (callback) => ipcRenderer.on('upload:success', (event, data) => callback(data)),
+  onUploadFailed: (callback) => ipcRenderer.on('upload:failed', (event, data) => callback(data)),
+  setAuthToken: (token) => ipcRenderer.invoke('auth:setToken', token),
 })

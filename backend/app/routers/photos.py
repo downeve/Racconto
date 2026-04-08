@@ -419,3 +419,22 @@ def update_local_missing(
     db.commit()
     db.refresh(photo)
     return photo
+
+
+@router.post("/upload-url")
+def get_upload_url(
+    current_user: models.User = Depends(get_current_user)
+):
+    """Electron 앱용 CF 업로드 일회성 URL 발급"""
+    res = requests.post(
+        f"https://api.cloudflare.com/client/v4/accounts/{CF_ACCOUNT_ID}/images/v2/direct_upload",
+        headers={"Authorization": f"Bearer {CF_API_TOKEN}"},
+    )
+    data = res.json()
+    if not data.get("success"):
+        raise HTTPException(status_code=500, detail="CF_UPLOAD_URL_FAILED")
+    
+    return {
+        "uploadURL": data["result"]["uploadURL"],
+        "id": data["result"]["id"]
+    }

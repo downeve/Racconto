@@ -20,6 +20,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const token = localStorage.getItem('token')
     if (token) {
       axios.defaults.headers.common['Authorization'] = `Bearer ${token}`
+
+      // Electron 앱이면 메인 프로세스에 토큰 전달
+      if (window.racconto) {
+        window.racconto.setAuthToken(token)
+      }
+
       setIsAuthenticated(true)
     }
     setIsLoading(false)
@@ -34,6 +40,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const token = res.data.access_token
       localStorage.setItem('token', token)
       axios.defaults.headers.common['Authorization'] = `Bearer ${token}`
+
+      // Electron 앱이면 메인 프로세스에 토큰 전달
+      if (window.racconto) {
+        window.racconto.setAuthToken(token)
+      }
+
       setIsAuthenticated(true)
       return true
     } catch {
