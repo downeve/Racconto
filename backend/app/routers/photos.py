@@ -166,7 +166,17 @@ class PhotoCreate(BaseModel):
     rating: Optional[int] = None
     color_label: Optional[str] = None
     folder: Optional[str] = None
-    original_filename: Optional[str] = None  # ← 추가
+    original_filename: Optional[str] = None
+    # Electron EXIF 필드
+    taken_at: Optional[datetime] = None
+    camera: Optional[str] = None
+    lens: Optional[str] = None
+    iso: Optional[str] = None
+    shutter_speed: Optional[str] = None
+    aperture: Optional[str] = None
+    focal_length: Optional[str] = None
+    gps_lat: Optional[str] = None
+    gps_lng: Optional[str] = None
 
 class PhotoResponse(BaseModel):
     id: str
@@ -288,6 +298,15 @@ def create_photo(photo: PhotoCreate, db: Session = Depends(get_db)):
         order=photo.order if photo.order else next_order,
         folder=photo.folder,
         original_filename=photo.original_filename,
+        taken_at=photo.taken_at,
+        camera=photo.camera,
+        lens=photo.lens,
+        iso=photo.iso,
+        shutter_speed=photo.shutter_speed,
+        aperture=photo.aperture,
+        focal_length=photo.focal_length,
+        gps_lat=photo.gps_lat,
+        gps_lng=photo.gps_lng,
     )
     db.add(db_photo)
     db.commit()
@@ -492,3 +511,28 @@ def update_local_missing(
     db.commit()
     db.refresh(photo)
     return photo
+
+
+class BulkLocalMissingUpdate(BaseModel):
+    updates: list[dict]  # [{"filename": "...", "local_missing": True/False}, ...]
+
+@router.patch("/bulk-local-missing")
+def bulk_update_local_missing(
+    project_id: str,
+    body: BulkLocalMissingUpdate,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user)
+):
+    """앱 시작 시 local_missing 일괄 동기화 (Electron용)"""
+    updated = 0
+    for item in body.updates:
+        photo = db.query(models.Photo).filter(
+            models.Photo.project_id == project_id,
+            models.Photo.original_filename == item["filename"],
+            models.Photo.deleted_at == None
+        ).first()
+        if photo:
+            photo.local_missing = item["local_missing"]
+            updated += 1
+    db.commit()
+    return {"updated": updated}

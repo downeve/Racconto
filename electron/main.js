@@ -4,6 +4,7 @@ const chokidar = require('chokidar')
 const fs = require('fs')
 const { addToQueue, getPendingItems, markSuccess, markFailed, resetFailedToPending } = require('./queue')
 const { linkFolder, unlinkFolder, getProjectForFolder, getAllMappings } = require('./folderMap')
+const exifr = require('exifr')
 
 const isDev = !app.isPackaged
 
@@ -18,8 +19,14 @@ const IMAGE_EXTENSIONS = ['.jpg', '.jpeg', '.png', '.tif', '.tiff', '.webp']
 // ── 인증 ────────────────────────────────────────────
 ipcMain.handle('auth:setToken', (event, token) => {
   authToken = token
-  // 토큰 받으면 큐 처리 시도
-  if (isOnline) processQueue()
+  if (isOnline) {
+    processQueue()
+    const mappings = getAllMappings()
+    Object.keys(mappings).forEach(folderPath => {
+      const projectId = mappings[folderPath].projectId
+      syncLocalMissing(folderPath, projectId)
+    })
+  }
 })
 
 // ── 폴더 매핑 ────────────────────────────────────────
@@ -79,9 +86,11 @@ async function uploadFile(item) {
 
   // 2. CF에 직접 업로드
   const { default: fetch } = await import('node-fetch')
-  const { default: FormData } = await import('form-data')
-  const form = new FormData()
-  form.append('file', fs.createReadStream(item.filePath), path.basename(item.filePath))
+  const { Blob } = require('buffer')
+  const fileBuffer = fs.readFileSync(item.filePath)
+  const blob = new Blob([fileBuffer])
+  const form = new globalThis.FormData()
+  form.append('file', blob, path.basename(item.filePath))
 
   const cfRes = await fetch(uploadURL, { method: 'POST', body: form })
   const cfData = await cfRes.json()
@@ -89,7 +98,31 @@ async function uploadFile(item) {
 
   const imageUrl = cfData.result.variants[0]
 
-  // 3. FastAPI에 메타데이터 저장
+// 3. FastAPI에 메타데이터 저장
+  let exifData = {}
+  try {
+    const parsed = await exifr.parse(item.filePath, {
+      pick: ['DateTimeOriginal', 'Make', 'Model', 'LensModel',
+             'ISO', 'ExposureTime', 'FNumber', 'FocalLength',
+             'GPSLatitude', 'GPSLongitude']
+    })
+    if (parsed) {
+      if (parsed.DateTimeOriginal) exifData.taken_at = parsed.DateTimeOriginal.toISOString()
+      if (parsed.Make || parsed.Model) exifData.camera = `${parsed.Make || ''} ${parsed.Model || ''}`.trim()
+      if (parsed.LensModel)    exifData.lens = parsed.LensModel
+      if (parsed.ISO)          exifData.iso = `ISO ${parsed.ISO}`
+      if (parsed.ExposureTime) exifData.shutter_speed = parsed.ExposureTime < 1
+        ? `1/${Math.round(1 / parsed.ExposureTime)}s`
+        : `${parsed.ExposureTime.toFixed(1)}s`
+      if (parsed.FNumber)      exifData.aperture = `f/${parsed.FNumber.toFixed(1)}`
+      if (parsed.FocalLength)  exifData.focal_length = `${Math.round(parsed.FocalLength)}mm`
+      if (parsed.GPSLatitude)  exifData.gps_lat = String(parsed.GPSLatitude)
+      if (parsed.GPSLongitude) exifData.gps_lng = String(parsed.GPSLongitude)
+    }
+  } catch (e) {
+    console.log('EXIF 추출 실패 (무시):', path.basename(item.filePath), e.message)
+  }
+
   const metaRes = await fetchWithAuth(`${API_BASE}/photos/`, {
     method: 'POST',
     body: JSON.stringify({
@@ -97,6 +130,7 @@ async function uploadFile(item) {
       image_url: imageUrl,
       folder: path.dirname(item.filePath),
       original_filename: path.basename(item.filePath),
+      ...exifData,
     }),
   })
   if (!metaRes.ok) throw new Error('메타데이터 저장 실패')
@@ -105,6 +139,51 @@ async function uploadFile(item) {
 }
 
 let isProcessing = false
+
+async function syncLocalMissing(folderPath, projectId) {
+  if (!authToken) return
+  try {
+    // DB 사진 목록 조회
+    const res = await fetchWithAuth(
+      `${API_BASE}/photos/?project_id=${encodeURIComponent(projectId)}`
+    )
+    if (!res.ok) return
+    const photos = await res.json()
+
+    // 로컬 실제 파일 목록
+    const localFiles = new Set(
+      fs.readdirSync(folderPath)
+        .filter(f => IMAGE_EXTENSIONS.includes(path.extname(f).toLowerCase()))
+    )
+
+    // 변경이 필요한 항목만 추려서 배치로 전송
+    const updates = []
+    for (const photo of photos) {
+      if (!photo.original_filename) continue
+      const isLocal = localFiles.has(photo.original_filename)
+      if (!isLocal && !photo.local_missing) {
+        updates.push({ filename: photo.original_filename, local_missing: true })
+        console.log('local_missing 감지:', photo.original_filename)
+      } else if (isLocal && photo.local_missing) {
+        updates.push({ filename: photo.original_filename, local_missing: false })
+        console.log('local_missing 복구:', photo.original_filename)
+      }
+    }
+
+    if (updates.length === 0) return
+
+    await fetchWithAuth(
+      `${API_BASE}/photos/bulk-local-missing?project_id=${encodeURIComponent(projectId)}`,
+      {
+        method: 'PATCH',
+        body: JSON.stringify({ updates }),
+      }
+    )
+    console.log(`local_missing 동기화 완료: ${updates.length}개`)
+  } catch (e) {
+    console.error('syncLocalMissing 실패:', e.message)
+  }
+}
 
 async function processQueue() {
   if (!isOnline || !authToken) {
@@ -289,6 +368,8 @@ app.whenReady().then(() => {
   const mappings = getAllMappings()
   Object.keys(mappings).forEach(folderPath => {
     startWatcherForPath(folderPath)
+    const projectId = mappings[folderPath].projectId
+    if (authToken) syncLocalMissing(folderPath, projectId)
   })
 
   // 네트워크 상태 감지 (5초 폴링)
