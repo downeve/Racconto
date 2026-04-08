@@ -50,10 +50,16 @@ export default function Navbar({ onLogout }: NavbarProps) {
   }
 
   return (
-    <nav className="bg-[#F7F4F0] text-stone-900 border-b border-stone-200 px-6 py-4">
-      <div className="max-w-6xl mx-auto flex items-center justify-between">
-        <Link to="/" className="text-xl font-bold tracking-widest" style={{ fontFamily: 'Georgia, serif' }}>Racconto</Link>
-        <div className="flex gap-8 items-center">
+    <nav className="fixed top-0 left-0 right-0 z-50 bg-[#F7F4F0]/90 backdrop-blur-sm border-b border-stone-200 text-stone-900">      
+      <div className="max-w-6xl mx-auto px-6 h-14 flex items-center justify-between">      
+        <Link 
+          to="/" 
+          className="text-xl font-bold tracking-widest" 
+          style={{ fontFamily: "'Georgia', serif", letterSpacing: '0.15em' }}
+        >
+          Racconto
+        </Link>
+        <div className="flex gap-6 items-center">
           <Link to="/projects" className="text-sm tracking-wider text-stone-600 hover:text-stone-900">{t('nav.projects')}</Link>
           <button
             onClick={handlePortfolioClick}

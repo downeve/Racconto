@@ -129,7 +129,7 @@ export default function LandingPage() {
 
       {/* Navbar */}
       <nav className="fixed top-0 left-0 right-0 z-50 bg-[#F7F4F0]/90 backdrop-blur-sm border-b border-stone-200">
-        <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
+        <div className="max-w-6xl mx-auto px-6 h-14 flex items-center justify-between">
           <span className="text-xl font-bold tracking-widest" style={{ fontFamily: "'Georgia', serif", letterSpacing: '0.15em' }}>
             Racconto
           </span>

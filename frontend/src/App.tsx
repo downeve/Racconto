@@ -28,7 +28,7 @@ function AppRoutes() {
   const hideNavbar = location.pathname.startsWith('/delivery/')
 
   return (
-    <div className="min-h-screen bg-[#F7F4F0]">
+    <div className="min-h-screen bg-[#F7F4F0] pt-14">
 
       {/* 모바일 차단 — 랜딩(/), 공개 포트폴리오(/p/), 납품(/delivery/) 제외 */}
       {!['/', ].includes(location.pathname) &&

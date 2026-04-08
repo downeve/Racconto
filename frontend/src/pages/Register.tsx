@@ -61,20 +61,27 @@ export default function Register() {
   return (
     <div className="min-h-screen flex flex-col">
       
-      {/* Navbar.tsx와 동일한 상단 헤더 */}
-      <nav className="bg-[#F7F4F0] border-b border-stone-200 px-6 py-4">
-        <div className="max-w-6xl mx-auto flex items-center justify-between">
-          <Link to="/" className="text-xl font-bold tracking-widest font-serif">Racconto</Link>
-          <div className="flex gap-8 items-center">
-            <button onClick={toggleLanguage} className="text-sm font-bold text-stone-400 hover:text-stone-700 transition-colors">
-              {i18n.language === 'ko' ? 'EN' : 'KO'}
-            </button>
-          </div>
+    {/* 💡 공통: 수정된 네비게이션 바 */}
+      <nav className="fixed top-0 left-0 right-0 z-50 bg-[#F7F4F0]/90 backdrop-blur-sm border-b border-stone-200 text-stone-900">
+        <div className="max-w-6xl mx-auto px-6 h-14 flex items-center justify-between">
+          <Link 
+            to="/" 
+            className="text-xl font-bold tracking-widest" 
+            style={{ fontFamily: "'Georgia', serif", letterSpacing: '0.15em' }}
+          >
+            Racconto
+          </Link>
+          <button 
+            onClick={toggleLanguage} 
+            className="text-sm font-bold text-stone-400 hover:text-stone-700 transition-colors"
+          >
+            {i18n.language === 'ko' ? 'EN' : 'KO'}
+          </button>
         </div>
       </nav>
 
       {/* 메인 컨텐츠 영역 */}
-      <div className="flex-1 flex items-center justify-center py-12">
+      <div className="flex-1 flex items-start justify-center pt-20 pb-12">
         {success ? (
           // --- 회원가입 성공 (이메일 인증 대기) 화면 ---
           <div className="bg-white rounded-lg shadow p-8 w-full max-w-sm text-center">
@@ -127,7 +134,7 @@ export default function Register() {
               <button
                 onClick={handleSubmit}
                 disabled={loading}
-                className="w-full bg-stone-900 text-white py-2 text-sm tracking-wider hover:bg-stone-700 disabled:bg-stone-300"
+                className="w-full bg-stone-600 text-white px-4 py-2 text-sm tracking-wider hover:bg-stone-900 transition-colors rounded"
               >
                 {loading ? t('register.processing') : t('register.submit')}
               </button>
