@@ -211,7 +211,10 @@
   "portfolio": {
     "noChapters": "아직 챕터가 없어요",
     "createChapterFirst": "스토리 탭에서 챕터를 만들어 사진을 공개해보세요.",
-    "noPublicProjects": "공개된 프로젝트가 없어요"
+    "noPublicProjects": "공개된 프로젝트가 없어요",
+    "startMessage": "나만의 포트폴리오를 만드세요.",
+    "startMessage2": "아직 포트폴리오 주소를 설정하지 않았습니다. 설정에서 사용자 이름을 등록하세요.",
+    "noUser": "의 포트폴리오를 찾을 수 없습니다."
   },
   "delivery": {
     "title": "납품",

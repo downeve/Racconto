@@ -211,7 +211,10 @@
   "portfolio": {
     "noChapters": "No chapters yet",
     "createChapterFirst": "Create a chapter in Story tab to publish photos",
-    "noPublicProjects": "No public projects yet"
+    "noPublicProjects": "No public projects yet",
+    "startMessage": "Make your own portfolios.",
+    "startMessage2": "Pleae make your own portfolio address in setting.",
+    "noUser": "'s portfolio does not exist."
   },
   "delivery": {
     "title": "Delivery",

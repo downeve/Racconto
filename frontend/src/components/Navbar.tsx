@@ -45,7 +45,7 @@ export default function Navbar({ onLogout }: NavbarProps) {
     if (username) {
       navigate(`/p/${username}`)
     } else {
-      navigate('/settings')
+      navigate('/p/@setup')
     }
   }
 

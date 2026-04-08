@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { useParams, Link } from 'react-router-dom'
+import { useParams, Link, useNavigate } from 'react-router-dom'
 import axios from 'axios'
 import { useTranslation } from 'react-i18next'
 import { useAuth } from '../context/AuthContext'
@@ -47,9 +47,23 @@ export default function PublicPortfolio() {
 
   const { t } = useTranslation()
 
+  const navigate = useNavigate()
   const { isAuthenticated } = useAuth()
 
+  // 💡 3. 로그아웃 상태 & _setup 주소 방어 로직 추가
   useEffect(() => {
+    if (!isAuthenticated && username === '@setup') {
+      navigate('/', { replace: true }); // 뒤로가기 기록도 안 남기고 바로 홈으로 튕겨냄
+    }
+  }, [isAuthenticated, username, navigate]);
+
+  useEffect(() => {
+    // 💡 [수정] username이 아예 없거나 '@setup'인 경우 API 호출을 생략합니다.
+    if (!username || username === '@setup') {
+      setNotFound(false);
+      return;
+    }
+
     axios.get(`${API}/portfolio/public/${username}`)
       .then(res => setProjects(res.data.projects))
       .catch(() => setNotFound(true))
@@ -100,32 +114,75 @@ export default function PublicPortfolio() {
   const cardBg = darkMode ? 'bg-[#2A2A2A]' : 'bg-white'
   const subText = darkMode ? 'text-gray-400' : 'text-gray-500'
 
-  if (notFound) return (
-    <div className="min-h-screen bg-[#F5F0EB] flex items-center justify-center">
-      <div className="text-center">
-        <p className="text-gray-500 mb-2">포트폴리오를 찾을 수 없어요</p>
-        <p className="text-sm text-gray-400">@{username}</p>
+  // 💡 케이스 1: 먼저 사용자가 포트폴리오 설정을 안 했을 때 (@setup) 인지 확인합니다.
+  if (username === '@setup' || !username) {
+    return (
+      <div className={`min-h-screen pt-14 flex flex-col ${darkMode ? 'bg-stone-900 text-white' : 'bg-[#F7F4F0] text-stone-900'}`}>
+        <main className="flex-1 flex items-center justify-center px-6 pb-32">
+          <div className="text-center">
+            <h2 className="text-2xl font-bold mb-3" style={{ fontFamily: "'Georgia', serif" }}>
+              {t('portfolio.startMessage')}
+            </h2>
+            <p className="text-stone-600 break-keep leading-relaxed text-sm">
+              {t('portfolio.startMessage2')}
+            </p>
+          </div>
+        </main>
       </div>
-    </div>
-  )
+    );
+  }
+
+  // 💡 케이스 2: _setup이 아닌데 못 찾았을 때 (진짜 에러 화면)
+  if (notFound) {
+    return (
+      <div className={`fixed inset-0 z-[100] flex flex-col ${darkMode ? 'bg-stone-900 text-white' : 'bg-[#F7F4F0] text-stone-900'}`}>
+        {/* 단순화된 헤더 (로고만 표시) */}
+        <nav className="w-full bg-[#F7F4F0] border-b border-stone-200 text-stone-900 shrink-0">
+          <div className="max-w-6xl mx-auto px-6 h-14 flex items-center justify-between">
+            <Link 
+              to="/" 
+              className="text-xl font-bold tracking-widest" 
+              style={{ fontFamily: "'Georgia', serif", letterSpacing: '0.15em' }}
+            >
+              Racconto
+            </Link>
+          </div>
+        </nav>
+        <main className="flex-1 flex items-center justify-center px-6 pb-32">
+          <div className="text-center">
+            <p className="text-gray-500">@{username}{t('portfolio.noUser')}</p>
+          </div>
+        </main>
+      </div>
+    );
+  }
 
   return (
     <div className={`min-h-screen ${bg} transition-colors duration-300`}>
-    {!isAuthenticated && (
-      <div className={`border-b ${darkMode ? 'border-white/10' : 'border-gray-200'}`}>
-        <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
-          <Link to="/" className={`text-lg font-bold tracking-widest font-serif ${darkMode ? 'text-white' : 'text-gray-900'}`}>
-            Racconto
-          </Link>
-          <a
-            href={`/p/${username}`}
-            className={`text-sm ${darkMode ? 'text-gray-400 hover:text-white' : 'text-gray-500 hover:text-gray-900'}`}
-          >
-            @{username}
-          </a>
-        </div>
-      </div>
-    )}
+    {/* 💡 [수정된 부분] 로그아웃 상태일 때 보여주는 헤더를 fixed로 띄워 상단 빈 공간을 덮어버립니다. */}
+      {!isAuthenticated && (
+        <nav className={`fixed top-0 left-0 right-0 z-[60] border-b backdrop-blur-md transition-colors duration-300 ${
+          darkMode ? 'bg-[#1A1A1A]/90 border-white/10' : 'bg-[#F5F0EB]/90 border-gray-200'
+        }`}>
+          <div className="max-w-6xl mx-auto px-6 h-14 flex items-center justify-between">
+            {/* Navbar.tsx와 동일한 텍스트 크기(text-xl)와 자간(0.15em) 적용 */}
+            <Link 
+              to="/" 
+              className={`text-xl font-bold tracking-widest ${darkMode ? 'text-white' : 'text-gray-900'}`}
+              style={{ fontFamily: "'Georgia', serif", letterSpacing: '0.15em' }}
+            >
+              Racconto
+            </Link>
+            <Link
+              to={`/p/${username}`}
+              className={`text-sm ${darkMode ? 'text-gray-400 hover:text-white' : 'text-gray-500 hover:text-gray-900'}`}
+            >
+              @{username}
+            </Link>
+          </div>
+        </nav>
+      )}
+
       <div className="max-w-6xl mx-auto p-6">
 
         <div className="flex items-center justify-between mb-8">
