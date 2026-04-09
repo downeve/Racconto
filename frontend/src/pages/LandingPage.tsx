@@ -202,7 +202,7 @@ export default function LandingPage() {
           {/* 메인 스크린샷 */}
           <div className="rounded-lg overflow-hidden shadow-xl border border-stone-200 mb-6">
             <img
-              src="/screenshots/screenshot-photos.png"
+              src="/screenshots/screenshot-projects.png"
               alt="Racconto app"
               className="w-full object-cover object-top"
             />
