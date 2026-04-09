@@ -16,4 +16,5 @@ contextBridge.exposeInMainWorld('racconto', {
   onUnmapped: (callback) => ipcRenderer.on('watcher:unmapped', (event, filePath) => callback(filePath)),
   onUploadProgress: (callback) => ipcRenderer.on('upload:progress', (event, data) => callback(data)),
   onUploadDone: (callback) => ipcRenderer.on('upload:done', (event, data) => callback(data)),
+  onAuthExpired: (callback) => ipcRenderer.on('auth:expired', () => callback()),
 })

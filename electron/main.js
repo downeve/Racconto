@@ -364,6 +364,25 @@ async function stopWatcherForPath(folderPath) {
   }
 }
 
+async function fetchWithAuth(url, options = {}) {
+  const { default: fetch } = await import('node-fetch')
+  const res = await fetch(url, {
+    ...options,
+    headers: {
+      'Authorization': `Bearer ${authToken}`,
+      'Content-Type': 'application/json',
+      ...(options.headers || {}),
+    },
+  })
+  // 토큰 만료 시 프론트에 알림
+  if (res.status === 401) {
+    authToken = null
+    mainWindow?.webContents.send('auth:expired')
+    console.log('토큰 만료 감지 → 로그아웃')
+  }
+  return res
+}
+
 // ── IPC: 감시 시작/중지 ──────────────────────────────
 ipcMain.handle('watcher:start', (event, folderPath) => {
   startWatcherForPath(folderPath)
