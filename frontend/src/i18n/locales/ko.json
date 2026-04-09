@@ -198,7 +198,8 @@
     "noChapter": "등록된 챕터가 없습니다.",
     "noChapter2": "스토리 탭에서 챕터를 추가해 주세요.",
     "addToChapter": "챕터에 추가",
-    "noChapters": "생성된 챕터가 없습니다"
+    "noChapters": "생성된 챕터가 없습니다",
+    "addPhotoGuide": "사진 탭에서 📖 버튼으로 이 챕터에 사진을 추가하세요."
   },
   "note": {
     "title": "노트",

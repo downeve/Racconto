@@ -631,6 +631,9 @@ export default function ProjectStory({
 
                   {/* 챕터 사진 */}
                   <div className="p-4">
+                    {getVisibleChapterPhotos(chapter.id).length === 0 && (
+                      <p className="text-sm text-gray-400 py-2">{t('story.addPhotoGuide')}</p>
+                    )}                    
                     <DndContext sensors={sensors} collisionDetection={closestCenter}
                       onDragStart={(e) => {
                         const photo = (chapterPhotos[chapter.id] || []).find(p => p.id === e.active.id)
@@ -737,8 +740,11 @@ export default function ProjectStory({
                       )}
                     </div>
 
-                    {/* 서브챕터 사진 */}
+                    {/* 서브챕터 사진 */}                   
                     <div className="p-4">
+                      {getVisibleChapterPhotos(subChapter.id).length === 0 && (
+                        <p className="text-sm text-gray-400 py-2">{t('story.addPhotoGuide')}</p>
+                      )}
                       <DndContext sensors={sensors} collisionDetection={closestCenter}
                         onDragStart={(e) => {
                           const photo = (chapterPhotos[subChapter.id] || []).find(p => p.id === e.active.id)
@@ -780,7 +786,6 @@ export default function ProjectStory({
                           )}
                         </DragOverlay>
                       </DndContext>
-
                     </div>
                   </div>
                 ))}

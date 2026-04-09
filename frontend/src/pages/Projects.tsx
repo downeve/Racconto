@@ -71,7 +71,7 @@ export default function Projects() {
   }
 
   return (
-    <div className="max-w-6xl mx-auto p-6">
+    <div className="max-w-7xl mx-auto p-6">
       <div className="flex items-center justify-between mb-8">
           <Heading level={2} className="mb-2">
             {t('nav.projects')}

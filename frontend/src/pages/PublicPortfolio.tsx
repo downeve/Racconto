@@ -138,7 +138,7 @@ export default function PublicPortfolio() {
       <div className={`fixed inset-0 z-[100] flex flex-col ${darkMode ? 'bg-stone-900 text-white' : 'bg-[#F7F4F0] text-stone-900'}`}>
         {/* 단순화된 헤더 (로고만 표시) */}
         <nav className="w-full bg-[#F7F4F0] border-b border-stone-200 text-stone-900 shrink-0">
-          <div className="max-w-6xl mx-auto px-6 h-14 flex items-center justify-between">
+          <div className="max-w-7xl mx-auto px-6 h-14 flex items-center justify-between">
             <Link 
               to="/" 
               className="text-xl font-bold tracking-widest" 
@@ -164,7 +164,7 @@ export default function PublicPortfolio() {
         <nav className={`fixed top-0 left-0 right-0 z-[60] border-b backdrop-blur-md transition-colors duration-300 ${
           darkMode ? 'bg-[#1A1A1A]/90 border-white/10' : 'bg-[#F5F0EB]/90 border-gray-200'
         }`}>
-          <div className="max-w-6xl mx-auto px-6 h-14 flex items-center justify-between">
+          <div className="max-w-7xl mx-auto px-6 h-14 flex items-center justify-between">
             {/* Navbar.tsx와 동일한 텍스트 크기(text-xl)와 자간(0.15em) 적용 */}
             <Link 
               to="/" 
@@ -183,7 +183,7 @@ export default function PublicPortfolio() {
         </nav>
       )}
 
-      <div className="max-w-6xl mx-auto p-6">
+      <div className="max-w-7xl mx-auto p-6">
 
         <div className="flex items-center justify-between mb-8">
           <div className="flex items-center gap-4">
