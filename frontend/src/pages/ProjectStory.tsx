@@ -784,7 +784,7 @@ export default function ProjectStory({
                         onClick={() => setShowPhotoSelector(showPhotoSelector === subChapter.id ? null : subChapter.id)}
                         className="text-xs text-gray-400 hover:text-black border px-3 py-1 rounded"
                       >
-                        + {t('story.addPhoto')}
+                        {t('story.addPhoto')}
                       </button>
 
                       {/* 사진 선택기 */}

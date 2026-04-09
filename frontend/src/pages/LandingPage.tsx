@@ -25,23 +25,18 @@ export default function LandingPage() {
       title: t('landing.feature1Title'),
       desc: t('landing.feature1Desc'),
       visual: (
-        <div className="relative w-full h-48 bg-stone-100 rounded overflow-hidden">
-          <div className="absolute inset-0 grid grid-cols-3 gap-1 p-2">
-            {[...Array(9)].map((_, i) => (
-              <div
-                key={i}
-                className="bg-stone-300 rounded-sm"
-                style={{
-                  opacity: 0.4 + (i % 3) * 0.2,
-                  transform: `scale(${0.95 + (i % 2) * 0.05})`,
-                }}
-              />
-            ))}
-          </div>
-          <div className="absolute bottom-3 left-3 right-3 flex gap-1">
-            {['bg-red-400', 'bg-yellow-400', 'bg-green-400', 'bg-blue-400', 'bg-purple-400'].map((c, i) => (
-              <div key={i} className={`h-1.5 flex-1 rounded-full ${c} opacity-80`} />
-            ))}
+        <div className="w-full h-64 rounded overflow-hidden shadow-md relative">
+          <div
+            className="w-full"
+            style={{
+              animation: 'slowScroll 8s ease-in-out infinite alternate',
+            }}
+          >
+            <img
+              src="/screenshots/screenshot-story.png"
+              alt="Story structure"
+              className="w-full object-cover object-top"
+            />
           </div>
         </div>
       ),
@@ -51,27 +46,12 @@ export default function LandingPage() {
       title: t('landing.feature2Title'),
       desc: t('landing.feature2Desc'),
       visual: (
-        <div className="relative w-full h-48 bg-stone-100 rounded overflow-hidden p-3">
-          <div className="space-y-2">
-            {[
-              { label: 'Chapter 1', indent: false, photos: 4 },
-              { label: 'Sub-Chapter 1.1', indent: true, photos: 3 },
-              { label: 'Sub-Chapter 1.2', indent: true, photos: 2 },
-              { label: 'Chapter 2', indent: false, photos: 5 },
-            ].map((item, i) => (
-              <div
-                key={i}
-                className={`flex items-center gap-2 ${item.indent ? 'ml-4 border-l-2 border-blue-300 pl-2' : ''}`}
-              >
-                <span className="text-xs text-stone-500 font-medium w-32 truncate">{item.label}</span>
-                <div className="flex gap-0.5 flex-1">
-                  {[...Array(item.photos)].map((_, j) => (
-                    <div key={j} className="h-5 flex-1 bg-stone-300 rounded-sm opacity-60" />
-                  ))}
-                </div>
-              </div>
-            ))}
-          </div>
+        <div className="w-full h-64 rounded overflow-hidden shadow-md">
+          <img
+            src="/screenshots/screenshot-photos.png"
+            alt="Photo curation workflow"
+            className="w-full h-full object-cover object-top"
+          />
         </div>
       ),
     },
@@ -80,22 +60,12 @@ export default function LandingPage() {
       title: t('landing.feature3Title'),
       desc: t('landing.feature3Desc'),
       visual: (
-        <div className="relative w-full h-48 bg-stone-900 rounded overflow-hidden">
-          <div className="absolute inset-0 grid grid-cols-3 gap-0.5 p-0.5">
-            {[...Array(6)].map((_, i) => (
-              <div
-                key={i}
-                className="bg-stone-700 rounded-sm"
-                style={{ opacity: 0.5 + (i % 3) * 0.15 }}
-              />
-            ))}
-          </div>
-          <div className="absolute inset-0 flex items-center justify-center">
-            <div className="text-center">
-              <p className="text-white/30 text-xs tracking-widest uppercase mb-1">racconto.app/p/</p>
-              <p className="text-white text-sm font-semibold tracking-wider">yourname</p>
-            </div>
-          </div>
+        <div className="w-full h-64 rounded overflow-hidden shadow-md">
+          <img
+            src="/screenshots/screenshot-portfolio.png"
+            alt="Public portfolio"
+            className="w-full h-full object-cover object-top"
+          />
         </div>
       ),
     },
@@ -104,21 +74,12 @@ export default function LandingPage() {
       title: t('landing.feature4Title'),
       desc: t('landing.feature4Desc'),
       visual: (
-        <div className="relative w-full h-48 bg-stone-100 rounded overflow-hidden p-3">
-          <div className="space-y-2">
-            {[
-              { label: 'camera', value: 'Sony A7R V' },
-              { label: 'lens', value: 'FE 35mm f/1.4' },
-              { label: 'shutter', value: '1/250s' },
-              { label: 'aperture', value: 'f/2.0' },
-              { label: 'iso', value: 'ISO 400' },
-            ].map((item, i) => (
-              <div key={i} className="flex items-center gap-3">
-                <span className="text-xs text-stone-400 w-16 shrink-0">{item.label}</span>
-                <span className="text-xs text-stone-600 font-medium">{item.value}</span>
-              </div>
-            ))}
-          </div>
+        <div className="w-full h-64 rounded overflow-hidden shadow-md">
+          <img
+            src="/screenshots/screenshot-notes.png"
+            alt="Project notes"
+            className="w-full h-full object-cover object-top"
+          />
         </div>
       ),
     },
@@ -148,7 +109,7 @@ export default function LandingPage() {
             </Link>
             <Link
               to="/register"
-              className="text-sm tracking-wider bg-stone-900 text-white px-4 py-2 hover:bg-stone-700 transition-colors"
+              className="text-sm tracking-wider bg-stone-900 text-white px-4 py-2 hover:bg-stone-700 transition-colors rounded"
             >
               {t('auth.register')}
             </Link>
@@ -190,7 +151,7 @@ export default function LandingPage() {
 
         {/* 메인 텍스트 */}
         <div className="relative z-10 text-center max-w-3xl">
-          <p className="text-xs tracking-[0.3em] text-stone-400 uppercase mb-6">
+          <p className="text-xl tracking-[0.3em] text-stone-400 uppercase mb-6">
             {t('landing.heroEyebrow')}
           </p>
           <h1
@@ -206,13 +167,13 @@ export default function LandingPage() {
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
             <Link
               to="/register"
-              className="px-8 py-3.5 bg-stone-900 text-white text-sm tracking-widest hover:bg-stone-700 transition-all duration-200 shadow-lg"
+              className="px-8 py-3.5 bg-stone-900 text-white text-sm tracking-widest hover:bg-stone-700 transition-all duration-200 shadow-lg rounded"
             >
               {t('landing.ctaPrimary')}
             </Link>
             <button
               onClick={() => featuresRef.current?.scrollIntoView({ behavior: 'smooth' })}
-              className="px-8 py-3.5 border border-stone-300 text-stone-600 text-sm tracking-widest hover:border-stone-500 hover:text-stone-900 transition-all duration-200"
+              className="px-8 py-3.5 border border-stone-300 text-stone-600 text-sm tracking-widest hover:border-stone-500 hover:text-stone-900 transition-all duration-200 rounded"
             >
               {t('landing.ctaSecondary')}
             </button>
@@ -228,11 +189,50 @@ export default function LandingPage() {
         </div>
       </section>
 
+      {/* App Demo */}
+      <section className="py-16 px-6 bg-[#F7F4F0]">
+        <div className="max-w-6xl mx-auto">
+          <div className="text-center mb-10">
+            <p className="text-xs tracking-[0.3em] text-stone-400 uppercase mb-3">{t('landing.demoEyebrow')}</p>
+            <h2 className="text-2xl md:text-3xl font-bold text-stone-900" style={{ fontFamily: "'Georgia', serif" }}>
+              {t('landing.demoTitle')}
+            </h2>
+          </div>
+
+          {/* 메인 스크린샷 */}
+          <div className="rounded-lg overflow-hidden shadow-xl border border-stone-200 mb-6">
+            <img
+              src="/screenshots/screenshot-photos.png"
+              alt="Racconto app"
+              className="w-full object-cover object-top"
+            />
+          </div>
+
+          {/* 서브 스크린샷 2개 */}
+          <div className="grid grid-cols-2 gap-4">
+            <div className="rounded-lg overflow-hidden shadow-md border border-stone-200">
+              <img
+                src="/screenshots/screenshot-lightbox.png"
+                alt="Lightbox view"
+                className="w-full object-cover"
+              />
+            </div>
+            <div className="rounded-lg overflow-hidden shadow-md border border-stone-200">
+              <img
+                src="/screenshots/screenshot-note-panel.png"
+                alt="Note panel"
+                className="w-full object-cover"
+              />
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* Features */}
       <section ref={featuresRef} className="py-24 px-6 bg-white">
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-16">
-            <p className="text-xs tracking-[0.3em] text-stone-400 uppercase mb-3">{t('landing.featuresEyebrow')}</p>
+            <p className="text-sm tracking-[0.3em] text-stone-400 uppercase mb-3">{t('landing.featuresEyebrow')}</p>
             <h2 className="text-3xl md:text-4xl font-bold text-stone-900" style={{ fontFamily: "'Georgia', serif" }}>
               {t('landing.featuresTitle')}
             </h2>
@@ -272,7 +272,7 @@ export default function LandingPage() {
           </p>
           <Link
             to="/register"
-            className="inline-block px-10 py-4 bg-white text-stone-900 text-sm tracking-widest font-semibold hover:bg-stone-100 transition-colors"
+            className="inline-block px-10 py-4 bg-white text-stone-900 text-sm tracking-widest font-semibold hover:bg-stone-100 transition-colors rounded"
           >
             {t('landing.ctaPrimary')}
           </Link>
