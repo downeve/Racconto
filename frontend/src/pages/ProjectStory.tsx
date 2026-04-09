@@ -904,7 +904,7 @@ export default function ProjectStory({
                 onClick={handleSaveCaption}
                 className="px-4 py-2 text-sm rounded-lg bg-gray-900 hover:bg-gray-700 text-white font-medium shadow-sm"
               >
-                저장
+                {t('common.save')}
               </button>
             </div>
           </div>

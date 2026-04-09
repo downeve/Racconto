@@ -8,6 +8,7 @@ from pydantic import BaseModel, EmailStr
 import uuid
 from app.email import send_verification_email
 from datetime import datetime, timedelta
+from typing import Optional
 import secrets
 
 router = APIRouter(prefix="/auth", tags=["auth"])
@@ -19,6 +20,7 @@ class Token(BaseModel):
 class UserRegister(BaseModel):
     email: EmailStr
     password: str
+    lang: Optional[str] = 'ko'
 
 class PasswordChange(BaseModel):
     current_password: str
@@ -72,7 +74,7 @@ def register(body: UserRegister, db: Session = Depends(get_db)):
     db.add(user)
     db.commit()
 
-    send_verification_email(body.email, verify_token)
+    send_verification_email(body.email, verify_token, lang=body.lang)
 
     return {"message": "REGTISTER_SUCCESS"}
 

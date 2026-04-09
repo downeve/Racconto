@@ -53,20 +53,20 @@ export default function ProjectEdit() {
         <div className="grid grid-cols-2 gap-4 mb-4">
           <input
             className="border rounded px-3 py-2"
-            placeholder="프로젝트명 *"
+            placeholder={t('project.projectName')}
             value={title}
             onChange={e => setTitle(e.target.value)}
           />
           <textarea
             className="border rounded px-3 py-2 col-span-2"
-            placeholder="설명"
+            placeholder={t('project.description')}
             rows={3}
             value={description}
             onChange={e => setDescription(e.target.value)}
           />
           <input
             className="border rounded px-3 py-2"
-            placeholder="촬영 장소"
+            placeholder={t('project.location')}
             value={location}
             onChange={e => setLocation(e.target.value)}
           />
@@ -75,18 +75,18 @@ export default function ProjectEdit() {
             value={status}
             onChange={e => setStatus(e.target.value)}
           >
-            <option value="in_progress">진행 중</option>
-            <option value="completed">완성</option>
-            <option value="published">발표됨</option>
-            <option value="archived">보관</option>
+            <option value="in_progress">{t('project.statusInProgress')}</option>
+            <option value="completed">{t('project.statusCompleted')}</option>
+            <option value="published">{t('project.statusPublished')}</option>
+            <option value="archived">{t('project.statusArchived')}</option>
           </select>
           <select
             className="border rounded px-3 py-2 col-span-2"
             value={isPublic}
             onChange={e => setIsPublic(e.target.value)}
           >
-            <option value="false">비공개</option>
-            <option value="true">공개 (포트폴리오 노출)</option>
+            <option value="false">{t('project.privateProject')}</option>
+            <option value="true">{t('project.publicProject')}</option>
           </select>
         </div>
 
@@ -95,13 +95,13 @@ export default function ProjectEdit() {
             onClick={handleSubmit}
             className="bg-black text-white px-6 py-2 text-sm hover:bg-gray-800"
           >
-            저장
+            {t('common.save')}
           </button>
           <button
             onClick={() => navigate(`/projects/${id}`)}
             className="border px-6 py-2 text-sm hover:bg-gray-50"
           >
-            취소
+            {t('common.cancel')}
           </button>
         </div>
       </div>

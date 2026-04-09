@@ -101,7 +101,7 @@ function Lightbox({
         <span className="text-white/50 text-sm">{idx + 1} / {photos.length}</span>
         {photo.local_missing && (
           <span className="text-yellow-400 text-xs font-bold px-2 py-0.5 bg-yellow-400/20 rounded-full">
-            ⚠️ 로컬 파일 없음
+            ⚠️ {t('project.noLocalFile')}
           </span>
         )}
         <button onClick={onClose} className="text-white/70 hover:text-white text-2xl">✕</button>
@@ -329,7 +329,7 @@ function PhotoCard({
 
         {photo.local_missing && (
           <div className="absolute top-2 left-2 z-10 bg-yellow-400 text-black text-xs font-bold px-2 py-0.5 rounded-full flex items-center gap-1">
-            ⚠️ 로컬 파일 없음
+            ⚠️ {t('project.noLocalFile')}
           </div>
         )}
 
@@ -380,11 +380,11 @@ function PhotoCard({
 
       {editingCaption === photo.id ? (
         <div className="p-2 bg-white">
-          <input className="w-full border rounded px-2 py-1 text-xs mb-1" placeholder="캡션"
+          <input className="w-full border rounded px-2 py-1 text-xs mb-1" placeholder={t('photo.addCaption')}
             value={captionKo} onChange={e => setCaptionKo(e.target.value)} />
           <div className="flex gap-1">
-            <button onClick={() => onSaveCaption(photo)} className="bg-black text-white px-2 py-1 text-xs">저장</button>
-            <button onClick={() => setEditingCaption(null)} className="border px-2 py-1 text-xs">취소</button>
+            <button onClick={() => onSaveCaption(photo)} className="bg-black text-white px-2 py-1 text-xs">{t('common.save')}</button>
+            <button onClick={() => setEditingCaption(null)} className="border px-2 py-1 text-xs">{t('common.cancel')}</button>
           </div>
         </div>
       ) : (
@@ -1064,14 +1064,14 @@ export default function ProjectDetail() {
                   {photos.some(p => p.local_missing && !p.deleted_at) && (
                     <div className="mb-4 flex items-center justify-between bg-yellow-50 border border-yellow-200 rounded-lg px-4 py-2.5">
                       <p className="text-xs text-yellow-700">
-                        ⚠️ 로컬 파일 없음 사진 {photos.filter(p => p.local_missing && !p.deleted_at).length}개
+                        ⚠️ {t('project.noLocalFile2')} {photos.filter(p => p.local_missing && !p.deleted_at).length}개
                       </p>
                       <button
                         onClick={handleDeleteAllMissing}
                         disabled={deletingMissing}
                         className="text-xs px-3 py-1.5 bg-yellow-500 hover:bg-yellow-600 text-white rounded disabled:opacity-50"
                       >
-                        {deletingMissing ? '삭제 중...' : '전체 삭제'}
+                        {deletingMissing ? t('photo.deleting') : t('photo.deleteAll')}
                       </button>
                     </div>
                   )}
@@ -1111,21 +1111,21 @@ export default function ProjectDetail() {
                 {trashedPhotos.length > 0 && (
                   <div className="mb-4 flex items-center justify-between bg-red-50 border border-red-200 rounded-lg px-4 py-2.5">
                     <p className="text-xs text-red-600">
-                      🗑️ 휴지통 사진 {trashedPhotos.length}개
+                      🗑️ {t('photo.trash')} {trashedPhotos.length}{t('photo.countText')}
                     </p>
                     <button
                       onClick={handleDeleteAllTrash}
                       disabled={deletingTrash}
                       className="text-xs px-3 py-1.5 bg-red-500 hover:bg-red-600 text-white rounded disabled:opacity-50"
                     >
-                      {deletingTrash ? '삭제 중...' : '전체 영구 삭제'}
+                      {deletingTrash ? t('photo.deleting') : t('photo.deleteAllPermanent')}
                     </button>
                   </div>
                 )}
                 {trashedPhotos.length === 0 ? (
                   <div className="text-center py-20 text-gray-400 border rounded-xl bg-gray-50">
                     <p className="text-lg mb-2">{t('photo.trashEmpty')}</p>
-                    <p className="text-sm">삭제된 사진은 30일 동안 보관 후 영구 삭제됩니다.</p>
+                    <p className="text-sm">{t('photo.deleteInfo')}</p>
                   </div>
                 ) : (
                   <div className="grid grid-cols-3 gap-4">

@@ -118,7 +118,9 @@
     "statusArchived": "Archived",
     "privateProject": "Private",
     "publicProject": "Public (In Portfolios)",
-    "location": "Location"
+    "location": "Location",
+    "noLocalFile": "No local file",
+    "noLocalFile2": "Images with no local files"
   },
   "photo": {
     "title": "Photos",
@@ -145,7 +147,12 @@
     "orderUpload": "Upload",
     "orderTaken": "Date",
     "orderName": "Name",
-    "hasNote": "With notes"
+    "hasNote": "With notes",
+    "deleting": "Deleting",
+    "deleteAll": "Deleted",
+    "deleteAllPermanent": "Permanently deleted",
+    "countText": "",
+    "deletedInfo": "Deleted photos will be permanently removed after 30 days."
   },
   "filter": {
     "filter": "Hide tab",
@@ -344,7 +351,7 @@
   "landing": {
     "heroEyebrow": "Creative story maker for photographers",
     "heroTitle": "Turn your\nphotos into\nstories",
-    "heroSubtitle": "From shoot to portfolio — your entire workflow, in one place.",
+    "heroSubtitle": "From prologue to epilogue, your story begins here.",
     "ctaPrimary": "Start for free",
     "ctaSecondary": "See features",
     "betaBadge": "Free beta coming soon · No credit card required",

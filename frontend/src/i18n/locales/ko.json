@@ -118,7 +118,9 @@
     "statusArchived": "보관",
     "privateProject": "비공개",
     "publicProject": "공개 (포트폴리오 반영)",
-    "location": "촬영 지역"
+    "location": "촬영 장소",
+    "noLocalFile": "로컬 파일 없음",
+    "noLocalFile2": "로컬 파일 없는 사진"
   },
   "photo": {
     "title": "사진",
@@ -145,7 +147,12 @@
     "orderUpload": "업로드",
     "orderTaken": "촬영일",
     "orderName": "파일명",
-    "hasNote": "노트 남긴 사진"
+    "hasNote": "노트 남긴 사진",
+    "deleting": "삭제 중",
+    "deleteAll": "전체 삭제",
+    "deleteAllPermanent": "전체 완전 삭제",
+    "countText": "개",
+    "deletedInfo": "삭제된 사진은 30일 동안 보관 후 완전 삭제됩니다."
   },
   "filter": {
     "filter": "탭 숨기기",

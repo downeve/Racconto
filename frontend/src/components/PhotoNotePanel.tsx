@@ -142,13 +142,13 @@ export default function PhotoNotePanel({
                           onClick={() => handleUpdate(note.id)}
                           className="px-3 py-1 text-xs bg-stone-700 text-white rounded hover:bg-stone-800"
                         >
-                          저장
+                          {t('common.save')}
                         </button>
                         <button
                           onClick={() => setEditingNote(null)}
                           className="px-3 py-1 text-xs border rounded hover:bg-gray-50"
                         >
-                          취소
+                          {t('common.cancel')}
                         </button>
                       </div>
                     </div>
@@ -168,13 +168,13 @@ export default function PhotoNotePanel({
                             onClick={() => { setEditingNote(note.id); setEditContent(note.content); setEditType(note.note_type) }}
                             className="text-xs text-gray-400 hover:text-black"
                           >
-                            편집
+                            {t('common.edit')}
                           </button>
                           <button
                             onClick={() => handleDelete(note.id)}
                             className="text-xs text-red-400 hover:text-red-600"
                           >
-                            삭제
+                            {t('common.delete')}
                           </button>
                         </div>
                       </div>

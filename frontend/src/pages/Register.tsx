@@ -37,7 +37,11 @@ export default function Register() {
     setLoading(true)
     setError('')
     try {
-      await axios.post(`${API}/auth/register`, { email, password })
+      await axios.post(`${API}/auth/register`, {
+        email,
+        password,
+        lang: i18n.language?.startsWith('ko') ? 'ko' : 'en'  // ← 추가
+      })
       setSuccess(true)
     } catch (e: any) {
       // 서버에서 보내주는 에러 메시지가 있으면 띄우고, 없으면 기본 에러 번역문 출력
