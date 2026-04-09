@@ -216,6 +216,23 @@ class PhotoResponse(BaseModel):
 class Config:
     from_attributes = True
 
+class BulkExistsRequest(BaseModel):
+    project_id: str
+    filenames: list[str]
+
+class BulkDeleteRequest(BaseModel):
+    photo_ids: list[str]
+
+class BulkPermanentDeleteRequest(BaseModel):
+    photo_ids: list[str]
+
+class LocalMissingUpdate(BaseModel):
+    local_missing: bool
+
+class BulkLocalMissingUpdate(BaseModel):
+    updates: list[dict]  # [{"filename": "...", "local_missing": True/False}, ...]
+
+
 @router.get("/", response_model=list[PhotoResponse])
 def get_photos(project_id: Optional[str] = None, db: Session = Depends(get_db)):
     query = db.query(models.Photo).filter(models.Photo.deleted_at == None)  # 삭제된 사진 제외
@@ -262,10 +279,6 @@ def check_photo_exists(
     return { "exists": exists is not None }
 
 
-class BulkExistsRequest(BaseModel):
-    project_id: str
-    filenames: list[str]
-
 @router.post("/bulk-exists")
 def bulk_check_exists(
     body: BulkExistsRequest,
@@ -304,9 +317,6 @@ def update_local_missing_by_filename(
     return photo
 
 
-class BulkDeleteRequest(BaseModel):
-    photo_ids: list[str]
-
 @router.delete("/bulk-delete")
 def bulk_delete_photos(
     body: BulkDeleteRequest,
@@ -323,9 +333,6 @@ def bulk_delete_photos(
     db.commit()
     return {"deleted": len(body.photo_ids)}
 
-
-class BulkPermanentDeleteRequest(BaseModel):
-    photo_ids: list[str]
 
 @router.delete("/bulk-permanent")
 def bulk_permanent_delete_photos(
@@ -595,9 +602,6 @@ def permanent_delete_photo(photo_id: str, db: Session = Depends(get_db)):
     return {"message": "PERMANENTLY_DELETED"}
 
 
-class LocalMissingUpdate(BaseModel):
-    local_missing: bool
-
 @router.patch("/{photo_id}/local-missing")
 def update_local_missing(
     photo_id: str,
@@ -618,9 +622,6 @@ def update_local_missing(
     db.refresh(photo)
     return photo
 
-
-class BulkLocalMissingUpdate(BaseModel):
-    updates: list[dict]  # [{"filename": "...", "local_missing": True/False}, ...]
 
 @router.patch("/bulk-local-missing")
 def bulk_update_local_missing(
