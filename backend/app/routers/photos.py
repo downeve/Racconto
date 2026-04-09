@@ -152,6 +152,16 @@ def delete_from_cloudflare(image_url: str):
     except:
         pass
 
+
+def clear_cover_if_deleted(project_id: str, image_url: str, db: Session):
+    """삭제된 사진이 커버이면 커버 초기화"""
+    project = db.query(models.Project).filter(
+        models.Project.id == project_id
+    ).first()
+    if project and project.cover_image_url == image_url:
+        project.cover_image_url = None
+
+
 router = APIRouter(prefix="/photos", tags=["photos"])
 
 UPLOAD_DIR = "app/uploads"
@@ -303,11 +313,13 @@ def bulk_delete_photos(
     db: Session = Depends(get_db),
     current_user: models.User = Depends(get_current_user)
 ):
-    """여러 사진 소프트 삭제 (휴지통으로 이동)"""
-    db.query(models.Photo).filter(
+    photos = db.query(models.Photo).filter(
         models.Photo.id.in_(body.photo_ids),
         models.Photo.deleted_at == None
-    ).update({"deleted_at": datetime.utcnow()}, synchronize_session=False)
+    ).all()
+    for photo in photos:
+        photo.deleted_at = datetime.utcnow()
+        clear_cover_if_deleted(photo.project_id, photo.image_url, db)
     db.commit()
     return {"deleted": len(body.photo_ids)}
 
@@ -327,11 +339,10 @@ def bulk_permanent_delete_photos(
 
     cf_urls = []
     for photo in photos:
-        # ChapterPhoto 매핑 삭제
         db.query(models.ChapterPhoto).filter(
             models.ChapterPhoto.photo_id == photo.id
         ).delete(synchronize_session=False)
-        # CF URL 수집 (나중에 삭제)
+        clear_cover_if_deleted(photo.project_id, photo.image_url, db)  # ← 추가
         if photo.image_url and "imagedelivery.net" in photo.image_url:
             cf_urls.append(photo.image_url)
         elif photo.image_url:
@@ -429,6 +440,7 @@ def delete_photo(photo_id: str, db: Session = Depends(get_db)):
         raise HTTPException(status_code=404, detail="PHOTO_NOT_FOUND")
     
     photo.deleted_at = datetime.utcnow()
+    clear_cover_if_deleted(photo.project_id, photo.image_url, db)
     db.commit()
     return {"message": "Moved to trash"}
 
@@ -561,8 +573,8 @@ def permanent_delete_photo(photo_id: str, db: Session = Depends(get_db)):
         raise HTTPException(status_code=404, detail="PHOTO_NOT_FOUND")
     
     # 1. ⭐ [추가] 챕터 매핑 데이터(ChapterPhoto) 먼저 삭제
-    # 이 부분이 빠져서 에러가 났던 것입니다.
     db.query(models.ChapterPhoto).filter(models.ChapterPhoto.photo_id == photo_id).delete(synchronize_session=False)
+    clear_cover_if_deleted(photo.project_id, photo.image_url, db)
 
     # 2. [기존 로직] CF 또는 로컬 파일 물리적 삭제
     try:
