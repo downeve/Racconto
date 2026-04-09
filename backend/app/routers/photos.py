@@ -294,6 +294,76 @@ def update_local_missing_by_filename(
     return photo
 
 
+class BulkDeleteRequest(BaseModel):
+    photo_ids: list[str]
+
+@router.delete("/bulk-delete")
+def bulk_delete_photos(
+    body: BulkDeleteRequest,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user)
+):
+    """여러 사진 소프트 삭제 (휴지통으로 이동)"""
+    db.query(models.Photo).filter(
+        models.Photo.id.in_(body.photo_ids),
+        models.Photo.deleted_at == None
+    ).update({"deleted_at": datetime.utcnow()}, synchronize_session=False)
+    db.commit()
+    return {"deleted": len(body.photo_ids)}
+
+
+class BulkPermanentDeleteRequest(BaseModel):
+    photo_ids: list[str]
+
+@router.delete("/bulk-permanent")
+def bulk_permanent_delete_photos(
+    body: BulkPermanentDeleteRequest,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user)
+):
+    photos = db.query(models.Photo).filter(
+        models.Photo.id.in_(body.photo_ids)
+    ).all()
+
+    cf_urls = []
+    for photo in photos:
+        # ChapterPhoto 매핑 삭제
+        db.query(models.ChapterPhoto).filter(
+            models.ChapterPhoto.photo_id == photo.id
+        ).delete(synchronize_session=False)
+        # CF URL 수집 (나중에 삭제)
+        if photo.image_url and "imagedelivery.net" in photo.image_url:
+            cf_urls.append(photo.image_url)
+        elif photo.image_url:
+            # 로컬 파일은 즉시 삭제
+            try:
+                file_path = photo.image_url.split('/uploads/')[-1]
+                full_path = f"app/uploads/{file_path}"
+                if os.path.exists(full_path):
+                    os.remove(full_path)
+            except Exception as e:
+                print(f"로컬 파일 삭제 실패 (무시): {e}")
+
+    # DB에서 먼저 삭제 (빠른 응답)
+    db.query(models.Photo).filter(
+        models.Photo.id.in_(body.photo_ids)
+    ).delete(synchronize_session=False)
+    db.commit()
+
+    # CF 삭제는 백그라운드에서 처리 (응답 블로킹 안 함)
+    import threading
+    def delete_cf_files():
+        for url in cf_urls:
+            try:
+                delete_from_cloudflare(url)
+            except Exception as e:
+                print(f"CF 삭제 실패 (무시): {e}")
+    if cf_urls:
+        threading.Thread(target=delete_cf_files, daemon=True).start()
+
+    return {"deleted": len(body.photo_ids)}
+
+
 @router.get("/{photo_id}", response_model=PhotoResponse)
 def get_photo(photo_id: str, db: Session = Depends(get_db)):
     photo = db.query(models.Photo).filter(models.Photo.id == photo_id).first()

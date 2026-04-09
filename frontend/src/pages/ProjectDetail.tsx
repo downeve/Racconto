@@ -438,6 +438,8 @@ export default function ProjectDetail() {
   const [chapters, setChapters] = useState<{ id: string; title: string; parent_id?: string | null; order_num?: number }[]>([])
   const [sortBy, setSortBy] = useState<'default' | 'taken_at' | 'name'>('default')
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc')
+  const [deletingMissing, setDeletingMissing] = useState(false)
+  const [deletingTrash, setDeletingTrash] = useState(false)
 
   const fetchPhotos = async () => {
     if (!id) return
@@ -637,6 +639,31 @@ export default function ProjectDetail() {
       if (photo.color_label !== null) await axios.put(`${API}/photos/${photo.id}`, { ...photo, color_label: null })
     }
     fetchPhotos()
+  }
+
+  const handleDeleteAllMissing = async () => {
+    const missingPhotos = photos.filter(p => p.local_missing && !p.deleted_at)
+    if (missingPhotos.length === 0) return
+    if (!confirm(`로컬 파일 없음 사진 ${missingPhotos.length}개를 모두 삭제할까요?`)) return
+    setDeletingMissing(true)
+    await axios.delete(`${API}/photos/bulk-delete`, {
+      data: { photo_ids: missingPhotos.map(p => p.id) }
+    })
+    await fetchPhotos()
+    await fetchTrash()
+    await fetchChapterPhotoIds()
+    setDeletingMissing(false)
+  }
+
+  const handleDeleteAllTrash = async () => {
+    if (trashedPhotos.length === 0) return
+    if (!confirm(`휴지통 사진 ${trashedPhotos.length}개를 모두 영구 삭제할까요?`)) return
+    setDeletingTrash(true)
+    await axios.delete(`${API}/photos/bulk-permanent`, {
+      data: { photo_ids: trashedPhotos.map(p => p.id) }
+    })
+    await fetchTrash()
+    setDeletingTrash(false)
   }
 
   const handleSaveCaption = async (photo: Photo) => {
@@ -1010,6 +1037,21 @@ export default function ProjectDetail() {
             {/* 전체 사진 뷰 */}
             {photoSubTab === 'all' && (
               <div>
+                  {/* local_missing 일괄 삭제 버튼 — Electron 앱 + missing 사진 있을 때만 표시 */}
+                  {photos.some(p => p.local_missing && !p.deleted_at) && (
+                    <div className="mb-4 flex items-center justify-between bg-yellow-50 border border-yellow-200 rounded-lg px-4 py-2.5">
+                      <p className="text-xs text-yellow-700">
+                        ⚠️ 로컬 파일 없음 사진 {photos.filter(p => p.local_missing && !p.deleted_at).length}개
+                      </p>
+                      <button
+                        onClick={handleDeleteAllMissing}
+                        disabled={deletingMissing}
+                        className="text-xs px-3 py-1.5 bg-yellow-500 hover:bg-yellow-600 text-white rounded disabled:opacity-50"
+                      >
+                        {deletingMissing ? '삭제 중...' : '전체 삭제'}
+                      </button>
+                    </div>
+                  )}
                 <div className={`grid gap-4 ${
                   gridCols === 2 ? 'grid-cols-2' : 
                   gridCols === 3 ? 'grid-cols-3' : 'grid-cols-4'
@@ -1043,6 +1085,20 @@ export default function ProjectDetail() {
             {/* 휴지통 뷰 */}
             {photoSubTab === 'trash' && (
               <div>
+                {trashedPhotos.length > 0 && (
+                  <div className="mb-4 flex items-center justify-between bg-red-50 border border-red-200 rounded-lg px-4 py-2.5">
+                    <p className="text-xs text-red-600">
+                      🗑️ 휴지통 사진 {trashedPhotos.length}개
+                    </p>
+                    <button
+                      onClick={handleDeleteAllTrash}
+                      disabled={deletingTrash}
+                      className="text-xs px-3 py-1.5 bg-red-500 hover:bg-red-600 text-white rounded disabled:opacity-50"
+                    >
+                      {deletingTrash ? '삭제 중...' : '전체 영구 삭제'}
+                    </button>
+                  </div>
+                )}
                 {trashedPhotos.length === 0 ? (
                   <div className="text-center py-20 text-gray-400 border rounded-xl bg-gray-50">
                     <p className="text-lg mb-2">{t('photo.trashEmpty')}</p>
