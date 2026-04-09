@@ -6,6 +6,7 @@ import ProjectStory from './ProjectStory'
 import DeliveryManager from '../components/DeliveryManager'
 import { useTranslation } from 'react-i18next'
 import Heading from '../components/Heading' //
+import ProjectNotes from './ProjectNotes'
 
 const API = import.meta.env.VITE_API_URL
 const DELIVERY_ENABLED = import.meta.env.VITE_ENABLE_DELIVERY === 'true'
@@ -43,14 +44,6 @@ interface Photo {
   color_label: string | null
   local_missing?: boolean
   deleted_at?: string | null 
-}
-
-interface Note {
-  id: string
-  project_id: string
-  content: string
-  created_at: string
-  updated_at: string
 }
 
 // ── 라이트박스 ─────────────────────────────────────────────
@@ -410,16 +403,12 @@ function PhotoCard({
 
 // ── ProjectDetail ──────────────────────────────────────────
 export default function ProjectDetail() {
-  const { t, i18n } = useTranslation()
+  const { t } = useTranslation()
 
   const { id } = useParams()
   const [project, setProject] = useState<Project | null>(null)
   const [photos, setPhotos] = useState<Photo[]>([])
-  const [notes, setNotes] = useState<Note[]>([])
   const [uploading, setUploading] = useState(false)
-  const [newNote, setNewNote] = useState('')
-  const [editingNote, setEditingNote] = useState<string | null>(null)
-  const [editContent, setEditContent] = useState('')
   
   const [activeTab, setActiveTab] = useState<'photos' | 'story' | 'notes' | 'delivery'>('photos')
   const [photoSubTab, setPhotoSubTab] = useState<'all' | 'trash'>('all')
@@ -468,12 +457,6 @@ export default function ProjectDetail() {
     setChapterPhotoIds(ids)
   }
 
-  const fetchNotes = async () => {
-    if (!id) return
-    const res = await axios.get(`${API}/notes/?project_id=${id}`)
-    setNotes(res.data)
-  }
-
   const [gridCols, setGridCols] = useState(3)
   const [labelSettings, setLabelSettings] = useState<Record<string, string>>({
     color_label_red: t('colors.reject'), color_label_yellow: t('colors.hold'), color_label_green: t('colors.select'),
@@ -505,7 +488,6 @@ export default function ProjectDetail() {
     axios.get(`${API}/projects/${id}`).then(res => setProject(res.data))
     fetchPhotos()
     fetchTrash()
-    fetchNotes()
   }, [id])
 
   useEffect(() => { if (id) fetchChapterPhotoIds() }, [id])
@@ -670,25 +652,6 @@ export default function ProjectDetail() {
     await axios.put(`${API}/photos/${photo.id}`, { ...photo, caption: captionKo })
     setEditingCaption(null)
     fetchPhotos()
-  }
-
-  const handleAddNote = async () => {
-    if (!newNote.trim() || !id) return
-    await axios.post(`${API}/notes/`, { project_id: id, content: newNote })
-    setNewNote('')
-    fetchNotes()
-  }
-
-  const handleUpdateNote = async (noteId: string) => {
-    if (!editContent.trim()) return
-    await axios.put(`${API}/notes/${noteId}`, { content: editContent })
-    setEditingNote(null); setEditContent('')
-    fetchNotes()
-  }
-
-  const handleDeleteNote = async (noteId: string) => {
-    await axios.delete(`${API}/notes/${noteId}`)
-    fetchNotes()
   }
 
   const handleAddToChapter = async (photoId: string, chapterId: string) => {
@@ -1179,55 +1142,9 @@ export default function ProjectDetail() {
       {DELIVERY_ENABLED && activeTab === 'delivery' && <DeliveryManager projectId={id!} />}
 
       {activeTab === 'notes' && (
-        <div>
-          <div className="mb-6">
-            <textarea className="w-full border rounded px-3 py-2 text-sm mb-2 focus:outline-none focus:ring-1 focus:ring-black"
-              placeholder={t('note.placeholder')}
-              rows={4} value={newNote} onChange={e => setNewNote(e.target.value)} />
-            <button onClick={handleAddNote} className="bg-stone-600 text-white px-4 py-2 text-sm tracking-wider hover:bg-stone-700 transition-colors rounded">
-              {t('note.addNote')}
-            </button>
-          </div>
-          <div className="space-y-4">
-            {notes.map(note => (
-              <div key={note.id} className="bg-white rounded-lg shadow p-4">
-                {editingNote === note.id ? (
-                  <div>
-                    <textarea className="w-full border rounded px-3 py-2 text-sm mb-2 focus:outline-none focus:ring-1 focus:ring-black"
-                      rows={4} value={editContent} onChange={e => setEditContent(e.target.value)} />
-                    <div className="flex gap-2">
-                      <button onClick={() => handleUpdateNote(note.id)} className="bg-stone-600 text-white px-3 py-1 text-xs tracking-wider hover:bg-stone-700 transition-colors rounded">{t('common.save')}</button>
-                      <button onClick={() => setEditingNote(null)} className="border px-3 py-1 text-xs hover:bg-gray-50 rounded">{t('common.cancel')}</button>
-                    </div>
-                  </div>
-                ) : (
-                  <div>
-                    <p className="text-sm text-gray-700 whitespace-pre-wrap mb-3">{note.content}</p>
-                    <div className="flex items-center justify-between">
-                      <span className="text-xs text-gray-400">
-                      {new Date(note.updated_at).toLocaleString(
-                        i18n.language?.startsWith('ko') ? 'ko-KR' : 'en-US', 
-                        { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' }
-                      )}
-                      </span>
-                      <div className="flex gap-2">
-                        <button onClick={() => { setEditingNote(note.id); setEditContent(note.content) }} className="text-xs text-gray-400 hover:text-black">{t('common.edit')}</button>
-                        <button onClick={() => handleDeleteNote(note.id)} className="text-xs text-red-400 hover:text-red-600">{t('common.delete')}</button>
-                      </div>
-                    </div>
-                  </div>
-                )}
-              </div>
-            ))}
-          </div>
-          {notes.length === 0 && (
-            <div className="text-center py-20 text-gray-400">
-              <p className="text-lg mb-2">{t('note.noNotes')}</p>
-              <p className="text-sm">{t('note.noNotes2')}</p>
-            </div>
-          )}
-        </div>
+        <ProjectNotes projectId={id!} />
       )}
+      
       {/* ⬆️ 맨 위로 가기 플로팅 버튼 */}
       {!lightboxPhoto && (
       <button

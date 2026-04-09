@@ -556,7 +556,7 @@ export default function ProjectStory({
                   {/* 서브 챕터 추가 폼 */}
                   {addingSubChapterTo === chapter.id && (
                     <div className="ml-8 mt-3 p-4 bg-gray-50 border border-gray-200 rounded-lg shadow-inner">
-                      <p className="text-xs text-gray-500 mb-2">↳ '{chapter.title}'의 서브 챕터 추가</p>
+                      <p className="text-xs text-gray-500 mb-2">↳ {chapter.title}{t('story.addSubChapter')}</p>
                       <input
                         className="w-full border rounded px-3 py-2 text-sm mb-2"
                         placeholder={t('story.chapterTitle')}
