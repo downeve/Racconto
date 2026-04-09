@@ -134,7 +134,7 @@ export default function LandingPage() {
         {/* 떠다니는 사진 프레임 장식 */}
         <div className="absolute top-32 left-8 md:left-24 w-28 h-36 bg-white shadow-lg rounded-sm rotate-[-6deg] opacity-60"
           style={{ transform: `rotate(-6deg) translateY(${scrollY * 0.05}px)` }}>
-          <div className="w-full h-full bg-stone-200 rounded-sm" />
+          <div className="w-full h-full bg-white/60 rounded-sm border border-stone-200" />
         </div>
         <div className="absolute top-40 right-8 md:right-24 w-24 h-32 bg-white shadow-lg rounded-sm rotate-[4deg] opacity-50"
           style={{ transform: `rotate(4deg) translateY(${scrollY * 0.08}px)` }}>
@@ -146,7 +146,7 @@ export default function LandingPage() {
         </div>
         <div className="absolute bottom-40 right-12 md:right-40 w-32 h-40 bg-white shadow-md rounded-sm rotate-[-3deg] opacity-35"
           style={{ transform: `rotate(-3deg) translateY(${scrollY * 0.04}px)` }}>
-          <div className="w-full h-full bg-stone-300 rounded-sm" />
+          <div className="w-full h-full bg-white/60 rounded-sm border border-stone-200" />
         </div>
 
         {/* 메인 텍스트 */}
