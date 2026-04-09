@@ -144,7 +144,8 @@
     "listOrder": "Order by",
     "orderUpload": "Upload",
     "orderTaken": "Date",
-    "orderName": "Name"
+    "orderName": "Name",
+    "hasNote": "With notes"
   },
   "filter": {
     "filter": "Hide tab",

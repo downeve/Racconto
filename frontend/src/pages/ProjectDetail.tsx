@@ -80,6 +80,7 @@ function Lightbox({
     setEditingCaption(false)
     setCaptionDraft(photo.caption || '')
     setShowNotePanel(false)
+    setShowChapterMenu(false)
   }, [photo.id])
 
   useEffect(() => {
@@ -453,6 +454,7 @@ export default function ProjectDetail() {
   const [deletingTrash, setDeletingTrash] = useState(false)
   const [photoNoteIds, setPhotoNoteIds] = useState<Set<string>>(new Set())
   const [filterHasNote, setFilterHasNote] = useState(false)
+  const [notesKey, setNotesKey] = useState(0)
 
   const fetchPhotos = async () => {
     if (!id) return
@@ -618,9 +620,12 @@ export default function ProjectDetail() {
   const handleDeletePhoto = async (photoId: string) => {
     await axios.delete(`${API}/photos/${photoId}`)
     if (lightboxPhoto?.id === photoId) setLightboxPhoto(null)
+    await axios.get(`${API}/projects/${id}`).then(res => setProject(res.data))  // ← 추가
     await fetchPhotos()
     await fetchChapterPhotoIds()
     await fetchTrash()
+    await fetchPhotoNoteIds()
+    setNotesKey(prev => prev + 1)
   }
 
   const handleSetRating = async (photo: Photo, rating: number) => {
@@ -670,6 +675,9 @@ export default function ProjectDetail() {
     await fetchPhotos()
     await fetchTrash()
     await fetchChapterPhotoIds()
+    await fetchPhotoNoteIds()
+    await axios.get(`${API}/projects/${id}`).then(res => setProject(res.data))
+    setNotesKey(prev => prev + 1)
     setDeletingMissing(false)
   }
 
@@ -1195,6 +1203,7 @@ export default function ProjectDetail() {
 
       {activeTab === 'notes' && (
         <ProjectNotes
+          key={notesKey}
           projectId={id!}
           photos={photos.filter(p => !p.deleted_at)}
         />

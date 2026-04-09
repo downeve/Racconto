@@ -155,6 +155,13 @@ def delete_project(
     if not project:
         raise HTTPException(status_code=404, detail="PROJECT_NOT_FOUND")
     project.deleted_at = datetime.utcnow()
+
+    # 연결된 노트 소프트 삭제 (photo 연결 노트 + 프로젝트 노트 모두)
+    db.query(models.Note).filter(
+        models.Note.project_id == project_id,
+        models.Note.deleted_at == None
+    ).update({"deleted_at": datetime.utcnow()}, synchronize_session=False)
+
     db.commit()
     return {"message": "MOVED_TO_TRASH"}
 
@@ -184,6 +191,13 @@ def restore_project(
     if not project:
         raise HTTPException(status_code=404, detail="PROJECT_NOT_FOUND")
     project.deleted_at = None
+
+    # 연결된 노트 복원
+    db.query(models.Note).filter(
+        models.Note.project_id == project_id,
+        models.Note.deleted_at != None
+    ).update({"deleted_at": None}, synchronize_session=False)
+
     db.commit()
     db.refresh(project)
     return project
