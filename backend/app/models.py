@@ -95,6 +95,7 @@ class Note(Base):
     project = relationship("Project", back_populates="notes")
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    deleted_at = Column(DateTime, nullable=True, default=None)
     note_type = Column(String, nullable=True, default='memo')
     is_pinned = Column(Boolean, default=False, nullable=False)
     photo_id = Column(String, ForeignKey("photos.id", ondelete="SET NULL"), nullable=True)

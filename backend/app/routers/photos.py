@@ -330,6 +330,11 @@ def bulk_delete_photos(
     for photo in photos:
         photo.deleted_at = datetime.utcnow()
         clear_cover_if_deleted(photo.project_id, photo.image_url, db)
+        # 연결된 노트 소프트 삭제
+        db.query(models.Note).filter(
+            models.Note.photo_id == photo.id,
+            models.Note.deleted_at == None
+        ).update({"deleted_at": datetime.utcnow()}, synchronize_session=False)
     db.commit()
     return {"deleted": len(body.photo_ids)}
 
@@ -448,6 +453,13 @@ def delete_photo(photo_id: str, db: Session = Depends(get_db)):
     
     photo.deleted_at = datetime.utcnow()
     clear_cover_if_deleted(photo.project_id, photo.image_url, db)
+
+    # 연결된 노트 소프트 삭제
+    db.query(models.Note).filter(
+        models.Note.photo_id == photo_id,
+        models.Note.deleted_at == None
+    ).update({"deleted_at": datetime.utcnow()}, synchronize_session=False)
+
     db.commit()
     return {"message": "Moved to trash"}
 
@@ -563,6 +575,11 @@ def restore_photo(
         )
 
     photo.deleted_at = None
+    # 연결된 노트 복원
+    db.query(models.Note).filter(
+        models.Note.photo_id == photo_id,
+        models.Note.deleted_at != None
+    ).update({"deleted_at": None}, synchronize_session=False)
     db.commit()
     db.refresh(photo)
     return photo

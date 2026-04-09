@@ -34,17 +34,9 @@ class NoteResponse(BaseModel):
     created_at: datetime
     updated_at: datetime
 
-    class Config:
-        from_attributes = True
+class Config:
+    from_attributes = True
 
-@router.get("/", response_model=list[NoteResponse])
-def get_notes(project_id: str, db: Session = Depends(get_db)):
-    return db.query(models.Note).filter(
-        models.Note.project_id == project_id
-    ).order_by(
-        models.Note.is_pinned.desc(),
-        models.Note.updated_at.desc()
-    ).all()
 
 @router.post("/", response_model=NoteResponse)
 def create_note(note: NoteCreate, db: Session = Depends(get_db)):
@@ -92,3 +84,13 @@ def delete_note(note_id: str, db: Session = Depends(get_db)):
     db.delete(db_note)
     db.commit()
     return {"message": "NOTE_DELETED"}
+
+@router.get("/", response_model=list[NoteResponse])
+def get_notes(project_id: str, db: Session = Depends(get_db)):
+    return db.query(models.Note).filter(
+        models.Note.project_id == project_id,
+        models.Note.deleted_at == None  # ← 추가
+    ).order_by(
+        models.Note.is_pinned.desc(),
+        models.Note.updated_at.desc()
+    ).all()

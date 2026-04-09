@@ -451,6 +451,8 @@ export default function ProjectDetail() {
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc')
   const [deletingMissing, setDeletingMissing] = useState(false)
   const [deletingTrash, setDeletingTrash] = useState(false)
+  const [photoNoteIds, setPhotoNoteIds] = useState<Set<string>>(new Set())
+  const [filterHasNote, setFilterHasNote] = useState(false)
 
   const fetchPhotos = async () => {
     if (!id) return
@@ -477,6 +479,17 @@ export default function ProjectDetail() {
       photoRes.data.forEach((cp: any) => ids.add(cp.photo_id))
     }
     setChapterPhotoIds(ids)
+  }
+
+  const fetchPhotoNoteIds = async () => {
+    if (!id) return
+    const res = await axios.get(`${API}/notes/?project_id=${id}`)
+    const ids = new Set<string>(
+      res.data
+        .filter((n: any) => n.photo_id)
+        .map((n: any) => n.photo_id)
+    )
+    setPhotoNoteIds(ids)
   }
 
   const [gridCols, setGridCols] = useState(3)
@@ -510,6 +523,7 @@ export default function ProjectDetail() {
     axios.get(`${API}/projects/${id}`).then(res => setProject(res.data))
     fetchPhotos()
     fetchTrash()
+    fetchPhotoNoteIds()  // ← 추가
   }, [id])
 
   useEffect(() => { if (id) fetchChapterPhotoIds() }, [id])
@@ -703,6 +717,7 @@ export default function ProjectDetail() {
     }
     if (filterColor !== null && photo.color_label !== filterColor) return false
     if (filterFolder !== null && photo.folder !== filterFolder) return false
+    if (filterHasNote && !photoNoteIds.has(photo.id)) return false
     return true
   }).sort((a, b) => {
     let result = 0
@@ -950,6 +965,20 @@ export default function ProjectDetail() {
                 
                 <div className="border-t border-gray-100 my-2"></div>
 
+                {/* 노트 필터 */}
+                <button
+                  onClick={() => setFilterHasNote(!filterHasNote)}
+                  className={`w-full text-left px-2 py-1.5 text-xs rounded flex items-center justify-between ${
+                    filterHasNote ? 'bg-black text-white' : 'hover:bg-gray-50 text-gray-700'
+                  }`}
+                >
+                <span>📝 {t('photo.hasNote')}</span>
+                  <span className={`${filterHasNote ? 'text-gray-300' : 'text-gray-400'}`}>
+                    {photos.filter(p => !p.deleted_at && photoNoteIds.has(p.id)).length}
+                  </span>
+                </button>
+
+                {/* 폴더 필터 */}
                 {photos.some(p => p.folder) && (
                   <div className="mt-3 mb-3">
                     <p className="text-xs font-semibold text-gray-500 mb-2">{t('filter.folder')}</p>
