@@ -203,6 +203,8 @@
   "note": {
     "title": "Note",
     "addNote": "+ Add Note",
+    "filter": "Filter",
+    "filterAll": "All",
     "saveNote": "Save Note",
     "cancelNote": "Cancel",
     "deleteNote": "Delete",
