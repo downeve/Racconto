@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo } from 'react'
+import { useEffect, useState, useMemo, useRef } from 'react'
 import axios from 'axios'
 import { useTranslation } from 'react-i18next'
 import PhotoNotePanel from '../components/PhotoNotePanel'
@@ -156,7 +156,6 @@ export default function ProjectStory({
   const [editingChapter, setEditingChapter] = useState<string | null>(null)
   const [editTitle, setEditTitle] = useState('')
   const [editDesc, setEditDesc] = useState('')
-  const [showPhotoSelector, setShowPhotoSelector] = useState<string | null>(null)
   const [activePhotoUrl, setActivePhotoUrl] = useState<string | null>(null)
   const { t } = useTranslation()
 
@@ -168,19 +167,17 @@ export default function ProjectStory({
   const [editingCaptionPhotoId, setEditingCaptionPhotoId] = useState<string | null>(null);
   const [captionDraft, setCaptionDraft] = useState('');
 
-  const [showNotePanel, setShowNotePanel] = useState(false)
+  const chapterRefs = useRef<Record<string, HTMLDivElement | null>>({})
 
-  // 👇 [추가] 3번: 클릭 연타 방지를 위한 로딩 상태 관리
-  const [processingPhotos, setProcessingPhotos] = useState<Set<string>>(new Set());
+  const scrollToChapter = (chapterId: string) => {
+    chapterRefs.current[chapterId]?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  }
+
+  const [showNotePanel, setShowNotePanel] = useState(false)
 
   // 👇 [추가] 2번: O(N²) 성능 저하를 막기 위한 Set(해시테이블) 캐싱
   const allPhotoIds = useMemo(() => new Set(allPhotos.map(p => p.id)), [allPhotos]);
   
-  const selectedChapterPhotoIds = useMemo(() => {
-    if (!showPhotoSelector) return new Set();
-    return new Set((chapterPhotos[showPhotoSelector] || []).map(cp => cp.photo_id));
-  }, [showPhotoSelector, chapterPhotos]);
-
   // 드래그 센서
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
@@ -326,31 +323,6 @@ export default function ProjectStory({
     fetchChapters()
   }
 
-  // 👇 [수정] 3번: 중복 클릭 방지(Debounce/Lock) 적용
-  const handleAddPhoto = async (chapterId: string, photoId: string, isAdded: boolean) => {
-    if (processingPhotos.has(photoId)) return; // 이미 처리 중이면 무시 (광클 방지)
-    
-    setProcessingPhotos(prev => new Set(prev).add(photoId));
-    try {
-      if (isAdded) {
-        await axios.delete(`${API}/chapters/${chapterId}/photos/${photoId}`);
-      } else {
-        await axios.post(`${API}/chapters/${chapterId}/photos`, { photo_id: photoId });
-      }
-      await fetchChapterPhotos(chapterId); // 화면 갱신
-    } catch (error) {
-      console.error(error);
-      alert('사진 상태 변경에 실패했습니다.');
-    } finally {
-      // 처리가 끝나면 잠금 해제
-      setProcessingPhotos(prev => {
-        const next = new Set(prev);
-        next.delete(photoId);
-        return next;
-      });
-    }
-  }
-
   const handleRemovePhoto = async (chapterId: string, photoId: string) => {
     await axios.delete(`${API}/chapters/${chapterId}/photos/${photoId}`)
     fetchChapterPhotos(chapterId)
@@ -430,59 +402,120 @@ export default function ProjectStory({
 
   return (
     <div className="flex gap-6 relative">
-      {/* 챕터 목록 */}
-      <div className="flex-1">
-        {/* 챕터 추가 버튼 */}
-        <div className="mb-3">
-          {showAddChapter && !addingSubChapterTo ? (
-            <div className="bg-white rounded-lg shadow p-2">
-              {addingSubChapterTo && (
-                <p className="text-xs text-gray-500 mb-2 rounded">
-                  {t('story.addingSubChapter')}
-                </p>
-              )}
-              <input
-                className="w-full border rounded px-3 py-2 text-sm mb-2"
-                placeholder={t('story.chapterTitle')}
-                value={newTitle}
-                onChange={e => setNewTitle(e.target.value)}
-              />
-              <textarea
-                className="w-full border rounded px-3 py-2 text-sm mb-3"
-                placeholder={t('story.chapterDescription')}
-                rows={2}
-                value={newDesc}
-                onChange={e => setNewDesc(e.target.value)}
-              />
-              <div className="flex gap-2">
-                <button onClick={handleAddChapter} className="bg-stone-600 text-white px-3 py-1 text-sm tracking-wider hover:bg-stone-700 transition-colors rounded">
-                  {t('common.add')}
-                </button>
-                <button 
-                  onClick={() => {
-                    setShowAddChapter(false)
-                    setAddingSubChapterTo(null)
-                    setNewTitle('')
-                    setNewDesc('')
-                  }} 
-                  className="border px-3 py-1 text-sm hover:bg-gray-50 rounded"
-                >
-                  {t('common.cancel')}
-                </button>
+
+      {/* 사이드바 */}
+      <div className="w-48 shrink-0 sticky top-4 self-start">
+        <div className="bg-white rounded-lg shadow p-4 max-h-[calc(100vh-8rem)] overflow-y-auto">
+          <p className="text-xs font-semibold text-gray-500 mb-3">{t('story.chapters')}</p>
+
+          {/* 챕터 추가 버튼 */}
+          <button
+            onClick={() => { setShowAddChapter(true); setAddingSubChapterTo(null) }}
+            className="w-full mb-3 text-xs bg-stone-600 text-white px-2 py-1.5 rounded hover:bg-stone-700 transition-colors tracking-wider"
+          >
+            {t('story.addChapter')}
+          </button>
+
+          {/* 챕터 네비게이션 목록 */}
+          <div className="space-y-1">
+          {chapters.filter(c => !c.parent_id).map((chapter, idx) => {
+            const mainChapters = chapters.filter(c => !c.parent_id)
+            const subChapters = chapters.filter(c => c.parent_id === chapter.id)
+            return (
+              <div key={chapter.id}>
+                {/* 부모 챕터 */}
+                <div className="flex items-center gap-1 group rounded hover:bg-gray-50">
+                  <button
+                    onClick={() => scrollToChapter(chapter.id)}
+                    className="flex-1 text-left px-2 py-1.5 text-xs flex items-center gap-1.5 min-w-0"
+                  >
+                    <span className="text-gray-300 shrink-0">{idx + 1}</span>
+                    <span className="truncate text-gray-700 group-hover:text-black">{chapter.title}</span>
+                  </button>
+                  <div className="flex shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <button
+                      onClick={() => handleMoveChapter(chapter.id, 'up')}
+                      disabled={idx === 0}
+                      className="text-gray-300 hover:text-black disabled:opacity-20 px-0.5 text-xs"
+                    >↑</button>
+                    <button
+                      onClick={() => handleMoveChapter(chapter.id, 'down')}
+                      disabled={idx === mainChapters.length - 1}
+                      className="text-gray-300 hover:text-black disabled:opacity-20 px-0.5 text-xs"
+                    >↓</button>
+                  </div>
+                </div>
+
+                {/* 서브챕터 */}
+                {subChapters.map((sub, subIdx) => (
+                  <div key={sub.id} className="flex items-center gap-1 group rounded hover:bg-gray-50">
+                    <button
+                      onClick={() => scrollToChapter(sub.id)}
+                      className="flex-1 text-left pl-5 pr-1 py-1 text-xs flex items-center gap-1.5 min-w-0"
+                    >
+                      <span className="text-gray-200 shrink-0">{idx + 1}.{subIdx + 1}</span>
+                      <span className="truncate text-gray-400 group-hover:text-gray-700">{sub.title}</span>
+                    </button>
+                    <div className="flex shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <button
+                        onClick={() => handleMoveChapter(sub.id, 'up')}
+                        disabled={subIdx === 0}
+                        className="text-gray-300 hover:text-black disabled:opacity-20 px-0.5 text-xs"
+                      >↑</button>
+                      <button
+                        onClick={() => handleMoveChapter(sub.id, 'down')}
+                        disabled={subIdx === subChapters.length - 1}
+                        className="text-gray-300 hover:text-black disabled:opacity-20 px-0.5 text-xs"
+                      >↓</button>
+                    </div>
+                  </div>
+                ))}
               </div>
-            </div>
-          ) : (
-            <button
-              onClick={() => {
-                setShowAddChapter(true)
-                setAddingSubChapterTo(null) 
-              }}
-              className="bg-stone-600 text-white px-4 py-2 text-sm tracking-wider hover:bg-stone-700 transition-colors rounded"
-            >
-              {t('story.addChapter')}
-            </button>
-          )}
+            )
+          })}
+            {chapters.length === 0 && (
+              <p className="text-xs text-gray-300 px-2">{t('story.noChapter')}</p>
+            )}
+          </div>
         </div>
+      </div>
+
+      {/* 메인 영역 */}
+      <div className="flex-1">
+
+        {/* 챕터 추가 폼 — 사이드바 버튼 클릭 시 표시 */}
+        {showAddChapter && !addingSubChapterTo && (
+          <div className="bg-white rounded-lg shadow p-4 mb-6">
+            <input
+              className="w-full border rounded px-3 py-2 text-sm mb-2"
+              placeholder={t('story.chapterTitle')}
+              value={newTitle}
+              onChange={e => setNewTitle(e.target.value)}
+              autoFocus
+            />
+            <textarea
+              className="w-full border rounded px-3 py-2 text-sm mb-3 resize-none"
+              placeholder={t('story.chapterDescription')}
+              rows={2}
+              value={newDesc}
+              onChange={e => setNewDesc(e.target.value)}
+            />
+            <div className="flex gap-2">
+              <button
+                onClick={handleAddChapter}
+                className="bg-stone-600 text-white px-3 py-1 text-sm tracking-wider hover:bg-stone-700 transition-colors rounded"
+              >
+                {t('common.add')}
+              </button>
+              <button
+                onClick={() => { setShowAddChapter(false); setAddingSubChapterTo(null); setNewTitle(''); setNewDesc('') }}
+                className="border px-3 py-1 text-sm hover:bg-gray-50 rounded"
+              >
+                {t('common.cancel')}
+              </button>
+            </div>
+          </div>
+        )}
 
         {/* 챕터 목록 */}
         <div className="space-y-8">
@@ -492,7 +525,10 @@ export default function ProjectStory({
             const subChapters = chapters.filter(c => c.parent_id === chapter.id) 
             
             return (
-              <div key={chapter.id}>
+              <div
+                key={chapter.id}
+                ref={el => { chapterRefs.current[chapter.id] = el }}
+              >
                 {/* 최상위 챕터 */}
                 <div className="bg-white rounded-lg shadow overflow-hidden">
                   <div className="p-4 border-b">
@@ -636,51 +672,16 @@ export default function ProjectStory({
                         )}
                       </DragOverlay>
                     </DndContext>
-
-                    <button
-                      onClick={() => setShowPhotoSelector(showPhotoSelector === chapter.id ? null : chapter.id)}
-                      className="text-xs text-gray-400 hover:text-black border px-3 py-1 rounded"
-                    >
-                      {t('story.addPhoto')}
-                    </button>
-
-                    {/* 사진 선택기 */}
-                    {showPhotoSelector === chapter.id && (
-                      <div className="mt-3 p-3 bg-gray-50 rounded">
-                        <p className="text-xs text-gray-500 mb-2">{t('story.selectPhotos')}</p>
-                        <div className="grid grid-cols-4 gap-2 max-h-96 overflow-y-auto">
-                        {allPhotos
-                          // 💡 2번 반영: Set을 이용한 초고속 필터링
-                          .filter(photo => !selectedChapterPhotoIds.has(photo.id))
-                          .map(photo => (
-                            /* 💡 1번 사파리 픽스: 그리드 자식 요소에 껍데기 div를 하나 씌워서 aspect-ratio 계산 오류 차단 */
-                            <div key={photo.id} className="w-full">
-                              <div
-                                className={`relative w-full aspect-[3/2] bg-gray-100 rounded overflow-hidden cursor-pointer transition hover:opacity-80 
-                                  ${processingPhotos.has(photo.id) ? 'opacity-50 pointer-events-none' : ''}
-                                `}
-                                onClick={() => handleAddPhoto(showPhotoSelector, photo.id, false)}
-                              >
-                                <img src={photo.image_url} alt="photo" className="absolute inset-0 w-full h-full object-contain" />
-                              </div>
-                            </div>
-                          ))
-                        }
-                        </div>
-                        <button
-                          onClick={() => setShowPhotoSelector(null)}
-                          className="mt-2 text-xs text-gray-400 hover:text-black"
-                        >
-                          {t('common.close')}
-                        </button>
-                      </div>
-                    )}
                   </div>
                 </div>
 
                 {/* 서브챕터들 (인덴트) */}
                 {subChapters.map((subChapter, subIdx) => (
-                  <div key={subChapter.id} className="ml-8 mt-3 bg-white rounded-lg shadow overflow-hidden border-l-4 border-blue-400">
+                  <div
+                    key={subChapter.id}
+                    ref={el => { chapterRefs.current[subChapter.id] = el }}
+                    className="ml-8 border-l-2 border-blue-200 pl-4 bg-white rounded-lg shadow overflow-hidden mt-3"
+                  >
                     {/* 서브챕터 헤더 */}
                     <div className="p-4 border-b">
                       {editingChapter === subChapter.id ? (
@@ -780,44 +781,6 @@ export default function ProjectStory({
                         </DragOverlay>
                       </DndContext>
 
-                      <button
-                        onClick={() => setShowPhotoSelector(showPhotoSelector === subChapter.id ? null : subChapter.id)}
-                        className="text-xs text-gray-400 hover:text-black border px-3 py-1 rounded"
-                      >
-                        {t('story.addPhoto')}
-                      </button>
-
-                      {/* 사진 선택기 */}
-                      {showPhotoSelector === subChapter.id && (
-                        <div className="mt-3 p-3 bg-gray-50 rounded">
-                          <p className="text-xs text-gray-500 mb-2">{t('story.selectPhotos')}</p>
-                          <div className="grid grid-cols-4 gap-2 max-h-96 overflow-y-auto">
-                          {allPhotos
-                            // 💡 2번 반영: Set을 이용한 초고속 필터링
-                            .filter(photo => !selectedChapterPhotoIds.has(photo.id))
-                            .map(photo => (
-                              /* 💡 1번 사파리 픽스: 그리드 자식 요소에 껍데기 div를 하나 씌워서 aspect-ratio 계산 오류 차단 */
-                              <div key={photo.id} className="w-full">
-                                <div
-                                  className={`relative w-full aspect-[3/2] bg-gray-100 rounded overflow-hidden cursor-pointer transition hover:opacity-80 
-                                    ${processingPhotos.has(photo.id) ? 'opacity-50 pointer-events-none' : ''}
-                                  `}
-                                  onClick={() => handleAddPhoto(showPhotoSelector, photo.id, false)}
-                                >
-                                  <img src={photo.image_url} alt="photo" className="absolute inset-0 w-full h-full object-contain" />
-                                </div>
-                              </div>
-                            ))
-                          }
-                          </div>
-                          <button
-                            onClick={() => setShowPhotoSelector(null)}
-                            className="mt-2 text-xs text-gray-400 hover:text-black"
-                          >
-                            {t('common.close')}
-                          </button>
-                        </div>
-                      )}
                     </div>
                   </div>
                 ))}

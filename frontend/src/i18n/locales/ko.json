@@ -181,6 +181,7 @@
   "story": {
     "title": "스토리",
     "chapter": "챕터",
+    "chapters": "챕터 목록",
     "addChapter": "+ 챕터 추가",
     "addSubChapter": "의 서브 챕터 추가",
     "deleteChapter": "챕터 삭제",

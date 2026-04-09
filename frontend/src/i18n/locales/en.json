@@ -181,7 +181,8 @@
   "story": {
     "title": "Story",
     "chapter": "Chapter",
-    "addChapter": "+ Add New Chapter",
+    "chapters": "Chapters",
+    "addChapter": "+ Add Chapter",
     "addSubChapter": "'s subchapter add",
     "deleteChapter": "Delete Chapter",
     "chapterTitle": "Enter chapter title (required)",
