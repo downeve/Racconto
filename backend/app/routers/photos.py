@@ -167,6 +167,7 @@ class PhotoCreate(BaseModel):
     color_label: Optional[str] = None
     folder: Optional[str] = None
     original_filename: Optional[str] = None
+    source: Optional[str] = 'web'  # ← 추가
     # Electron EXIF 필드
     taken_at: Optional[datetime] = None
     camera: Optional[str] = None
@@ -199,6 +200,7 @@ class PhotoResponse(BaseModel):
     created_at: datetime
     folder: Optional[str] = None
     original_filename: Optional[str] = None
+    source: Optional[str] = 'web'
     local_missing: bool = False
 
 class Config:
@@ -318,6 +320,7 @@ def create_photo(photo: PhotoCreate, db: Session = Depends(get_db)):
         order=photo.order if photo.order else next_order,
         folder=photo.folder,
         original_filename=photo.original_filename,
+        source=photo.source,
         taken_at=photo.taken_at,
         camera=photo.camera,
         lens=photo.lens,
@@ -420,6 +423,7 @@ async def upload_photo(
         image_url=image_url,
         order=next_order,
         folder=folder,
+        source='web',
         taken_at=exif.get('taken_at'),
         camera=exif.get('camera'),
         lens=exif.get('lens'),

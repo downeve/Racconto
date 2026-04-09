@@ -2,7 +2,7 @@ const { app, BrowserWindow, ipcMain, dialog, net } = require('electron')
 const path = require('path')
 const chokidar = require('chokidar')
 const fs = require('fs')
-const { addToQueue, getPendingItems, markSuccess, markFailed, resetFailedToPending } = require('./queue')
+const { addToQueue, getPendingItems, markSuccess, markFailed, resetFailedToPending, initQueue } = require('./queue')
 const { linkFolder, unlinkFolder, getProjectForFolder, getAllMappings } = require('./folderMap')
 const exifr = require('exifr')
 
@@ -117,6 +117,7 @@ async function uploadFile(item) {
       image_url: imageUrl,
       folder: path.dirname(item.filePath),
       original_filename: path.basename(item.filePath),
+      source: 'electron', 
       ...exifData,
     }),
   })
@@ -147,6 +148,7 @@ async function syncLocalMissing(folderPath, projectId) {
     const updates = []
     for (const photo of photos) {
       if (!photo.original_filename) continue
+      if (photo.source !== 'electron') continue
       const isLocal = localFiles.has(photo.original_filename)
       if (!isLocal && !photo.local_missing) {
         updates.push({ filename: photo.original_filename, local_missing: true })
@@ -412,6 +414,7 @@ function createWindow() {
 
 // ── 앱 시작 ──────────────────────────────────────────
 app.whenReady().then(() => {
+  initQueue()
   createWindow()
 
   // 기존 매핑된 폴더 자동 감시 시작

@@ -72,6 +72,7 @@ class Photo(Base):
     folder = Column(String, nullable=True)
     original_filename = Column(String, nullable=True)
     local_missing = Column(Boolean, default=False, nullable=False)
+    source = Column(String, nullable=True, default='web')
 
 class Pitch(Base):
     __tablename__ = "pitches"
