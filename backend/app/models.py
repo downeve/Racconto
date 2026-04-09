@@ -97,6 +97,7 @@ class Note(Base):
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     note_type = Column(String, nullable=True, default='memo')
     is_pinned = Column(Boolean, default=False, nullable=False)
+    photo_id = Column(String, ForeignKey("photos.id", ondelete="SET NULL"), nullable=True)
 
 class Chapter(Base):
     __tablename__ = "chapters"

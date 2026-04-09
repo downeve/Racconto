@@ -1,6 +1,7 @@
 import { useEffect, useState, useMemo } from 'react'
 import axios from 'axios'
 import { useTranslation } from 'react-i18next'
+import PhotoNotePanel from '../components/PhotoNotePanel'
 
 import {
   DndContext,
@@ -167,6 +168,8 @@ export default function ProjectStory({
   const [editingCaptionPhotoId, setEditingCaptionPhotoId] = useState<string | null>(null);
   const [captionDraft, setCaptionDraft] = useState('');
 
+  const [showNotePanel, setShowNotePanel] = useState(false)
+
   // 👇 [추가] 3번: 클릭 연타 방지를 위한 로딩 상태 관리
   const [processingPhotos, setProcessingPhotos] = useState<Set<string>>(new Set());
 
@@ -268,13 +271,16 @@ export default function ProjectStory({
       if (e.key === 'ArrowRight') {
         if (selectedPhotoIndex < lastIndex) {
           setSelectedPhotoIndex(prev => prev! + 1);
+          setShowNotePanel(false)
         }
       } else if (e.key === 'ArrowLeft') {
         if (selectedPhotoIndex > 0) {
           setSelectedPhotoIndex(prev => prev! - 1);
+          setShowNotePanel(false)
         }
       } else if (e.key === 'Escape') {
         setSelectedPhotoIndex(null); 
+        setShowNotePanel(false)
       }
     };
 
@@ -831,11 +837,22 @@ export default function ProjectStory({
       {selectedPhotoIndex !== null && currentChapterPhotos[selectedPhotoIndex] && (
         <div
           className="fixed inset-0 bg-black/90 z-50 flex flex-col"
-          onClick={() => setSelectedPhotoIndex(null)}
+          onClick={() => {setSelectedPhotoIndex(null); setShowNotePanel(false)}}
         >
           {/* 상단: 챕터명 + 카운터 + 닫기 */}
           <div className="flex items-center justify-between px-6 py-3 shrink-0" onClick={e => e.stopPropagation()}>
             <div className="flex items-center gap-3">
+            {/* 노트 버튼 */}
+              <button
+                onClick={e => { e.stopPropagation(); setShowNotePanel(v => !v) }}
+                className={`text-xs px-2 py-1 border rounded transition-colors ${
+                  showNotePanel
+                    ? 'border-white/50 text-white'
+                    : 'border-white/20 text-white/60 hover:text-white hover:border-white/50'
+                }`}
+              >
+                📝 {t('note.title')}
+              </button>
               <span className="text-white/50 text-sm">
                 {selectedPhotoIndex + 1} / {currentChapterPhotos.length}
               </span>
@@ -844,7 +861,7 @@ export default function ProjectStory({
                 {getChapterDisplayTitle(currentChapterPhotos[selectedPhotoIndex].chapter_id)}
               </span>
             </div>
-            <button onClick={() => setSelectedPhotoIndex(null)} className="text-white/70 hover:text-white text-2xl">✕</button>
+            <button onClick={() => {setSelectedPhotoIndex(null); setShowNotePanel(false)}} className="text-white/70 hover:text-white text-2xl">✕</button>
           </div>
 
           {/* 중앙: 이미지 + 좌우 화살표 */}
@@ -879,6 +896,14 @@ export default function ProjectStory({
               )}
             </div>
           </div>
+
+          {showNotePanel && (
+            <PhotoNotePanel
+              photoId={currentChapterPhotos[selectedPhotoIndex].photo_id}
+              projectId={projectId}
+              onClose={() => setShowNotePanel(false)}
+            />
+          )}
         </div>
       )}
 

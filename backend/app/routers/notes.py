@@ -16,11 +16,13 @@ class NoteCreate(BaseModel):
     content: str
     note_type: Optional[str] = 'memo'
     is_pinned: Optional[bool] = False
+    photo_id: Optional[str] = None
 
 class NoteUpdate(BaseModel):
     content: str
     note_type: Optional[str] = 'memo'
     is_pinned: Optional[bool] = False
+    photo_id: Optional[str] = None
 
 class NoteResponse(BaseModel):
     id: str
@@ -28,6 +30,7 @@ class NoteResponse(BaseModel):
     content: str
     note_type: Optional[str] = 'memo'
     is_pinned: bool = False
+    photo_id: Optional[str] = None
     created_at: datetime
     updated_at: datetime
 
@@ -51,6 +54,7 @@ def create_note(note: NoteCreate, db: Session = Depends(get_db)):
         content=note.content,
         note_type=note.note_type,
         is_pinned=note.is_pinned,
+        photo_id=note.photo_id,
     )
     db.add(db_note)
     db.commit()
@@ -65,6 +69,7 @@ def update_note(note_id: str, note: NoteUpdate, db: Session = Depends(get_db)):
     db_note.content = note.content
     db_note.note_type = note.note_type
     db_note.is_pinned = note.is_pinned
+    db_note.photo_id = note.photo_id
     db.commit()
     db.refresh(db_note)
     return db_note

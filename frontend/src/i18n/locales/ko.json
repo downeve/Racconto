@@ -207,6 +207,7 @@
     "deleteNote": "삭제",
     "noNotes": "아직 노트가 없어요.",
     "noNotes2": "리서치 내용이나 아이디어, 콘셉트 등을 자유롭게 기록해보세요.",
+    "noPhotoNote": "이 사진에 연결된 노트가 없어요.",
     "placeholder": "리서치 내용, 촬영 아이디어, 콘셉트 노트 등...",
     "deleteConfirm": "노트를 삭제할까요?",
     "editNote": "편집",
@@ -217,6 +218,7 @@
     "labelClient": "클라이언트",
     "previewInfo": "내용을 입력하면 여기에 미리보기가 표시됩니다.",
     "editMdDescription": "노트를 작성하세요. 마크다운을 지원합니다.\n예) **굵게**, *기울임*, - 목록",
+    "editMdDescription2": "노트를 작성하세요. 마크다운을 지원합니다.",
     "pinned": "고정됨",
     "pinRemove": "고정 해제",
     "pin": "고정"

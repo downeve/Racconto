@@ -11,11 +11,18 @@ interface Note {
   content: string
   note_type: string
   is_pinned: boolean
+  photo_id: string | null
   created_at: string
   updated_at: string
 }
 
-export default function ProjectNotes({ projectId }: { projectId: string }) {
+export default function ProjectNotes({
+    projectId,
+    photos,
+  }: {
+    projectId: string
+    photos: { id: string; image_url: string; caption: string | null }[]
+  }) {
   const { t, i18n } = useTranslation()
   const [notes, setNotes] = useState<Note[]>([])
   const [newContent, setNewContent] = useState('')
@@ -26,11 +33,10 @@ export default function ProjectNotes({ projectId }: { projectId: string }) {
   const [previewMode, setPreviewMode] = useState(false)
   const [editPreviewMode, setEditPreviewMode] = useState(false)
 
-
   const NOTE_TYPES = [
     { value: 'memo',     label: t('note.labelWork'), color: 'bg-stone-100 text-stone-600' },
-    { value: 'concept',  label: t('note.labelConcept'),     color: 'bg-blue-50 text-blue-600' },
-    { value: 'research', label: t('note.labelResearch'),   color: 'bg-green-50 text-green-600' },
+    { value: 'concept',  label: t('note.labelConcept'), color: 'bg-blue-50 text-blue-600' },
+    { value: 'research', label: t('note.labelResearch'), color: 'bg-green-50 text-green-600' },
     { value: 'client',   label: t('note.labelClient'), color: 'bg-amber-50 text-amber-600' },
   ]
 
@@ -62,9 +68,12 @@ export default function ProjectNotes({ projectId }: { projectId: string }) {
 
   const handleUpdate = async (noteId: string) => {
     if (!editContent.trim()) return
+    const targetNote = notes.find(n => n.id === noteId)
     await axios.put(`${API}/notes/${noteId}`, {
       content: editContent,
       note_type: editType,
+      is_pinned: targetNote?.is_pinned ?? false,
+      photo_id: targetNote?.photo_id ?? null,
     })
     setEditingNote(null)
     setEditPreviewMode(false)
@@ -110,6 +119,7 @@ export default function ProjectNotes({ projectId }: { projectId: string }) {
               </button>
             ))}
           </div>
+
           {/* 프리뷰 토글 */}
           <button
             onClick={() => setPreviewMode(!previewMode)}
@@ -218,6 +228,25 @@ export default function ProjectNotes({ projectId }: { projectId: string }) {
                     <span className={`px-2.5 py-0.5 text-xs rounded-full ${typeInfo.color}`}>
                       {typeInfo.label}
                     </span>
+                    {note.photo_id && (
+                      <div className="mb-2">
+                        {(() => {
+                          const photo = photos.find(p => p.id === note.photo_id)
+                          return photo ? (
+                            <div className="flex items-center gap-2">
+                              <img
+                                src={photo.image_url}
+                                alt=""
+                                className="w-12 h-12 object-cover rounded border border-gray-200"
+                              />
+                              {photo.caption && (
+                                <span className="text-xs text-gray-400 italic">{photo.caption}</span>
+                              )}
+                            </div>
+                          ) : null
+                        })()}
+                      </div>
+                    )}
                     {note.is_pinned && (
                       <span className="text-xs text-stone-400">📌 {t('note.pinned')}</span>
                     )}

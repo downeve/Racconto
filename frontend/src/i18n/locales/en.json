@@ -207,6 +207,7 @@
     "deleteNote": "Delete",
     "noNotes": "No notes yet.",
     "noNotes2": "Record your research, ideas, and concepts.",
+    "noPhotoNote": "No photo note yet.",
     "placeholder": "Write down research notes, shooting ideas, concept notes...",
     "deleteConfirm": "Do you want to delete note?",
     "editNote": "Edit",
@@ -217,6 +218,7 @@
     "labelClient": "Client",
     "previewInfo": "Preview will be shown here.",
     "editMdDescription": "Note supports markdown.\nex.) **Bold**, *Italic*, - List",
+    "editMdDescription2": "Note supports markdown.",
     "pinned": "Pinned",
     "pinRemove": "Remove pin",
     "pin": "Pin"

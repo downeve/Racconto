@@ -7,6 +7,7 @@ import DeliveryManager from '../components/DeliveryManager'
 import { useTranslation } from 'react-i18next'
 import Heading from '../components/Heading' //
 import ProjectNotes from './ProjectNotes'
+import PhotoNotePanel from '../components/PhotoNotePanel'
 
 const API = import.meta.env.VITE_API_URL
 const DELIVERY_ENABLED = import.meta.env.VITE_ENABLE_DELIVERY === 'true'
@@ -50,7 +51,7 @@ interface Photo {
 function Lightbox({
   photo, photos, colorLabels, chapterPhotoIds,
   onClose, onNavigate, onSetRating, onSetColorLabel, onSaveCaption,
-  showExif, chapters, onAddToChapter,
+  showExif, chapters, onAddToChapter, projectId,
 }: {
   photo: Photo
   photos: Photo[]
@@ -64,11 +65,13 @@ function Lightbox({
   showExif: boolean
   chapters: { id: string; title: string; parent_id?: string | null; order_num?: number }[]
   onAddToChapter: (photoId: string, chapterId: string) => void
+  projectId: string
 }) {
   const idx = photos.findIndex(p => p.id === photo.id)
   const [editingCaption, setEditingCaption] = useState(false)
   const [showChapterMenu, setShowChapterMenu] = useState(false)
   const [captionDraft, setCaptionDraft] = useState(photo.caption || '')
+  const [showNotePanel, setShowNotePanel] = useState(false)
   const { t, i18n } = useTranslation()
 
   const [hoverRating, setHoverRating] = useState<{ id: string, star: number } | null>(null);
@@ -76,6 +79,7 @@ function Lightbox({
   useEffect(() => {
     setEditingCaption(false)
     setCaptionDraft(photo.caption || '')
+    setShowNotePanel(false)
   }, [photo.id])
 
   useEffect(() => {
@@ -221,6 +225,17 @@ function Lightbox({
                   </div>
                 )}
               </div>
+              <div className="w-px h-5 bg-white/20" />
+              <button
+                onClick={() => setShowNotePanel(v => !v)}
+                className={`text-xs px-2 py-1 border rounded transition-colors ${
+                  showNotePanel
+                    ? 'border-white/50 text-white'
+                    : 'border-white/20 text-white/60 hover:text-white hover:border-white/50'
+                }`}
+              >
+                📝 {t('note.title')}
+              </button>
             {showExif && (photo.camera || photo.focal_length || photo.taken_at) && (
               <>
                 <div className="w-px h-5 bg-white/20" />
@@ -265,6 +280,13 @@ function Lightbox({
           )}
         </div>
       </div>
+      {showNotePanel && (
+        <PhotoNotePanel
+          photoId={photo.id}
+          projectId={projectId}
+          onClose={() => setShowNotePanel(false)}
+        />
+      )}
     </div>
   )
 }
@@ -720,6 +742,7 @@ export default function ProjectDetail() {
           onSaveCaption={handleSaveCaptionLightbox}
           showExif={showExif}
           chapters={chapters}
+          projectId={id!}
           onAddToChapter={async (photoId, chapterId) => {
             await axios.post(`${API}/chapters/${chapterId}/photos`, { photo_id: photoId })
             await fetchChapterPhotoIds()
@@ -1142,7 +1165,10 @@ export default function ProjectDetail() {
       {DELIVERY_ENABLED && activeTab === 'delivery' && <DeliveryManager projectId={id!} />}
 
       {activeTab === 'notes' && (
-        <ProjectNotes projectId={id!} />
+        <ProjectNotes
+          projectId={id!}
+          photos={photos.filter(p => !p.deleted_at)}
+        />
       )}
       
       {/* ⬆️ 맨 위로 가기 플로팅 버튼 */}
