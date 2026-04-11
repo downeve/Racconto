@@ -178,9 +178,17 @@ export default function Admin() {
                         <button
                           onClick={() => handleDelete(user.id, user.email)}
                           disabled={deletingId === user.id}
-                          className="text-xs px-2 py-1 border border-red-300 text-red-500 rounded hover:bg-red-50 disabled:opacity-40"
+                          className="text-xs px-2 py-1 border border-red-300 text-red-500 rounded hover:bg-red-50 disabled:opacity-40 flex items-center gap-1"
                         >
-                          {deletingId === user.id ? '...' : 'Delete'}
+                          {deletingId === user.id ? (
+                            <>
+                              <svg className="animate-spin w-3 h-3" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
+                                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/>
+                              </svg>
+                              Deleting
+                            </>
+                          ) : 'Delete'}
                         </button>
                       </>
                     )}
