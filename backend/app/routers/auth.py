@@ -32,6 +32,9 @@ class ResendVerification(BaseModel):
 class UsernameUpdate(BaseModel):
     username: str
 
+class WithdrawRequest(BaseModel):
+    password: str
+
 
 @router.post("/resend-verification")
 def resend_verification(body: ResendVerification, db: Session = Depends(get_db)):
@@ -213,10 +216,15 @@ def update_username(
 
 @router.delete("/withdraw")
 def withdraw(
+    body: WithdrawRequest,
     background_tasks: BackgroundTasks,
     current_user: models.User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
+    # 비밀번호 확인
+    if not verify_password(body.password, current_user.password_hash):
+        raise HTTPException(status_code=400, detail="WRONG_PASSWORD")
+    
     """회원 탈퇴 — CF 이미지 삭제 후 유저 및 관련 데이터 삭제"""
     from app.routers.photos import delete_from_cloudflare
     from fastapi import BackgroundTasks
