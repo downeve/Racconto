@@ -310,7 +310,16 @@
     "publicPortfolioDesc": "Your public portfolio link accessible without login.",
     "usernameAvailable": "Username is available",
     "usernameTaken": "Username is already taken",
-    "usernameInvalid": "Only letters, numbers, - and _ allowed (min 3 chars)"
+    "usernameInvalid": "Only letters, numbers, - and _ allowed (min 3 chars)",
+    "withdrawAccount": "Delete Account",
+    "withdrawTitle": "Are you sure you want to delete your account?",
+    "withdrawDesc": "All projects, photos, and notes will be permanently deleted and cannot be recovered.",
+    "withdrawPasswordPlaceholder": "Enter current password",
+    "withdrawPasswordRequired": "Please enter your password.",
+    "withdrawWrongPassword": "Incorrect password.",
+    "withdrawFailed": "An error occurred while processing your request.",
+    "withdrawConfirm": "Confirm Deletion",
+    "withdrawing": "Deleting..."
   },
   "trash": {
     "title": "Trash",
