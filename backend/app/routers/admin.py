@@ -110,3 +110,22 @@ def delete_user(
     db.commit()
 
     return {"message": "DELETED"}
+
+@router.get("/stats")
+def get_stats(
+    db: Session = Depends(get_db),
+    _: models.User = Depends(require_admin)
+):
+    total_users = db.query(models.User).count()
+    verified_users = db.query(models.User).filter(models.User.is_verified == True).count()
+    total_projects = db.query(models.Project).filter(models.Project.deleted_at == None).count()
+    total_photos = db.query(models.Photo).filter(models.Photo.deleted_at == None).count()
+    total_notes = db.query(models.Note).filter(models.Note.deleted_at == None).count()
+
+    return {
+        "total_users": total_users,
+        "verified_users": verified_users,
+        "total_projects": total_projects,
+        "total_photos": total_photos,
+        "total_notes": total_notes,
+    }
