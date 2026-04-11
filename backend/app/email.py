@@ -68,3 +68,32 @@ def send_verification_email(to_email: str, verify_token: str, lang: str = 'ko'):
     except ApiException as e:
         print(f"이메일 발송 실패: {e}")
         return False
+
+
+def send_notice_email(to_email: str, subject: str, content: str):
+    """관리자 공지 이메일 발송"""
+    try:
+        send_smtp_email = sib_api_v3_sdk.SendSmtpEmail(
+            to=[{"email": to_email}],
+            sender={"email": FROM_EMAIL, "name": FROM_NAME},
+            subject=subject,
+            html_content=f"""
+            <div style="font-family: sans-serif; max-width: 480px; margin: 0 auto;
+                        background-color: #ffffff; padding: 24px; color: #000000;">
+                <h2 style="letter-spacing: 2px; margin-bottom: 24px;">Racconto</h2>
+                <div style="font-size: 14px; line-height: 1.7; color: #333333;">
+                    {content.replace(chr(10), '<br>')}
+                </div>
+                <p style="margin-top: 32px; color: #999; font-size: 12px; border-top: 1px solid #eee; padding-top: 16px;">
+                    This email was sent from Racconto (racconto.app).<br>
+                    If you have any questions, please contact us at {FROM_EMAIL}.
+                </p>
+            </div>
+            """
+        )
+        api_instance = sib_api_v3_sdk.TransactionalEmailsApi(
+            sib_api_v3_sdk.ApiClient(configuration)
+        )
+        api_instance.send_transac_email(send_smtp_email)
+    except Exception as e:
+        print(f"공지 이메일 발송 실패 ({to_email}): {e}")
