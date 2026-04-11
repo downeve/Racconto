@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, BackgroundTasks, status
 from fastapi.security import OAuth2PasswordRequestForm
 from app.auth import verify_password, create_access_token, get_password_hash, get_current_user
 from app.database import get_db
@@ -209,3 +209,40 @@ def update_username(
     db.commit()
     
     return {"message": "USERNAME_UPDATED", "username": body.username}
+
+
+@router.delete("/withdraw")
+def withdraw(
+    background_tasks: BackgroundTasks,
+    current_user: models.User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """회원 탈퇴 — CF 이미지 삭제 후 유저 및 관련 데이터 삭제"""
+    from app.routers.photos import delete_from_cloudflare
+    from fastapi import BackgroundTasks
+
+    # CF 이미지 URL 수집
+    photo_urls = [
+        p.image_url for p in db.query(models.Photo).filter(
+            models.Photo.project_id.in_(
+                db.query(models.Project.id).filter(
+                    models.Project.user_id == current_user.id
+                )
+            ),
+            models.Photo.image_url.isnot(None),
+            models.Photo.image_url.contains("imagedelivery.net")
+        ).all()
+    ]
+
+    # CF 이미지 백그라운드 삭제
+    if photo_urls:
+        background_tasks.add_task(
+            lambda urls: [delete_from_cloudflare(u) for u in urls],
+            photo_urls
+        )
+
+    # CASCADE로 모든 관련 데이터 자동 삭제
+    db.delete(current_user)
+    db.commit()
+
+    return {"message": "WITHDRAWN"}
