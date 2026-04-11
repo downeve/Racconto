@@ -15,6 +15,14 @@ interface User {
   photo_count: number
 }
 
+interface Stats {
+  total_users: number
+  verified_users: number
+  total_projects: number
+  total_photos: number
+  total_notes: number
+}
+
 export default function Admin() {
   const [users, setUsers] = useState<User[]>([])
   const [loading, setLoading] = useState(true)
@@ -24,6 +32,8 @@ export default function Admin() {
   const [deletingId, setDeletingId] = useState<string | null>(null)
   const [searchEmail, setSearchEmail] = useState('')
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc')
+  const [stats, setStats] = useState<Stats | null>(null)
+
   const navigate = useNavigate()
 
   const fetchUsers = async () => {
@@ -40,8 +50,14 @@ export default function Admin() {
     }
   }
 
+  const fetchStats = async () => {
+    const res = await axios.get(`${API}/admin/stats`)
+    setStats(res.data)
+  }
+
   useEffect(() => {
     fetchUsers()
+    fetchStats()
   }, [])
 
   const handleEdit = (user: User) => {
@@ -99,6 +115,22 @@ export default function Admin() {
   return (
     <div className="max-w-5xl mx-auto px-6 py-8">
       <h1 className="text-xl font-bold tracking-widest mb-6">Admin — Users</h1>
+      {stats && (
+        <div className="grid grid-cols-5 gap-4 mb-8">
+          {[
+            { label: 'Total Users', value: stats.total_users },
+            { label: 'Verified', value: stats.verified_users },
+            { label: 'Projects', value: stats.total_projects },
+            { label: 'Photos (CF)', value: stats.total_photos },
+            { label: 'Notes', value: stats.total_notes },
+          ].map(stat => (
+            <div key={stat.label} className="bg-white rounded-lg shadow p-4 text-center">
+              <p className="text-2xl font-bold text-stone-800">{stat.value.toLocaleString()}</p>
+              <p className="text-xs text-gray-400 mt-1">{stat.label}</p>
+            </div>
+          ))}
+        </div>
+      )}
       <div className="overflow-x-auto">
           <div className="flex items-center gap-4 mb-4">
           <input
