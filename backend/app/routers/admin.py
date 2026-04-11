@@ -6,21 +6,29 @@ from app.auth import get_current_user
 from pydantic import BaseModel
 from typing import Optional
 from app.routers.photos import delete_from_cloudflare
+from app.email import send_notice_email
 import os
 
 router = APIRouter(prefix="/admin", tags=["admin"])
 
 ADMIN_EMAIL = os.getenv("ADMIN_EMAIL", "downeve@gmail.com")
 
+class UserLimitUpdate(BaseModel):
+    project_limit: Optional[int] = None
+    photo_limit: Optional[int] = None
+    is_verified: Optional[bool] = None
+
+class NoticeRequest(BaseModel):
+    subject: str
+    content: str
+    verified_only: bool = True  # 인증된 유저에게만 발송 여부
+
+
 def require_admin(current_user: models.User = Depends(get_current_user)):
     if current_user.email != ADMIN_EMAIL:
         raise HTTPException(status_code=403, detail="FORBIDDEN")
     return current_user
 
-class UserLimitUpdate(BaseModel):
-    project_limit: Optional[int] = None
-    photo_limit: Optional[int] = None
-    is_verified: Optional[bool] = None
 
 @router.get("/users")
 def get_users(
@@ -129,3 +137,23 @@ def get_stats(
         "total_photos": total_photos,
         "total_notes": total_notes,
     }
+
+@router.post("/notify")
+def send_notice(
+    body: NoticeRequest,
+    background_tasks: BackgroundTasks,
+    db: Session = Depends(get_db),
+    _: models.User = Depends(require_admin)
+):
+    query = db.query(models.User)
+    if body.verified_only:
+        query = query.filter(models.User.is_verified == True)
+    users = query.all()
+
+    def send_all(users, subject, content):
+        for user in users:
+            send_notice_email(user.email, subject, content)
+
+    background_tasks.add_task(send_all, users, body.subject, body.content)
+
+    return {"message": "NOTICE_QUEUED", "recipients": len(users)}
