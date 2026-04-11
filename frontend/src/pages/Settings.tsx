@@ -3,6 +3,7 @@ import axios from 'axios'
 import { useTranslation } from 'react-i18next'
 import Heading from '../components/Heading' //
 import FolderProjectMapper from '../components/FolderProjectMapper'
+import { useAuth } from '../context/AuthContext'
 import { 
   SwatchIcon, 
   ViewColumnsIcon, 
@@ -41,7 +42,13 @@ export default function Settings() {
   const [username, setUsername] = useState('')
   const [usernameStatus, setUsernameStatus] = useState<'idle' | 'checking' | 'available' | 'taken' | 'invalid'>('idle')
   const [usernameSaved, setUsernameSaved] = useState(false)
-  
+
+  const [withdrawing, setWithdrawing] = useState(false)
+  const [withdrawPassword, setWithdrawPassword] = useState('')
+  const [withdrawError, setWithdrawError] = useState('')
+  const [showWithdraw, setShowWithdraw] = useState(false)
+
+  const { logout } = useAuth()
   const { t } = useTranslation()
 
   const handlePasswordChange = async () => {
@@ -142,6 +149,34 @@ export default function Settings() {
       const code = err.response?.data?.detail
       if (code === 'USERNAME_ALREADY_TAKEN') setUsernameStatus('taken')
       else if (code === 'USERNAME_INVALID_CHARS') setUsernameStatus('invalid')
+    }
+  }
+
+  const handleWithdraw = async () => {
+    if (!withdrawPassword) {
+      setWithdrawError(t('settings.withdrawPasswordRequired'))
+      return
+    }
+    setWithdrawing(true)
+    setWithdrawError('')
+    try {
+      const token = localStorage.getItem('token')
+      // 비밀번호 확인
+      const formData = new FormData()
+      formData.append('username', '') // 임시
+      await axios.delete(`${API}/auth/withdraw`, {
+        headers: { Authorization: `Bearer ${token}` },
+        data: { password: withdrawPassword }
+      })
+      logout()
+    } catch (err: any) {
+      const code = err.response?.data?.detail
+      if (code === 'WRONG_PASSWORD') {
+        setWithdrawError(t('settings.withdrawWrongPassword'))
+      } else {
+        setWithdrawError(t('settings.withdrawFailed'))
+      }
+      setWithdrawing(false)
     }
   }
 
@@ -406,6 +441,60 @@ export default function Settings() {
         >
           {saved ? t('settings.saveSuccess') : t('common.save')}
         </button>
+      </div>
+
+      {/* 회원 탈퇴 */}
+      <div className="mt-12 border-t border-gray-200 pt-6">
+        {!showWithdraw ? (
+          <button
+            onClick={() => setShowWithdraw(true)}
+            className="text-xs text-red-400 hover:text-red-600 underline underline-offset-2"
+          >
+            {t('settings.withdrawAccount')}
+          </button>
+        ) : (
+          <div className="bg-red-50 border border-red-200 rounded-lg p-5">
+            <h3 className="text-sm font-semibold text-red-700 mb-1">
+              {t('settings.withdrawTitle')}
+            </h3>
+            <p className="text-xs text-red-500 mb-4">
+              {t('settings.withdrawDesc')}
+            </p>
+            <input
+              type="password"
+              className="w-full border border-red-200 rounded px-3 py-2 text-sm outline-none focus:border-red-400 mb-3 bg-white"
+              placeholder={t('settings.withdrawPasswordPlaceholder')}
+              value={withdrawPassword}
+              onChange={e => setWithdrawPassword(e.target.value)}
+            />
+            {withdrawError && (
+              <p className="text-xs text-red-500 mb-3">{withdrawError}</p>
+            )}
+            <div className="flex gap-2">
+              <button
+                onClick={handleWithdraw}
+                disabled={withdrawing}
+                className="flex items-center gap-1.5 px-4 py-2 text-xs bg-red-600 text-white rounded hover:bg-red-700 disabled:opacity-50"
+              >
+                {withdrawing ? (
+                  <>
+                    <svg className="animate-spin w-3 h-3" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/>
+                    </svg>
+                    {t('settings.withdrawing')}
+                  </>
+                ) : t('settings.withdrawConfirm')}
+              </button>
+              <button
+                onClick={() => { setShowWithdraw(false); setWithdrawPassword(''); setWithdrawError('') }}
+                className="px-4 py-2 text-xs border rounded hover:bg-gray-50"
+              >
+                {t('common.cancel')}
+              </button>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   )
