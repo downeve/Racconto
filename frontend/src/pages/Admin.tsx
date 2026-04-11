@@ -22,6 +22,8 @@ export default function Admin() {
   const [editingId, setEditingId] = useState<string | null>(null)
   const [editValues, setEditValues] = useState<Partial<User>>({})
   const [deletingId, setDeletingId] = useState<string | null>(null)
+  const [searchEmail, setSearchEmail] = useState('')
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc')
   const navigate = useNavigate()
 
   const fetchUsers = async () => {
@@ -84,6 +86,13 @@ export default function Admin() {
     }
   }
 
+  const filteredUsers = users
+  .filter(u => u.email.toLowerCase().includes(searchEmail.toLowerCase()))
+  .sort((a, b) => {
+    const diff = new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
+    return sortOrder === 'asc' ? diff : -diff
+  })
+
   if (loading) return <div className="p-8 text-sm text-gray-500">Loading...</div>
   if (error) return <div className="p-8 text-sm text-red-500">{error}</div>
 
@@ -91,6 +100,22 @@ export default function Admin() {
     <div className="max-w-5xl mx-auto px-6 py-8">
       <h1 className="text-xl font-bold tracking-widest mb-6">Admin — Users</h1>
       <div className="overflow-x-auto">
+          <div className="flex items-center gap-4 mb-4">
+          <input
+            type="text"
+            placeholder="Search by email..."
+            value={searchEmail}
+            onChange={e => setSearchEmail(e.target.value)}
+            className="border rounded px-3 py-1.5 text-sm outline-none focus:border-black w-64"
+          />
+          <button
+            onClick={() => setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')}
+            className="flex items-center gap-1 text-xs border rounded px-3 py-1.5 hover:bg-gray-50"
+          >
+            Joined {sortOrder === 'asc' ? '↑' : '↓'}
+          </button>
+          <span className="text-xs text-gray-400 ml-auto">{filteredUsers.length} users</span>
+        </div>
         <table className="w-full text-sm border-collapse">
           <thead>
             <tr className="border-b text-left text-gray-500">
@@ -105,7 +130,7 @@ export default function Admin() {
             </tr>
           </thead>
           <tbody>
-            {users.map(user => (
+            {filteredUsers.map(user => (
               <tr key={user.id} className="border-b hover:bg-gray-50">
                 <td className="py-3 pr-4 font-medium">{user.email}</td>
                 <td className="py-3 pr-4">
