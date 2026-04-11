@@ -33,6 +33,12 @@ export default function Admin() {
   const [searchEmail, setSearchEmail] = useState('')
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc')
   const [stats, setStats] = useState<Stats | null>(null)
+  const [showNotify, setShowNotify] = useState(false)
+  const [notifySubject, setNotifySubject] = useState('')
+  const [notifyContent, setNotifyContent] = useState('')
+  const [notifyVerifiedOnly, setNotifyVerifiedOnly] = useState(true)
+  const [notifying, setNotifying] = useState(false)
+  const [notifyResult, setNotifyResult] = useState<string | null>(null)
 
   const navigate = useNavigate()
 
@@ -102,6 +108,30 @@ export default function Admin() {
     }
   }
 
+  const handleNotify = async () => {
+    if (!notifySubject.trim() || !notifyContent.trim()) return
+    const recipientCount = notifyVerifiedOnly
+      ? users.filter(u => u.is_verified).length
+      : users.length
+    if (!confirm(`Send to ${recipientCount} users?`)) return
+    setNotifying(true)
+    setNotifyResult(null)
+    try {
+      const res = await axios.post(`${API}/admin/notify`, {
+        subject: notifySubject,
+        content: notifyContent,
+        verified_only: notifyVerifiedOnly,
+      })
+      setNotifyResult(`✓ Queued for ${res.data.recipients} recipients`)
+      setNotifySubject('')
+      setNotifyContent('')
+    } catch {
+      setNotifyResult('✗ Failed to send notice')
+    } finally {
+      setNotifying(false)
+    }
+  }
+
   const filteredUsers = users
   .filter(u => u.email.toLowerCase().includes(searchEmail.toLowerCase()))
   .sort((a, b) => {
@@ -115,6 +145,7 @@ export default function Admin() {
   return (
     <div className="max-w-5xl mx-auto px-6 py-8">
       <h1 className="text-xl font-bold tracking-widest mb-6">Admin — Users</h1>
+      {/* 회원 사용량 통계 UI */}
       {stats && (
         <div className="grid grid-cols-5 gap-4 mb-8">
           {[
@@ -131,6 +162,86 @@ export default function Admin() {
           ))}
         </div>
       )}
+      {/* 전체 공지 발송 UI */}
+      <div className="mb-8">
+        {!showNotify ? (
+          <button
+            onClick={() => setShowNotify(true)}
+            className="text-xs px-3 py-1.5 border rounded hover:bg-gray-50"
+          >
+            📢 Send Notice
+          </button>
+        ) : (
+          <div className="bg-white rounded-lg shadow p-5 max-w-xl">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-sm font-semibold">📢 Send Notice to Users</h2>
+              <button
+                onClick={() => { setShowNotify(false); setNotifyResult(null) }}
+                className="text-gray-400 hover:text-black text-lg"
+              >✕</button>
+            </div>
+      
+            <input
+              type="text"
+              placeholder="Subject"
+              value={notifySubject}
+              onChange={e => setNotifySubject(e.target.value)}
+              className="w-full border rounded px-3 py-2 text-sm mb-3 outline-none focus:border-black"
+            />
+            <textarea
+              placeholder="Content (line breaks supported)"
+              value={notifyContent}
+              onChange={e => setNotifyContent(e.target.value)}
+              rows={5}
+              className="w-full border rounded px-3 py-2 text-sm mb-3 outline-none focus:border-black resize-none"
+            />
+      
+            <div className="flex items-center gap-2 mb-4">
+              <input
+                type="checkbox"
+                id="verifiedOnly"
+                checked={notifyVerifiedOnly}
+                onChange={e => setNotifyVerifiedOnly(e.target.checked)}
+              />
+              <label htmlFor="verifiedOnly" className="text-xs text-gray-600">
+                Verified users only ({users.filter(u => u.is_verified).length} users)
+              </label>
+            </div>
+      
+            {notifyResult && (
+              <p className={`text-xs mb-3 ${notifyResult.startsWith('✓') ? 'text-green-600' : 'text-red-500'}`}>
+                {notifyResult}
+              </p>
+            )}
+      
+            <div className="flex gap-2">
+              <button
+                onClick={handleNotify}
+                disabled={notifying || !notifySubject.trim() || !notifyContent.trim()}
+                className="flex items-center gap-1.5 px-4 py-2 text-xs bg-black text-white rounded hover:bg-gray-800 disabled:opacity-40"
+              >
+                {notifying ? (
+                  <>
+                    <svg className="animate-spin w-3 h-3" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/>
+                    </svg>
+                    Sending...
+                  </>
+                ) : 'Send'}
+              </button>
+              <button
+                onClick={() => { setShowNotify(false); setNotifyResult(null) }}
+                className="px-4 py-2 text-xs border rounded hover:bg-gray-50"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
+      
+      {/*회원 관리 UI*/}
       <div className="overflow-x-auto">
           <div className="flex items-center gap-4 mb-4">
           <input
