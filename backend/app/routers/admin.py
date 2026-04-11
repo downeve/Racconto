@@ -1,10 +1,11 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, BackgroundTasks
 from sqlalchemy.orm import Session
 from app.database import get_db
 from app import models
 from app.auth import get_current_user
 from pydantic import BaseModel
 from typing import Optional
+from app.routers.photos import delete_from_cloudflare
 import os
 
 router = APIRouter(prefix="/admin", tags=["admin"])
@@ -74,6 +75,7 @@ def update_user(
 @router.delete("/users/{user_id}")
 def delete_user(
     user_id: str,
+    background_tasks: BackgroundTasks,
     db: Session = Depends(get_db),
     admin: models.User = Depends(require_admin)
 ):
@@ -83,30 +85,28 @@ def delete_user(
     if not user:
         raise HTTPException(status_code=404, detail="USER_NOT_FOUND")
 
-    # 유저의 모든 데이터 삭제 (프로젝트 → 사진 → 챕터 등)
-    projects = db.query(models.Project).filter(models.Project.user_id == user_id).all()
-    for project in projects:
-        chapters = db.query(models.Chapter).filter(models.Chapter.project_id == project.id).all()
-        chapter_ids = [c.id for c in chapters]
-        if chapter_ids:
-            db.query(models.ChapterPhoto).filter(
-                models.ChapterPhoto.chapter_id.in_(chapter_ids)
-            ).delete(synchronize_session=False)
-        db.query(models.Chapter).filter(
-            models.Chapter.project_id == project.id
-        ).delete(synchronize_session=False)
-        db.query(models.Note).filter(
-            models.Note.project_id == project.id
-        ).delete(synchronize_session=False)
-        db.query(models.Photo).filter(
-            models.Photo.project_id == project.id
-        ).delete(synchronize_session=False)
-        db.delete(project)
+    # CF 이미지 URL 수집
+    photo_urls = [
+        p.image_url for p in db.query(models.Photo).filter(
+            models.Photo.project_id.in_(
+                db.query(models.Project.id).filter(
+                    models.Project.user_id == user_id
+                )
+            ),
+            models.Photo.image_url.isnot(None),
+            models.Photo.image_url.contains("imagedelivery.net")
+        ).all()
+    ]
 
-    db.query(models.Setting).filter(
-        models.Setting.user_id == user_id
-    ).delete(synchronize_session=False)
+    # CF 이미지 백그라운드 삭제
+    if photo_urls:
+        background_tasks.add_task(
+            lambda urls: [delete_from_cloudflare(u) for u in urls],
+            photo_urls
+        )
 
+    # CASCADE로 모든 관련 데이터 자동 삭제
     db.delete(user)
     db.commit()
+
     return {"message": "DELETED"}
