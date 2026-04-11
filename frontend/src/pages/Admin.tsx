@@ -21,6 +21,7 @@ export default function Admin() {
   const [error, setError] = useState('')
   const [editingId, setEditingId] = useState<string | null>(null)
   const [editValues, setEditValues] = useState<Partial<User>>({})
+  const [deletingId, setDeletingId] = useState<string | null>(null)
   const navigate = useNavigate()
 
   const fetchUsers = async () => {
@@ -67,6 +68,19 @@ export default function Admin() {
       fetchUsers()
     } catch {
       alert('Failed to delete user.')
+    }
+  }
+
+  const handleDelete = async (userId: string, email: string) => {
+    if (!confirm(`Delete ${email}? This cannot be undone.`)) return
+    setDeletingId(userId)
+    try {
+      await axios.delete(`${API}/admin/users/${userId}`)
+      fetchUsers()
+    } catch {
+      alert('Failed to delete user.')
+    } finally {
+      setDeletingId(null)
     }
   }
 
@@ -163,9 +177,10 @@ export default function Admin() {
                         </button>
                         <button
                           onClick={() => handleDelete(user.id, user.email)}
-                          className="text-xs px-2 py-1 border border-red-300 text-red-500 rounded hover:bg-red-50"
+                          disabled={deletingId === user.id}
+                          className="text-xs px-2 py-1 border border-red-300 text-red-500 rounded hover:bg-red-50 disabled:opacity-40"
                         >
-                          Delete
+                          {deletingId === user.id ? '...' : 'Delete'}
                         </button>
                       </>
                     )}
