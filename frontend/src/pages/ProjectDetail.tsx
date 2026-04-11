@@ -879,13 +879,28 @@ export default function ProjectDetail() {
                 
                 {/* 💡 flex-col을 지워서 가로 배치(flex-row 기본값)로 변경했습니다 */}
                 <div className="mb-3 flex gap-2">
-                  {/* 💡 양쪽 버튼이 1:1 비율을 가지도록 flex-1을 추가하고 rounded를 넣었습니다 */}
-                  <label className="flex-1 cursor-pointer bg-black text-white px-1.5 py-1.5 text-xs tracking-wider hover:bg-gray-800 inline-block text-center rounded">
-                    {uploading ? t('photo.uploading') : t('photo.uploadPhotos')}
+                  <label className={`flex-1 cursor-pointer bg-black text-white px-1.5 py-1.5 text-xs tracking-wider hover:bg-gray-800 inline-flex items-center justify-center gap-1 rounded ${uploading ? 'opacity-60 cursor-not-allowed' : ''}`}>
+                    {uploading ? (
+                      <>
+                        <svg className="animate-spin w-3 h-3 shrink-0" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
+                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/>
+                        </svg>
+                        {t('photo.uploading')}
+                      </>
+                    ) : t('photo.uploadPhotos')}
                     <input type="file" accept="image/jpeg, image/png, image/webp" multiple className="hidden" onChange={handleUpload} disabled={uploading} />
                   </label>
-                  <label className="flex-1 cursor-pointer bg-gray-700 text-white px-1.5 py-1.5 text-xs tracking-wider hover:bg-gray-600 inline-block text-center rounded">
-                    {uploading ? t('photo.uploading') : t('photo.uploadFolder')}
+                  <label className={`flex-1 cursor-pointer bg-gray-700 text-white px-1.5 py-1.5 text-xs tracking-wider hover:bg-gray-600 inline-flex items-center justify-center gap-1 rounded ${uploading ? 'opacity-60 cursor-not-allowed' : ''}`}>
+                    {uploading ? (
+                      <>
+                        <svg className="animate-spin w-3 h-3 shrink-0" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
+                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/>
+                        </svg>
+                        {t('photo.uploading')}
+                      </>
+                    ) : t('photo.uploadFolder')}
                     <input type="file" accept="image/jpeg, image/png, image/webp" multiple className="hidden" onChange={handleUpload} disabled={uploading} {...{ webkitdirectory: '' } as any} />
                   </label>
                 </div>
