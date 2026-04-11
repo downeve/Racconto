@@ -310,7 +310,16 @@
     "publicPortfolioDesc": "비로그인 상태에서도 접근 가능한 나만의 포트폴리오 주소입니다.",
     "usernameAvailable": "사용 가능한 username이에요",
     "usernameTaken": "이미 사용 중인 username이에요",
-    "usernameInvalid": "영문, 숫자, -, _ 만 사용할 수 있어요 (3자 이상)"
+    "usernameInvalid": "영문, 숫자, -, _ 만 사용할 수 있어요 (3자 이상)",
+    "withdrawAccount": "회원 탈퇴",
+    "withdrawTitle": "정말 탈퇴하시겠어요?",
+    "withdrawDesc": "탈퇴하면 모든 프로젝트, 사진, 노트가 영구적으로 삭제되며 복구할 수 없습니다.",
+    "withdrawPasswordPlaceholder": "현재 비밀번호 입력",
+    "withdrawPasswordRequired": "비밀번호를 입력해주세요.",
+    "withdrawWrongPassword": "비밀번호가 틀렸습니다.",
+    "withdrawFailed": "탈퇴 처리 중 오류가 발생했습니다.",
+    "withdrawConfirm": "탈퇴 확인",
+    "withdrawing": "탈퇴 중..."
   },
   "trash": {
     "title": "프로젝트 휴지통",
