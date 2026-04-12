@@ -77,16 +77,9 @@ export default function ElectronSidebar({ activeTab, onTabChange, showTabs }: Pr
         )}
       </div>
 
-      {/* 현재 탭 사이드바 내용 */}
-      {sidebarContent && isOnProjectDetail && (
-        <div className="border-t border-stone-200 overflow-y-auto flex-1">
-          {sidebarContent}
-        </div>
-      )}
-
-      {/* 탭 전환 섹션 — ProjectDetail 안에서만 */}
+      {/* 탭 전환 섹션 — 가로 한 줄 */}
       {showTabs && isOnProjectDetail && (
-        <div className="border-t border-stone-200 shrink-0">
+        <div className="border-t border-stone-200 shrink-0 flex">
           {([
             { key: 'photos', icon: '📷', label: t('photo.title') },
             { key: 'story',  icon: '📖', label: t('story.title') },
@@ -95,7 +88,7 @@ export default function ElectronSidebar({ activeTab, onTabChange, showTabs }: Pr
             <button
               key={item.key}
               onClick={() => onTabChange(item.key)}
-              className={`w-full flex items-center gap-3 px-4 py-3 text-xs tracking-wider transition-colors ${
+              className={`flex-1 flex flex-row items-center justify-center gap-1.5 py-2 text-xs tracking-wider transition-colors ${
                 activeTab === item.key
                   ? 'bg-stone-900 text-white'
                   : 'text-stone-600 hover:bg-stone-100 hover:text-stone-900'
@@ -105,6 +98,13 @@ export default function ElectronSidebar({ activeTab, onTabChange, showTabs }: Pr
               <span>{item.label}</span>
             </button>
           ))}
+        </div>
+      )}
+
+      {/* 현재 탭 사이드바 내용 */}
+      {sidebarContent && isOnProjectDetail && (
+        <div className="border-t border-stone-200 overflow-y-auto flex-1">
+          {sidebarContent}
         </div>
       )}
     </div>
