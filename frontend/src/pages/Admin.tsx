@@ -192,6 +192,12 @@ export default function Admin() {
                   cost: '$14.20 / yr',
                   note: `≈ $${(14.20 / 12).toFixed(2)} / mo`,
                 },
+                                {
+                  service: 'Claude AI 구독',
+                  plan: 'Pro 요금제',
+                  cost: '$22 / mo',
+                  note: `향후 클로드 코드 사용 검토 / 연간 구독 검토 ($19/mo)`,
+                },
               ].map((row, i, arr) => (
                 <tr key={row.service} className={i < arr.length - 1 ? 'border-b' : ''}>
                   <td className="px-4 py-3 font-medium text-stone-800">{row.service}</td>
@@ -205,7 +211,7 @@ export default function Admin() {
                   Monthly Total (approx.)
                 </td>
                 <td className="px-4 py-2.5 font-mono text-sm font-bold text-stone-800">
-                  ${(5.50 + 5.50 + 14.20 / 12).toFixed(2)} / mo
+                  ${(5.50 + 5.50 + 14.20 / 12 + 22).toFixed(2)} / mo
                 </td>
                 <td className="px-4 py-2.5 text-xs text-gray-400">도메인 월할 포함</td>
               </tr>

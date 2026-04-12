@@ -304,7 +304,7 @@ export default function PublicPortfolio() {
           onClick={() => setLightboxIndex(null)}
         >
           <button
-            className={`absolute top-6 right-6 text-2xl z-10 ${darkMode ? 'text-white' : 'text-gray-900'} hover:opacity-50`}
+            className={`absolute top-6 right-6 text-2xl z-10 p-3 ${darkMode ? 'text-white' : 'text-gray-900'} hover:opacity-50`}
             onClick={() => setLightboxIndex(null)}
           >✕</button>
           

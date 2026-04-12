@@ -869,7 +869,7 @@ export default function ProjectStory({
           onClick={() => {setSelectedPhotoIndex(null); setShowNotePanel(false)}}
         >
           {/* 상단: 챕터명 + 카운터 + 닫기 */}
-          <div className="flex items-center justify-between px-6 py-3 shrink-0" onClick={e => e.stopPropagation()}>
+          <div className="flex items-center justify-between px-6 py-3 shrink-0" style={{ paddingTop: window.racconto ? '2rem' : undefined }} onClick={e => e.stopPropagation()}>
             <div className="flex items-center gap-3">
             {/* 노트 버튼 */}
               <button
@@ -890,7 +890,7 @@ export default function ProjectStory({
                 {getChapterDisplayTitle(currentChapterPhotos[selectedPhotoIndex].chapter_id)}
               </span>
             </div>
-            <button onClick={() => {setSelectedPhotoIndex(null); setShowNotePanel(false)}} className="text-white/70 hover:text-white text-2xl">✕</button>
+            <button onClick={() => {setSelectedPhotoIndex(null); setShowNotePanel(false)}} className="text-white/70 hover:text-white text-2xl p-3">✕</button>
           </div>
 
           {/* 중앙: 이미지 + 좌우 화살표 */}

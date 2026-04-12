@@ -98,14 +98,14 @@ function Lightbox({
 
   return (
     <div className="fixed inset-0 bg-black/90 z-50 flex flex-col" onClick={onClose}>
-      <div className="flex items-center justify-between px-6 py-3 shrink-0" onClick={e => e.stopPropagation()}>
+      <div className="flex items-center justify-between px-6 py-3 shrink-0" style={{ paddingTop: window.racconto ? '2rem' : undefined }} onClick={e => e.stopPropagation()}>
         <span className="text-white/50 text-sm">{idx + 1} / {photos.length}</span>
         {photo.local_missing && (
           <span className="text-yellow-400 text-xs font-bold px-2 py-0.5 bg-yellow-400/20 rounded-full">
             ⚠️ {t('project.noLocalFile')}
           </span>
         )}
-        <button onClick={onClose} className="text-white/70 hover:text-white text-2xl">✕</button>
+        <button onClick={onClose} className="text-white/70 hover:text-white text-2xl p-3">✕</button>
       </div>
 
       <div className="flex-1 flex items-center justify-center relative min-h-0" onClick={onClose}>
@@ -778,7 +778,7 @@ export default function ProjectDetail({
 
   useEffect(() => {
     if (!isElectron) return
-    if (activeTab !== 'photos') { setSidebarContent(null); return }
+    if (activeTab !== 'photos') return
 
     setSidebarContent(
       <div className="p-4">
