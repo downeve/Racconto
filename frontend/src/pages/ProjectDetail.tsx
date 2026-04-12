@@ -8,6 +8,7 @@ import { useTranslation } from 'react-i18next'
 import Heading from '../components/Heading' //
 import ProjectNotes from './ProjectNotes'
 import PhotoNotePanel from '../components/PhotoNotePanel'
+import { useElectronSidebar } from '../context/ElectronSidebarContext'
 
 const API = import.meta.env.VITE_API_URL
 const DELIVERY_ENABLED = import.meta.env.VITE_ENABLE_DELIVERY === 'true'
@@ -440,6 +441,7 @@ export default function ProjectDetail({
   const [activeTab, setActiveTab] = useState<'photos' | 'story' | 'notes' | 'delivery'>('photos')
 
   const isElectron = !!window.racconto
+  const { setSidebarContent } = useElectronSidebar()
 
   const [photoSubTab, setPhotoSubTab] = useState<'all' | 'trash'>('all')
   const [trashedPhotos, setTrashedPhotos] = useState<Photo[]>([])
@@ -773,6 +775,148 @@ export default function ProjectDetail({
 
   const missingCount = photos.filter(p => p.local_missing && !p.deleted_at).length;
 
+  useEffect(() => {
+    if (!isElectron) return
+    if (activeTab !== 'photos') { setSidebarContent(null); return }
+
+    setSidebarContent(
+      <div className="p-4">
+        {/* 업로드 버튼 */}
+        <div className="mb-3 flex gap-2">
+          <label className={`flex-1 cursor-pointer bg-black text-white px-1.5 py-1.5 text-xs tracking-wider hover:bg-gray-800 inline-flex items-center justify-center gap-1 rounded ${uploading ? 'opacity-60 cursor-not-allowed' : ''}`}>
+            {uploading ? t('photo.uploading') : t('photo.uploadPhotos')}
+            <input type="file" accept="image/jpeg, image/png, image/webp" multiple className="hidden" onChange={handleUpload} disabled={uploading} />
+          </label>
+          <label className={`flex-1 cursor-pointer bg-gray-700 text-white px-1.5 py-1.5 text-xs tracking-wider hover:bg-gray-600 inline-flex items-center justify-center gap-1 rounded ${uploading ? 'opacity-60 cursor-not-allowed' : ''}`}>
+            {uploading ? t('photo.uploading') : t('photo.uploadFolder')}
+            <input type="file" accept="image/jpeg, image/png, image/webp" multiple className="hidden" onChange={handleUpload} disabled={uploading} {...{ webkitdirectory: '' } as any} />
+          </label>
+        </div>
+
+        {/* 라이브러리 */}
+        <div className="mb-2">
+          <p className="text-xs font-semibold text-gray-500 mb-2">{t('photo.library')}</p>
+          <div className="flex flex-col gap-1">
+            <button onClick={() => setPhotoSubTab('all')}
+              className={`w-full text-left px-2 py-1.5 text-xs rounded flex items-center justify-between ${photoSubTab === 'all' ? 'bg-black text-white' : 'hover:bg-gray-50 text-gray-700'}`}>
+              <span>{t('photo.allPhotos')}</span>
+              <span className={photoSubTab === 'all' ? 'text-gray-300' : 'text-gray-400'}>{photos.filter(p => !p.deleted_at).length}</span>
+            </button>
+            <button onClick={() => { setPhotoSubTab('trash'); fetchTrash() }}
+              className={`w-full text-left px-2 py-1.5 text-xs rounded flex items-center justify-between ${photoSubTab === 'trash' ? 'bg-red-600 text-white' : 'hover:bg-red-50 text-gray-700'}`}>
+              <span>{t('photo.trash')}</span>
+              <span className={photoSubTab === 'trash' ? 'text-red-200' : 'text-gray-400'}>{trashedPhotos.length}</span>
+            </button>
+          </div>
+        </div>
+
+        <div className="border-t border-gray-100 my-2" />
+
+        {/* 뷰 설정 */}
+        <div className="mt-2 mb-2">
+          <div className="flex items-center justify-between mb-2">
+            <p className="text-xs font-semibold text-gray-500 mr-3 shrink-0">{t('filter.view')}</p>
+            <div className="flex gap-1 flex-1">
+              {[{ cols: 2, icon: '2' }, { cols: 3, icon: '3' }, { cols: 4, icon: '4' }].map(({ cols, icon }) => (
+                <button key={cols} onClick={() => setGridCols(cols)}
+                  className={`flex-1 py-1 text-xs rounded ${gridCols === cols ? 'bg-black text-white' : 'bg-gray-100 hover:bg-gray-200'}`}>{icon}</button>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* 정렬 */}
+        <div className="mb-2">
+          <div className="flex items-center justify-between mb-2">
+            <p className="text-xs font-semibold text-gray-500">{t('photo.listOrder')}</p>
+            <button onClick={() => setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')}
+              className="text-xs text-gray-500 hover:text-black">{sortOrder === 'asc' ? '↑' : '↓'}</button>
+          </div>
+          <div className="flex gap-1">
+            {[['default', t('photo.orderUpload')], ['taken_at', t('photo.orderTaken')], ['name', t('photo.orderName')]].map(([key, label]) => (
+              <button key={key} onClick={() => setSortBy(key as any)}
+                className={`flex-1 text-center py-1 text-[11px] rounded ${sortBy === key ? 'bg-black text-white' : 'bg-gray-100 hover:bg-gray-200'}`}>{label}</button>
+            ))}
+          </div>
+        </div>
+
+        {/* EXIF */}
+        <div className="mb-2 flex items-center justify-between">
+          <p className="text-xs font-semibold text-gray-500 mr-3 shrink-0">{t('filter.exifOnOff')}</p>
+          <div className="flex gap-1 flex-1">
+            <button onClick={() => setShowExif(true)}
+              className={`flex-1 py-1 text-xs rounded ${showExif ? 'bg-black text-white' : 'bg-gray-100 hover:bg-gray-200'}`}>On</button>
+            <button onClick={() => setShowExif(false)}
+              className={`flex-1 py-1 text-xs rounded ${!showExif ? 'bg-black text-white' : 'bg-gray-100 hover:bg-gray-200'}`}>Off</button>
+          </div>
+        </div>
+
+        <div className="border-t border-gray-100 my-2" />
+
+        {/* 노트 필터 */}
+        <button onClick={() => setFilterHasNote(!filterHasNote)}
+          className={`w-full text-left px-2 py-1.5 text-xs rounded flex items-center justify-between ${filterHasNote ? 'bg-black text-white' : 'hover:bg-gray-50 text-gray-700'}`}>
+          <span>📝 {t('photo.hasNote')}</span>
+          <span className={filterHasNote ? 'text-gray-300' : 'text-gray-400'}>{photos.filter(p => !p.deleted_at && photoNoteIds.has(p.id)).length}</span>
+        </button>
+
+        {/* 폴더 필터 */}
+        {photos.some(p => p.folder) && (
+          <div className="mt-3 mb-3">
+            <p className="text-xs font-semibold text-gray-500 mb-2">{t('filter.folder')}</p>
+            <button onClick={() => setFilterFolder(null)}
+              className={`w-full text-left px-2 py-1 text-xs rounded flex items-center justify-between mb-1 ${filterFolder === null ? 'bg-black text-white' : 'hover:bg-gray-50'}`}>
+              <span>{t('filter.allFolders')}</span><span className="text-gray-400">{photos.length}</span>
+            </button>
+            {[...new Set(photos.filter(p => p.folder).map(p => p.folder))].map(folder => (
+              <button key={folder} onClick={() => setFilterFolder(filterFolder === folder ? null : folder!)}
+                className={`w-full text-left px-2 py-1 text-xs rounded flex items-center justify-between ${filterFolder === folder ? 'bg-black text-white' : 'hover:bg-gray-50'}`}>
+                <span className="flex items-center gap-1 min-w-0"><span className="shrink-0">📁</span><span className="truncate">{folder}</span></span>
+                <span className="text-gray-400 shrink-0 ml-2">{photos.filter(p => p.folder === folder).length}</span>
+              </button>
+            ))}
+          </div>
+        )}
+
+        {/* 별점 필터 */}
+        <div className="mb-4">
+          <div className="flex items-center justify-between mb-2">
+            <p className="text-xs font-semibold text-gray-500">{t('filter.rating')}</p>
+            <button onClick={handleClearRatings} className="text-xs text-gray-400 hover:text-red-500">{t('common.reset')}</button>
+          </div>
+          {[5, 4, 3, 2, 1].map(star => (
+            <button key={star} onClick={() => setFilterRating(filterRating === star ? null : star)}
+              className={`w-full text-left px-2 py-1 text-xs rounded flex items-center justify-between ${filterRating === star ? 'bg-black text-white' : 'hover:bg-gray-50'}`}>
+              <span>{'★'.repeat(star)}{'☆'.repeat(5 - star)}</span>
+              <span className="text-gray-400">{photos.filter(p => p.rating === star).length}</span>
+            </button>
+          ))}
+          <button onClick={() => setFilterRating(filterRating === 0 ? null : 0)}
+            className={`w-full text-left px-2 py-1 text-xs rounded flex items-center justify-between ${filterRating === 0 ? 'bg-black text-white' : 'hover:bg-gray-50'}`}>
+            <span className="text-gray-400">{t('filter.unrated')}</span>
+            <span className="text-gray-400">{photos.filter(p => !p.rating).length}</span>
+          </button>
+        </div>
+
+        {/* 컬러 필터 */}
+        <div className="mb-4">
+          <div className="flex items-center justify-between mb-2">
+            <p className="text-xs font-semibold text-gray-500">{t('filter.colors')}</p>
+            <button onClick={handleClearColorLabels} className="text-xs text-gray-400 hover:text-red-500">{t('common.reset')}</button>
+          </div>
+          {colorLabels.map(label => (
+            <button key={label.value} onClick={() => setFilterColor(filterColor === label.value ? null : label.value)}
+              className={`w-full text-left px-2 py-1 text-xs rounded flex items-center justify-between ${filterColor === label.value ? 'bg-black text-white' : 'hover:bg-gray-50'}`}>
+              <span className="flex items-center gap-2"><span className={`w-3 h-3 rounded-full ${label.color}`} />{label.label}</span>
+              <span className="text-gray-400">{photos.filter(p => p.color_label === label.value).length}</span>
+            </button>
+          ))}
+        </div>
+      </div>
+    )
+  }, [isElectron, activeTab, photoSubTab, photos, trashedPhotos, uploading, gridCols, sortBy, sortOrder, showExif, filterRating, filterColor, filterFolder, filterHasNote, photoNoteIds, colorLabels, t])
+
+
   if (!project) return (
     <div className="min-h-screen flex items-center justify-center">
       <div className="w-6 h-6 border-2 border-stone-300 border-t-stone-700 rounded-full animate-spin" />
@@ -897,7 +1041,7 @@ export default function ProjectDetail({
         <div className="flex gap-6 items-start">
           
           {/* 👈 좌측 사이드바 (필터 & 라이브러리 통합) */}
-          <div className={`${showFilter ? 'w-48' : 'w-6'} shrink-0 transition-all duration-200`}>
+          <div className={`${isElectron ? 'hidden' : ''} ${showFilter ? 'w-48' : 'w-6'} shrink-0 transition-all duration-200`}>
             <button onClick={() => setShowFilter(!showFilter)}
               className="mb-2 text-gray-400 hover:text-black text-xs flex items-center gap-1">
               {showFilter ? '◀ ' + t('filter.filter') : '▶'}

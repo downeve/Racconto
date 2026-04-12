@@ -2,6 +2,7 @@ import { useEffect, useState, useRef } from 'react'
 import axios from 'axios'
 import ReactMarkdown from 'react-markdown'
 import { useTranslation } from 'react-i18next'
+import { useElectronSidebar } from '../context/ElectronSidebarContext'
 
 const API = import.meta.env.VITE_API_URL
 
@@ -36,6 +37,9 @@ export default function ProjectNotes({
   const [filterType, setFilterType] = useState<string | null>(null)
   const [filterPinned, setFilterPinned] = useState(false)
   const noteRefs = useRef<Record<string, HTMLDivElement | null>>({})
+
+  const isElectron = !!window.racconto
+  const { setSidebarContent } = useElectronSidebar()
 
   const scrollToNote = (noteId: string) => {
     noteRefs.current[noteId]?.scrollIntoView({ behavior: 'smooth', block: 'start' })
@@ -112,11 +116,62 @@ export default function ProjectNotes({
     setEditPreviewMode(false)
   }
 
+  useEffect(() => {
+    if (!isElectron) return
+    setSidebarContent(
+      <div className="p-4">
+        <p className="text-xs font-semibold text-gray-500 mb-3">{t('note.filter')}</p>
+        <button onClick={() => { setFilterType(null); setFilterPinned(false) }}
+          className={`w-full text-left px-2 py-1.5 text-xs rounded flex items-center justify-between mb-1 ${!filterType && !filterPinned ? 'bg-black text-white' : 'hover:bg-gray-50 text-gray-700'}`}>
+          <span>{t('note.filterAll')}</span>
+          <span className={!filterType && !filterPinned ? 'text-gray-300' : 'text-gray-400'}>{notes.length}</span>
+        </button>
+        <button onClick={() => { setFilterPinned(!filterPinned); setFilterType(null) }}
+          className={`w-full text-left px-2 py-1.5 text-xs rounded flex items-center justify-between mb-3 ${filterPinned ? 'bg-black text-white' : 'hover:bg-gray-50 text-gray-700'}`}>
+          <span>📌 {t('note.pinned')}</span>
+          <span className={filterPinned ? 'text-gray-300' : 'text-gray-400'}>{notes.filter(n => n.is_pinned).length}</span>
+        </button>
+        <div className="border-t border-gray-100 my-2" />
+        <div className="space-y-1">
+          {NOTE_TYPES.map(type => (
+            <button key={type.value}
+              onClick={() => { setFilterType(filterType === type.value ? null : type.value); setFilterPinned(false) }}
+              className={`w-full text-left px-2 py-1.5 text-xs rounded flex items-center justify-between ${filterType === type.value ? 'bg-black text-white' : 'hover:bg-gray-50 text-gray-700'}`}>
+              <span className="flex items-center gap-1.5">
+                <span className={`w-2 h-2 rounded-full ${
+                  type.value === 'memo' ? 'bg-stone-400' :
+                  type.value === 'concept' ? 'bg-blue-400' :
+                  type.value === 'research' ? 'bg-green-400' : 'bg-amber-400'
+                }`} />
+                {type.label}
+              </span>
+              <span className={filterType === type.value ? 'text-gray-300' : 'text-gray-400'}>{notes.filter(n => n.note_type === type.value).length}</span>
+            </button>
+          ))}
+        </div>
+        {notes.filter(n => n.is_pinned).length > 0 && (
+          <>
+            <div className="border-t border-gray-100 my-3" />
+            <p className="text-xs font-semibold text-gray-500 mb-2">📌 {t('note.pinned')}</p>
+            <div className="space-y-1">
+              {notes.filter(n => n.is_pinned).map(note => (
+                <button key={note.id} onClick={() => scrollToNote(note.id)}
+                  className="w-full text-left px-2 py-1 text-xs rounded hover:bg-gray-50 text-gray-600 hover:text-black truncate">
+                  {note.content.slice(0, 30)}{note.content.length > 30 ? '...' : ''}
+                </button>
+              ))}
+            </div>
+          </>
+        )}
+      </div>
+    )
+  }, [isElectron, notes, filterType, filterPinned, t])
+
   return (
     <div className="flex gap-6">
 
       {/* 사이드바 */}
-      <div className="w-48 shrink-0 sticky top-4 self-start">
+      <div className={`${isElectron ? 'hidden' : ''} w-48 shrink-0 sticky top-4 self-start`}>
         <div className="bg-white rounded-lg shadow p-4 max-h-[calc(100vh-8rem)] overflow-y-auto">
           <p className="text-xs font-semibold text-gray-500 mb-3">{t('note.filter')}</p>
 

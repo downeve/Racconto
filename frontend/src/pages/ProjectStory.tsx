@@ -2,6 +2,7 @@ import { useEffect, useState, useMemo, useRef } from 'react'
 import axios from 'axios'
 import { useTranslation } from 'react-i18next'
 import PhotoNotePanel from '../components/PhotoNotePanel'
+import { useElectronSidebar } from '../context/ElectronSidebarContext'
 
 import {
   DndContext,
@@ -174,6 +175,8 @@ export default function ProjectStory({
   }
 
   const [showNotePanel, setShowNotePanel] = useState(false)
+  const isElectron = !!window.racconto
+  const { setSidebarContent } = useElectronSidebar()
 
   // O(N²) 성능 저하를 막기 위한 Set(해시테이블) 캐싱
   const allPhotoIds = useMemo(() => new Set(allPhotos.map(p => p.id)), [allPhotos]);
@@ -404,11 +407,65 @@ export default function ProjectStory({
       }
     };
 
+
+  useEffect(() => {
+    if (!isElectron) return
+    setSidebarContent(
+      <div className="p-4">
+        <p className="text-xs font-semibold text-gray-500 mb-3">{t('story.chapters')}</p>
+        <button
+          onClick={() => { setShowAddChapter(true); setAddingSubChapterTo(null) }}
+          className="w-full mb-3 text-xs bg-stone-600 text-white px-2 py-1.5 rounded hover:bg-stone-700 tracking-wider"
+        >
+          {t('story.addChapter')}
+        </button>
+        <div className="space-y-1">
+          {chapters.filter(c => !c.parent_id).map((chapter, idx) => {
+            const mainChapters = chapters.filter(c => !c.parent_id)
+            const subChapters = chapters.filter(c => c.parent_id === chapter.id)
+            return (
+              <div key={chapter.id}>
+                <div className="flex items-center gap-1 group rounded hover:bg-gray-50">
+                  <button onClick={() => scrollToChapter(chapter.id)}
+                    className="flex-1 text-left px-2 py-1.5 text-xs flex items-center gap-1.5 min-w-0">
+                    <span className="text-gray-300 shrink-0">{idx + 1}</span>
+                    <span className="truncate text-gray-700 group-hover:text-black">{chapter.title}</span>
+                  </button>
+                  <div className="flex shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <button onClick={() => handleMoveChapter(chapter.id, 'up')} disabled={idx === 0}
+                      className="text-gray-300 hover:text-black disabled:opacity-20 px-0.5 text-xs">↑</button>
+                    <button onClick={() => handleMoveChapter(chapter.id, 'down')} disabled={idx === mainChapters.length - 1}
+                      className="text-gray-300 hover:text-black disabled:opacity-20 px-0.5 text-xs">↓</button>
+                  </div>
+                </div>
+                {subChapters.map((sub, subIdx) => (
+                  <div key={sub.id} className="flex items-center gap-1 group rounded hover:bg-gray-50">
+                    <button onClick={() => scrollToChapter(sub.id)}
+                      className="flex-1 text-left pl-5 pr-1 py-1 text-xs flex items-center gap-1.5 min-w-0">
+                      <span className="text-gray-200 shrink-0">{idx + 1}.{subIdx + 1}</span>
+                      <span className="truncate text-gray-400 group-hover:text-gray-700">{sub.title}</span>
+                    </button>
+                    <div className="flex shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <button onClick={() => handleMoveChapter(sub.id, 'up')} disabled={subIdx === 0}
+                        className="text-gray-300 hover:text-black disabled:opacity-20 px-0.5 text-xs">↑</button>
+                      <button onClick={() => handleMoveChapter(sub.id, 'down')} disabled={subIdx === subChapters.length - 1}
+                        className="text-gray-300 hover:text-black disabled:opacity-20 px-0.5 text-xs">↓</button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )
+          })}
+        </div>
+      </div>
+    )
+  }, [isElectron, chapters, t])
+
   return (
     <div className="flex gap-6 relative">
 
       {/* 사이드바 */}
-      <div className="w-48 shrink-0 sticky top-4 self-start">
+      <div className={`${isElectron ? 'hidden' : ''} w-48 shrink-0 sticky top-4 self-start`}>
         <div className="bg-white rounded-lg shadow p-4 max-h-[calc(100vh-8rem)] overflow-y-auto">
           <p className="text-xs font-semibold text-gray-500 mb-3">{t('story.chapters')}</p>
 

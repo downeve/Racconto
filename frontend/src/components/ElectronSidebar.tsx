@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { useNavigate, useParams, useLocation } from 'react-router-dom'
 import axios from 'axios'
 import { useTranslation } from 'react-i18next'
+import { useElectronSidebar } from '../context/ElectronSidebarContext'
 
 const API = import.meta.env.VITE_API_URL
 
@@ -24,6 +25,7 @@ export default function ElectronSidebar({ activeTab, onTabChange, showTabs }: Pr
   const { id: currentId } = useParams()
   const location = useLocation()
   const { t } = useTranslation()
+  const { sidebarContent } = useElectronSidebar()
 
   useEffect(() => {
     const token = localStorage.getItem('token')
@@ -74,6 +76,13 @@ export default function ElectronSidebar({ activeTab, onTabChange, showTabs }: Pr
           </div>
         )}
       </div>
+
+      {/* 현재 탭 사이드바 내용 */}
+      {sidebarContent && isOnProjectDetail && (
+        <div className="border-t border-stone-200 overflow-y-auto flex-1">
+          {sidebarContent}
+        </div>
+      )}
 
       {/* 탭 전환 섹션 — ProjectDetail 안에서만 */}
       {showTabs && isOnProjectDetail && (

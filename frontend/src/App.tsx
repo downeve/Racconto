@@ -17,6 +17,7 @@ import LandingPage from './pages/LandingPage'
 import UploadToast from './components/UploadToast'
 import ElectronSidebar from './components/ElectronSidebar'
 import { useState } from 'react'
+import { ElectronSidebarProvider } from './context/ElectronSidebarContext'
 
 function PrivateRoute({ children }: { children: React.ReactNode }) {
   const { isAuthenticated, isLoading } = useAuth()
@@ -99,9 +100,11 @@ function AppRoutes() {
 function App() {
   return (
     <AuthProvider>
-      <BrowserRouter>
-        <AppRoutes />
-      </BrowserRouter>
+      <ElectronSidebarProvider>
+        <BrowserRouter>
+          <AppRoutes />
+        </BrowserRouter>
+      </ElectronSidebarProvider>
     </AuthProvider>
   )
 }
