@@ -767,8 +767,10 @@ export default function ProjectDetail() {
     </div>
   )
 
+  const isElectron = !!window.racconto  // return 문 바로 위에 추가
+
   return (
-    <div className="max-w-7xl mx-auto p-6">
+    <div className={`${isElectron ? 'w-full' : 'max-w-7xl mx-auto'} p-6`}>
       {lightboxPhoto && (
         <Lightbox
           photo={lightboxPhoto}
