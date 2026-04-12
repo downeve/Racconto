@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useMemo } from 'react'
 import { useParams } from 'react-router-dom'
 import axios from 'axios'
 
@@ -737,13 +737,14 @@ export default function ProjectDetail({
     setChapterMenuPhoto(null)
   }
 
-  const colorLabels = [
+  // 변경 후
+  const colorLabels = useMemo(() => [
     { value: 'red',    color: 'bg-red-500',    label: labelSettings['color_label_red'] },
     { value: 'yellow', color: 'bg-yellow-400', label: labelSettings['color_label_yellow'] },
     { value: 'green',  color: 'bg-green-500',  label: labelSettings['color_label_green'] },
     { value: 'blue',   color: 'bg-blue-500',   label: labelSettings['color_label_blue'] },
     { value: 'purple', color: 'bg-purple-500', label: labelSettings['color_label_purple'] },
-  ]
+  ], [labelSettings])
 
   const filteredPhotos = photos.filter(photo => {
     if (photo.deleted_at) return false
