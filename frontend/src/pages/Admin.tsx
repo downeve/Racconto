@@ -87,16 +87,6 @@ export default function Admin() {
 
   const handleDelete = async (userId: string, email: string) => {
     if (!confirm(`Delete ${email}? This cannot be undone.`)) return
-    try {
-      await axios.delete(`${API}/admin/users/${userId}`)
-      fetchUsers()
-    } catch {
-      alert('Failed to delete user.')
-    }
-  }
-
-  const handleDelete = async (userId: string, email: string) => {
-    if (!confirm(`Delete ${email}? This cannot be undone.`)) return
     setDeletingId(userId)
     try {
       await axios.delete(`${API}/admin/users/${userId}`)
