@@ -425,7 +425,11 @@ function PhotoCard({
 }
 
 // ── ProjectDetail ──────────────────────────────────────────
-export default function ProjectDetail() {
+export default function ProjectDetail({
+    electronTab,
+  }: {
+    electronTab?: 'photos' | 'story' | 'notes'
+  }) {
   const { t } = useTranslation()
 
   const { id } = useParams()
@@ -434,6 +438,9 @@ export default function ProjectDetail() {
   const [uploading, setUploading] = useState(false)
   
   const [activeTab, setActiveTab] = useState<'photos' | 'story' | 'notes' | 'delivery'>('photos')
+
+  const isElectron = !!window.racconto
+
   const [photoSubTab, setPhotoSubTab] = useState<'all' | 'trash'>('all')
   const [trashedPhotos, setTrashedPhotos] = useState<Photo[]>([])
   
@@ -539,6 +546,11 @@ export default function ProjectDetail() {
       ))
     })
   }, [])
+
+  // Electron일 때 사이드바 탭과 동기화
+  useEffect(() => {
+    if (isElectron && electronTab) setActiveTab(electronTab)
+  }, [electronTab])
 
   const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!e.target.files || !id) return
@@ -767,8 +779,6 @@ export default function ProjectDetail() {
     </div>
   )
 
-  const isElectron = !!window.racconto  // return 문 바로 위에 추가
-
   return (
     <div className={`${isElectron ? 'w-full' : 'max-w-7xl mx-auto'} p-6`}>
       {lightboxPhoto && (
@@ -856,7 +866,7 @@ export default function ProjectDetail() {
         </div>
       )}
 
-      <div className="flex border-b mb-6">
+      <div className={`flex border-b mb-6 sticky top-14 z-30 bg-[#F7F4F0] ${isElectron ? 'hidden' : ''}`}>
         <button onClick={() => { 
             setActiveTab('photos'); 
             setPhotoSubTab('all'); 

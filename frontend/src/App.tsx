@@ -15,6 +15,8 @@ import Admin from './pages/Admin'
 import PublicPortfolio from './pages/PublicPortfolio'
 import LandingPage from './pages/LandingPage'
 import UploadToast from './components/UploadToast'
+import ElectronSidebar from './components/ElectronSidebar'
+import { useState } from 'react'
 
 function PrivateRoute({ children }: { children: React.ReactNode }) {
   const { isAuthenticated, isLoading } = useAuth()
@@ -31,14 +33,14 @@ function AppRoutes() {
   const hideNavbar = location.pathname.startsWith('/delivery/')
 
   const isElectron = typeof window !== 'undefined' && !!window.racconto
+  const [electronTab, setElectronTab] = useState<'photos' | 'story' | 'notes'>('photos')
 
   return (
-    <div className={`min-h-screen bg-[#F7F4F0] ${isElectron ? 'pt-14' : 'pt-14'}`}>
-
-      {/* 모바일 차단 — 랜딩(/), 공개 포트폴리오(/p/), 납품(/delivery/) 제외 */}
+    <div className="min-h-screen bg-[#F7F4F0] pt-14">
+      {/* 모바일 차단 — 기존 코드 그대로 */}
       {!['/', ].includes(location.pathname) &&
-       !location.pathname.startsWith('/p/') &&
-       !location.pathname.startsWith('/delivery/') && (
+      !location.pathname.startsWith('/p/') &&
+      !location.pathname.startsWith('/delivery/') && (
         <div className="md:hidden fixed inset-0 bg-[#F7F4F0] z-50 flex items-center justify-center p-8 text-center">
           <div>
             <p className="text-3xl mb-4">📷</p>
@@ -49,10 +51,7 @@ function AppRoutes() {
               {t('landing.desktopOptimizationDesc')}
             </p>
             {isAuthenticated && (
-              <button
-                onClick={logout}
-                className="text-xs text-stone-400 hover:text-stone-600 underline underline-offset-2"
-              >
+              <button onClick={logout} className="text-xs text-stone-400 hover:text-stone-600 underline underline-offset-2">
                 {t('auth.logout')}
               </button>
             )}
@@ -61,26 +60,37 @@ function AppRoutes() {
       )}
 
       {isAuthenticated && !hideNavbar && <Navbar onLogout={logout} />}
-      <Routes>
-        <Route path="/login" element={<Login />} />
-        <Route path="/register" element={<Register />} />
-        <Route path="/verify-email" element={<VerifyEmail />} />
-        <Route path="/" element={
-          isAuthenticated ? <Navigate to="/projects" /> : <LandingPage />
-        } />
-        <Route path="/projects" element={<PrivateRoute><Projects /></PrivateRoute>} />
-        <Route path="/projects/:id" element={<PrivateRoute><ProjectDetail /></PrivateRoute>} />
-        <Route path="/projects/:id/edit" element={<PrivateRoute><ProjectEdit /></PrivateRoute>} />
-        <Route path="/trash" element={<PrivateRoute><Trash /></PrivateRoute>} />
-        <Route path="/settings" element={<PrivateRoute><Settings /></PrivateRoute>} />
-        <Route path="/admin" element={<PrivateRoute><Admin /></PrivateRoute>} />
 
-        {/* 납품 링크 - 비로그인 공개 페이지 */}
-        <Route path="/delivery/:linkId" element={<DeliveryPage />} />
+      {/* Electron 사이드바 — 인증된 상태, 납품/공개 페이지 제외 */}
+      {isElectron && isAuthenticated && !hideNavbar && (
+        <ElectronSidebar
+          activeTab={electronTab}
+          onTabChange={setElectronTab}
+          showTabs={true}
+        />
+      )}
 
-        {/* 공개 포트폴리오 - 비로그인 접근 가능 */}
-        <Route path="/p/:username" element={<PublicPortfolio />} />
-      </Routes>
+      {/* 메인 콘텐츠 — Electron일 때 사이드바 너비만큼 밀기 */}
+      <div className={isElectron && isAuthenticated && !hideNavbar ? 'ml-56' : ''}>
+        <Routes>
+          <Route path="/login" element={<Login />} />
+          <Route path="/register" element={<Register />} />
+          <Route path="/verify-email" element={<VerifyEmail />} />
+          <Route path="/" element={isAuthenticated ? <Navigate to="/projects" /> : <LandingPage />} />
+          <Route path="/projects" element={<PrivateRoute><Projects /></PrivateRoute>} />
+          <Route path="/projects/:id" element={
+            <PrivateRoute>
+              <ProjectDetail electronTab={electronTab} />
+            </PrivateRoute>
+          } />
+          <Route path="/projects/:id/edit" element={<PrivateRoute><ProjectEdit /></PrivateRoute>} />
+          <Route path="/trash" element={<PrivateRoute><Trash /></PrivateRoute>} />
+          <Route path="/settings" element={<PrivateRoute><Settings /></PrivateRoute>} />
+          <Route path="/admin" element={<PrivateRoute><Admin /></PrivateRoute>} />
+          <Route path="/delivery/:linkId" element={<DeliveryPage />} />
+          <Route path="/p/:username" element={<PublicPortfolio />} />
+        </Routes>
+      </div>
       <UploadToast />
     </div>
   )
