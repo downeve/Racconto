@@ -42,24 +42,48 @@ def send_verification_email(to_email: str, verify_token: str, lang: str = 'ko'):
         to=[{"email": to_email}],
         sender={"email": FROM_EMAIL, "name": FROM_NAME},
         subject=t['subject'],
-        html_content=f"""
-        <div style="font-family: sans-serif; max-width: 480px; margin: 0 auto; 
-            background-color: #ffffff; padding: 24px; color: #000000;">
-            <h2 style="letter-spacing: 2px;">Racconto</h2>
-            <p>{t['desc']}</p>
-            <p>{t['validity']}</p>
-            <a href="{verify_url}"
-            style="display: inline-block; margin-top: 16px; padding: 12px 24px;
-                    background: #1a1a1a; color: #ffffff !important; text-decoration: none;
-                    letter-spacing: 1px; font-size: 14px; border-radius: 4px;
-                    -webkit-text-fill-color: #ffffff;">
-                {t['button']}
-            </a>
-            <p style="margin-top: 24px; color: #999; font-size: 12px;">
-                {t['ignore']}
-            </p>
-        </div>
-        """
+            html_content=f"""
+            <div style="font-family: sans-serif; max-width: 480px; margin: 0 auto;
+                        background-color: #F7F4F0; padding: 40px 32px; color: #1c1917;">
+
+                <!-- 로고 -->
+                <div style="margin-bottom: 32px;">
+                    <span style="font-family: Georgia, 'Times New Roman', serif;
+                                font-size: 22px; font-weight: bold;
+                                letter-spacing: 0.15em; color: #1c1917;">
+                        Racconto
+                    </span>
+                </div>
+
+                <!-- 본문 -->
+                <div style="background-color: #ffffff; border-radius: 8px;
+                            padding: 32px; margin-bottom: 24px;">
+                    <h2 style="font-size: 16px; font-weight: 600; margin: 0 0 16px 0;
+                            letter-spacing: 0.05em; color: #1c1917;">
+                        {t['title']}
+                    </h2>
+                    <p style="font-size: 14px; line-height: 1.7; color: #44403c; margin: 0 0 8px 0;">
+                        {t['desc']}
+                    </p>
+                    <p style="font-size: 13px; color: #78716c; margin: 0 0 24px 0;">
+                        {t['validity']}
+                    </p>
+                    <a href="{verify_url}"
+                    style="display: inline-block; padding: 12px 28px;
+                            background-color: #1c1917; color: #ffffff !important;
+                            text-decoration: none; font-size: 13px;
+                            letter-spacing: 0.08em; border-radius: 4px;
+                            -webkit-text-fill-color: #ffffff;">
+                        {t['button']}
+                    </a>
+                </div>
+
+                <!-- 하단 -->
+                <p style="font-size: 12px; color: #a8a29e; line-height: 1.6; margin: 0;">
+                    {t['ignore']}
+                </p>
+            </div>
+            """
     )
 
     try:
@@ -80,12 +104,28 @@ def send_notice_email(to_email: str, subject: str, content: str):
             subject=subject,
             html_content=f"""
             <div style="font-family: sans-serif; max-width: 480px; margin: 0 auto;
-                        background-color: #ffffff; padding: 24px; color: #000000;">
-                <h2 style="letter-spacing: 2px; margin-bottom: 24px;">Racconto</h2>
-                <div style="font-size: 14px; line-height: 1.7; color: #333333;">
-                    {content.replace('\n', '<br>')} 
+                        background-color: #F7F4F0; padding: 40px 32px; color: #1c1917;">
+
+                <!-- 로고 -->
+                <div style="margin-bottom: 32px;">
+                    <span style="font-family: Georgia, 'Times New Roman', serif;
+                                font-size: 22px; font-weight: bold;
+                                letter-spacing: 0.15em; color: #1c1917;">
+                        Racconto
+                    </span>
                 </div>
-                <p style="margin-top: 32px; color: #999; font-size: 12px; border-top: 1px solid #eee; padding-top: 16px;">
+
+                <!-- 본문 -->
+                <div style="background-color: #ffffff; border-radius: 8px;
+                            padding: 32px; margin-bottom: 24px;">
+                    <div style="font-size: 14px; line-height: 1.8; color: #44403c;">
+                        {content.replace(chr(10), '<br>')}
+                    </div>
+                </div>
+
+                <!-- 하단 -->
+                <p style="font-size: 12px; color: #a8a29e; line-height: 1.6; margin: 0;
+                        border-top: 1px solid #e7e3de; padding-top: 16px;">
                     This email was sent from Racconto (racconto.app).<br>
                     If you have any questions, please contact us at {FROM_EMAIL}.
                 </p>
