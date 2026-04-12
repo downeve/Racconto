@@ -6,6 +6,13 @@ BREVO_API_KEY = os.getenv("BREVO_API_KEY")
 FROM_EMAIL = "noreply@racconto.app"
 FROM_NAME = "Racconto"
 
+# 1. API 설정을 전역(Global)으로 빼서 한 번만 초기화합니다.
+configuration = sib_api_v3_sdk.Configuration()
+configuration.api_key['api-key'] = BREVO_API_KEY
+api_instance = sib_api_v3_sdk.TransactionalEmailsApi(
+    sib_api_v3_sdk.ApiClient(configuration)
+)
+
 EMAIL_TEMPLATES = {
     'ko': {
         'subject': 'Racconto 이메일 인증',
@@ -26,13 +33,6 @@ EMAIL_TEMPLATES = {
 }
 
 def send_verification_email(to_email: str, verify_token: str, lang: str = 'ko'):
-    configuration = sib_api_v3_sdk.Configuration()
-    configuration.api_key['api-key'] = BREVO_API_KEY
-
-    api_instance = sib_api_v3_sdk.TransactionalEmailsApi(
-        sib_api_v3_sdk.ApiClient(configuration)
-    )
-
     t = EMAIL_TEMPLATES.get(lang, EMAIL_TEMPLATES['ko'])
     
     BASE_URL = os.getenv("BASE_URL", "https://racconto.app")
@@ -63,6 +63,7 @@ def send_verification_email(to_email: str, verify_token: str, lang: str = 'ko'):
     )
 
     try:
+        # 전역으로 선언된 api_instance를 사용합니다.
         api_instance.send_transac_email(send_smtp_email)
         return True
     except ApiException as e:
@@ -82,7 +83,7 @@ def send_notice_email(to_email: str, subject: str, content: str):
                         background-color: #ffffff; padding: 24px; color: #000000;">
                 <h2 style="letter-spacing: 2px; margin-bottom: 24px;">Racconto</h2>
                 <div style="font-size: 14px; line-height: 1.7; color: #333333;">
-                    {content.replace(chr(10), '<br>')}
+                    {content.replace('\n', '<br>')} 
                 </div>
                 <p style="margin-top: 32px; color: #999; font-size: 12px; border-top: 1px solid #eee; padding-top: 16px;">
                     This email was sent from Racconto (racconto.app).<br>
@@ -91,9 +92,7 @@ def send_notice_email(to_email: str, subject: str, content: str):
             </div>
             """
         )
-        api_instance = sib_api_v3_sdk.TransactionalEmailsApi(
-            sib_api_v3_sdk.ApiClient(configuration)
-        )
+        # 2. 여기서 중복되던 인스턴스 생성 코드를 제거하고 전역 api_instance를 그대로 사용합니다.
         api_instance.send_transac_email(send_smtp_email)
     except Exception as e:
         print(f"공지 이메일 발송 실패 ({to_email}): {e}")

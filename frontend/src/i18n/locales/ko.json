@@ -132,6 +132,12 @@
     "uploadFolder": "+ 폴더",
     "uploading": "진행 중...",
     "uploadFail": "업로드  실패",
+    "upload": {
+      "ExcludWarning": "지원하지 않는 파일 {{count}}개가 제외되었습니다."
+    },
+    "trashComment": {
+      "DeleteAllConfirm": "휴지통 사진 {{count}}개를 모두 삭제할까요?"
+    },
     "noPhotos": "사진이 없습니다. 사진을 업로드하세요.",
     "setCover": "커버",
     "removeCover": "커버 해제",
@@ -152,7 +158,15 @@
     "deleteAll": "전체 삭제",
     "deleteAllPermanent": "전체 완전 삭제",
     "countText": "개",
-    "deletedInfo": "삭제된 사진은 30일 동안 보관 후 완전 삭제됩니다."
+    "deletedInfo": "휴지통 사진은 30일 후에 자동으로 완전 삭제됩니다.",
+    "local": {
+      "MissingWarning": "로컬 파일 없음: {{count}}개"
+    },
+    "error": {
+      "OriginalNotFound": "원본 사진 데이터를 찾을 수 없습니다.",
+      "SaveCaptionFailed": "캡션 저장 실패:",
+      "SaveFailedAlert": "저장에 실패했습니다."
+    }
   },
   "filter": {
     "filter": "탭 숨기기",
@@ -207,7 +221,11 @@
     "noChapter2": "스토리 탭에서 챕터를 추가해 주세요.",
     "addToChapter": "챕터에 추가",
     "noChapters": "생성된 챕터가 없습니다",
-    "addPhotoGuide": "사진 탭에서 📖 버튼으로 이 챕터에 사진을 추가하세요."
+    "addPhotoGuide": "사진 탭에서 📖 버튼으로 이 챕터에 사진을 추가하세요.",
+    "error": {
+      "ReorderFailedLog": "챕터 순서 변경 실패:",
+      "ReorderFailedAlert": "순서 변경에 실패했습니다."
+    }
   },
   "note": {
     "title": "노트",
@@ -305,6 +323,8 @@
     "saveSuccess": "✓ 저장됨",
     "passwordChanged": "비밀번호가 변경되었습니다. 다시 로그인해주세요.",
     "passwordChangeFailed": "비밀번호 변경 실패",
+    "passwordMismatch": "새 비밀번호가 일치하지 않아요",
+    "passwordMinLength": "비밀번호는 {{minLength}}자 이상이어야 해요",
     "passwordInputAll": "모든 항목을 입력해 주세요.",
     "publicPortfolio": "퍼블릭 포트폴리오 URL",
     "publicPortfolioDesc": "비로그인 상태에서도 접근 가능한 나만의 포트폴리오 주소입니다.",
@@ -323,13 +343,14 @@
   },
   "trash": {
     "title": "프로젝트 휴지통",
-    "description": "삭제 후 30일이 지나면 자동으로 영구 삭제됩니다.",
+    "description": "휴지통에 넣은 후 30일이 지나면 자동으로 완전 삭제됩니다.",
     "empty": "휴지통이 비어있어요",
     "deletedAt": "일 후 자동 삭제",
     "restore": "복구",
-    "permanentDelete": "영구 삭제",
-    "permanentDeleteConfirm": "영구히 삭제할까요? 복구할 수 없습니다.",
-    "delete_warning": "{{daysLeft}}일 후 영구 삭제"
+    "permanentDelete": "삭제",
+    "permanentDeleteConfirm": "정말 완전히 삭제할까요? 다시 복구할 수 없습니다.",
+    "deleteProjectError": "프로젝트를 삭제하는 중 오류가 발생했습니다. (내부에 사진이 남아있을 수 있습니다.)",
+    "delete_warning": "{{daysLeft}}일 후 자동 삭제"
   },
   "actions": {
     "resetAllRatings": "전체 별점 초기화",
@@ -358,9 +379,10 @@
     "archived": "보관"
   },
   "landing": {
-    "heroEyebrow": "핸드폰 사진부터 필름까지, 모든 사진가를 위해",
-    "heroTitle": "당신의 사진이\n이야기가 됩니다.",
-    "heroSubtitle": "사진을 찍는 것만큼 쉽게, 당신만의 이야기를 만드세요.",
+    "heroEyebrow": "스마트폰부터 필름까지, 모든 사진가를 위해",
+    "heroTitle": "당신의 사진이",
+    "heroTitle2": "이야기가 됩니다",
+    "heroSubtitle": "찍는 것만큼 쉽게, 당신의 순간으로 스토리를 만드세요.",
     "ctaPrimary": "Racconto 시작하기",
     "ctaSecondary": "주요 기능 살펴보기",
     "betaBadge": "오픈 베타 준비 중",
@@ -382,6 +404,20 @@
     "betaLimit": "베타 제한: 프로젝트 3개 · 프로젝트당 사진 300장",
     "alreadyHaveAccount": "이미 계정이 있으신가요?",
     "demoEyebrow": "미리보기",
-    "demoTitle": "사진가의 작업 공간"
+    "demoTitle": "사진가의 작업 공간",
+    "desktopOptimizationInfo": "컴퓨터에서 사용해 주세요.",
+    "desktopOptimizationDesc": "Racconto는 데스크탑 환경에 최적화 되어 있습니다."
+  },
+  "electron": {
+    "localFolderConnect": "로컬 폴더 연결",
+    "localFolderConnectInfo": "폴더를 연결하면 앱 실행 시 새로 추가한 사진 및 삭제된 사진을 자동 감지합니다.",
+    "selectFolder": "폴더 선택",
+    "selectProject": "프로젝트 선택",
+    "connect": "연결",
+    "upload": {
+      "status_with_error": "{{success}}개 완료 · {{failed}}개 실패",
+      "status_success": "{{total}}개 업로드 완료",
+      "status_progress": "업로드 중... {{done}} / {{total}}개"
+    }
   }
 }

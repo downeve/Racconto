@@ -80,7 +80,7 @@ def create_chapter(chapter: ChapterCreate, db: Session = Depends(get_db)):
                 detail="Cannot create sub-chapter under another sub-chapter (max 2 levels)"
             )
     
-    # 💡 새 챕터 생성 시 순서값이 없으면(0이거나 None) 기존 챕터들의 마지막 번호 + 1 자동 할당
+    # 새 챕터 생성 시 순서값이 없으면(0이거나 None) 기존 챕터들의 마지막 번호 + 1 자동 할당
     next_order = chapter.order_num
     if not next_order:
         last_chapter = db.query(models.Chapter).filter(
@@ -121,7 +121,7 @@ def update_chapter(chapter_id: str, chapter: ChapterUpdate, db: Session = Depend
     if not db_chapter:
         raise HTTPException(status_code=404, detail="Chapter not found")
     
-    # 💡 프론트엔드에서 "실제로 명시해서 보낸 값"만 추출 (기본값으로 덮어쓰는 것 방지)
+    # 프론트엔드에서 "실제로 명시해서 보낸 값"만 추출 (기본값으로 덮어쓰는 것 방지)
     # (주의: 만약 Pydantic 최신 버전 에러 시 dict 대신 model_dump(exclude_unset=True) 사용)
     update_data = chapter.dict(exclude_unset=True) 
     

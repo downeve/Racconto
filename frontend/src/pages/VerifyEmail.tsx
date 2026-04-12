@@ -43,7 +43,7 @@ export default function VerifyEmail() {
   return (
     <div className="min-h-screen flex flex-col bg-gray-50">
 
-    {/* 💡 공통: 수정된 네비게이션 바 */}
+    {/* 공통: 수정된 네비게이션 바 */}
       <nav className="fixed top-0 left-0 right-0 z-50 bg-[#F7F4F0]/90 backdrop-blur-sm border-b border-stone-200 text-stone-900">
         <div className="max-w-6xl mx-auto px-6 h-14 flex items-center justify-between">
           <Link 

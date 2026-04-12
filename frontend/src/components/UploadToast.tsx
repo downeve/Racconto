@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 
 interface ProgressState {
   done: number
@@ -10,6 +11,7 @@ interface ProgressState {
 export default function UploadToast() {
   const [progress, setProgress] = useState<ProgressState | null>(null)
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const { t } = useTranslation()
 
   useEffect(() => {
     if (!window.racconto) return
@@ -32,14 +34,20 @@ export default function UploadToast() {
   return (
     <div className="fixed bottom-6 right-6 z-50 w-72 bg-stone-800 text-white rounded-lg shadow-lg px-4 py-3">
       <div className="flex items-center justify-between mb-2">
-        <span className="text-sm font-medium">
-          {progress.finished
-            ? progress.failed > 0
-              ? `${progress.done - progress.failed}개 완료 · ${progress.failed}개 실패`
-              : `${progress.total}개 업로드 완료`
-            : `업로드 중 ${progress.done} / ${progress.total}개`
-          }
-        </span>
+      <span className="text-sm font-medium">
+        {progress.finished
+          ? progress.failed > 0
+            ? t('electron.upload.status_with_error', { 
+                success: progress.done - progress.failed, 
+                failed: progress.failed 
+              })
+            : t('electron.upload.status_success', { total: progress.total })
+          : t('electron.upload.status_progress', { 
+              done: progress.done, 
+              total: progress.total 
+            })
+        }
+      </span>
         {progress.finished && (
           <button
             onClick={() => setProgress(null)}

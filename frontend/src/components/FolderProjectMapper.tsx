@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { useTranslation } from 'react-i18next'
 import axios from 'axios'
 import { FolderOpenIcon, XMarkIcon, LinkIcon } from '@heroicons/react/24/outline'
 
@@ -20,6 +21,7 @@ export default function FolderProjectMapper() {
   const [projects, setProjects] = useState<Project[]>([])
   const [selectedFolder, setSelectedFolder] = useState<string | null>(null)
   const [selectedProjectId, setSelectedProjectId] = useState<string>('')
+  const { t } = useTranslation()
 
   const isElectron = !!window.racconto
 
@@ -72,10 +74,10 @@ export default function FolderProjectMapper() {
     <div className="bg-white rounded-lg shadow p-6 mb-6">
       <h3 className="font-semibold mb-1 flex items-center gap-2">
         <FolderOpenIcon className="w-5 h-5 text-gray-500" />
-        로컬 폴더 연결
+        {t('electron.localFolderConnect')}
       </h3>
       <p className="text-xs text-gray-400 mb-4 ml-7">
-        폴더를 프로젝트에 연결하면 새 사진이 자동으로 업로드됩니다.
+        {t('electron.localFolderConnectInfo')}
       </p>
 
       {/* 연결된 폴더 목록 */}
@@ -104,13 +106,13 @@ export default function FolderProjectMapper() {
       <div className="flex items-center gap-2">
         <button onClick={handleSelectFolder}
           className="px-3 py-2 text-sm border rounded hover:bg-gray-50 shrink-0">
-          {selectedFolder ? '📁 ' + selectedFolder.split('/').pop() : '폴더 선택'}
+          {selectedFolder ? '📁 ' + selectedFolder.split('/').pop() : t('electron.selectFolder')}
         </button>
         <select
           value={selectedProjectId}
           onChange={e => setSelectedProjectId(e.target.value)}
           className="border rounded px-3 py-2 text-sm outline-none focus:border-black flex-1">
-          <option value="">프로젝트 선택</option>
+          <option value="">{t('electron.selectProject')}</option>
           {projects.map(p => (
             <option key={p.id} value={p.id}>{p.title}</option>
           ))}
@@ -119,7 +121,7 @@ export default function FolderProjectMapper() {
           onClick={handleLink}
           disabled={!selectedFolder || !selectedProjectId}
           className="px-4 py-2 text-sm bg-black text-white rounded hover:bg-gray-800 disabled:opacity-40 shrink-0">
-          연결
+          {t('electron.connect')}
         </button>
       </div>
       {selectedFolder && (

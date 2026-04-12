@@ -1,5 +1,6 @@
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom'
 import { AuthProvider, useAuth } from './context/AuthContext'
+import { useTranslation } from 'react-i18next'
 import Navbar from './components/Navbar'
 import Login from './pages/Login'
 import Projects from './pages/Projects'
@@ -23,6 +24,7 @@ function PrivateRoute({ children }: { children: React.ReactNode }) {
 
 function AppRoutes() {
   const { isAuthenticated, logout } = useAuth()
+  const {t} = useTranslation()
   const location = useLocation()
 
   // 납품 링크 페이지에서는 Navbar 숨김
@@ -39,17 +41,17 @@ function AppRoutes() {
           <div>
             <p className="text-3xl mb-4">📷</p>
             <p className="text-lg font-bold text-stone-900 mb-2" style={{ fontFamily: 'Georgia, serif' }}>
-              데스크톱에서 사용해주세요
+              {t('landing.desktopOptimizationInfo')}
             </p>
             <p className="text-sm text-stone-500 leading-relaxed mb-6">
-              Racconto는 데스크톱 환경에 최적화되어 있습니다.
+              {t('landing.desktopOptimizationDesc')}
             </p>
             {isAuthenticated && (
               <button
                 onClick={logout}
                 className="text-xs text-stone-400 hover:text-stone-600 underline underline-offset-2"
               >
-                로그아웃
+                {t('auth.logout')}
               </button>
             )}
           </div>

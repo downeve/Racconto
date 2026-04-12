@@ -160,6 +160,12 @@ export default function LandingPage() {
           >
             {t('landing.heroTitle')}
           </h1>
+          <h1
+            className="text-5xl md:text-7xl font-bold leading-tight mb-6 text-stone-900 break-keep"
+            style={{ fontFamily: "'Georgia', serif", letterSpacing: '-0.02em' }}
+          >
+            {t('landing.heroTitle2')}
+          </h1>
           <p className="text-lg md:text-xl text-stone-500 leading-relaxed mb-10 max-w-xl mx-auto break-keep"
             style={{ fontFamily: "'Georgia', serif", fontStyle: 'italic' }}>
             {t('landing.heroSubtitle')}

@@ -550,7 +550,12 @@ export default function ProjectDetail() {
 
     // 안내 메시지 (옵션)
     if (validFiles.length !== e.target.files.length) {
-      console.warn(`지원하지 않는 파일 ${e.target.files.length - validFiles.length}개가 제외되었습니다.`)
+      const excludedCount = e.target.files.length - validFiles.length;
+      
+      // 콘솔이나 토스트 알림 등에 사용
+      console.warn(
+        t('photo.upload.ExlcudeWarning', { count: excludedCount })
+      );
     }
 
     // 💡 2. 필터링된 정상 파일들만 업로드 진행
@@ -683,13 +688,23 @@ export default function ProjectDetail() {
 
   const handleDeleteAllTrash = async () => {
     if (trashedPhotos.length === 0) return
-    if (!confirm(`휴지통 사진 ${trashedPhotos.length}개를 모두 영구 삭제할까요?`)) return
+
+    // ✅ 다국어 적용 및 count 변수 전달
+    if (!confirm(t('photo.trashComment.DeleteAllConfirm', { count: trashedPhotos.length }))) {
+      return
+    }
+
     setDeletingTrash(true)
-    await axios.delete(`${API}/photos/bulk-permanent`, {
-      data: { photo_ids: trashedPhotos.map(p => p.id) }
-    })
-    await fetchTrash()
-    setDeletingTrash(false)
+    try {
+      await axios.delete(`${API}/photos/bulk-permanent`, {
+        data: { photo_ids: trashedPhotos.map(p => p.id) }
+      })
+      await fetchTrash()
+    } catch (error) {
+      console.error(error)
+    } finally {
+      setDeletingTrash(false)
+    }
   }
 
   const handleSaveCaption = async (photo: Photo) => {
@@ -743,6 +758,8 @@ export default function ProjectDetail() {
     }
     return sortOrder === 'desc' ? -result : result
   })
+
+  const missingCount = photos.filter(p => p.local_missing && !p.deleted_at).length;
 
   if (!project) return (
     <div className="min-h-screen flex items-center justify-center">
@@ -1076,10 +1093,12 @@ export default function ProjectDetail() {
             {photoSubTab === 'all' && (
               <div>
                   {/* local_missing 일괄 삭제 버튼 — Electron 앱 + missing 사진 있을 때만 표시 */}
-                  {photos.some(p => p.local_missing && !p.deleted_at) && (
+                  {/* ✅ photos.some 대신 missingCount > 0 으로 수정 */}
+                  {missingCount > 0 && (
                     <div className="mb-4 flex items-center justify-between bg-yellow-50 border border-yellow-200 rounded-lg px-4 py-2.5">
                       <p className="text-xs text-yellow-700">
-                        ⚠️ {t('project.noLocalFile2')} {photos.filter(p => p.local_missing && !p.deleted_at).length}개
+                        {/* ✅ 하드코딩 제거 및 i18n 변수 적용 */}
+                        ⚠️ {t('photo.local.MissingWarning', { count: missingCount })}
                       </p>
                       <button
                         onClick={handleDeleteAllMissing}
@@ -1229,7 +1248,7 @@ export default function ProjectDetail() {
       <button
         onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
         className="fixed bottom-8 right-8 w-12 h-12 bg-black/70 hover:bg-black text-white rounded-full flex items-center justify-center shadow-2xl transition-all z-50 backdrop-blur-sm"
-        title="맨 위로"
+        title="Top"
       >
         <span className="text-2xl font-bold">↑</span>
       </button>

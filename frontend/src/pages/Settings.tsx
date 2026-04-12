@@ -59,11 +59,13 @@ export default function Settings() {
       return
     }
     if (newPassword !== confirmPassword) {
-      setPasswordError('새 비밀번호가 일치하지 않아요')
+      // 다국어 적용: 비밀번호 불일치 에러
+      setPasswordError(t('settings.passwordMismatch'))
       return
     }
     if (newPassword.length < 8) {
-      setPasswordError('비밀번호는 8자 이상이어야 해요')
+      // 다국어 적용: 비밀번호 최소 길이 에러 (숫자 변수 처리)
+      setPasswordError(t('settings.passwordMinLength', { minLength: 8 }))
       return
     }
     try {
@@ -139,7 +141,7 @@ export default function Settings() {
         headers: { Authorization: `Bearer ${token}` }
       })
 
-      // 💡 [추가] 저장이 성공하면, 변경된 유저네임을 담아서 커스텀 이벤트를 발생시킴!
+      // [추가] 저장이 성공하면, 변경된 유저네임을 담아서 커스텀 이벤트를 발생시킴!
       window.dispatchEvent(new CustomEvent('usernameChanged', { detail: username }));
       
       setUsernameSaved(true)
@@ -241,9 +243,9 @@ export default function Settings() {
             <span className="text-sm text-gray-500">{t('photo.listOrder')}</span>
             <div className="flex gap-2">
               {[
-                { value: 'default', label: t('photo.orderUpload') || '업로드순' },
-                { value: 'taken_at', label: t('photo.orderTaken') || '촬영일순' },
-                { value: 'name', label: t('photo.orderName') || '파일명순' }
+                { value: 'default', label: t('photo.orderUpload') },
+                { value: 'taken_at', label: t('photo.orderTaken') },
+                { value: 'name', label: t('photo.orderName') }
               ].map(opt => (
                 <button
                   key={opt.value}
@@ -271,7 +273,7 @@ export default function Settings() {
             <div key={key} className="flex items-center gap-3">
               <div className={`w-4 h-4 rounded-full ${color} shrink-0`} />
               <span className="text-sm text-gray-500 w-12 shrink-0">{t(`colorLabels.${value}`)}</span>
-              {/* 💡 flex-1을 w-40(고정 너비)로 변경했습니다 */}
+              {/* flex-1을 w-40(고정 너비)으로 변경 */}
               <input
                 className="w-40 border rounded px-3 py-1.5 text-sm outline-none focus:border-black transition-colors"
                 value={settings[key] || ''}
@@ -323,7 +325,7 @@ export default function Settings() {
           />
           <button
             onClick={handleUsernameSave}
-            // 💡 수정: '사용 가능' 상태이거나 '빈 칸'일 때 버튼 활성화
+            // 수정: '사용 가능' 상태이거나 '빈 칸'일 때 버튼 활성화
             disabled={(usernameStatus !== 'available' && username !== '') && !usernameSaved}
             className={`px-4 py-2 text-sm rounded transition-colors ${
               usernameSaved ? 'bg-green-600 text-white' :

@@ -58,7 +58,7 @@ export default function PublicPortfolio() {
   }, [isAuthenticated, username, navigate]);
 
   useEffect(() => {
-    // 💡 [수정] username이 아예 없거나 '@setup'인 경우 API 호출을 생략합니다.
+    // [수정] username이 아예 없거나 '@setup'인 경우 API 호출을 생략합니다.
     if (!username || username === '@setup') {
       setNotFound(false);
       return;
@@ -114,7 +114,7 @@ export default function PublicPortfolio() {
   const cardBg = darkMode ? 'bg-[#2A2A2A]' : 'bg-white'
   const subText = darkMode ? 'text-gray-400' : 'text-gray-500'
 
-  // 💡 케이스 1: 먼저 사용자가 포트폴리오 설정을 안 했을 때 (@setup) 인지 확인합니다.
+  // 케이스 1: 먼저 사용자가 포트폴리오 설정을 안 했을 때 (@setup) 인지 확인합니다.
   if (username === '@setup' || !username) {
     return (
       <div className={`min-h-screen pt-14 flex flex-col ${darkMode ? 'bg-stone-900 text-white' : 'bg-[#F7F4F0] text-stone-900'}`}>
@@ -132,7 +132,7 @@ export default function PublicPortfolio() {
     );
   }
 
-  // 💡 케이스 2: _setup이 아닌데 못 찾았을 때 (진짜 에러 화면)
+  // 케이스 2: _setup이 아닌데 못 찾았을 때 (진짜 에러 화면)
   if (notFound) {
     return (
       <div className={`fixed inset-0 z-[100] flex flex-col ${darkMode ? 'bg-stone-900 text-white' : 'bg-[#F7F4F0] text-stone-900'}`}>
@@ -159,7 +159,7 @@ export default function PublicPortfolio() {
 
   return (
     <div className={`min-h-screen ${bg} transition-colors duration-300`}>
-    {/* 💡 [수정된 부분] 로그아웃 상태일 때 보여주는 헤더를 fixed로 띄워 상단 빈 공간을 덮어버립니다. */}
+    {/* [수정된 부분] 로그아웃 상태일 때 보여주는 헤더를 fixed로 띄워 상단 빈 공간을 덮어버립니다. */}
       {!isAuthenticated && (
         <nav className={`fixed top-0 left-0 right-0 z-[60] border-b backdrop-blur-md transition-colors duration-300 ${
           darkMode ? 'bg-[#1A1A1A]/90 border-white/10' : 'bg-[#F5F0EB]/90 border-gray-200'
@@ -308,7 +308,7 @@ export default function PublicPortfolio() {
             onClick={() => setLightboxIndex(null)}
           >✕</button>
           
-          {/* 💡 첫 번째 사진이 아닐 때만 왼쪽 화살표 표시 */}
+          {/* 첫 번째 사진이 아닐 때만 왼쪽 화살표 표시 */}
           {lightboxIndex > 0 && (
             <button
               className={`absolute left-6 text-5xl z-10 select-none ${darkMode ? 'text-white' : 'text-gray-900'} hover:opacity-50`}
@@ -325,7 +325,7 @@ export default function PublicPortfolio() {
               className="max-w-full max-h-[80vh] object-contain"
             />
             
-            {/* 💡 텍스트 영역: 중앙 배치 유지하되 안쪽 텍스트는 왼쪽 정렬(text-start) */}
+            {/* 텍스트 영역: 중앙 배치 유지하되 안쪽 텍스트는 왼쪽 정렬(text-start) */}
             <div className="text-start mt-4 w-full">
               <p className="mb-1.5 leading-relaxed flex items-center flex-wrap">
                 {/* 1. 챕터 정보 (조금 작고 흐리게) */}
@@ -350,7 +350,7 @@ export default function PublicPortfolio() {
             </div>
           </div>
 
-          {/* 💡 마지막 사진이 아닐 때만 오른쪽 화살표 표시 */}
+          {/* 마지막 사진이 아닐 때만 오른쪽 화살표 표시 */}
           {lightboxIndex < lightboxItems.length - 1 && (
             <button
               className={`absolute right-6 text-5xl z-10 select-none ${darkMode ? 'text-white' : 'text-gray-900'} hover:opacity-50`}

@@ -132,6 +132,14 @@
     "uploadFolder": "+ Folder",
     "uploading": "Uploading",
     "uploadFail": "Upload failed",
+    "upload": {
+      "ExcludeWarning_one": "1 unsupported file was excluded.",
+      "ExcludeWarning_other": "{{count}} unsupported files were excluded."
+    },
+    "trashComment": {
+      "DeleteAllConfirm_one": "Are you sure you want to permanently delete 1 photo in the trash?",
+      "DeleteAllConfirm_other": "Are you sure you want to permanently delete all {{count}} photos in the trash?"
+    },
     "noPhotos": "No photos yet. Click the buttons above to upload.",
     "setCover": "Cover",
     "removeCover": "Remove Cover",
@@ -152,7 +160,16 @@
     "deleteAll": "Deleted",
     "deleteAllPermanent": "Permanently deleted",
     "countText": "",
-    "deletedInfo": "Deleted photos will be permanently removed after 30 days."
+    "deletedInfo": "Photos in the trash will be permanently removed after 30 days.",
+    "local": {
+      "MissingWarning_one": "1 local file missing",
+      "MissingWarning_other": "{{count}} local files missing"
+    },
+    "error": {
+      "OriginalNotFound": "Original photo data could not be found.",
+      "SaveCaptionFailed": "Failed to save caption:",
+      "SaveFailedAlert": "Failed to save."
+    }
   },
   "filter": {
     "filter": "Hide tab",
@@ -207,7 +224,11 @@
     "noChapter2": "Please make a chapter in the Story tab.",
     "addToChapter": "Add to Chapter",
     "noChapters": "No chapters yet",
-    "addPhotoGuide": "Add photos to this chapter using the 📖 button in the Photos tab."
+    "addPhotoGuide": "Add photos to this chapter using the 📖 button in the Photos tab.",
+    "error": {
+      "ReorderFailedLog": "Failed to reorder chapters:",
+      "ReorderFailedAlert": "Failed to change the order."
+    }
   },
   "note": {
     "title": "Note",
@@ -305,6 +326,8 @@
     "saveSuccess": "Saved successfully.",
     "passwordChanged": "Password changed successfully. Please log in again.",
     "passwordChangeFailed": "Failed to change password.",
+    "passwordMismatch": "New passwords do not match.",
+    "passwordMinLength": "Password must be at least {{minLength}} characters long.",
     "passwordInputAll": "Please fill in all input boxes.",
     "publicPortfolio": "Public Portfolio URL",
     "publicPortfolioDesc": "Your public portfolio link accessible without login.",
@@ -329,6 +352,7 @@
     "restore": "Restore",
     "permanentDelete": "Delete Permanently",
     "permanentDeleteConfirm": "Are you sure you want to permanently delete this? This action cannot be undone.",
+    "deleteProjectError": "An error occurred while deleting the project. (There might be photos remaining inside.)",
     "delete_warning": "{{daysLeft}} days left"
   },
   "actions": {
@@ -358,8 +382,9 @@
     "archived": "Archived"
   },
   "landing": {
-    "heroEyebrow": "For every photographer with a story to tell",
-    "heroTitle": "Turn your\nphotos into\nstories",
+    "heroEyebrow": "Every photographer with a story to tell",
+    "heroTitle": "Turn your\nphotos",
+    "heroTitle2": "into\nstories",
     "heroSubtitle": "From prologue to epilogue, your story begins here.",
     "ctaPrimary": "Start for free",
     "ctaSecondary": "See features",
@@ -382,6 +407,20 @@
     "betaLimit": "Beta limits: 3 projects · 300 photos per project",
     "alreadyHaveAccount": "Already have an account?",
     "demoEyebrow": "Preview",
-    "demoTitle": "A workspace built for photographers"
+    "demoTitle": "A workspace built for photographers",
+    "desktopOptimizationInfo": "Please access on desktop (Supports mobile UI in the future)",
+    "desktopOptimizationDesc": "Racconto is optimized in desktop environment."
+  },
+  "electron": {
+    "localFolderConnect": "Local Folder Syncronization",
+    "localFolderConnectInfo": "Added / deleted files from the connected folder will be automatically found.",
+    "selectFolder": "Select Folder",
+    "selectProject": "Select Project",
+    "connect": "Conect",
+    "upload": {
+      "status_with_error": "{{success}} completed · {{failed}} failed",
+      "status_success": "{{total}} uploads completed",
+      "status_progress": "Uploading... {{done}} / {{total}}"
+    }
   }
 }

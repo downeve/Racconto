@@ -116,7 +116,7 @@ function SortablePhotoChapter({ id, imageUrl, photoId, chapterId, caption, onRem
         <button
           onClick={(e) => { e.stopPropagation(); onEditCaption(photoId, caption || ''); }}
           className="absolute bottom-2 right-2 p-2 bg-black/60 hover:bg-black/80 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity z-20"
-          title="캡션 추가/수정"
+          title="Edit/Add Comment"
         >
           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
@@ -145,7 +145,7 @@ export default function ProjectStory({
   projectId: string, 
   allPhotos: Photo[], 
   onChapterChange?: (count: number) => void,
-  onPhotoUpdate?: () => void // 👈 바로 이 부분(타입 정의)이 없어서 빨간 줄이 났던 것입니다!
+  onPhotoUpdate?: () => void
 }) {
   const [chapters, setChapters] = useState<Chapter[]>([])
   const [chapterPhotos, setChapterPhotos] = useState<Record<string, ChapterPhoto[]>>({})
@@ -163,7 +163,7 @@ export default function ProjectStory({
   const [selectedPhotoIndex, setSelectedPhotoIndex] = useState<number | null>(null);
   const [currentChapterPhotos, setCurrentChapterPhotos] = useState<ChapterPhoto[]>([]);
 
-  // 👇 [추가] 캡션(코멘트) 편집 상태
+  // 캡션(코멘트) 편집 상태
   const [editingCaptionPhotoId, setEditingCaptionPhotoId] = useState<string | null>(null);
   const [captionDraft, setCaptionDraft] = useState('');
 
@@ -175,7 +175,7 @@ export default function ProjectStory({
 
   const [showNotePanel, setShowNotePanel] = useState(false)
 
-  // 👇 [추가] 2번: O(N²) 성능 저하를 막기 위한 Set(해시테이블) 캐싱
+  // O(N²) 성능 저하를 막기 위한 Set(해시테이블) 캐싱
   const allPhotoIds = useMemo(() => new Set(allPhotos.map(p => p.id)), [allPhotos]);
   
   // 드래그 센서
@@ -221,42 +221,45 @@ export default function ProjectStory({
     setChapterPhotos(prev => ({ ...prev, [chapterId]: res.data }))
   }
 
-  // 👇 [수정] 캡션 저장 로직 (PUT 방식으로 변경)
-  const handleSaveCaption = async () => {
-    if (!editingCaptionPhotoId) return;
-    try {
-      // 1. 전체 사진 목록(allPhotos)에서 현재 수정 중인 원본 사진 데이터를 찾습니다.
-      const originalPhoto = allPhotos.find(p => p.id === editingCaptionPhotoId);
-      if (!originalPhoto) throw new Error("원본 사진 데이터를 찾을 수 없습니다.");
+  // 캡션 저장 로직 (PUT 방식으로 변경)
+    const handleSaveCaption = async () => {
+      if (!editingCaptionPhotoId) return;
+      try {
+        // 1. 전체 사진 목록(allPhotos)에서 현재 수정 중인 원본 사진 데이터를 찾습니다.
+        const originalPhoto = allPhotos.find(p => p.id === editingCaptionPhotoId);
+        
+        // ✅ 다국어 적용: 에러 메시지
+        if (!originalPhoto) throw new Error(t('photo.error.OriginalNotFound'));
 
-      // 2. patch 대신 put을 사용하고, 기존 사진 데이터에 caption만 새것으로 교체하여 서버에 전체를 보냅니다.
-      await axios.put(`${API}/photos/${editingCaptionPhotoId}`, { 
-        ...originalPhoto, 
-        caption: captionDraft 
-      });
-      
-      // 화면에 즉시 반영되도록 상태 업데이트
-      setChapterPhotos(prev => {
-        const next = { ...prev };
-        for (const [chId, photos] of Object.entries(next)) {
-          next[chId] = photos.map(p => 
-            p.photo_id === editingCaptionPhotoId ? { ...p, caption: captionDraft } : p
-          );
+        // 2. patch 대신 put을 사용하고, 기존 사진 데이터에 caption만 새것으로 교체하여 서버에 전체를 보냅니다.
+        await axios.put(`${API}/photos/${editingCaptionPhotoId}`, { 
+          ...originalPhoto, 
+          caption: captionDraft 
+        });
+        
+        // 화면에 즉시 반영되도록 상태 업데이트
+        setChapterPhotos(prev => {
+          const next = { ...prev };
+          for (const [chId, photos] of Object.entries(next)) {
+            next[chId] = photos.map(p => 
+              p.photo_id === editingCaptionPhotoId ? { ...p, caption: captionDraft } : p
+            );
+          }
+          return next;
+        });
+
+        setEditingCaptionPhotoId(null);
+        setCaptionDraft('');
+
+        if (onPhotoUpdate) {
+          onPhotoUpdate();
         }
-        return next;
-      });
-
-      setEditingCaptionPhotoId(null);
-      setCaptionDraft('');
-
-      if (onPhotoUpdate) {
-        onPhotoUpdate();
+      } catch (error) {
+        // ✅ 다국어 적용: 콘솔 에러 로그 및 사용자 알림(alert)
+        console.error(t('photo.error.SaveCaptionFailed'), error);
+        alert(t('photo.error.SaveFailedAlert'));
       }
-    } catch (error) {
-      console.error("캡션 저장 실패:", error);
-      alert("저장에 실패했습니다.");
-    }
-  };
+    };
 
   // 라이트박스 키보드 네비게이션
   useEffect(() => {
@@ -353,12 +356,13 @@ export default function ProjectStory({
         await axios.put(`${API}/chapters/reorder`, { chapter_ids: chapterIds })
         fetchChapters()
       } catch (error) {
-        console.error('Failed to reorder chapters:', error)
-        alert('순서 변경에 실패했습니다.')
+        // 다국어 적용: 콘솔 에러 및 alert 메시지
+        console.error(t('story.error.ReorderFailedLog'), error)
+        alert(t('story.error.ReorderFailedAlert'))
       }
     }
 
-  // 👇 [수정] 2번: 배열의 .some() 대신 O(1) 해시 검색인 .has()를 사용하여 성능 최적화
+  // 배열의 .some() 대신 O(1) 해시 검색인 .has()를 사용하여 성능 최적화
     const getVisibleChapterPhotos = (chapterId: string) => {
       return (chapterPhotos[chapterId] || []).filter(cp => 
         allPhotoIds.has(cp.photo_id) 
@@ -371,16 +375,16 @@ export default function ProjectStory({
       const mainChapters = chapters.filter(c => !c.parent_id); 
       
       mainChapters.forEach(mainChap => {
-        flat = flat.concat(getVisibleChapterPhotos(mainChap.id)); // 수정됨
+        flat = flat.concat(getVisibleChapterPhotos(mainChap.id));
         const subChapters = chapters.filter(c => c.parent_id === mainChap.id);
         subChapters.forEach(subChap => {
-          flat = flat.concat(getVisibleChapterPhotos(subChap.id)); // 수정됨
+          flat = flat.concat(getVisibleChapterPhotos(subChap.id));
         });
       });
       return flat;
     };
 
-    // 👇 [추가 2] 라이트박스에서 'Chapter 1.1 - 제목' 형태로 정확히 표시해 주는 함수
+    // 라이트박스에서 'Chapter 1.1 - 제목' 형태로 정확히 표시해 주는 함수
     const getChapterDisplayTitle = (chapterId: string) => {
       const chapter = chapters.find(c => c.id === chapterId);
       if (!chapter) return '';
@@ -651,7 +655,7 @@ export default function ProjectStory({
                               imageUrl={cp.image_url}
                               photoId={cp.photo_id}
                               chapterId={chapter.id}
-                              caption={cp.caption} // 👇 연동
+                              caption={cp.caption} // 연동
                               onRemove={handleRemovePhoto}
                               onClick={() => {
                                 const flatPhotos = getFlattenedPhotos(); // 1. 전체 사진 목록 가져오기
@@ -662,7 +666,7 @@ export default function ProjectStory({
                                 onEditCaption={(photoId, caption) => {
                                 setEditingCaptionPhotoId(photoId);
                                 setCaptionDraft(caption);
-                              }} // 👇 물방울 클릭 시 모달 열기
+                              }} // 물방울 클릭 시 모달 열기
                             />
                           ))}
                         </div>
@@ -762,7 +766,7 @@ export default function ProjectStory({
                                 imageUrl={cp.image_url}
                                 photoId={cp.photo_id}
                                 chapterId={subChapter.id}
-                                caption={cp.caption} // 👇 연동
+                                caption={cp.caption} // 연동
                                 onRemove={handleRemovePhoto}
                                 onClick={() => {
                                   const flatPhotos = getFlattenedPhotos(); // 1. 전체 사진 목록 가져오기
@@ -773,7 +777,7 @@ export default function ProjectStory({
                                 onEditCaption={(photoId, caption) => {
                                   setEditingCaptionPhotoId(photoId);
                                   setCaptionDraft(caption);
-                                }} // 👇 연동
+                                }} // 연동
                               />
                             ))}
                           </div>
@@ -875,7 +879,7 @@ export default function ProjectStory({
         </div>
       )}
 
-      {/* 👇 [핵심 추가] 캡션 편집 모달 창 (DeliveryPage 스타일 적용) */}
+      {/* [핵심 추가] 캡션 편집 모달 창 (DeliveryPage 스타일 적용) */}
       {editingCaptionPhotoId && (
         <div
           className="fixed inset-0 bg-black/60 z-[100] flex items-center justify-center p-4 backdrop-blur-sm"
