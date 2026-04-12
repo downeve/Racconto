@@ -32,7 +32,7 @@ export default function FolderProjectMapper() {
   }, [])
 
   const loadMappings = async () => {
-    const result = await window.racconto.getAllMappings()
+    const result = await window.racconto!.getAllMappings()
     setMappings(result)
   }
 
@@ -45,7 +45,7 @@ export default function FolderProjectMapper() {
   }
 
   const handleSelectFolder = async () => {
-    const folder = await window.racconto.openFolder()
+    const folder = await window.racconto!.openFolder()
     if (folder) setSelectedFolder(folder)
   }
 
@@ -53,10 +53,10 @@ export default function FolderProjectMapper() {
     if (!selectedFolder || !selectedProjectId) return
     const project = projects.find(p => p.id === selectedProjectId)
     if (!project) return
-    await window.racconto.linkFolder(selectedFolder, project.id, project.title)
+    await window.racconto!.linkFolder(selectedFolder, project.id, project.title)
     
     // 폴더 연결 후 감시 자동 시작
-    await window.racconto.startWatcher(selectedFolder)
+    await window.racconto!.startWatcher(selectedFolder)
     
     setSelectedFolder(null)
     setSelectedProjectId('')
@@ -64,7 +64,7 @@ export default function FolderProjectMapper() {
   }
 
   const handleUnlink = async (folderPath: string) => {
-    await window.racconto.unlinkFolder(folderPath)
+    await window.racconto!.unlinkFolder(folderPath)
     loadMappings()
   }
 
