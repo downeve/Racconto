@@ -116,7 +116,7 @@ export default function Projects() {
         </div>
       )}
 
-      <div className="grid grid-cols-3 gap-6">
+      <div className="grid gap-6" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))' }}>
         {projects.map(project => (
           <div key={project.id} className="relative group">
             <ProjectCard project={project} />

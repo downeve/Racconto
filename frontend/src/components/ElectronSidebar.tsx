@@ -36,7 +36,7 @@ export default function ElectronSidebar({ activeTab, onTabChange, showTabs }: Pr
     !location.pathname.endsWith('/edit')
 
   return (
-    <div className="w-56 shrink-0 fixed left-0 top-14 bottom-0 bg-[#EFECE8] border-r border-stone-200 flex flex-col z-40 overflow-hidden">
+    <div className="w-56 shrink-0 fixed left-0 top-14 bottom-0 bg-[#EFECE8] border-r border-stone-200 flex flex-col z-40 overflow-y-auto">
 
       {/* 프로젝트 목록 섹션 */}
       <div className="flex flex-col min-h-0">
@@ -77,7 +77,7 @@ export default function ElectronSidebar({ activeTab, onTabChange, showTabs }: Pr
 
       {/* 탭 전환 섹션 — ProjectDetail 안에서만 */}
       {showTabs && isOnProjectDetail && (
-        <div className="border-t border-stone-200 mt-auto shrink-0">
+        <div className="border-t border-stone-200 shrink-0">
           {([
             { key: 'photos', icon: '📷', label: t('photo.title') },
             { key: 'story',  icon: '📖', label: t('story.title') },
