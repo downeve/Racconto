@@ -21,6 +21,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     localStorage.removeItem('token')
     delete axios.defaults.headers.common['Authorization']
     setIsAuthenticated(false)
+    // Electron 앱이면 감시 중지
+    if (window.racconto?.logout) {
+      window.racconto.logout()
+    }
   }
 
   useEffect(() => {

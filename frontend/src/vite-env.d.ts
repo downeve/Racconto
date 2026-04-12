@@ -14,6 +14,7 @@ interface Window {
     onUploadDone: (callback: (data: { total: number; success: number; failed: number }) => void) => void
     onAuthExpired: (callback: () => void) => void
     setAuthToken: (token: string) => Promise<void>
+    logout: () => Promise<{ success: boolean }>
     linkFolder: (folderPath: string, projectId: string, projectName: string) => Promise<{ success: boolean }>
     unlinkFolder: (folderPath: string) => Promise<{ success: boolean }>
     getAllMappings: () => Promise<Record<string, { projectId: string; projectName: string; linkedAt: string }>>

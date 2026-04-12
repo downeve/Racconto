@@ -20,13 +20,26 @@ const IMAGE_EXTENSIONS = ['.jpg', '.jpeg', '.png', '.tif', '.tiff', '.webp']
 ipcMain.handle('auth:setToken', (event, token) => {
   authToken = token
   if (isOnline) {
-    processQueue()
+    // 로그인 시 매핑된 폴더 감시 시작
     const mappings = getAllMappings()
     Object.keys(mappings).forEach(folderPath => {
+      startWatcherForPath(folderPath)
       const projectId = mappings[folderPath].projectId
       syncLocalMissing(folderPath, projectId)
     })
+    processQueue()
   }
+})
+
+// ── 로그아웃 ────────────────────────────────────────────
+ipcMain.handle('auth:logout', async () => {
+  authToken = null
+  // 모든 감시 중지
+  for (const p of Object.keys(watchers)) {
+    await stopWatcherForPath(p)
+  }
+  console.log('로그아웃 → 모든 감시 중지')
+  return { success: true }
 })
 
 // ── 폴더 매핑 ────────────────────────────────────────
@@ -139,11 +152,19 @@ let isProcessing = false
 async function syncLocalMissing(folderPath, projectId) {
   if (!authToken) return
   try {
-    // DB 사진 목록 조회
     const res = await fetchWithAuth(
       `${API_BASE}/photos/?project_id=${encodeURIComponent(projectId)}`
     )
+    // 프로젝트가 없으면 매핑 해제
+    if (res.status === 404) {
+      console.log('프로젝트 없음, 매핑 해제:', projectId)
+      unlinkFolder(folderPath)
+      stopWatcherForPath(folderPath)
+      mainWindow?.webContents.send('folderMap:unlinked', folderPath)
+      return
+    }
     if (!res.ok) return
+    // ... 이하 동일
     const photos = await res.json()
 
     // 로컬 실제 파일 목록
@@ -430,20 +451,15 @@ app.whenReady().then(() => {
   initQueue()
   createWindow()
 
-  // 기존 매핑된 폴더 자동 감시 시작
-  const mappings = getAllMappings()
-  Object.keys(mappings).forEach(folderPath => {
-    startWatcherForPath(folderPath)
-    const projectId = mappings[folderPath].projectId
-    if (authToken) syncLocalMissing(folderPath, projectId)
-  })
+  // 토큰이 있을 때만 감시 시작 — auth:setToken에서 처리
+  // 기존 매핑 폴더 감시는 로그인 후에만 시작
 
   // 네트워크 상태 감지 (5초 폴링)
   setInterval(() => {
     const online = net.isOnline()
     if (!isOnline && online) {
       console.log('네트워크 재연결 감지 → 큐 처리 시작')
-      processQueue()
+      if (authToken) processQueue()
     }
     isOnline = online
   }, 5000)
