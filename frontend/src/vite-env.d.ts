@@ -1,7 +1,7 @@
 /// <reference types="vite/client" />
 
 interface Window {
-  racconto: {
+  racconto?: {
     version: string
     openFolder: () => Promise<string | null>
     startWatcher: (folderPath: string) => Promise<{ success: boolean; path: string }>

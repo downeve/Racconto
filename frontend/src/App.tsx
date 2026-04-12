@@ -27,11 +27,13 @@ function AppRoutes() {
   const {t} = useTranslation()
   const location = useLocation()
 
-  // 납품 링크 페이지에서는 Navbar 숨김
+  // 납품 링크 페이지 Navbar 숨김
   const hideNavbar = location.pathname.startsWith('/delivery/')
 
+  const isElectron = typeof window !== 'undefined' && !!window.racconto
+
   return (
-    <div className="min-h-screen bg-[#F7F4F0] pt-14">
+    <div className={`min-h-screen bg-[#F7F4F0] ${isElectron ? 'pt-14' : 'pt-14'}`}>
 
       {/* 모바일 차단 — 랜딩(/), 공개 포트폴리오(/p/), 납품(/delivery/) 제외 */}
       {!['/', ].includes(location.pathname) &&

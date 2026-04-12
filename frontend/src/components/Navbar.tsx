@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import axios from 'axios'
 
 const API = import.meta.env.VITE_API_URL
+const isElectron = typeof window !== 'undefined' && !!window.racconto
 
 interface NavbarProps {
   onLogout: () => void
@@ -49,17 +50,27 @@ export default function Navbar({ onLogout }: NavbarProps) {
     }
   }
 
+  // return 전체 교체
   return (
-    <nav className="fixed top-0 left-0 right-0 z-50 bg-[#F7F4F0]/90 backdrop-blur-sm border-b border-stone-200 text-stone-900">      
-      <div className="max-w-7xl mx-auto px-6 h-14 flex items-center justify-between">      
-        <Link 
-          to="/" 
-          className="text-xl font-bold tracking-widest" 
-          style={{ fontFamily: "'Georgia', serif", letterSpacing: '0.15em' }}
+    <nav
+      className="fixed top-0 left-0 right-0 z-50 bg-[#F7F4F0]/90 backdrop-blur-sm border-b border-stone-200 text-stone-900"
+      style={{ WebkitAppRegion: 'drag' } as React.CSSProperties}
+    >
+      <div
+        className="max-w-7xl mx-auto h-14 flex items-center justify-between"
+        style={{ paddingLeft: isElectron ? '5rem' : '1.5rem', paddingRight: '1.5rem' }}
+      >
+        <Link
+          to="/"
+          className="text-xl font-bold tracking-widest"
+          style={{ fontFamily: "'Georgia', serif", letterSpacing: '0.15em', WebkitAppRegion: 'no-drag' } as React.CSSProperties}
         >
           Racconto
         </Link>
-        <div className="flex gap-6 items-center">
+        <div
+          className="flex gap-6 items-center"
+          style={{ WebkitAppRegion: 'no-drag' } as React.CSSProperties}
+        >
           <Link to="/projects" className="text-sm tracking-wider text-stone-600 hover:text-stone-900">{t('nav.projects')}</Link>
           <button
             onClick={handlePortfolioClick}
