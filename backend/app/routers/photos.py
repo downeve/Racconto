@@ -11,6 +11,7 @@ import shutil
 import requests
 from PIL import Image as PilImage
 from app.auth import get_current_user
+from concurrent.futures import ThreadPoolExecutor
 import io
 
 from PIL import Image
@@ -152,6 +153,10 @@ def delete_from_cloudflare(image_url: str):
     except:
         pass
 
+def delete_cf_files_parallel(urls: list[str]):
+    """CF 이미지 병렬 삭제 (최대 10개 동시)"""
+    with ThreadPoolExecutor(max_workers=10) as executor:
+        executor.map(delete_from_cloudflare, urls)
 
 def clear_cover_if_deleted(project_id: str, image_url: str, db: Session):
     """삭제된 사진이 커버이면 커버 초기화"""
@@ -382,7 +387,11 @@ def bulk_permanent_delete_photos(
             except Exception as e:
                 print(f"CF 삭제 실패 (무시): {e}")
     if cf_urls:
-        threading.Thread(target=delete_cf_files, daemon=True).start()
+        threading.Thread(
+            target=delete_cf_files_parallel,
+            args=(cf_urls,),
+            daemon=True
+        ).start()
 
     return {"deleted": len(body.photo_ids)}
 

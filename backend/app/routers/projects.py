@@ -6,10 +6,9 @@ from pydantic import BaseModel
 from typing import Optional
 from datetime import datetime
 from app.auth import get_current_user
+from app.routers.photos import delete_from_cloudflare, delete_cf_files_parallel
 import uuid
 import os
-# ⭕️ 다음과 같이 수정 (같은 폴더에 있으므로 상대 경로나 라우터 경로 사용)
-from app.routers.photos import delete_from_cloudflare
 
 router = APIRouter(prefix="/projects", tags=["projects"])
 
@@ -202,20 +201,23 @@ def restore_project(
     db.refresh(project)
     return project
 
-# 💡 2. 시간이 오래 걸리는 파일 삭제 로직을 밖으로 빼냅니다.
 def delete_photo_files_in_background(photo_urls: list[str]):
-    for url in photo_urls:
+    cf_urls = [u for u in photo_urls if "imagedelivery.net" in u]
+    local_urls = [u for u in photo_urls if "imagedelivery.net" not in u]
+    
+    # CF 이미지 병렬 삭제
+    if cf_urls:
+        delete_cf_files_parallel(cf_urls)
+    
+    # 로컬 파일 삭제
+    for url in local_urls:
         try:
-            if "imagedelivery.net" in url:
-                delete_from_cloudflare(url)
-            else:
-                import os
-                file_path = url.split('/uploads/')[-1]
-                full_path = f"app/uploads/{file_path}"
-                if os.path.exists(full_path):
-                    os.remove(full_path)
+            file_path = url.split('/uploads/')[-1]
+            full_path = f"app/uploads/{file_path}"
+            if os.path.exists(full_path):
+                os.remove(full_path)
         except Exception as e:
-            print(f"백그라운드 이미지 삭제 오류: {e}")
+            print(f"로컬 파일 삭제 실패: {e}")
 
 # DELETE /projects/{project_id}/permanent
 @router.delete("/{project_id}/permanent")

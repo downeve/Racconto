@@ -5,7 +5,7 @@ from app import models
 from app.auth import get_current_user
 from pydantic import BaseModel
 from typing import Optional
-from app.routers.photos import delete_from_cloudflare
+from app.routers.photos import delete_from_cloudflare, delete_cf_files_parallel
 from app.email import send_notice_email
 import os
 
@@ -108,10 +108,7 @@ def delete_user(
 
     # CF 이미지 백그라운드 삭제
     if photo_urls:
-        background_tasks.add_task(
-            lambda urls: [delete_from_cloudflare(u) for u in urls],
-            photo_urls
-        )
+        background_tasks.add_task(delete_cf_files_parallel, photo_urls)
 
     # CASCADE로 모든 관련 데이터 자동 삭제
     db.delete(user)

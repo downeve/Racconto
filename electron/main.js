@@ -46,9 +46,10 @@ ipcMain.handle('folderMap:getAll', () => {
 })
 
 // ── 업로드 ────────────────────────────────────────────
+
 async function fetchWithAuth(url, options = {}) {
   const { default: fetch } = await import('node-fetch')
-  return fetch(url, {
+  const res = await fetch(url, {
     ...options,
     headers: {
       'Authorization': `Bearer ${authToken}`,
@@ -56,6 +57,13 @@ async function fetchWithAuth(url, options = {}) {
       ...(options.headers || {}),
     },
   })
+  // 토큰 만료 시 프론트에 알림
+  if (res.status === 401) {
+    authToken = null
+    mainWindow?.webContents.send('auth:expired')
+    console.log('토큰 만료 감지 → 로그아웃')
+  }
+  return res
 }
 
 async function uploadFile(item) {
@@ -234,17 +242,18 @@ async function processQueue() {
     }
   }
 
-  const total = uploadItems.length
+  const BATCH_SIZE = 5
+  const batch = uploadItems.slice(0, BATCH_SIZE)
+  const total = batch.length
   let successCount = 0
   let failedCount = 0
 
   if (total > 0) {
-    // 진행 바 시작
     mainWindow?.webContents.send('upload:progress', { done: 0, total, failed: 0 })
 
-    for (const item of uploadItems) {
+    for (const item of batch) {
       try {
-        const photo = await uploadFile(item)
+        await uploadFile(item)
         markSuccess(item.id)
         successCount++
         mainWindow?.webContents.send('upload:progress', {
@@ -265,12 +274,16 @@ async function processQueue() {
       }
     }
 
-    // 완료 이벤트
-    mainWindow?.webContents.send('upload:done', { total, success: successCount, failed: failedCount })
+    mainWindow?.webContents.send('upload:done', {
+      total,
+      success: successCount,
+      failed: failedCount,
+    })
   }
 
   isProcessing = false
 
+  // 잔여 항목 있으면 재귀 호출
   const remaining = getPendingItems()
   if (remaining.length > 0) processQueue()
 }
@@ -362,25 +375,6 @@ async function stopWatcherForPath(folderPath) {
     delete watchers[folderPath]
     console.log('감시 중지:', folderPath)
   }
-}
-
-async function fetchWithAuth(url, options = {}) {
-  const { default: fetch } = await import('node-fetch')
-  const res = await fetch(url, {
-    ...options,
-    headers: {
-      'Authorization': `Bearer ${authToken}`,
-      'Content-Type': 'application/json',
-      ...(options.headers || {}),
-    },
-  })
-  // 토큰 만료 시 프론트에 알림
-  if (res.status === 401) {
-    authToken = null
-    mainWindow?.webContents.send('auth:expired')
-    console.log('토큰 만료 감지 → 로그아웃')
-  }
-  return res
 }
 
 // ── IPC: 감시 시작/중지 ──────────────────────────────
