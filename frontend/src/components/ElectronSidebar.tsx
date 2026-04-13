@@ -49,7 +49,7 @@ export default function ElectronSidebar({ activeTab, onTabChange, showTabs }: Pr
           }}
           className="flex items-center justify-between px-4 py-3 text-xs font-semibold text-stone-500 tracking-widest uppercase hover:text-stone-800 shrink-0"
         >
-          <span>{t('nav.projects')}</span>
+          <span>{t('nav.projectsList')}</span>
           <span className="text-stone-400">{showProjects ? '▾' : '▸'}</span>
         </button>
 
