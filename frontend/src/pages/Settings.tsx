@@ -25,6 +25,7 @@ const COLOR_KEYS = [
 ]
 
 export default function Settings() {
+  const { user } = useAuth()
   const [settings, setSettings] = useState<Record<string, string>>({})
   const [saved, setSaved] = useState(false)
   const [currentPassword, setCurrentPassword] = useState('')
@@ -193,6 +194,21 @@ export default function Settings() {
       <Heading level={2} className="mb-2">
         {t('settings.title')}
       </Heading>
+
+      {/* 사용자 정보(이메일) 출력 추가 */}
+      <div className="mb-5 flex items-center gap-3 p-3 bg-stone-50 rounded-lg border border-stone-200 shadow-sm">
+        <div className="bg-white p-2 rounded-full shadow-inner">
+          <UserCircleIcon className="w-8 h-8 text-stone-400" />
+        </div>
+        <div>
+          <p className="text-xs text-stone-500 font-bold uppercase tracking-widest mb-0.5">
+            {t('settings.currentUser') || 'Logged in as'}
+          </p>
+          <p className="text-lg text-stone-900 font-semibold tracking-tight">
+            {user?.email || 'Loading...'}
+          </p>
+        </div>
+      </div>
 
       {/* 기본 보기 설정 */}
       <div className="bg-white rounded-lg shadow p-6 mb-6">

@@ -303,6 +303,7 @@
   },
   "settings": {
     "title": "설정",
+    "currentUser": "현재 사용자",
     "colorLabelNames": "컬러 레이블 이름 설정",
     "deliveryAutoTag": "납품 선택 자동 태그",
     "deliveryAutoTagDesc": "클라이언트가 납품 링크에서 사진을 선택 완료하면, 지정된 컬러 레이블이 자동으로 부여됩니다.",

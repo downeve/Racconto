@@ -3,9 +3,15 @@ import axios from 'axios'
 
 const API = import.meta.env.VITE_API_URL
 
+// 1. User 타입 정의 (필요에 따라 id 등 추가 가능)
+interface User {
+  email: string
+}
+
 interface AuthContextType {
   isAuthenticated: boolean
   isLoading: boolean
+  user: User | null
   login: (email: string, password: string) => Promise<boolean>
   logout: () => void
 }
@@ -16,9 +22,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [isAuthenticated, setIsAuthenticated] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
   const interceptorRef = useRef<number | null>(null)
+  const [user, setUser] = useState<User | null>(null)
 
   const logout = () => {
     localStorage.removeItem('token')
+    localStorage.removeItem('userEmail')
     delete axios.defaults.headers.common['Authorization']
     setIsAuthenticated(false)
     // Electron 앱이면 감시 중지
@@ -76,6 +84,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         window.racconto.setAuthToken(token)
       }
       setIsAuthenticated(true)
+      setUser({ email })
+      localStorage.setItem('userEmail', email)
       return true
     } catch {
       return false
@@ -83,7 +93,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }
 
   return (
-    <AuthContext.Provider value={{ isAuthenticated, isLoading, login, logout }}>
+    <AuthContext.Provider value={{ isAuthenticated, isLoading, user, login, logout }}>
       {children}
     </AuthContext.Provider>
   )

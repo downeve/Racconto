@@ -306,6 +306,7 @@
   },
   "settings": {
     "title": "Settings",
+    "currentUser": "Current User:",
     "colorLabelNames": "Set Color Labels",
     "deliveryAutoTag": "Delivery Selection Auto-Tag",
     "deliveryAutoTagDesc": "When a client completes their photo selection, the specified color label will be automatically applied to the selected photos.",
