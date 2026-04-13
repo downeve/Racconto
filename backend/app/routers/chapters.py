@@ -2,6 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from app.database import get_db
 from app import models
+from app.auth import get_current_user
 from pydantic import BaseModel
 from typing import Optional, List
 from datetime import datetime
@@ -26,11 +27,9 @@ class ChapterPhotoAdd(BaseModel):
     photo_id: str
     order_num: Optional[int] = 0
 
-# [여기 추가] 사진 순서 업데이트용 클래스
 class ChapterPhotoUpdate(BaseModel):
     order_num: int
 
-# --- [추가] 1. 스키마 정의 (파일 상단 ChapterPhotoUpdate 아래쯤에 넣으세요) ---
 class ChapterReorder(BaseModel):
     chapter_ids: List[str]
 
@@ -58,36 +57,66 @@ class ChapterResponse(BaseModel):
     class Config:
         from_attributes = True
 
-# 1. 챕터 목록 (정렬 기준 강화)
+
+def get_owned_project_or_403(project_id: str, user_id: str, db: Session) -> models.Project:
+    project = db.query(models.Project).filter(
+        models.Project.id == project_id,
+        models.Project.user_id == user_id,
+    ).first()
+    if not project:
+        raise HTTPException(status_code=403, detail="FORBIDDEN")
+    return project
+
+
+def get_owned_chapter_or_404(chapter_id: str, user_id: str, db: Session) -> models.Chapter:
+    chapter = db.query(models.Chapter).join(models.Project).filter(
+        models.Chapter.id == chapter_id,
+        models.Project.user_id == user_id,
+    ).first()
+    if not chapter:
+        raise HTTPException(status_code=404, detail="CHAPTER_NOT_FOUND")
+    return chapter
+
+
+# 1. 챕터 목록
 @router.get("/", response_model=List[ChapterResponse])
-def get_chapters(project_id: str, db: Session = Depends(get_db)):
-    # 💡 order_num이 같을 경우 created_at으로 2차 정렬하여 순서가 꼬이지 않게 방지
+def get_chapters(
+    project_id: str,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user)
+):
+    get_owned_project_or_403(project_id, current_user.id, db)
     return db.query(models.Chapter).filter(
         models.Chapter.project_id == project_id
     ).order_by(models.Chapter.order_num, models.Chapter.created_at).all()
 
 
-# 2. 챕터 생성 (순서 자동 부여)
+# 2. 챕터 생성
 @router.post("/", response_model=ChapterResponse)
-def create_chapter(chapter: ChapterCreate, db: Session = Depends(get_db)):
+def create_chapter(
+    chapter: ChapterCreate,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user)
+):
+    get_owned_project_or_403(chapter.project_id, current_user.id, db)
+
     if chapter.parent_id:
         parent = db.query(models.Chapter).filter(models.Chapter.id == chapter.parent_id).first()
         if not parent:
             raise HTTPException(status_code=404, detail="Parent chapter not found")
         if parent.parent_id is not None:
             raise HTTPException(
-                status_code=400, 
+                status_code=400,
                 detail="Cannot create sub-chapter under another sub-chapter (max 2 levels)"
             )
-    
-    # 새 챕터 생성 시 순서값이 없으면(0이거나 None) 기존 챕터들의 마지막 번호 + 1 자동 할당
+
     next_order = chapter.order_num
     if not next_order:
         last_chapter = db.query(models.Chapter).filter(
             models.Chapter.project_id == chapter.project_id
         ).order_by(models.Chapter.order_num.desc()).first()
         next_order = (last_chapter.order_num + 1) if last_chapter else 0
-            
+
     db_chapter = models.Chapter(
         id=str(uuid.uuid4()),
         project_id=chapter.project_id,
@@ -101,31 +130,42 @@ def create_chapter(chapter: ChapterCreate, db: Session = Depends(get_db)):
     db.refresh(db_chapter)
     return db_chapter
 
-# --- [추가] 2. 일괄 업데이트 라우터 (반드시 @router.put("/{chapter_id}") 보다 위에 작성) ---
+
+# 3. 챕터 일괄 순서 변경 (/{chapter_id} 보다 위에 있어야 함)
 @router.put("/reorder")
-def reorder_chapters(body: ChapterReorder, db: Session = Depends(get_db)):
-    """
-    전달받은 ID 배열의 순서대로 DB의 order_num을 0, 1, 2... 순으로 일괄 갱신합니다.
-    """
+def reorder_chapters(
+    body: ChapterReorder,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user)
+):
+    if body.chapter_ids:
+        owned_count = db.query(models.Chapter).join(models.Project).filter(
+            models.Chapter.id.in_(body.chapter_ids),
+            models.Project.user_id == current_user.id
+        ).count()
+        if owned_count != len(body.chapter_ids):
+            raise HTTPException(status_code=403, detail="FORBIDDEN")
+
     for index, chapter_id in enumerate(body.chapter_ids):
-        db.query(models.Chapter).filter(models.Chapter.id == chapter_id).update({
-            "order_num": index
-        })
+        db.query(models.Chapter).filter(models.Chapter.id == chapter_id).update(
+            {"order_num": index}, synchronize_session=False
+        )
     db.commit()
     return {"message": "순서가 성공적으로 변경되었습니다."}
 
-# 3. 챕터 수정 (핵심 로직: 보낸 데이터만 업데이트)
+
+# 4. 챕터 수정
 @router.put("/{chapter_id}", response_model=ChapterResponse)
-def update_chapter(chapter_id: str, chapter: ChapterUpdate, db: Session = Depends(get_db)):
-    db_chapter = db.query(models.Chapter).filter(models.Chapter.id == chapter_id).first()
-    if not db_chapter:
-        raise HTTPException(status_code=404, detail="Chapter not found")
-    
-    # 프론트엔드에서 "실제로 명시해서 보낸 값"만 추출 (기본값으로 덮어쓰는 것 방지)
-    # (주의: 만약 Pydantic 최신 버전 에러 시 dict 대신 model_dump(exclude_unset=True) 사용)
-    update_data = chapter.dict(exclude_unset=True) 
-    
-    # parent_id 변경 시 3단계 방지 검증
+def update_chapter(
+    chapter_id: str,
+    chapter: ChapterUpdate,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user)
+):
+    db_chapter = get_owned_chapter_or_404(chapter_id, current_user.id, db)
+
+    update_data = chapter.dict(exclude_unset=True)
+
     if update_data.get("parent_id"):
         parent = db.query(models.Chapter).filter(models.Chapter.id == update_data["parent_id"]).first()
         if not parent:
@@ -135,43 +175,50 @@ def update_chapter(chapter_id: str, chapter: ChapterUpdate, db: Session = Depend
                 status_code=400,
                 detail="Cannot move under a sub-chapter (max 2 levels)"
             )
-    
-    # 전달된 데이터(예: title만)만 기존 DB 객체에 덮어쓰기 (기존 order_num, parent_id 완벽 보존)
+
     for key, value in update_data.items():
         setattr(db_chapter, key, value)
-        
+
     db.commit()
     db.refresh(db_chapter)
     return db_chapter
 
-# 챕터 삭제 로직 (chapters.py)
+
+# 5. 챕터 삭제
 @router.delete("/{chapter_id}")
-def delete_chapter(chapter_id: str, db: Session = Depends(get_db)):
-    db_chapter = db.query(models.Chapter).filter(models.Chapter.id == chapter_id).first()
-    if not db_chapter:
-        raise HTTPException(status_code=404, detail="CHAPTER_NOT_FOUND")
-    
-    # 1. 삭제하려는 챕터에 딸린 '서브 챕터'들을 모두 검색
+def delete_chapter(
+    chapter_id: str,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user)
+):
+    db_chapter = get_owned_chapter_or_404(chapter_id, current_user.id, db)
+
     sub_chapters = db.query(models.Chapter).filter(models.Chapter.parent_id == chapter_id).all()
-    
     for sub in sub_chapters:
-        # 1-1. 서브 챕터 안에 담긴 '사진 매핑 데이터(ChapterPhoto)' 먼저 삭제
-        db.query(models.ChapterPhoto).filter(models.ChapterPhoto.chapter_id == sub.id).delete()
-        # 1-2. 서브 챕터 자체 삭제
+        db.query(models.ChapterPhoto).filter(
+            models.ChapterPhoto.chapter_id == sub.id
+        ).delete(synchronize_session=False)
         db.delete(sub)
-        
-    # 2. 본래 삭제하려던 챕터 안에 담긴 '사진 매핑 데이터' 삭제
-    db.query(models.ChapterPhoto).filter(models.ChapterPhoto.chapter_id == chapter_id).delete()
-    
-    # 3. 모든 자식 데이터가 청소되었으므로, 안전하게 부모 챕터 삭제
+
+    db.query(models.ChapterPhoto).filter(
+        models.ChapterPhoto.chapter_id == chapter_id
+    ).delete(synchronize_session=False)
+
     db.delete(db_chapter)
-    
     db.commit()
     return {"message": "챕터와 관련된 하위 데이터가 모두 안전하게 삭제되었습니다."}
 
-# 챕터에 사진 추가
+
+# 6. 챕터에 사진 추가
 @router.post("/{chapter_id}/photos")
-def add_photo_to_chapter(chapter_id: str, body: ChapterPhotoAdd, db: Session = Depends(get_db)):
+def add_photo_to_chapter(
+    chapter_id: str,
+    body: ChapterPhotoAdd,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user)
+):
+    db_chapter = get_owned_chapter_or_404(chapter_id, current_user.id, db)
+
     existing = db.query(models.ChapterPhoto).filter(
         models.ChapterPhoto.chapter_id == chapter_id,
         models.ChapterPhoto.photo_id == body.photo_id
@@ -191,13 +238,20 @@ def add_photo_to_chapter(chapter_id: str, body: ChapterPhotoAdd, db: Session = D
         order_num=next_order
     )
     db.add(db_cp)
-
     db.commit()
     return {"message": "추가되었습니다"}
 
-# 챕터에서 사진 제거
+
+# 7. 챕터에서 사진 제거
 @router.delete("/{chapter_id}/photos/{photo_id}")
-def remove_photo_from_chapter(chapter_id: str, photo_id: str, db: Session = Depends(get_db)):
+def remove_photo_from_chapter(
+    chapter_id: str,
+    photo_id: str,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user)
+):
+    get_owned_chapter_or_404(chapter_id, current_user.id, db)
+
     cp = db.query(models.ChapterPhoto).filter(
         models.ChapterPhoto.chapter_id == chapter_id,
         models.ChapterPhoto.photo_id == photo_id
@@ -205,36 +259,42 @@ def remove_photo_from_chapter(chapter_id: str, photo_id: str, db: Session = Depe
     if not cp:
         raise HTTPException(status_code=404, detail="PHOTO_NOT_FOUND")
     db.delete(cp)
-
     db.commit()
     return {"message": "제거되었습니다"}
 
-# [여기 추가] 챕터 내 사진 순서(order_num) 업데이트 라우터
+
+# 8. 챕터 내 사진 순서 업데이트
 @router.put("/{chapter_id}/photos/{photo_id}")
 def update_chapter_photo_order(
-    chapter_id: str, 
-    photo_id: str, 
-    body: ChapterPhotoUpdate, 
-    db: Session = Depends(get_db)
+    chapter_id: str,
+    photo_id: str,
+    body: ChapterPhotoUpdate,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user)
 ):
-    # 해당 챕터의 특정 사진 매핑 데이터 찾기
+    get_owned_chapter_or_404(chapter_id, current_user.id, db)
+
     cp = db.query(models.ChapterPhoto).filter(
         models.ChapterPhoto.chapter_id == chapter_id,
         models.ChapterPhoto.photo_id == photo_id
     ).first()
-    
     if not cp:
         raise HTTPException(status_code=404, detail="PHOTO_NOT_IN_CHAPTER")
-    
-    # 순서 업데이트
+
     cp.order_num = body.order_num
     db.commit()
-    
     return {"message": "순서가 업데이트되었습니다"}
 
-# 챕터 사진 목록
+
+# 9. 챕터 사진 목록
 @router.get("/{chapter_id}/photos")
-def get_chapter_photos(chapter_id: str, db: Session = Depends(get_db)):
+def get_chapter_photos(
+    chapter_id: str,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user)
+):
+    get_owned_chapter_or_404(chapter_id, current_user.id, db)
+
     chapter_photos = db.query(models.ChapterPhoto).filter(
         models.ChapterPhoto.chapter_id == chapter_id
     ).order_by(models.ChapterPhoto.order_num).all()

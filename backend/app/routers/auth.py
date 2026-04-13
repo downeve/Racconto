@@ -110,21 +110,11 @@ def get_me(
         models.Project.deleted_at == None
     ).count()
 
-    # 프로젝트별 사진 수 최대값 (가장 많은 프로젝트 기준)
-    from sqlalchemy import func
-    photo_counts = db.query(
-        models.Photo.project_id,
-        func.count(models.Photo.id).label('count')
-    ).filter(
-        models.Photo.deleted_at == None,
-        models.Photo.project_id.in_(
-            db.query(models.Project.id).filter(
-                models.Project.user_id == current_user.id
-            )
-        )
-    ).group_by(models.Photo.project_id).all()
-
-    max_photo_count = max((r.count for r in photo_counts), default=0)
+    # 유저 계정 전체 사진 수 합계 (업로드 제한과 동일 기준)
+    total_photo_count = db.query(models.Photo).join(models.Project).filter(
+        models.Project.user_id == current_user.id,
+        models.Photo.deleted_at == None
+    ).count()
 
     return {
         "user_id": current_user.id,
@@ -132,7 +122,7 @@ def get_me(
         "username": current_user.username,
         "project_count": project_count,
         "project_limit": current_user.project_limit,
-        "photo_count": max_photo_count,
+        "photo_count": total_photo_count,
         "photo_limit": current_user.photo_limit,
     }
 

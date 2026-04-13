@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, UploadFile, File
+from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, BackgroundTasks
 from sqlalchemy.orm import Session
 from app.database import get_db
 from app import models
@@ -167,6 +167,28 @@ def clear_cover_if_deleted(project_id: str, image_url: str, db: Session):
         project.cover_image_url = None
 
 
+def get_owned_photo_or_404(
+    photo_id: str,
+    user_id: str,
+    db: Session,
+    *,
+    require_deleted: bool = False
+) -> models.Photo:
+    """photo 조회 및 현재 유저 소유 검증"""
+    query = db.query(models.Photo).join(models.Project).filter(
+        models.Photo.id == photo_id,
+        models.Project.user_id == user_id,
+    )
+    if require_deleted:
+        query = query.filter(models.Photo.deleted_at != None)
+    else:
+        query = query.filter(models.Photo.deleted_at == None)
+    photo = query.first()
+    if not photo:
+        raise HTTPException(status_code=404, detail="PHOTO_NOT_FOUND")
+    return photo
+
+
 router = APIRouter(prefix="/photos", tags=["photos"])
 
 UPLOAD_DIR = "app/uploads"
@@ -239,10 +261,30 @@ class BulkLocalMissingUpdate(BaseModel):
 
 
 @router.get("/", response_model=list[PhotoResponse])
-def get_photos(project_id: Optional[str] = None, db: Session = Depends(get_db)):
-    query = db.query(models.Photo).filter(models.Photo.deleted_at == None)  # 삭제된 사진 제외
+def get_photos(
+    project_id: Optional[str] = None,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user)
+):
     if project_id:
-        query = query.filter(models.Photo.project_id == project_id)
+        project = db.query(models.Project).filter(
+            models.Project.id == project_id,
+            models.Project.user_id == current_user.id,
+        ).first()
+        if not project:
+            raise HTTPException(status_code=403, detail="FORBIDDEN")
+        query = db.query(models.Photo).filter(
+            models.Photo.deleted_at == None,
+            models.Photo.project_id == project_id
+        )
+    else:
+        my_project_ids = db.query(models.Project.id).filter(
+            models.Project.user_id == current_user.id
+        ).subquery()
+        query = db.query(models.Photo).filter(
+            models.Photo.deleted_at == None,
+            models.Photo.project_id.in_(my_project_ids)
+        )
     return query.order_by(models.Photo.order).all()
 
 
@@ -328,9 +370,10 @@ def bulk_delete_photos(
     db: Session = Depends(get_db),
     current_user: models.User = Depends(get_current_user)
 ):
-    photos = db.query(models.Photo).filter(
+    photos = db.query(models.Photo).join(models.Project).filter(
         models.Photo.id.in_(body.photo_ids),
-        models.Photo.deleted_at == None
+        models.Photo.deleted_at == None,
+        models.Project.user_id == current_user.id
     ).all()
     for photo in photos:
         photo.deleted_at = datetime.utcnow()
@@ -347,11 +390,13 @@ def bulk_delete_photos(
 @router.delete("/bulk-permanent")
 def bulk_permanent_delete_photos(
     body: BulkPermanentDeleteRequest,
+    background_tasks: BackgroundTasks,
     db: Session = Depends(get_db),
     current_user: models.User = Depends(get_current_user)
 ):
-    photos = db.query(models.Photo).filter(
-        models.Photo.id.in_(body.photo_ids)
+    photos = db.query(models.Photo).join(models.Project).filter(
+        models.Photo.id.in_(body.photo_ids),
+        models.Project.user_id == current_user.id
     ).all()
 
     cf_urls = []
@@ -378,34 +423,41 @@ def bulk_permanent_delete_photos(
     ).delete(synchronize_session=False)
     db.commit()
 
-    # CF 삭제는 백그라운드에서 처리 (응답 블로킹 안 함)
-    import threading
-    def delete_cf_files():
-        for url in cf_urls:
-            try:
-                delete_from_cloudflare(url)
-            except Exception as e:
-                print(f"CF 삭제 실패 (무시): {e}")
     if cf_urls:
-        threading.Thread(
-            target=delete_cf_files_parallel,
-            args=(cf_urls,),
-            daemon=True
-        ).start()
+        background_tasks.add_task(delete_cf_files_parallel, cf_urls)
 
     return {"deleted": len(body.photo_ids)}
 
 
 @router.get("/{photo_id}", response_model=PhotoResponse)
-def get_photo(photo_id: str, db: Session = Depends(get_db)):
-    photo = db.query(models.Photo).filter(models.Photo.id == photo_id).first()
+def get_photo(
+    photo_id: str,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user)
+):
+    # deleted_at 필터 없음 — 휴지통 사진도 조회 가능해야 함
+    photo = db.query(models.Photo).join(models.Project).filter(
+        models.Photo.id == photo_id,
+        models.Project.user_id == current_user.id,
+    ).first()
     if not photo:
         raise HTTPException(status_code=404, detail="PHOTO_NOT_FOUND")
     return photo
 
 
 @router.post("/", response_model=PhotoResponse)
-def create_photo(photo: PhotoCreate, db: Session = Depends(get_db)):
+def create_photo(
+    photo: PhotoCreate,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user)
+):
+    project = db.query(models.Project).filter(
+        models.Project.id == photo.project_id,
+        models.Project.user_id == current_user.id,
+    ).first()
+    if not project:
+        raise HTTPException(status_code=403, detail="FORBIDDEN")
+
     # order 자동 계산
     last_photo = db.query(models.Photo).filter(
         models.Photo.project_id == photo.project_id,
@@ -440,10 +492,13 @@ def create_photo(photo: PhotoCreate, db: Session = Depends(get_db)):
 
 
 @router.put("/{photo_id}", response_model=PhotoResponse)
-def update_photo(photo_id: str, photo: PhotoCreate, db: Session = Depends(get_db)):
-    db_photo = db.query(models.Photo).filter(models.Photo.id == photo_id).first()
-    if not db_photo:
-        raise HTTPException(status_code=404, detail="PHOTO_NOT_FOUND")
+def update_photo(
+    photo_id: str,
+    photo: PhotoCreate,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user)
+):
+    db_photo = get_owned_photo_or_404(photo_id, current_user.id, db)
     for key, value in photo.dict(exclude_unset=True).items():
         setattr(db_photo, key, value)
     db.commit()
@@ -451,14 +506,13 @@ def update_photo(photo_id: str, photo: PhotoCreate, db: Session = Depends(get_db
     return db_photo
 
 @router.delete("/{photo_id}")
-def delete_photo(photo_id: str, db: Session = Depends(get_db)):
+def delete_photo(
+    photo_id: str,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user)
+):
     """소프트 삭제: 휴지통으로 이동"""
-    photo = db.query(models.Photo).filter(
-        models.Photo.id == photo_id,
-        models.Photo.deleted_at == None  # 이미 삭제된 사진 제외
-    ).first()
-    if not photo:
-        raise HTTPException(status_code=404, detail="PHOTO_NOT_FOUND")
+    photo = get_owned_photo_or_404(photo_id, current_user.id, db)
     
     photo.deleted_at = datetime.utcnow()
     clear_cover_if_deleted(photo.project_id, photo.image_url, db)
@@ -552,8 +606,18 @@ async def upload_photo(
 
 
 @router.get("/trash/{project_id}")
-def get_project_trash(project_id: str, db: Session = Depends(get_db)):
+def get_project_trash(
+    project_id: str,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user)
+):
     """프로젝트별 휴지통 조회"""
+    project = db.query(models.Project).filter(
+        models.Project.id == project_id,
+        models.Project.user_id == current_user.id,
+    ).first()
+    if not project:
+        raise HTTPException(status_code=403, detail="FORBIDDEN")
     return db.query(models.Photo).filter(
         models.Photo.project_id == project_id,
         models.Photo.deleted_at != None
@@ -596,31 +660,30 @@ def restore_photo(
 
 
 @router.delete("/{photo_id}/permanent")
-def permanent_delete_photo(photo_id: str, db: Session = Depends(get_db)):
+def permanent_delete_photo(
+    photo_id: str,
+    background_tasks: BackgroundTasks,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user)
+):
     """영구 삭제 (파일 및 관련 데이터 모두 삭제)"""
-    photo = db.query(models.Photo).filter(
-        models.Photo.id == photo_id,
-        models.Photo.deleted_at != None
-    ).first()
-    
-    if not photo:
-        raise HTTPException(status_code=404, detail="PHOTO_NOT_FOUND")
+    photo = get_owned_photo_or_404(photo_id, current_user.id, db, require_deleted=True)
     
     # 1. ⭐ [추가] 챕터 매핑 데이터(ChapterPhoto) 먼저 삭제
     db.query(models.ChapterPhoto).filter(models.ChapterPhoto.photo_id == photo_id).delete(synchronize_session=False)
     clear_cover_if_deleted(photo.project_id, photo.image_url, db)
 
-    # 2. [기존 로직] CF 또는 로컬 파일 물리적 삭제
-    try:
-        if photo.image_url and "imagedelivery.net" in photo.image_url:
-            delete_from_cloudflare(photo.image_url)
-        elif photo.image_url:
+    # 2. CF 또는 로컬 파일 삭제 (백그라운드)
+    if photo.image_url and "imagedelivery.net" in photo.image_url:
+        background_tasks.add_task(delete_from_cloudflare, photo.image_url)
+    elif photo.image_url:
+        try:
             file_path = photo.image_url.split('/uploads/')[-1]
             full_path = f"app/uploads/{file_path}"
             if os.path.exists(full_path):
                 os.remove(full_path)
-    except Exception as e:
-        print(f"파일 삭제 실패 (무시하고 계속 진행): {e}")
+        except Exception as e:
+            print(f"로컬 파일 삭제 실패 (무시): {e}")
 
     # 3. 사진 데이터 삭제 및 커밋
     db.delete(photo)
