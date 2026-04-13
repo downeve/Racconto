@@ -36,8 +36,13 @@ export default function Trash() {
       const code = typeof detail === 'object' ? detail.code : detail
       const limit = typeof detail === 'object' ? detail.limit : undefined
 
-      if (code === 'PROJECT_LIMIT_EXCEEDED') {
+      // 💡 코드에 따라 번역된 메시지 출력
+      if (code === 'PHOTO_LIMIT_EXCEEDED') {
+        alert(t('api.error.PHOTO_LIMIT_EXCEEDED', { limit })) // limit 변수 전달
+      } else if (code === 'PROJECT_LIMIT_EXCEEDED') {
         alert(t('api.error.PROJECT_LIMIT_EXCEEDED', { limit }))
+      } else {
+        alert(t('common.error')) // 알 수 없는 일반 에러 처리
       }
     }
   }

@@ -26,6 +26,8 @@ const COLOR_KEYS = [
 
 export default function Settings() {
   const { user } = useAuth()
+  const [email, setEmail] = useState(user?.email || '')
+
   const [settings, setSettings] = useState<Record<string, string>>({})
   const [saved, setSaved] = useState(false)
   const [currentPassword, setCurrentPassword] = useState('')
@@ -101,6 +103,7 @@ export default function Settings() {
         headers: { Authorization: `Bearer ${token}` }
       }).then(res => {
         setUsername(res.data.username || '')
+        setEmail(res.data.email || '')
       })
     })
   }, [])
@@ -205,7 +208,7 @@ export default function Settings() {
             {t('settings.currentUser') || 'Logged in as'}
           </p>
           <p className="text-lg text-stone-900 font-semibold tracking-tight">
-            {user?.email || 'Loading...'}
+            {email || 'Loading...'}
           </p>
         </div>
       </div>
