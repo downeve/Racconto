@@ -14,7 +14,7 @@ class User(Base):
     is_verified = Column(Boolean, default=False)
     verify_token = Column(String, nullable=True)
     verify_token_expires_at = Column(DateTime, nullable=True)
-    photo_limit = Column(Integer, default=300)
+    photo_limit = Column(Integer, default=1000)
     project_limit = Column(Integer, default=3)
     username = Column(String, unique=True, nullable=True, index=True)
     created_at = Column(DateTime, default=datetime.utcnow)

@@ -171,7 +171,7 @@ def restore_project(
     db: Session = Depends(get_db),
     current_user: models.User = Depends(get_current_user)
 ):
-        # 💡 복구 전 제한 체크 추가
+    # 복구 전 제한 체크 추가
     project_count = db.query(models.Project).filter(
         models.Project.user_id == current_user.id,
         models.Project.deleted_at == None
@@ -182,6 +182,30 @@ def restore_project(
             detail={"code": "PROJECT_LIMIT_EXCEEDED", "limit": current_user.project_limit}
         )
     
+    # [추가됨] 총 사진 업로드 한도(1000장) 체크
+    # 현재 활성화된(휴지통에 없는) 프로젝트들의 사진 총합
+    active_photo_count = db.query(models.Photo).join(models.Project).filter(
+        models.Project.user_id == current_user.id,
+        models.Project.deleted_at == None,
+        models.Photo.deleted_at == None
+    ).count()
+
+    # 복구하려는 프로젝트 안에 들어있는 사진의 총합
+    restoring_photo_count = db.query(models.Photo).filter(
+        models.Photo.project_id == project_id,
+        models.Photo.deleted_at == None
+    ).count()
+
+    # 두 개를 합쳤을 때 유저의 전체 한도를 넘는지 검사
+    if active_photo_count + restoring_photo_count > current_user.photo_limit:
+        raise HTTPException(
+            status_code=403,
+            detail={
+                "code": "PHOTO_LIMIT_EXCEEDED", 
+                "limit": current_user.photo_limit
+            }
+        )
+
     project = db.query(models.Project).filter(
         models.Project.id == project_id,
         models.Project.user_id == current_user.id,

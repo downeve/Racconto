@@ -480,9 +480,9 @@ async def upload_photo(
     db: Session = Depends(get_db),
     current_user: models.User = Depends(get_current_user)
 ):
-        # 프로젝트당 사진 업로드 제한 체크
-    photo_count = db.query(models.Photo).filter(
-        models.Photo.project_id == project_id,
+    # 💡 유저 계정당 총 사진 업로드 제한 체크 (Project와 Join)
+    photo_count = db.query(models.Photo).join(models.Project).filter(
+        models.Project.user_id == current_user.id,
         models.Photo.deleted_at == None
     ).count()
     
@@ -573,8 +573,9 @@ def restore_photo(
     if not photo:
         raise HTTPException(status_code=404, detail="PHOTO_NOT_FOUND")
 
-    photo_count = db.query(models.Photo).filter(
-        models.Photo.project_id == photo.project_id,
+    # 💡 유저 계정당 총 사진 업로드 제한 체크 (복원 시)
+    photo_count = db.query(models.Photo).join(models.Project).filter(
+        models.Project.user_id == current_user.id,
         models.Photo.deleted_at == None
     ).count()
     if photo_count >= current_user.photo_limit:
