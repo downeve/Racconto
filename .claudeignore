@@ -221,3 +221,12 @@ backend/venv/
 node_modules/
 frontend/dist/
 electron/dist/
+
+# Project-specific additions (클로드 제안으로 추가)
+*.sql           
+**/package-lock.json
+frontend/src/assets/                                                                                                                                                                                              
+electron/icons/
+tmp/                                                                                                                                                                                                              
+structure.txt   
+.pub

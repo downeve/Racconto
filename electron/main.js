@@ -61,7 +61,6 @@ ipcMain.handle('folderMap:getAll', () => {
 // ── 업로드 ────────────────────────────────────────────
 
 async function fetchWithAuth(url, options = {}) {
-  const { default: fetch } = await import('node-fetch')
   const res = await fetch(url, {
     ...options,
     headers: {
@@ -93,7 +92,6 @@ async function uploadFile(item) {
   const { uploadURL } = await urlRes.json()
 
   // 2. CF에 직접 업로드
-  const { default: fetch } = await import('node-fetch')
   const { Blob } = require('buffer')
   const fileBuffer = fs.readFileSync(item.filePath)
   const blob = new Blob([fileBuffer])
@@ -356,7 +354,6 @@ function startWatcherForPath(folderPath) {
     if (!authToken) return
 
     try {
-      const { default: fetch } = await import('node-fetch')
       const filename = path.basename(filePath)
       const mapping = getProjectForFolder(path.dirname(filePath))
       if (!mapping) return
@@ -447,7 +444,6 @@ function createWindow() {
     mainWindow.webContents.once('did-finish-load', () => {
       mainWindow.webContents.executeJavaScript("window.location.hash = '#/'")
     })
-    mainWindow.webContents.openDevTools()  // 임시 추가
   }
 }
 

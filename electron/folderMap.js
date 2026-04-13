@@ -14,7 +14,8 @@ function loadMap() {
 }
 
 function saveMap(map) {
-  fs.writeFileSync(MAP_PATH, JSON.stringify(map, null, 2))
+  fs.promises.writeFile(MAP_PATH, JSON.stringify(map, null, 2))
+    .catch(err => console.error('폴더 맵 저장 실패:', err))
 }
 
 // 폴더 → 프로젝트 연결
