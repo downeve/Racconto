@@ -33,7 +33,7 @@ export default function LandingPage() {
             }}
           >
             <img
-              src="/screenshots/screenshot-story.png"
+              src="./screenshots/screenshot-story.png"
               alt="Story structure"
               className="w-full object-cover object-top"
             />
@@ -48,7 +48,7 @@ export default function LandingPage() {
       visual: (
         <div className="w-full h-64 rounded overflow-hidden shadow-md">
           <img
-            src="/screenshots/screenshot-photos.png"
+            src="./screenshots/screenshot-photos.png"
             alt="Photo curation workflow"
             className="w-full h-full object-cover object-top"
           />
@@ -62,7 +62,7 @@ export default function LandingPage() {
       visual: (
         <div className="w-full h-64 rounded overflow-hidden shadow-md">
           <img
-            src="/screenshots/screenshot-portfolio.png"
+            src="./screenshots/screenshot-portfolio.png"
             alt="Public portfolio"
             className="w-full h-full object-cover object-top"
           />
@@ -76,7 +76,7 @@ export default function LandingPage() {
       visual: (
         <div className="w-full h-64 rounded overflow-hidden shadow-md">
           <img
-            src="/screenshots/screenshot-notes.png"
+            src="./screenshots/screenshot-notes.png"
             alt="Project notes"
             className="w-full h-full object-cover object-top"
           />
@@ -208,7 +208,7 @@ export default function LandingPage() {
           {/* 메인 스크린샷 */}
           <div className="rounded-lg overflow-hidden shadow-xl border border-stone-200 mb-6">
             <img
-              src="/screenshots/screenshot-projects.png"
+              src="./screenshots/screenshot-projects.png"
               alt="Racconto app"
               className="w-full object-cover object-top"
             />
@@ -218,14 +218,14 @@ export default function LandingPage() {
           <div className="grid grid-cols-2 gap-4">
             <div className="rounded-lg overflow-hidden shadow-md border border-stone-200">
               <img
-                src="/screenshots/screenshot-lightbox.png"
+                src="./screenshots/screenshot-lightbox.png"
                 alt="Lightbox view"
                 className="w-full object-cover"
               />
             </div>
             <div className="rounded-lg overflow-hidden shadow-md border border-stone-200">
               <img
-                src="/screenshots/screenshot-note-panel.png"
+                src="./screenshots/screenshot-note-panel.png"
                 alt="Note panel"
                 className="w-full object-cover"
               />

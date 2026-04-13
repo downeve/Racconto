@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom'
+import { BrowserRouter, HashRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom'
 import { AuthProvider, useAuth } from './context/AuthContext'
 import { useTranslation } from 'react-i18next'
 import Navbar from './components/Navbar'
@@ -77,7 +77,7 @@ function AppRoutes() {
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
           <Route path="/verify-email" element={<VerifyEmail />} />
-          <Route path="/" element={isAuthenticated ? <Navigate to="/projects" /> : <LandingPage />} />
+          <Route path="/" element={isAuthenticated ? <Navigate to="/projects" replace /> : <LandingPage />} />
           <Route path="/projects" element={<PrivateRoute><Projects /></PrivateRoute>} />
           <Route path="/projects/:id" element={
             <PrivateRoute>
@@ -98,12 +98,13 @@ function AppRoutes() {
 }
 
 function App() {
+  const Router = window.racconto ? HashRouter : BrowserRouter
   return (
     <AuthProvider>
       <ElectronSidebarProvider>
-        <BrowserRouter>
+        <Router>
           <AppRoutes />
-        </BrowserRouter>
+        </Router>
       </ElectronSidebarProvider>
     </AuthProvider>
   )

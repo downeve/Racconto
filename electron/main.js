@@ -442,7 +442,12 @@ function createWindow() {
     mainWindow.loadURL('http://localhost:5173')
     mainWindow.webContents.openDevTools()
   } else {
-    mainWindow.loadFile(path.join(__dirname, '../frontend/dist/index.html'))
+    mainWindow.loadFile(path.join(process.resourcesPath, 'frontend', 'dist', 'index.html'))
+    // 로드 완료 후 해시 라우트로 이동
+    mainWindow.webContents.once('did-finish-load', () => {
+      mainWindow.webContents.executeJavaScript("window.location.hash = '#/'")
+    })
+    mainWindow.webContents.openDevTools()  // 임시 추가
   }
 }
 

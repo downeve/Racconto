@@ -3,7 +3,8 @@ import axios from 'axios'
 import ProjectCard from '../components/ProjectCard'
 import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import Heading from '../components/Heading' //
+import Heading from '../components/Heading'
+import { useElectronSidebar } from '../context/ElectronSidebarContext'
 
 const API = import.meta.env.VITE_API_URL
 
@@ -29,12 +30,14 @@ export default function Projects() {
   const [location, setLocation] = useState('')
   const [status, setStatus] = useState('in_progress')
   const [isPublic, setIsPublic] = useState('false')
+  const { triggerRefresh } = useElectronSidebar()
   const { t } = useTranslation()
 
   const handleDelete = async (projectId: string) => {
     if (!confirm((t('project.deleteConfirm')))) return
     await axios.delete(`${API}/projects/${projectId}`)
     fetchProjects()
+    triggerRefresh()
   }
 
   const fetchProjects = async () => {
@@ -59,6 +62,7 @@ export default function Projects() {
       setStatus('in_progress'); setIsPublic('false')
       setShowForm(false)
       fetchProjects()
+      triggerRefresh()
     } catch (err: any) {
       const detail = err.response?.data?.detail
       const code = typeof detail === 'object' ? detail.code : detail

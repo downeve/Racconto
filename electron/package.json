@@ -8,7 +8,9 @@
     "dev": "electron .",
     "build:mac": "electron-builder --mac",
     "build:win": "electron-builder --win",
-    "build:all": "electron-builder --mac --win"
+    "build:all": "electron-builder --mac --win",
+    "package:mac": "cd ../frontend && npm run build && cd ../electron && electron-builder --mac",
+    "package:win": "cd ../frontend && npm run build && cd ../electron && electron-builder --win"
   },
   "devDependencies": {
     "electron": "^41.2.0",
@@ -26,10 +28,31 @@
     "directories": {
       "output": "dist"
     },
+    "files": [
+      "main.js",
+      "preload.js",
+      "queue.js",
+      "folderMap.js",
+      "package.json"
+    ],
+    "extraResources": [
+      {
+        "from": "../frontend/dist",
+        "to": "frontend/dist"
+      }
+    ],
+    "extraMetadata": {
+      "main": "main.js"
+    },
     "mac": {
-      "category": "public.app-category.photography"
+      "category": "public.app-category.photography",
+      "icon": "icons/icon.icns",
+      "target": [
+        { "target": "dmg", "arch": ["arm64", "x64"] }
+      ]
     },
     "win": {
+      "icon": "icons/icon.ico",
       "target": "nsis"
     }
   }

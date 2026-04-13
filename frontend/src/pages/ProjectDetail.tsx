@@ -1,5 +1,5 @@
 import { useEffect, useState, useMemo } from 'react'
-import { useParams } from 'react-router-dom'
+import { useParams, Link } from 'react-router-dom'
 import axios from 'axios'
 
 import ProjectStory from './ProjectStory'
@@ -947,9 +947,7 @@ export default function ProjectDetail({
         />
       )}
 
-      <div className="mb-2">
-        <a href="/projects" className="text-sm text-gray-400 hover:text-black">{t('nav.backToProjects')}</a>
-      </div>
+      <Link to="/projects" className="text-sm text-gray-400 hover:text-black">{t('nav.backToProjects')}</Link>
 
       <div className="mb-4 flex items-start justify-between gap-6">
         <div className="flex-1">

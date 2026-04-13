@@ -25,14 +25,14 @@ export default function ElectronSidebar({ activeTab, onTabChange, showTabs }: Pr
   const { id: currentId } = useParams()
   const location = useLocation()
   const { t } = useTranslation()
-  const { sidebarContent } = useElectronSidebar()
+  const { sidebarContent, refreshTrigger } = useElectronSidebar() //
 
   useEffect(() => {
     const token = localStorage.getItem('token')
     axios.get(`${API}/projects/`, {
       headers: { Authorization: `Bearer ${token}` }
     }).then(res => setProjects(res.data))
-  }, [])
+  }, [refreshTrigger])
 
   const isOnProjectDetail = location.pathname.startsWith('/projects/') &&
     !location.pathname.endsWith('/edit')

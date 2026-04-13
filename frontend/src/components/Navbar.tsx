@@ -50,7 +50,6 @@ export default function Navbar({ onLogout }: NavbarProps) {
     }
   }
 
-  // return 전체 교체
   return (
     <nav
       className="fixed top-0 left-0 right-0 z-50 bg-[#F7F4F0]/90 backdrop-blur-sm border-b border-stone-200 text-stone-900"
