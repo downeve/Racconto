@@ -42,16 +42,19 @@ export default function ElectronSidebar({ activeTab, onTabChange, showTabs }: Pr
 
       {/* 프로젝트 목록 섹션 */}
       <div className="flex flex-col min-h-0">
+        <div className="flex items-center justify-between px-4 text-xs font-semibold text-stone-500 tracking-widest uppercase hover:text-stone-800 shrink-0"
+        >
+          <span>{t('nav.projectsList')}</span>
         <button
           onClick={() => {
             navigate('/projects')
             setShowProjects(v => !v)
           }}
-          className="flex items-center justify-between px-4 py-3 text-xs font-semibold text-stone-500 tracking-widest uppercase hover:text-stone-800 shrink-0"
+          className="flex items-center justify-between px-1 py-1 text-lg font-bold text-stone-500 tracking-widest uppercase hover:text-stone-800 shrink-0"
         >
-          <span>{t('nav.projectsList')}</span>
           <span className="text-stone-400">{showProjects ? '▾' : '▸'}</span>
         </button>
+        </div>
 
         {showProjects && (
           <div className="overflow-y-auto flex-1">
