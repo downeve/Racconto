@@ -104,11 +104,11 @@ export default function LandingPage() {
 
       {/* Navbar */}
       <nav className="fixed top-0 left-0 right-0 z-50 bg-[#F7F4F0]/90 backdrop-blur-sm border-b border-stone-200">
-        <div className="max-w-6xl mx-auto px-6 h-14 flex items-center justify-between">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 h-14 flex items-center justify-between">
           <span className="text-xl font-bold tracking-widest" style={{ fontFamily: "'Georgia', serif", letterSpacing: '0.15em' }}>
             Racconto
           </span>
-          <div className="flex items-center gap-6">
+          <div className="flex items-center gap-3 sm:gap-6">
             <button
               onClick={toggleLanguage}
               className="text-xs font-bold text-stone-400 hover:text-stone-700 tracking-widest transition-colors"
@@ -117,13 +117,13 @@ export default function LandingPage() {
             </button>
             <Link
               to="/login"
-              className="text-sm tracking-wider text-stone-600 hover:text-stone-900 transition-colors"
+              className="text-xs sm:text-sm tracking-wider text-stone-600 hover:text-stone-900 transition-colors"
             >
               {t('auth.login')}
             </Link>
             <Link
               to="/register"
-              className="text-sm tracking-wider bg-stone-900 text-white px-4 py-2 hover:bg-stone-700 transition-colors rounded"
+              className="text-xs sm:text-sm tracking-wider bg-stone-900 text-white px-3 py-1.5 sm:px-4 sm:py-2 hover:bg-stone-700 transition-colors rounded whitespace-nowrap"
             >
               {t('auth.register')}
             </Link>

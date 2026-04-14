@@ -63,11 +63,10 @@ export default function Register() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col">
-      
-    {/* 공통: 수정된 네비게이션 바 */}
+    <div className="min-h-screen flex flex-col bg-[#F7F4F0]">
+
       <nav className="fixed top-0 left-0 right-0 z-50 bg-[#F7F4F0]/90 backdrop-blur-sm border-b border-stone-200 text-stone-900">
-        <div className="max-w-6xl mx-auto px-6 h-14 flex items-center justify-between">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 h-14 flex items-center justify-between">
           <Link 
             to="/" 
             className="text-xl font-bold tracking-widest" 
@@ -84,8 +83,7 @@ export default function Register() {
         </div>
       </nav>
 
-      {/* 메인 컨텐츠 영역 */}
-      <div className="flex-1 flex items-start justify-center pt-20 pb-12">
+      <div className="flex-1 flex items-center justify-center px-4 py-20">
         {success ? (
           // --- 회원가입 성공 (이메일 인증 대기) 화면 ---
           <div className="bg-white rounded-lg shadow p-8 w-full max-w-sm text-center">

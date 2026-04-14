@@ -41,7 +41,7 @@ function AppRoutes() {
     <div className="min-h-screen bg-[#F7F4F0] pt-14">
       {/* 모바일 기기 차단 — UA 기반 감지 */}
       {isMobileDevice &&
-      !['/',].includes(location.pathname) &&
+      !['/', '/login', '/register', '/verify-email'].includes(location.pathname) &&
       !location.pathname.startsWith('/p/') &&
       !location.pathname.startsWith('/delivery/') && (
         <div className="fixed inset-0 bg-[#F7F4F0] z-50 flex items-center justify-center p-8 text-center">
