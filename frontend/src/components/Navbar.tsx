@@ -5,7 +5,7 @@ import axios from 'axios'
 
 const API = import.meta.env.VITE_API_URL
 const isElectron = typeof window !== 'undefined' && !!window.racconto
-const isMobileDevice = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)
+const isMobileDevice = /Android.*Mobile|webOS|iPhone|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)
 
 interface NavbarProps {
   onLogout: () => void

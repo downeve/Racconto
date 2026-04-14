@@ -34,7 +34,7 @@ function AppRoutes() {
   const hideNavbar = location.pathname.startsWith('/delivery/')
 
   const isElectron = typeof window !== 'undefined' && !!window.racconto
-  const isMobileDevice = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)
+  const isMobileDevice = /Android.*Mobile|webOS|iPhone|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)
   const [electronTab, setElectronTab] = useState<'photos' | 'story' | 'notes'>('photos')
 
   return (
