@@ -261,36 +261,35 @@ async function processQueue() {
     }
   }
 
-  const BATCH_SIZE = 5
-  const batch = uploadItems.slice(0, BATCH_SIZE)
-  const total = batch.length
+  const CONCURRENCY = 5
+  const total = uploadItems.length
   let successCount = 0
   let failedCount = 0
 
   if (total > 0) {
     mainWindow?.webContents.send('upload:progress', { done: 0, total, failed: 0 })
 
-    for (const item of batch) {
-      try {
-        await uploadFile(item)
-        markSuccess(item.id)
-        successCount++
-        mainWindow?.webContents.send('upload:progress', {
-          done: successCount + failedCount,
-          total,
-          failed: failedCount,
+    for (let i = 0; i < uploadItems.length; i += CONCURRENCY) {
+      const chunk = uploadItems.slice(i, i + CONCURRENCY)
+      await Promise.allSettled(
+        chunk.map(async (item) => {
+          try {
+            await uploadFile(item)
+            markSuccess(item.id)
+            successCount++
+            console.log('업로드 성공:', item.filePath)
+          } catch (err) {
+            markFailed(item.id)
+            failedCount++
+            console.error('업로드 실패:', item.filePath, err.message)
+          }
+          mainWindow?.webContents.send('upload:progress', {
+            done: successCount + failedCount,
+            total,
+            failed: failedCount,
+          })
         })
-        console.log('업로드 성공:', item.filePath)
-      } catch (err) {
-        markFailed(item.id)
-        failedCount++
-        mainWindow?.webContents.send('upload:progress', {
-          done: successCount + failedCount,
-          total,
-          failed: failedCount,
-        })
-        console.error('업로드 실패:', item.filePath, err.message)
-      }
+      )
     }
 
     mainWindow?.webContents.send('upload:done', {
@@ -301,10 +300,6 @@ async function processQueue() {
   }
 
   isProcessing = false
-
-  // 잔여 항목 있으면 재귀 호출
-  const remaining = getPendingItems()
-  if (remaining.length > 0) processQueue()
 }
 
 // ── 파일 감시 ────────────────────────────────────────
