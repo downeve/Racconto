@@ -947,7 +947,11 @@ export default function ProjectDetail({
         />
       )}
 
-      <Link to="/projects" className="text-sm text-gray-400 hover:text-black">{t('nav.backToProjects')}</Link>
+      {!isElectron && (
+        <Link to="/projects" className="text-sm text-gray-400 hover:text-black">
+          {t('nav.backToProjects')}
+        </Link>
+      )}
 
       <div className="mb-4 flex items-start justify-between gap-6">
         <div className="flex-1">
@@ -1314,7 +1318,7 @@ export default function ProjectDetail({
                 {trashedPhotos.length === 0 ? (
                   <div className="text-center py-20 text-gray-400 border rounded-xl bg-gray-50">
                     <p className="text-lg mb-2">{t('photo.trashEmpty')}</p>
-                    <p className="text-sm">{t('photo.deleteInfo')}</p>
+                    {/* <p className="text-sm">{t('photo.deleteInfo')}</p> */}
                   </div>
                 ) : (
                   <div className="grid grid-cols-3 gap-4">
