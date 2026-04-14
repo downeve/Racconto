@@ -35,7 +35,7 @@ cd electron && npm run package:mac
 
 ## 아키텍처
 
-Racconto는 사진작가용 포트폴리오·납품 관리 앱으로, 세 개의 독립 레이어로 구성된다.
+Racconto는 모든 사진가를 위한 스토리 창작 앱이며, 세 개의 독립 레이어로 구성된다.
 
 ### Backend (`backend/app/`)
 FastAPI + SQLAlchemy + PostgreSQL (Docker). `database.py`의 `get_db()`를 DI로 사용.
