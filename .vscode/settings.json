@@ -2,5 +2,12 @@
   "python.defaultInterpreterPath": "${workspaceFolder}/backend/venv/bin/python",
   "python.analysis.extraPaths": ["${workspaceFolder}/backend/venv/lib/python3.10/site-packages"],
   "pylance.extraPaths": ["${workspaceFolder}/backend/venv/lib/python3.10/site-packages"],
-  "python.analysis.pythonPath": "${workspaceFolder}/backend/venv/bin/python"
+  "python.analysis.pythonPath": "${workspaceFolder}/backend/venv/bin/python",
+  "python-envs.pythonProjects": [
+    {
+      "path": "",
+      "envManager": "ms-python.python:venv",
+      "packageManager": "ms-python.python:pip"
+    }
+  ]
 }
