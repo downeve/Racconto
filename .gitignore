@@ -218,3 +218,6 @@ electron/dist/
 # macOS
 .DS_Store
 **/.DS_Store
+
+# pesudo images for test
+imageTmp/
