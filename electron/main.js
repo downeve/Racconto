@@ -428,6 +428,7 @@ function createWindow() {
     width: 1280,
     height: 800,
     titleBarStyle: 'hiddenInset',
+    trafficLightPosition: { x: 16, y: 18 },
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
       contextIsolation: true,
@@ -437,7 +438,7 @@ function createWindow() {
 
   if (isDev) {
     mainWindow.loadURL('http://localhost:5173')
-    mainWindow.webContents.openDevTools()
+    //mainWindow.webContents.openDevTools()
   } else {
     mainWindow.loadFile(path.join(process.resourcesPath, 'frontend', 'dist', 'index.html'))
     // 로드 완료 후 해시 라우트로 이동
