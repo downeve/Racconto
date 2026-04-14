@@ -162,7 +162,8 @@
     "countText": "개",
     "deletedInfo": "휴지통 사진은 30일 후에 자동으로 완전 삭제됩니다.",
     "local": {
-      "MissingWarning": "로컬 파일 없음: {{count}}개"
+      "MissingWarning": "로컬 파일 없음: {{count}}개",
+      "deleteMissingConfirm": "로컬 파일 없는 사진 {{count}}개를 모두 삭제할까요?"
     },
     "error": {
       "OriginalNotFound": "원본 사진 데이터를 찾을 수 없습니다.",

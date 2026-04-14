@@ -165,7 +165,8 @@
     "deletedInfo": "Photos in the trash will be permanently removed after 30 days.",
     "local": {
       "MissingWarning_one": "1 local file missing",
-      "MissingWarning_other": "{{count}} local files missing"
+      "MissingWarning_other": "{{count}} local files missing",
+      "deleteMissingConfirm": "Are you sure you want to delete all {{count}} missing local photos?"
     },
     "error": {
       "OriginalNotFound": "Original photo data could not be found.",

@@ -706,7 +706,7 @@ export default function ProjectDetail({
   const handleDeleteAllMissing = async () => {
     const missingPhotos = photos.filter(p => p.local_missing && !p.deleted_at)
     if (missingPhotos.length === 0) return
-    if (!confirm(`로컬 파일 없음 사진 ${missingPhotos.length}개를 모두 삭제할까요?`)) return
+    if (!confirm(t('photo.local.deleteMissingConfirm', { count: missingPhotos.length }))) return
     setDeletingMissing(true)
     await axios.delete(`${API}/photos/bulk-delete`, {
       data: { photo_ids: missingPhotos.map(p => p.id) }
