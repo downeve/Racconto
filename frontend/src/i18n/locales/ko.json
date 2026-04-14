@@ -408,7 +408,9 @@
     "demoEyebrow": "미리보기",
     "demoTitle": "사진가의 작업 공간",
     "desktopOptimizationInfo": "컴퓨터에서 사용해 주세요.",
-    "desktopOptimizationDesc": "Racconto는 데스크탑 환경에 최적화 되어 있습니다."
+    "desktopOptimizationDesc": "Racconto는 데스크탑 환경에 최적화되어 있습니다.",
+    "openInBrowser": "racconto.app 브라우저로 열기",
+    "downloadDesktopApp": "데스크톱 앱 다운로드"
   },
   "electron": {
     "localFolderConnect": "로컬 폴더 연결",

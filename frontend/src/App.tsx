@@ -34,15 +34,17 @@ function AppRoutes() {
   const hideNavbar = location.pathname.startsWith('/delivery/')
 
   const isElectron = typeof window !== 'undefined' && !!window.racconto
+  const isMobileDevice = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)
   const [electronTab, setElectronTab] = useState<'photos' | 'story' | 'notes'>('photos')
 
   return (
     <div className="min-h-screen bg-[#F7F4F0] pt-14">
-      {/* 모바일 차단 — 기존 코드 그대로 */}
-      {!['/', ].includes(location.pathname) &&
+      {/* 모바일 기기 차단 — UA 기반 감지 */}
+      {isMobileDevice &&
+      !['/',].includes(location.pathname) &&
       !location.pathname.startsWith('/p/') &&
       !location.pathname.startsWith('/delivery/') && (
-        <div className="md:hidden fixed inset-0 bg-[#F7F4F0] z-50 flex items-center justify-center p-8 text-center">
+        <div className="fixed inset-0 bg-[#F7F4F0] z-50 flex items-center justify-center p-8 text-center">
           <div>
             <p className="text-3xl mb-4">📷</p>
             <p className="text-lg font-bold text-stone-900 mb-2" style={{ fontFamily: 'Georgia, serif' }}>
@@ -51,6 +53,20 @@ function AppRoutes() {
             <p className="text-sm text-stone-500 leading-relaxed mb-6">
               {t('landing.desktopOptimizationDesc')}
             </p>
+            <div className="flex flex-col gap-3 items-center mb-6">
+              <a
+                href="https://racconto.app"
+                className="text-sm font-medium text-stone-700 border border-stone-300 rounded-full px-5 py-2 hover:bg-stone-100 transition-colors"
+              >
+                {t('landing.openInBrowser')}
+              </a>
+              <a
+                href="https://racconto.app#download"
+                className="text-sm font-medium text-white bg-stone-800 rounded-full px-5 py-2 hover:bg-stone-700 transition-colors"
+              >
+                {t('landing.downloadDesktopApp')}
+              </a>
+            </div>
             {isAuthenticated && (
               <button onClick={logout} className="text-xs text-stone-400 hover:text-stone-600 underline underline-offset-2">
                 {t('auth.logout')}

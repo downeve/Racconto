@@ -410,8 +410,10 @@
     "alreadyHaveAccount": "Already have an account?",
     "demoEyebrow": "Preview",
     "demoTitle": "A workspace built for photographers",
-    "desktopOptimizationInfo": "Please access on desktop (Supports mobile UI in the future)",
-    "desktopOptimizationDesc": "Racconto is optimized in desktop environment."
+    "desktopOptimizationInfo": "Please use Racconto on desktop.",
+    "desktopOptimizationDesc": "Racconto is optimized for desktop environments.",
+    "openInBrowser": "Open racconto.app in browser",
+    "downloadDesktopApp": "Download desktop app"
   },
   "electron": {
     "localFolderConnect": "Local Folder Syncronization",
