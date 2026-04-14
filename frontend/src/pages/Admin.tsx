@@ -23,8 +23,20 @@ interface Stats {
   total_notes: number
 }
 
+interface ExternalStatsData {
+  cloudflare?: { current: number; limit: number }
+  linode?: {
+    status: string
+    label: string
+    ipv4: string
+    specs?: { disk: number; memory: number }
+    cpu_usage: number
+    net_out: number
+  }
+}
+
 const ExternalStatsSection = () => {
-    const [data, setData] = useState<any>(null);
+    const [data, setData] = useState<ExternalStatsData | null>(null);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {

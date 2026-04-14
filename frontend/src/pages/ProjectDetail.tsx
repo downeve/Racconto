@@ -25,6 +25,22 @@ interface Project {
   cover_image_url: string
 }
 
+interface ChapterResponse {
+  id: string
+  title: string
+  parent_id: string | null
+  order_num: number
+}
+
+interface ChapterPhotoResponse {
+  photo_id: string
+}
+
+interface NoteResponse {
+  id: string
+  photo_id: string | null
+}
+
 interface Photo {
   id: string
   image_url: string
@@ -479,16 +495,17 @@ export default function ProjectDetail({
   const fetchChapterPhotoIds = async () => {
     if (!id) return
     const res = await axios.get(`${API}/chapters/?project_id=${id}`)
+    const chapters: ChapterResponse[] = res.data
     setChapters(
-      res.data
-        .sort((a: any, b: any) => a.order_num - b.order_num)
-        .map((c: any) => ({ id: c.id, title: c.title, parent_id: c.parent_id, order_num: c.order_num }))
+      chapters
+        .sort((a, b) => a.order_num - b.order_num)
+        .map(c => ({ id: c.id, title: c.title, parent_id: c.parent_id, order_num: c.order_num }))
+    )
+    const photoResults = await Promise.all(
+      chapters.map(c => axios.get<ChapterPhotoResponse[]>(`${API}/chapters/${c.id}/photos`))
     )
     const ids = new Set<string>()
-    for (const chapter of res.data) {
-      const photoRes = await axios.get(`${API}/chapters/${chapter.id}/photos`)
-      photoRes.data.forEach((cp: any) => ids.add(cp.photo_id))
-    }
+    photoResults.forEach(r => r.data.forEach(cp => ids.add(cp.photo_id)))
     setChapterPhotoIds(ids)
   }
 
@@ -496,9 +513,9 @@ export default function ProjectDetail({
     if (!id) return
     const res = await axios.get(`${API}/notes/?project_id=${id}`)
     const ids = new Set<string>(
-      res.data
-        .filter((n: any) => n.photo_id)
-        .map((n: any) => n.photo_id)
+      (res.data as NoteResponse[])
+        .filter(n => n.photo_id)
+        .map(n => n.photo_id as string)
     )
     setPhotoNoteIds(ids)
   }
@@ -547,6 +564,7 @@ export default function ProjectDetail({
         p.original_filename === filename ? { ...p, local_missing: true } : p
       ))
     })
+    return () => window.racconto?.offDeletedFile?.()
   }, [])
 
   // Electron일 때 사이드바 탭과 동기화
@@ -613,11 +631,12 @@ export default function ProjectDetail({
   }
 
   const handleSetCover = async (photo: Photo) => {
-    const statusValue = typeof project!.status === 'object' ? (project!.status as any).value : project!.status
+    if (!project) return
+    const statusValue = typeof project.status === 'object' ? (project.status as { value: string }).value : project.status
     await axios.put(`${API}/projects/${id}`, {
-      title: project!.title, title_en: project!.title_en,
-      description: project!.description, description_en: project!.description_en,
-      location: project!.location, is_public: project!.is_public,
+      title: project.title, title_en: project.title_en,
+      description: project.description, description_en: project.description_en,
+      location: project.location, is_public: project.is_public,
       status: statusValue, cover_image_url: photo.image_url
     })
     const res = await axios.get(`${API}/projects/${id}`)
@@ -625,11 +644,12 @@ export default function ProjectDetail({
   }
 
   const handleRemoveCover = async () => {
-    const statusValue = typeof project!.status === 'object' ? (project!.status as any).value : project!.status
+    if (!project) return
+    const statusValue = typeof project.status === 'object' ? (project.status as { value: string }).value : project.status
     await axios.put(`${API}/projects/${id}`, {
-      title: project!.title, title_en: project!.title_en,
-      description: project!.description, description_en: project!.description_en,
-      location: project!.location, is_public: project!.is_public,
+      title: project.title, title_en: project.title_en,
+      description: project.description, description_en: project.description_en,
+      location: project.location, is_public: project.is_public,
       status: statusValue, cover_image_url: null
     })
     const res = await axios.get(`${API}/projects/${id}`)
@@ -669,17 +689,17 @@ export default function ProjectDetail({
 
   const handleClearRatings = async () => {
     if (!confirm(t('actions.resetRatingsConfirm'))) return
-    for (const photo of photos) {
-      if (photo.rating !== null) await axios.put(`${API}/photos/${photo.id}`, { ...photo, rating: null })
-    }
+    await Promise.all(
+      photos.filter(p => p.rating !== null).map(p => axios.put(`${API}/photos/${p.id}`, { ...p, rating: null }))
+    )
     fetchPhotos()
   }
 
   const handleClearColorLabels = async () => {
     if (!confirm(t('actions.resetColorsConfirm'))) return
-    for (const photo of photos) {
-      if (photo.color_label !== null) await axios.put(`${API}/photos/${photo.id}`, { ...photo, color_label: null })
-    }
+    await Promise.all(
+      photos.filter(p => p.color_label !== null).map(p => axios.put(`${API}/photos/${p.id}`, { ...p, color_label: null }))
+    )
     fetchPhotos()
   }
 

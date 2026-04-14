@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react'
-import { useSearchParams, useNavigate, Link } from 'react-router-dom'
+import { useSearchParams, useNavigate } from 'react-router-dom'
 import axios from 'axios'
 import { useTranslation } from 'react-i18next'
+import AuthNavbar from '../components/AuthNavbar'
 
 const API = import.meta.env.VITE_API_URL
 
@@ -11,13 +12,7 @@ export default function VerifyEmail() {
   const [message, setMessage] = useState('')
   const navigate = useNavigate()
 
-  const { t, i18n } = useTranslation()
-
-  const toggleLanguage = () => {
-    const nextLang = i18n.language === 'ko' ? 'en' : 'ko'
-    i18n.changeLanguage(nextLang)
-    localStorage.setItem('app_language', nextLang)
-  }
+  const { t } = useTranslation()
 
   useEffect(() => {
     const token = searchParams.get('token')
@@ -43,23 +38,7 @@ export default function VerifyEmail() {
   return (
     <div className="min-h-screen flex flex-col bg-[#F7F4F0]">
 
-      <nav className="fixed top-0 left-0 right-0 z-50 bg-[#F7F4F0]/90 backdrop-blur-sm border-b border-stone-200 text-stone-900">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 h-14 flex items-center justify-between">
-          <Link 
-            to="/" 
-            className="text-xl font-bold tracking-widest" 
-            style={{ fontFamily: "'Georgia', serif", letterSpacing: '0.15em' }}
-          >
-            Racconto
-          </Link>
-          <button 
-            onClick={toggleLanguage} 
-            className="text-sm font-bold text-stone-400 hover:text-stone-700 transition-colors"
-          >
-            {i18n.language === 'ko' ? 'EN' : 'KO'}
-          </button>
-        </div>
-      </nav>
+      <AuthNavbar />
 
       <div className="flex-1 flex items-center justify-center px-4 py-20">
         <div className="bg-white rounded-lg shadow p-8 w-full max-w-sm text-center">

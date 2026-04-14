@@ -1,9 +1,10 @@
 import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { useEffect, useRef, useState } from 'react'
+import PublicNavbar from '../components/PublicNavbar'
 
 export default function LandingPage() {
-  const { t, i18n } = useTranslation()
+  const { t } = useTranslation()
   const [scrollY, setScrollY] = useState(0)
   const featuresRef = useRef<HTMLDivElement>(null)
 
@@ -12,12 +13,6 @@ export default function LandingPage() {
     window.addEventListener('scroll', handleScroll, { passive: true })
     return () => window.removeEventListener('scroll', handleScroll)
   }, [])
-
-  const toggleLanguage = () => {
-    const nextLang = i18n.language === 'ko' ? 'en' : 'ko'
-    i18n.changeLanguage(nextLang)
-    localStorage.setItem('app_language', nextLang)
-  }
 
   const features = [
     {
@@ -102,40 +97,7 @@ export default function LandingPage() {
   return (
     <div className="min-h-screen bg-[#F7F4F0] text-stone-900" style={{ fontFamily: "'Georgia', 'Times New Roman', serif" }}>
 
-      {/* Navbar */}
-      <nav className="fixed top-0 left-0 right-0 z-50 bg-[#F7F4F0]/90 backdrop-blur-sm border-b border-stone-200">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 h-14 flex items-center justify-between">
-          <span className="text-xl font-bold tracking-widest" style={{ fontFamily: "'Georgia', serif", letterSpacing: '0.15em' }}>
-            Racconto
-          </span>
-          <div className="flex items-center gap-3 sm:gap-6">
-            <Link
-              to="/features"
-              className="text-xs sm:text-sm tracking-wider text-stone-600 hover:text-stone-900 transition-colors"
-            >
-              {t('nav.features')}
-            </Link>
-            <button
-              onClick={toggleLanguage}
-              className="text-xs font-bold text-stone-400 hover:text-stone-700 tracking-widest transition-colors"
-            >
-              {i18n.language === 'ko' ? 'EN' : 'KO'}
-            </button>
-            <Link
-              to="/login"
-              className="text-xs sm:text-sm tracking-wider text-stone-600 hover:text-stone-900 transition-colors"
-            >
-              {t('auth.login')}
-            </Link>
-            <Link
-              to="/register"
-              className="text-xs sm:text-sm tracking-wider bg-stone-900 text-white px-3 py-1.5 sm:px-4 sm:py-2 hover:bg-stone-700 transition-colors rounded whitespace-nowrap"
-            >
-              {t('auth.register')}
-            </Link>
-          </div>
-        </div>
-      </nav>
+      <PublicNavbar />
 
       {/* Hero */}
       <section className="min-h-screen flex flex-col items-center justify-center px-6 pt-20 pb-32 relative overflow-hidden">
