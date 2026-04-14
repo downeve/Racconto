@@ -77,7 +77,7 @@ const ExternalStatsSection = () => {
                     <div className="w-full bg-gray-100 h-2 rounded-full overflow-hidden">
                         <div 
                             className="bg-orange-400 h-full" 
-                            style={{ width: `${(data.cloudflare?.current / (data.cloudflare?.limit || 1)) * 100}%` }}
+                            style={{ width: `${(data.cloudflare?.current ?? 0 / (data.cloudflare?.limit || 1)) * 100}%` }}
                         />
                     </div>
                     <p className="text-xs text-right text-gray-400">한도: {data.cloudflare?.limit?.toLocaleString()}</p>
@@ -104,7 +104,7 @@ const ExternalStatsSection = () => {
                     <div className="col-span-2 pt-2 border-t">
                         <p className="text-xs text-gray-400">사양 (Storage / RAM)</p>
                         <p className="font-medium text-gray-700">
-                            {data.linode?.specs?.disk / 1024}GB / {data.linode?.specs?.memory / 1024}GB
+                            {data.linode?.specs?.disk ?? 0 / 1024}GB / {data.linode?.specs?.memory ?? 0 / 1024}GB
                         </p>
                     </div>
                     {/* [수정 2] 새롭게 추가된 CPU / Network 통계 UI */}
