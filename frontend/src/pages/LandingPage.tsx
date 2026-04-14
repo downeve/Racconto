@@ -109,6 +109,12 @@ export default function LandingPage() {
             Racconto
           </span>
           <div className="flex items-center gap-3 sm:gap-6">
+            <Link
+              to="/features"
+              className="text-xs sm:text-sm tracking-wider text-stone-600 hover:text-stone-900 transition-colors"
+            >
+              {t('nav.features')}
+            </Link>
             <button
               onClick={toggleLanguage}
               className="text-xs font-bold text-stone-400 hover:text-stone-700 tracking-widest transition-colors"

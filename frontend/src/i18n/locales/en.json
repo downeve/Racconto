@@ -99,7 +99,8 @@
     "settings": "⚙️",
     "portfolio": "PORTFOLIOS",
     "backToList": "← List",
-    "backToProjects": "← Back to projects"
+    "backToProjects": "← Back to projects",
+    "features": "Features"
   },
   "project": {
     "newProject": "+ New Project",
@@ -413,7 +414,21 @@
     "desktopOptimizationInfo": "Please use Racconto on desktop.",
     "desktopOptimizationDesc": "Racconto is optimized for desktop environments.",
     "openInBrowser": "Open racconto.app in browser",
-    "downloadDesktopApp": "Download desktop app"
+    "downloadDesktopApp": "Download desktop app",
+    "feature": {
+      "featureDetailTitle": "The moment photos become stories",
+      "featureDetailDesc": "Everything you need to craft your story and bring meaning to your photos, all in one place",
+      "feature1DetailTitle": "Turn your moments into stories",
+      "feature1DetailDesc": "Create chapters and weave photos together to complete your narrative. Drag and drop to reorder photos, and document chapter details.",
+      "feature2DetailTitle": "Work comfortably on your desktop",
+      "feature2DetailDesc": "Native macOS and Windows apps are supported. Link a local folder, and the app will automatically detect and upload new photos every time it launches.",
+      "feature3DetailTitle": "Capture your ideas",
+      "feature3DetailDesc": "Enjoy a free-form note-taking feature. Keep your shooting ideas, concepts, and research in one place, and leave memos linked to individual photos. Fully supports Markdown formatting.",
+      "feature4DetailTitle": "Organize photos quickly and easily",
+      "feature4DetailDesc": "Categorize photos with color labels and star ratings, and automatically extract EXIF data. Conveniently sort through hundreds of photos.",
+      "feature5DetailTitle": "Share your stories with others",
+      "feature5DetailDesc": "Publish your projects and set a username to customize your personal portfolio. Share your portfolio using your unique URL (/p/username)."
+    }
   },
   "electron": {
     "localFolderConnect": "Local Folder Syncronization",

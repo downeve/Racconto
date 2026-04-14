@@ -99,7 +99,8 @@
     "settings": "⚙️",
     "portfolio": "포트폴리오",
     "backToList": "← 목록",
-    "backToProjects": "← 목록으로"
+    "backToProjects": "← 목록으로",
+    "features": "기능 소개"
   },
   "project": {
     "newProject": "+ 프로젝트 추가",
@@ -410,7 +411,21 @@
     "desktopOptimizationInfo": "컴퓨터에서 사용해 주세요.",
     "desktopOptimizationDesc": "Racconto는 데스크탑 환경에 최적화되어 있습니다.",
     "openInBrowser": "racconto.app 브라우저로 열기",
-    "downloadDesktopApp": "데스크톱 앱 다운로드"
+    "downloadDesktopApp": "데스크톱 앱 다운로드",
+    "feature": {
+      "featureDetailTitle": "사진이 이야기가 되는 순간",
+      "featureDetailDesc": "스토리를 구상하고, 사진에 의미를 주기 위한 모든 과정을 한곳에서 끝내세요.",
+      "feature1DetailTitle": "당신의 순간을 이야기로 만드세요",
+      "feature1DetailDesc": "챕터를 만들고, 사진을 이어 내러티브를 완성합니다. 사진을 드래그하여 순서를 바꾸고, 챕터 상세 내용을 기록합니다.",
+      "feature2DetailTitle": "데스크톱에서 편하게 작업하세요",
+      "feature2DetailDesc": "macOS·Windows 네이티브 앱을 지원합니다. 로컬 폴더를 연결해 두면 앱을 실행할 때마다 자동으로 새로운 사진을 감지하여 업로드합니다.",
+      "feature3DetailTitle": "아이디어를 남겨 두세요",
+      "feature3DetailDesc": "자유로운 노트 기능을 제공합니다. 촬영 아이디어, 컨셉, 리서치 등등 모든 내용을 한곳에 남기고, 개별 사진과 연동하여 메모를 남길 수 있습니다. 최신 마크다운 형식을 지원합니다.",
+      "feature4DetailTitle": "쉽고 빠르게 사진을 분류하세요",
+      "feature4DetailDesc": "컬러 레이블과 별점으로 사진을 분류하고, EXIF 데이터를 자동으로 읽어 들입니다. 수백 장의 사진을 편리하게 정리하세요.",
+      "feature5DetailTitle": "친구에게 이야기를 들려주세요.",
+      "feature5DetailDesc": "프로젝트를 공개하고, 포트폴리오 유저네임을 설정하면 당신만의 포트폴리오를 꾸밀 수 있습니다. 고유 URL(/p/유저네임)로 포트폴리오를 공유하세요."
+    }
   },
   "electron": {
     "localFolderConnect": "로컬 폴더 연결",

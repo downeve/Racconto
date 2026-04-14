@@ -14,6 +14,7 @@ import VerifyEmail from './pages/VerifyEmail'
 import Admin from './pages/Admin'
 import PublicPortfolio from './pages/PublicPortfolio'
 import LandingPage from './pages/LandingPage'
+import FeaturesPage from './pages/FeaturesPage'
 import UploadToast from './components/UploadToast'
 import ElectronSidebar from './components/ElectronSidebar'
 import { useState } from 'react'
@@ -89,6 +90,7 @@ function AppRoutes() {
           <Route path="/register" element={<Register />} />
           <Route path="/verify-email" element={<VerifyEmail />} />
           <Route path="/" element={isAuthenticated ? <Navigate to="/projects" replace /> : <LandingPage />} />
+          <Route path="/features" element={<FeaturesPage />} />
           <Route path="/projects" element={<PrivateRoute><Projects /></PrivateRoute>} />
           <Route path="/projects/:id" element={
             <PrivateRoute>
