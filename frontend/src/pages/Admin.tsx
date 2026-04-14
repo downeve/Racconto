@@ -29,10 +29,14 @@ const ExternalStatsSection = () => {
 
     useEffect(() => {
         const fetchStats = async () => {
-            try {
-                // 로컬 테스트용 절대 경로
-                const res = await axios.get('http://localhost:8000/admin/external-stats');
-                setData(res.data);
+          try {
+              // 💡 1. 로컬호스트 하드코딩 제거하고 API 환경변수 사용
+              // 💡 2. 관리자 인증을 위해 Authorization 헤더에 토큰 추가
+              const token = localStorage.getItem('token');
+              const res = await axios.get(`${API}/admin/external-stats`, {
+                  headers: { Authorization: `Bearer ${token}` }
+              });
+              setData(res.data);
             } catch (err) {
                 console.error("통계 조회 실패", err);
             } finally {
