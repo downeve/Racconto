@@ -42,6 +42,34 @@ export default function LandingPage() {
       ),
     },
     {
+      number: '05',
+      title: t('landing.feature5Title'),
+      desc: t('landing.feature5Desc'),
+      visual: (
+        <div className="w-full h-64 rounded overflow-hidden shadow-md">
+          <img
+            src="./screenshots/screenshot-electron.png"
+            alt="Desktop app"
+            className="w-full h-full object-cover object-top"
+          />
+        </div>
+      ),
+    },
+    {
+      number: '04',
+      title: t('landing.feature4Title'),
+      desc: t('landing.feature4Desc'),
+      visual: (
+        <div className="w-full h-64 rounded overflow-hidden shadow-md">
+          <img
+            src="./screenshots/screenshot-notes.png"
+            alt="Project notes"
+            className="w-full h-full object-cover object-top"
+          />
+        </div>
+      ),
+    },
+    {
       number: '02',
       title: t('landing.feature2Title'),
       desc: t('landing.feature2Desc'),
@@ -64,20 +92,6 @@ export default function LandingPage() {
           <img
             src="./screenshots/screenshot-portfolio.png"
             alt="Public portfolio"
-            className="w-full h-full object-cover object-top"
-          />
-        </div>
-      ),
-    },
-    {
-      number: '04',
-      title: t('landing.feature4Title'),
-      desc: t('landing.feature4Desc'),
-      visual: (
-        <div className="w-full h-64 rounded overflow-hidden shadow-md">
-          <img
-            src="./screenshots/screenshot-notes.png"
-            alt="Project notes"
             className="w-full h-full object-cover object-top"
           />
         </div>
