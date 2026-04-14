@@ -5,6 +5,12 @@ import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import Heading from '../components/Heading'
 import { useElectronSidebar } from '../context/ElectronSidebarContext'
+import {
+  DndContext, closestCenter, PointerSensor, useSensor, useSensors,
+  type DragEndEvent,
+} from '@dnd-kit/core'
+import { SortableContext, rectSortingStrategy, useSortable, arrayMove } from '@dnd-kit/sortable'
+import { CSS } from '@dnd-kit/utilities'
 
 const API = import.meta.env.VITE_API_URL
 
@@ -20,6 +26,56 @@ interface Project {
   created_at: string
 }
 
+function SortableProjectCard({
+  project,
+  onDelete,
+  t,
+}: {
+  project: Project
+  onDelete: (id: string) => void
+  t: (key: string) => string
+}) {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: project.id })
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.4 : 1,
+  }
+  return (
+    <div ref={setNodeRef} style={style} className="relative group">
+      {/* 드래그 핸들 */}
+      <div
+        {...attributes}
+        {...listeners}
+        className="absolute top-2 left-2 z-10 opacity-0 group-hover:opacity-100 transition-opacity cursor-grab active:cursor-grabbing bg-white/80 rounded p-0.5 text-stone-400 hover:text-stone-700 select-none"
+        title="드래그하여 순서 변경"
+      >
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="currentColor">
+          <circle cx="4" cy="3" r="1.2"/><circle cx="10" cy="3" r="1.2"/>
+          <circle cx="4" cy="7" r="1.2"/><circle cx="10" cy="7" r="1.2"/>
+          <circle cx="4" cy="11" r="1.2"/><circle cx="10" cy="11" r="1.2"/>
+        </svg>
+      </div>
+      <ProjectCard project={project} />
+      <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity flex gap-1">
+        <Link
+          to={`/projects/${project.id}/edit`}
+          className="bg-white text-black px-2 py-1 text-xs rounded shadow hover:bg-gray-100"
+          onClick={e => e.stopPropagation()}
+        >
+          {t('common.edit')}
+        </Link>
+        <button
+          onClick={e => { e.preventDefault(); onDelete(project.id) }}
+          className="bg-red-500 text-white px-2 py-1 text-xs rounded shadow hover:bg-red-600"
+        >
+          {t('common.delete')}
+        </button>
+      </div>
+    </div>
+  )
+}
+
 export default function Projects() {
   const [projects, setProjects] = useState<Project[]>([])
   const [showForm, setShowForm] = useState(false)
@@ -32,6 +88,18 @@ export default function Projects() {
   const [isPublic, setIsPublic] = useState('false')
   const { triggerRefresh } = useElectronSidebar()
   const { t } = useTranslation()
+  const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 8 } }))
+
+  const handleDragEnd = async (event: DragEndEvent) => {
+    const { active, over } = event
+    if (!over || active.id === over.id) return
+    const oldIndex = projects.findIndex(p => p.id === active.id)
+    const newIndex = projects.findIndex(p => p.id === over.id)
+    const reordered = arrayMove(projects, oldIndex, newIndex)
+    setProjects(reordered)
+    await axios.patch(`${API}/projects/reorder`, { ids: reordered.map(p => p.id) })
+    triggerRefresh()
+  }
 
   const handleDelete = async (projectId: string) => {
     if (!confirm((t('project.deleteConfirm')))) return
@@ -120,28 +188,20 @@ export default function Projects() {
         </div>
       )}
 
-      <div className="grid gap-6" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))' }}>
-        {projects.map(project => (
-          <div key={project.id} className="relative group">
-            <ProjectCard project={project} />
-            <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity flex gap-1">
-              <Link
-                to={`/projects/${project.id}/edit`}
-                className="bg-white text-black px-2 py-1 text-xs rounded shadow hover:bg-gray-100"
-                onClick={e => e.stopPropagation()}
-              >
-                {t('common.edit')}
-              </Link>
-              <button
-                onClick={e => { e.preventDefault(); handleDelete(project.id) }}
-                className="bg-red-500 text-white px-2 py-1 text-xs rounded shadow hover:bg-red-600"
-              >
-                {t('common.delete')}
-              </button>
-            </div>
+      <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+        <SortableContext items={projects.map(p => p.id)} strategy={rectSortingStrategy}>
+          <div className="grid gap-6" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))' }}>
+            {projects.map(project => (
+              <SortableProjectCard
+                key={project.id}
+                project={project}
+                onDelete={handleDelete}
+                t={t}
+              />
+            ))}
           </div>
-        ))}
-      </div>
+        </SortableContext>
+      </DndContext>
 
       {projects.length === 0 && (
         <div className="text-center py-20 text-gray-400">

@@ -43,6 +43,7 @@ class Project(Base):
     pitches = relationship("Pitch", back_populates="project")
     notes = relationship("Note", back_populates="project")
     delivery_links = relationship("DeliveryLink", back_populates="project")
+    order_num = Column(Integer, default=0, nullable=False, server_default='0')
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     deleted_at = Column(DateTime, nullable=True, default=None)

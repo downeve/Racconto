@@ -2,6 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from app.database import engine, SessionLocal
+from sqlalchemy import text
 import app.models as models
 from app.routers import projects, photos, portfolio, notes, auth, chapters, settings, delivery, admin
 from apscheduler.schedulers.background import BackgroundScheduler
@@ -11,6 +12,13 @@ import os
 from app.routers.photos import delete_from_cloudflare
 
 models.Base.metadata.create_all(bind=engine)
+
+# projects.order_num 컬럼 마이그레이션 (기존 DB에 없을 경우 추가)
+with engine.connect() as conn:
+    conn.execute(text(
+        "ALTER TABLE projects ADD COLUMN IF NOT EXISTS order_num INTEGER NOT NULL DEFAULT 0"
+    ))
+    conn.commit()
 
 app = FastAPI(title="Racconto API")
 

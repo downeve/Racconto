@@ -12,6 +12,9 @@ import os
 
 router = APIRouter(prefix="/projects", tags=["projects"])
 
+class ReorderRequest(BaseModel):
+    ids: list[str]
+
 class ProjectCreate(BaseModel):
     title: str
     title_en: Optional[str] = None
@@ -50,7 +53,22 @@ def get_projects(
     return db.query(models.Project).filter(
         models.Project.user_id == current_user.id,
         models.Project.deleted_at == None
-    ).order_by(models.Project.created_at.desc()).all()
+    ).order_by(models.Project.order_num.asc(), models.Project.created_at.desc()).all()
+
+# PATCH /projects/reorder
+@router.patch("/reorder")
+def reorder_projects(
+    body: ReorderRequest,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user)
+):
+    for i, project_id in enumerate(body.ids):
+        db.query(models.Project).filter(
+            models.Project.id == project_id,
+            models.Project.user_id == current_user.id
+        ).update({"order_num": i})
+    db.commit()
+    return {"ok": True}
 
 # GET /projects/trash
 @router.get("/trash", response_model=list[ProjectResponse])
