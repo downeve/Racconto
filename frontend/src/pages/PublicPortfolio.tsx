@@ -50,7 +50,7 @@ export default function PublicPortfolio() {
   const navigate = useNavigate()
   const { isAuthenticated } = useAuth()
 
-  // 💡 3. 로그아웃 상태 & _setup 주소 방어 로직 추가
+  // 3. 로그아웃 상태 & _setup 주소 방어 로직 추가
   useEffect(() => {
     if (!isAuthenticated && username === '@setup') {
       navigate('/', { replace: true }); // 뒤로가기 기록도 안 남기고 바로 홈으로 튕겨냄
@@ -64,10 +64,23 @@ export default function PublicPortfolio() {
       return;
     }
 
-    axios.get(`${API}/portfolio/public/${username}`)
-      .then(res => setProjects(res.data.projects))
-      .catch(() => setNotFound(true))
-  }, [username])
+    // 1. 서버에서 해당 유저의 포트폴리오 데이터와 설정을 함께 가져옵니다.
+    axios.get(`${API}/portfolio/${username}`)
+      .then(res => {
+        setProjects(res.data.projects);
+        
+        // 💡 [핵심] 서버 응답에 포함된 테마 설정 적용
+        // 백엔드 API가 theme 또는 portfolio_theme 정보를 준다고 가정합니다.
+        if (res.data.theme === 'dark') {
+          setDarkMode(true);
+        } else {
+          setDarkMode(false);
+        }
+      })
+      .catch(err => {
+        if (err.response?.status === 404) setNotFound(true);
+      });
+  }, [username]);
 
   const openProject = (project: PortfolioProject) => {
     setSelectedProject(project)
@@ -208,7 +221,7 @@ export default function PublicPortfolio() {
         </div>
 
         {!selectedProject && (
-          <div className="grid grid-cols-3 gap-6">
+          <div className="grid gap-12" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))' }}>
             {projects.map(project => (
               <div
                 key={project.id}

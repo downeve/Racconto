@@ -131,7 +131,7 @@ def get_portfolio(db: Session = Depends(get_db)):
     return [_build_project_result(p, db) for p in projects]
 
 
-@router.get("/public/{username}")
+@router.get("/{username}")
 def get_public_portfolio(username: str, db: Session = Depends(get_db)):
     from fastapi import HTTPException
     user = db.query(models.User).filter(
@@ -140,13 +140,24 @@ def get_public_portfolio(username: str, db: Session = Depends(get_db)):
     if not user:
         raise HTTPException(status_code=404, detail="USER_NOT_FOUND")
 
+    # 💡 1. 유저의 테마 설정 조회
+    theme_setting = db.query(models.Setting).filter(
+        models.Setting.user_id == user.id,
+        models.Setting.key == "portfolio_theme"
+    ).first()
+    
+    # 설정이 없으면 기본값인 "light" 적용
+    theme = theme_setting.value if theme_setting else "light"
+
     projects = db.query(models.Project).filter(
         models.Project.user_id == user.id,
         models.Project.is_public == "true",
         models.Project.deleted_at == None
     ).order_by(models.Project.updated_at.desc()).all()
 
+    # 💡 2. 리턴 데이터에 theme 추가
     return {
         "username": username,
+        "theme": theme, # 이제 프론트엔드의 res.data.theme 에서 이 값을 받을 수 있습니다!
         "projects": [_build_project_result(p, db) for p in projects]
     }

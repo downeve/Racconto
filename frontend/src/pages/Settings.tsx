@@ -469,7 +469,7 @@ export default function Settings() {
         {!showWithdraw ? (
           <button
             onClick={() => setShowWithdraw(true)}
-            className="text-xs text-red-400 hover:text-red-600 underline underline-offset-2"
+            className="text-sm text-red-400 hover:text-red-600 underline underline-offset-2"
           >
             {t('settings.withdrawAccount')}
           </button>
