@@ -42,7 +42,7 @@ export default function LandingPage() {
       ),
     },
     {
-      number: '05',
+      number: '02',
       title: t('landing.feature5Title'),
       desc: t('landing.feature5Desc'),
       visual: (
@@ -56,7 +56,7 @@ export default function LandingPage() {
       ),
     },
     {
-      number: '04',
+      number: '03',
       title: t('landing.feature4Title'),
       desc: t('landing.feature4Desc'),
       visual: (
@@ -70,7 +70,7 @@ export default function LandingPage() {
       ),
     },
     {
-      number: '02',
+      number: '04',
       title: t('landing.feature2Title'),
       desc: t('landing.feature2Desc'),
       visual: (
@@ -84,7 +84,7 @@ export default function LandingPage() {
       ),
     },
     {
-      number: '03',
+      number: '05',
       title: t('landing.feature3Title'),
       desc: t('landing.feature3Desc'),
       visual: (
