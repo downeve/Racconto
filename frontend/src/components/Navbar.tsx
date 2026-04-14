@@ -5,6 +5,7 @@ import axios from 'axios'
 
 const API = import.meta.env.VITE_API_URL
 const isElectron = typeof window !== 'undefined' && !!window.racconto
+const isMobileDevice = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)
 
 interface NavbarProps {
   onLogout: () => void
@@ -48,6 +49,28 @@ export default function Navbar({ onLogout }: NavbarProps) {
     } else {
       navigate('/p/@setup')
     }
+  }
+
+  if (isMobileDevice) {
+    return (
+      <nav className="fixed top-0 left-0 right-0 z-[60] bg-[#F7F4F0]/90 backdrop-blur-sm border-b border-stone-200 text-stone-900">
+        <div className="px-4 h-14 flex items-center justify-between">
+          <Link
+            to="/"
+            className="text-xl font-bold tracking-widest"
+            style={{ fontFamily: "'Georgia', serif", letterSpacing: '0.15em' }}
+          >
+            Racconto
+          </Link>
+          <button
+            onClick={onLogout}
+            className="text-sm tracking-wider text-stone-400 hover:text-stone-900"
+          >
+            {t('auth.logout')}
+          </button>
+        </div>
+      </nav>
+    )
   }
 
   return (

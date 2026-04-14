@@ -67,11 +67,6 @@ function AppRoutes() {
                 {t('landing.downloadDesktopApp')}
               </a>
             </div>
-            {isAuthenticated && (
-              <button onClick={logout} className="text-xs text-stone-400 hover:text-stone-600 underline underline-offset-2">
-                {t('auth.logout')}
-              </button>
-            )}
           </div>
         </div>
       )}
