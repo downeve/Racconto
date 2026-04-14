@@ -308,7 +308,7 @@ function startWatcherForPath(folderPath) {
 
   console.log('감시 시작:', folderPath)
   const w = chokidar.watch(folderPath, {
-    ignored: /(^|[\/\\])\../,
+    ignored: (filePath) => path.basename(filePath).startsWith('.'),
     persistent: true,
     ignoreInitial: false,
     awaitWriteFinish: {
