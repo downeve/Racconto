@@ -1,10 +1,12 @@
+import httpx
 from fastapi import APIRouter, Depends, HTTPException, BackgroundTasks
 from sqlalchemy.orm import Session
 from app.database import get_db
 from app import models
+from app.models import User
 from app.auth import get_current_user
 from pydantic import BaseModel
-from typing import Optional
+from typing import Optional, Dict, Any, List
 from app.routers.photos import delete_from_cloudflare, delete_cf_files_parallel
 from app.email import send_notice_email
 import os
@@ -12,6 +14,9 @@ import os
 router = APIRouter(prefix="/admin", tags=["admin"])
 
 ADMIN_EMAIL = os.getenv("ADMIN_EMAIL", "downeve@gmail.com")
+LINODE_TOKEN = os.getenv("LINODE_API_TOKEN")
+CF_TOKEN = os.getenv("CF_API_TOKEN")
+CF_ACCOUNT_ID = os.getenv("CF_ACCOUNT_ID")
 
 class UserLimitUpdate(BaseModel):
     project_limit: Optional[int] = None
@@ -134,6 +139,67 @@ def get_stats(
         "total_photos": total_photos,
         "total_notes": total_notes,
     }
+
+@router.get("/external-stats")
+async def get_external_stats(current_user: User = Depends(get_current_user)):
+    if current_user.email != ADMIN_EMAIL:
+        raise HTTPException(status_code=403, detail="관리자 권한이 없습니다.")
+    
+    stats: Dict[str, Any] = {
+        "cloudflare": None,
+        "linode": None
+    }
+
+    async with httpx.AsyncClient(timeout=10.0) as client:
+        try:
+            # 1. Cloudflare 
+            cf_url = f"https://api.cloudflare.com/client/v4/accounts/{CF_ACCOUNT_ID}/images/v1/stats"
+            cf_res = await client.get(cf_url, headers={"Authorization": f"Bearer {CF_TOKEN}"})
+            cf_json = cf_res.json()
+            if cf_json.get("success"):
+                res_data = cf_json.get("result", {})
+                stats["cloudflare"] = {
+                    "current": res_data.get("count", {}).get("current", 0),
+                    "limit": res_data.get("count", {}).get("allowed", 0)
+                }
+
+            # 2. Linode 인스턴스 정보
+            linode_res = await client.get("https://api.linode.com/v4/linode/instances", headers={"Authorization": f"Bearer {LINODE_TOKEN}"})
+            if linode_res.status_code == 200:
+                nodes = linode_res.json().get("data", [])
+                if nodes:
+                    target_node = next((n for n in nodes if "172.104.99.68" in n.get("ipv4", [])), nodes[0])
+                    
+                    # [중요] 여기서 linode 딕셔너리를 먼저 초기화해야 합니다.
+                    stats["linode"] = {
+                        "label": target_node.get("label"),
+                        "status": target_node.get("status"),
+                        "ipv4": target_node.get("ipv4", [""])[0],
+                        "specs": target_node.get("specs", {}),
+                        "cpu_usage": 0,
+                        "net_out": 0
+                    }
+
+                    # 3. Linode 상세 통계 (CPU, Net)
+                    node_id = target_node.get("id")
+                    if node_id:
+                        usage_res = await client.get(f"https://api.linode.com/v4/linode/instances/{node_id}/stats", headers={"Authorization": f"Bearer {LINODE_TOKEN}"})
+                        if usage_res.status_code == 200:
+                            u_data = usage_res.json().get("data", {})
+                            
+                            cpu_list = u_data.get("cpu", [])
+                            if cpu_list:
+                                stats["linode"]["cpu_usage"] = round(cpu_list[-1][1], 2)
+                            
+                            net_list = u_data.get("net_v4", {}).get("out", [])
+                            if net_list:
+                                stats["linode"]["net_out"] = round(net_list[-1][1] / 1024 / 1024, 2)
+
+        except Exception as e:
+            print(f"Stats Error: {e}")
+            raise HTTPException(status_code=500, detail="외부 API 정보 조회 중 오류가 발생했습니다.")
+
+    return stats
 
 @router.post("/notify")
 def send_notice(

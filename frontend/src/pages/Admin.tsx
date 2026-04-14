@@ -23,6 +23,93 @@ interface Stats {
   total_notes: number
 }
 
+const ExternalStatsSection = () => {
+    const [data, setData] = useState<any>(null);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        const fetchStats = async () => {
+            try {
+                // 로컬 테스트용 절대 경로
+                const res = await axios.get('http://localhost:8000/admin/external-stats');
+                setData(res.data);
+            } catch (err) {
+                console.error("통계 조회 실패", err);
+            } finally {
+                setLoading(false);
+            }
+        };
+        fetchStats();
+    }, []);
+
+    if (loading) return <div className="p-4 animate-pulse text-gray-400">외부 통계 데이터를 불러오는 중...</div>;
+    if (!data) return <div className="p-4 border">데이터가 비어있음: {JSON.stringify(data)}</div>;
+
+    return (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 my-8">
+            {/* Cloudflare Card */}
+            <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+                <div className="flex items-center justify-between mb-4">
+                    <h3 className="text-sm font-semibold text-gray-500 uppercase">Cloudflare Images</h3>
+                    <span className="bg-orange-100 text-orange-600 text-xs px-2 py-1 rounded">Images v1</span>
+                </div>
+                <div className="space-y-2">
+                    <div className="flex justify-between">
+                        <span className="text-gray-600">현재 이미지 수</span>
+                        <span className="font-bold">{data.cloudflare?.current?.toLocaleString()}</span>
+                    </div>
+                    <div className="w-full bg-gray-100 h-2 rounded-full overflow-hidden">
+                        <div 
+                            className="bg-orange-400 h-full" 
+                            style={{ width: `${(data.cloudflare?.current / (data.cloudflare?.limit || 1)) * 100}%` }}
+                        />
+                    </div>
+                    <p className="text-xs text-right text-gray-400">한도: {data.cloudflare?.limit?.toLocaleString()}</p>
+                </div>
+            </div>
+
+            {/* Linode Card */}
+            <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+                <div className="flex items-center justify-between mb-4">
+                    <h3 className="text-sm font-semibold text-gray-500 uppercase">Linode Server</h3>
+                    <span className={`text-xs px-2 py-1 rounded ${data.linode?.status === 'running' ? 'bg-green-100 text-green-600' : 'bg-red-100 text-red-600'}`}>
+                        {data.linode?.status?.toUpperCase()}
+                    </span>
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                    <div>
+                        <p className="text-xs text-gray-400">서버명</p>
+                        <p className="font-medium text-gray-700">{data.linode?.label}</p>
+                    </div>
+                    <div>
+                        <p className="text-xs text-gray-400">IP 주소</p>
+                        <p className="font-medium text-gray-700">{data.linode?.ipv4}</p>
+                    </div>
+                    <div className="col-span-2 pt-2 border-t">
+                        <p className="text-xs text-gray-400">사양 (Storage / RAM)</p>
+                        <p className="font-medium text-gray-700">
+                            {data.linode?.specs?.disk / 1024}GB / {data.linode?.specs?.memory / 1024}GB
+                        </p>
+                    </div>
+                    {/* [수정 2] 새롭게 추가된 CPU / Network 통계 UI */}
+                    <div className="col-span-2 pt-2 border-t mt-1">
+                        <div className="grid grid-cols-2 gap-4">
+                            <div>
+                                <p className="text-xs text-gray-400">CPU 사용량</p>
+                                <p className="font-medium text-blue-600">{data.linode?.cpu_usage}%</p>
+                            </div>
+                            <div>
+                                <p className="text-xs text-gray-400">네트워크 Out</p>
+                                <p className="font-medium text-blue-600">{data.linode?.net_out} Mbps</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
+};
+
 export default function Admin() {
   const [users, setUsers] = useState<User[]>([])
   const [loading, setLoading] = useState(true)
@@ -152,6 +239,9 @@ export default function Admin() {
           ))}
         </div>
       )}
+
+      {/* 외부 사용량 통계 UI*/}
+      <ExternalStatsSection />
 
       {/* 인프라 비용 현황 */}
       <div className="mb-8">
