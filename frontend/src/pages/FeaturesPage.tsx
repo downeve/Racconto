@@ -134,7 +134,7 @@ export default function FeaturesPage() {
       title: t('landing.feature.feature1DetailTitle'),
       desc: t('landing.feature.feature1DetailDesc'),
       screenshotAlt: 'Story structure screenshot',
-      screenshotSrc: './screenshots/screenshot-story.png',
+      screenshotSrc: '/screenshots/screenshot-story.png',
       animateScroll: true,
     },
     {
@@ -143,7 +143,7 @@ export default function FeaturesPage() {
       title: t('landing.feature.feature2DetailTitle'),
       desc: t('landing.feature.feature2DetailDesc'),
       screenshotAlt: 'Desktop app screenshot',
-      screenshotSrc: './screenshots/screenshot-electron.png',
+      screenshotSrc: '/screenshots/screenshot-electron.png',
       isDesktop: true,
     },
     {
@@ -152,7 +152,7 @@ export default function FeaturesPage() {
       title: t('landing.feature.feature3DetailTitle'),
       desc: t('landing.feature.feature3DetailDesc'),
       screenshotAlt: 'Notes screenshot',
-      screenshotSrc: './screenshots/screenshot-notes.png',
+      screenshotSrc: '/screenshots/screenshot-notes.png',
     },
     {
       number: '04',
@@ -160,7 +160,7 @@ export default function FeaturesPage() {
       title: t('landing.feature.feature4DetailTitle'),
       desc: t('landing.feature.feature4DetailDesc'),
       screenshotAlt: 'Photo curation screenshot',
-      screenshotSrc: './screenshots/screenshot-photos.png',
+      screenshotSrc: '/screenshots/screenshot-photos.png',
     },
     {
       number: '05',
@@ -168,7 +168,7 @@ export default function FeaturesPage() {
       title: t('landing.feature.feature5DetailTitle'),
       desc: t('landing.feature.feature5DetailDesc'),
       screenshotAlt: 'Portfolio screenshot',
-      screenshotSrc: './screenshots/screenshot-portfolio.png',
+      screenshotSrc: '/screenshots/screenshot-portfolio.png',
     },
   ]
 
