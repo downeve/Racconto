@@ -6,6 +6,7 @@ const API = import.meta.env.VITE_API_URL
 // 1. User 타입 정의 (필요에 따라 id 등 추가 가능)
 interface User {
   email: string
+  is_admin: boolean
 }
 
 interface AuthContextType {
@@ -43,6 +44,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         window.racconto.setAuthToken(token)
       }
       setIsAuthenticated(true)
+      axios.get(`${API}/auth/me`).then(res => {
+        setUser({ email: res.data.email, is_admin: res.data.is_admin ?? false })
+      }).catch(() => {
+        // 토큰 만료 등 — 401 인터셉터가 처리
+      })
+    } else {
+      setIsLoading(false)
+      return
     }
     setIsLoading(false)
 
@@ -84,7 +93,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         window.racconto.setAuthToken(token)
       }
       setIsAuthenticated(true)
-      setUser({ email })
+      const meRes = await axios.get(`${API}/auth/me`)
+      setUser({ email, is_admin: meRes.data.is_admin ?? false })
       localStorage.setItem('userEmail', email)
       return true
     } catch {

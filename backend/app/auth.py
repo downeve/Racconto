@@ -9,7 +9,9 @@ from app.database import get_db
 from app import models
 import os
 
-SECRET_KEY = os.getenv("SECRET_KEY", "0276794ba904a2f804224b11e92a02530b0cd248bb7769d76f314bc06d8082b8")
+SECRET_KEY = os.getenv("SECRET_KEY")
+if not SECRET_KEY:
+    raise RuntimeError("SECRET_KEY 환경변수가 설정되지 않았습니다.")
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 60 * 24 * 7  # 7일
 

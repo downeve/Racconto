@@ -3,7 +3,6 @@ from fastapi import APIRouter, Depends, HTTPException, BackgroundTasks
 from sqlalchemy.orm import Session
 from app.database import get_db
 from app import models
-from app.models import User
 from app.auth import get_current_user
 from pydantic import BaseModel
 from typing import Optional, Dict, Any, List
@@ -13,7 +12,6 @@ import os
 
 router = APIRouter(prefix="/admin", tags=["admin"])
 
-ADMIN_EMAIL = os.getenv("ADMIN_EMAIL", "downeve@gmail.com")
 LINODE_TOKEN = os.getenv("LINODE_API_TOKEN")
 CF_TOKEN = os.getenv("CF_API_TOKEN")
 CF_ACCOUNT_ID = os.getenv("CF_ACCOUNT_ID")
@@ -30,7 +28,7 @@ class NoticeRequest(BaseModel):
 
 
 def require_admin(current_user: models.User = Depends(get_current_user)):
-    if current_user.email != ADMIN_EMAIL:
+    if not current_user.is_admin:
         raise HTTPException(status_code=403, detail="FORBIDDEN")
     return current_user
 
@@ -141,9 +139,7 @@ def get_stats(
     }
 
 @router.get("/external-stats")
-async def get_external_stats(current_user: User = Depends(get_current_user)):
-    if current_user.email != ADMIN_EMAIL:
-        raise HTTPException(status_code=403, detail="관리자 권한이 없습니다.")
+async def get_external_stats(current_user: User = Depends(require_admin)):
     
     stats: Dict[str, Any] = {
         "cloudflare": None,

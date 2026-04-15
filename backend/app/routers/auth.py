@@ -96,7 +96,7 @@ def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depend
             status_code=status.HTTP_403_FORBIDDEN,
             detail="EMAIL_NOT_VERIFIED"
         )
-    access_token = create_access_token(data={"sub": user.id})
+    access_token = create_access_token(data={"sub": user.id, "is_admin": user.is_admin})
     return {"access_token": access_token, "token_type": "bearer"}
 
 
@@ -120,6 +120,7 @@ def get_me(
         "user_id": current_user.id,
         "email": current_user.email,
         "username": current_user.username,
+        "is_admin": current_user.is_admin,
         "project_count": project_count,
         "project_limit": current_user.project_limit,
         "photo_count": total_photo_count,

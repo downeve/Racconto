@@ -26,6 +26,14 @@ function PrivateRoute({ children }: { children: React.ReactNode }) {
   return isAuthenticated ? <>{children}</> : <Navigate to="/" />
 }
 
+function AdminRoute({ children }: { children: React.ReactNode }) {
+  const { isAuthenticated, isLoading, user } = useAuth()
+  if (isLoading) return <div className="min-h-screen bg-[#F7F4F0]" />
+  if (!isAuthenticated) return <Navigate to="/" replace />
+  if (!user?.is_admin) return <Navigate to="/projects" replace />
+  return <>{children}</>
+}
+
 function AppRoutes() {
   const { isAuthenticated, logout } = useAuth()
   const {t} = useTranslation()
@@ -100,7 +108,7 @@ function AppRoutes() {
           <Route path="/projects/:id/edit" element={<PrivateRoute><ProjectEdit /></PrivateRoute>} />
           <Route path="/trash" element={<PrivateRoute><Trash /></PrivateRoute>} />
           <Route path="/settings" element={<PrivateRoute><Settings /></PrivateRoute>} />
-          <Route path="/admin" element={<PrivateRoute><Admin /></PrivateRoute>} />
+          <Route path="/admin" element={<AdminRoute><Admin /></AdminRoute>} />
           <Route path="/delivery/:linkId" element={<DeliveryPage />} />
           <Route path="/p/:username" element={<PublicPortfolio />} />
         </Routes>
