@@ -457,7 +457,7 @@ export default function ProjectDetail({
   const [activeTab, setActiveTab] = useState<'photos' | 'story' | 'notes' | 'delivery'>('photos')
 
   const isElectron = !!window.racconto
-  const { setSidebarContent } = useElectronSidebar()
+  const { setSidebarContent, triggerRefresh } = useElectronSidebar()
 
   const [photoSubTab, setPhotoSubTab] = useState<'all' | 'trash'>('all')
   const [trashedPhotos, setTrashedPhotos] = useState<Photo[]>([])
@@ -641,6 +641,7 @@ export default function ProjectDetail({
     })
     const res = await axios.get(`${API}/projects/${id}`)
     setProject(res.data)
+    triggerRefresh()
   }
 
   const handleRemoveCover = async () => {
@@ -654,6 +655,7 @@ export default function ProjectDetail({
     })
     const res = await axios.get(`${API}/projects/${id}`)
     setProject(res.data)
+    triggerRefresh()
   }
 
   const handleDeletePhoto = async (photoId: string) => {
