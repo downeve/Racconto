@@ -190,7 +190,7 @@ export default function LandingPage() {
           {/* 메인 스크린샷 */}
           <div className="rounded-lg overflow-hidden shadow-xl border border-stone-200 mb-6">
             <img
-              src="/screenshots/screenshot-projects.webp"
+              src="./screenshots/screenshot-projects.webp"
               alt="Racconto app"
               className="w-full object-cover object-top"
             />
@@ -200,14 +200,14 @@ export default function LandingPage() {
           <div className="grid grid-cols-2 gap-4">
             <div className="rounded-lg overflow-hidden shadow-md border border-stone-200">
               <img
-                src="/screenshots/screenshot-lightbox.webp"
+                src="./screenshots/screenshot-lightbox.webp"
                 alt="Lightbox view"
                 className="w-full object-cover"
               />
             </div>
             <div className="rounded-lg overflow-hidden shadow-md border border-stone-200">
               <img
-                src="/screenshots/screenshot-note-panel.webp"
+                src="./screenshots/screenshot-note-panel.webp"
                 alt="Note panel"
                 className="w-full object-cover"
               />
