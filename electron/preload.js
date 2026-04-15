@@ -14,6 +14,7 @@ contextBridge.exposeInMainWorld('racconto', {
   logout: () => ipcRenderer.invoke('auth:logout'),
   linkFolder: (folderPath, projectId, projectName) => ipcRenderer.invoke('folderMap:link', { folderPath, projectId, projectName }),
   unlinkFolder: (folderPath) => ipcRenderer.invoke('folderMap:unlink', folderPath),
+  unlinkByProject: (projectId) => ipcRenderer.invoke('folderMap:unlinkByProject', projectId),
   getAllMappings: () => ipcRenderer.invoke('folderMap:getAll'),
   onUnmapped: (callback) => ipcRenderer.on('watcher:unmapped', (event, filePath) => callback(filePath)),
   onUploadProgress: (callback) => ipcRenderer.on('upload:progress', (event, data) => callback(data)),

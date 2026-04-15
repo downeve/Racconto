@@ -54,6 +54,18 @@ ipcMain.handle('folderMap:unlink', (event, folderPath) => {
   return { success: true }
 })
 
+ipcMain.handle('folderMap:unlinkByProject', (event, projectId) => {
+  const mappings = getAllMappings()
+  Object.entries(mappings).forEach(([folderPath, mapping]) => {
+    if (mapping.projectId === projectId) {
+      unlinkFolder(folderPath)
+      stopWatcherForPath(folderPath)
+      console.log('프로젝트 삭제로 폴더 연결 해제:', folderPath)
+    }
+  })
+  return { success: true }
+})
+
 ipcMain.handle('folderMap:getAll', () => {
   return getAllMappings()
 })
@@ -153,9 +165,9 @@ async function syncLocalMissing(folderPath, projectId) {
     const res = await fetchWithAuth(
       `${API_BASE}/photos/?project_id=${encodeURIComponent(projectId)}`
     )
-    // 프로젝트가 없으면 매핑 해제
-    if (res.status === 404) {
-      console.log('프로젝트 없음, 매핑 해제:', projectId)
+    // 프로젝트가 없거나 접근 불가면 매핑 해제
+    if (res.status === 404 || res.status === 403) {
+      console.log('프로젝트 없음/접근 불가, 매핑 해제:', projectId)
       unlinkFolder(folderPath)
       stopWatcherForPath(folderPath)
       mainWindow?.webContents.send('folderMap:unlinked', folderPath)

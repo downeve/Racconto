@@ -454,9 +454,10 @@ def create_photo(
     project = db.query(models.Project).filter(
         models.Project.id == photo.project_id,
         models.Project.user_id == current_user.id,
+        models.Project.deleted_at == None,
     ).first()
     if not project:
-        raise HTTPException(status_code=403, detail="FORBIDDEN")
+        raise HTTPException(status_code=404, detail="PROJECT_NOT_FOUND")
 
     # order 자동 계산
     last_photo = db.query(models.Photo).filter(

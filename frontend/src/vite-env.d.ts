@@ -18,6 +18,7 @@ interface Window {
     logout: () => Promise<{ success: boolean }>
     linkFolder: (folderPath: string, projectId: string, projectName: string) => Promise<{ success: boolean }>
     unlinkFolder: (folderPath: string) => Promise<{ success: boolean }>
+    unlinkByProject: (projectId: string) => Promise<{ success: boolean }>
     getAllMappings: () => Promise<Record<string, { projectId: string; projectName: string; linkedAt: string }>>
     onUnmapped: (callback: (filePath: string) => void) => void
   }
