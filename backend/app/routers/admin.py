@@ -139,7 +139,7 @@ def get_stats(
     }
 
 @router.get("/external-stats")
-async def get_external_stats(current_user: User = Depends(require_admin)):
+async def get_external_stats(current_user: models.User = Depends(require_admin)):
     
     stats: Dict[str, Any] = {
         "cloudflare": None,
