@@ -23,9 +23,9 @@ ipcMain.handle('auth:setToken', (event, token) => {
     // 로그인 시 매핑된 폴더 감시 시작
     const mappings = getAllMappings()
     Object.keys(mappings).forEach(folderPath => {
-      startWatcherForPath(folderPath)
       const projectId = mappings[folderPath].projectId
-      syncLocalMissing(folderPath, projectId)
+      syncFolderOnStart(folderPath, projectId)
+      startWatcherForPath(folderPath)
     })
     processQueue()
   }
@@ -159,13 +159,15 @@ async function uploadFile(item) {
 
 let isProcessing = false
 
-async function syncLocalMissing(folderPath, projectId) {
+// 로그인 시 폴더 초기 동기화:
+// 1) local_missing 플래그 업데이트
+// 2) DB에 없는 로컬 파일만 업로드 큐에 추가 (ignoreInitial: true와 쌍으로 동작)
+async function syncFolderOnStart(folderPath, projectId) {
   if (!authToken) return
   try {
     const res = await fetchWithAuth(
       `${API_BASE}/photos/?project_id=${encodeURIComponent(projectId)}`
     )
-    // 프로젝트가 없거나 접근 불가면 매핑 해제
     if (res.status === 404 || res.status === 403) {
       console.log('프로젝트 없음/접근 불가, 매핑 해제:', projectId)
       unlinkFolder(folderPath)
@@ -174,21 +176,19 @@ async function syncLocalMissing(folderPath, projectId) {
       return
     }
     if (!res.ok) return
-    // ... 이하 동일
+
     const photos = await res.json()
 
-    // 로컬 실제 파일 목록
-    const localFiles = new Set(
-      fs.readdirSync(folderPath)
-        .filter(f => IMAGE_EXTENSIONS.includes(path.extname(f).toLowerCase()))
-    )
+    const localFiles = fs.readdirSync(folderPath)
+      .filter(f => IMAGE_EXTENSIONS.includes(path.extname(f).toLowerCase()))
+    const localFileSet = new Set(localFiles)
+    const dbFilenameSet = new Set(photos.map(p => p.original_filename).filter(Boolean))
 
-    // 변경이 필요한 항목만 추려서 배치로 전송
+    // 1) local_missing 플래그 업데이트
     const updates = []
     for (const photo of photos) {
-      if (!photo.original_filename) continue
-      if (photo.source !== 'electron') continue
-      const isLocal = localFiles.has(photo.original_filename)
+      if (!photo.original_filename || photo.source !== 'electron') continue
+      const isLocal = localFileSet.has(photo.original_filename)
       if (!isLocal && !photo.local_missing) {
         updates.push({ filename: photo.original_filename, local_missing: true })
         console.log('local_missing 감지:', photo.original_filename)
@@ -197,19 +197,28 @@ async function syncLocalMissing(folderPath, projectId) {
         console.log('local_missing 복구:', photo.original_filename)
       }
     }
+    if (updates.length > 0) {
+      await fetchWithAuth(
+        `${API_BASE}/photos/bulk-local-missing?project_id=${encodeURIComponent(projectId)}`,
+        { method: 'PATCH', body: JSON.stringify({ updates }) }
+      )
+      console.log(`local_missing 동기화 완료: ${updates.length}개`)
+    }
 
-    if (updates.length === 0) return
-
-    await fetchWithAuth(
-      `${API_BASE}/photos/bulk-local-missing?project_id=${encodeURIComponent(projectId)}`,
-      {
-        method: 'PATCH',
-        body: JSON.stringify({ updates }),
+    // 2) DB에 없는 로컬 파일만 큐에 추가
+    let newCount = 0
+    for (const filename of localFiles) {
+      if (!dbFilenameSet.has(filename)) {
+        addToQueue({ filePath: path.join(folderPath, filename), projectId })
+        newCount++
       }
-    )
-    console.log(`local_missing 동기화 완료: ${updates.length}개`)
+    }
+    if (newCount > 0) {
+      console.log(`미업로드 파일 ${newCount}개 큐 추가`)
+      if (isOnline) processQueue()
+    }
   } catch (e) {
-    console.error('syncLocalMissing 실패:', e.message)
+    console.error('syncFolderOnStart 실패:', e.message)
   }
 }
 
@@ -322,7 +331,7 @@ function startWatcherForPath(folderPath) {
   const w = chokidar.watch(folderPath, {
     ignored: (filePath) => path.basename(filePath).startsWith('.'),
     persistent: true,
-    ignoreInitial: false,
+    ignoreInitial: true,
     awaitWriteFinish: {
       stabilityThreshold: 2000,
       pollInterval: 500,
