@@ -48,12 +48,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setUser({ email: res.data.email, is_admin: res.data.is_admin ?? false })
       }).catch(() => {
         // 토큰 만료 등 — 401 인터셉터가 처리
+      }).finally(() => {
+        setIsLoading(false)
       })
     } else {
       setIsLoading(false)
-      return
     }
-    setIsLoading(false)
 
     // axios 401 인터셉터 등록
     interceptorRef.current = axios.interceptors.response.use(
