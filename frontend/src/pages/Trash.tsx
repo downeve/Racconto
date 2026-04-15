@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import axios from 'axios'
 import { useTranslation } from 'react-i18next'
 import Heading from '../components/Heading' //
+import { useElectronSidebar } from '../context/ElectronSidebarContext'
 
 const API = import.meta.env.VITE_API_URL
 
@@ -17,6 +18,7 @@ interface Project {
 export default function Trash() {
   const [projects, setProjects] = useState<Project[]>([])
   const { t } = useTranslation()
+  const { triggerRefresh } = useElectronSidebar()
   
   const fetchTrash = async () => {
     const res = await axios.get(`${API}/projects/trash`)
@@ -31,6 +33,7 @@ export default function Trash() {
     try {
       await axios.post(`${API}/projects/${projectId}/restore`)
       fetchTrash()
+      triggerRefresh()
     } catch (err: any) {
       const detail = err.response?.data?.detail
       const code = typeof detail === 'object' ? detail.code : detail
