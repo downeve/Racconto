@@ -398,7 +398,11 @@ function PhotoCard({
       {editingCaption === photo.id ? (
         <div className="p-2 bg-white">
           <input className="w-full border rounded px-2 py-1 text-xs mb-1" placeholder={t('photo.addCaption')}
-            value={captionKo} onChange={e => setCaptionKo(e.target.value)} />
+            value={captionKo} onChange={e => setCaptionKo(e.target.value)}
+            onKeyDown={e => {
+              if (e.key === 'Enter') { onSaveCaption(photo); setEditingCaption(null) }
+              if (e.key === 'Escape') setEditingCaption(null)
+            }} />
           <div className="flex gap-1">
             <button onClick={() => onSaveCaption(photo)} className="bg-black text-white px-2 py-1 text-xs">{t('common.save')}</button>
             <button onClick={() => setEditingCaption(null)} className="border px-2 py-1 text-xs">{t('common.cancel')}</button>
