@@ -28,7 +28,7 @@ export default function LandingPage() {
             }}
           >
             <img
-              src="/screenshots/screenshot-story.webp"
+              src="./screenshots/screenshot-story.webp"
               alt="Story structure"
               className="w-full object-cover object-top"
             />
@@ -43,7 +43,7 @@ export default function LandingPage() {
       visual: (
         <div className="w-full h-64 rounded overflow-hidden shadow-md">
           <img
-            src="/screenshots/screenshot-electron.webp"
+            src="./screenshots/screenshot-electron.webp"
             alt="Desktop app"
             className="w-full h-full object-cover object-top"
           />
@@ -57,7 +57,7 @@ export default function LandingPage() {
       visual: (
         <div className="w-full h-64 rounded overflow-hidden shadow-md">
           <img
-            src="/screenshots/screenshot-notes.webp"
+            src="./screenshots/screenshot-notes.webp"
             alt="Project notes"
             className="w-full h-full object-cover object-top"
           />
@@ -71,7 +71,7 @@ export default function LandingPage() {
       visual: (
         <div className="w-full h-64 rounded overflow-hidden shadow-md">
           <img
-            src="/screenshots/screenshot-photos.webp"
+            src="./screenshots/screenshot-photos.webp"
             alt="Photo curation workflow"
             className="w-full h-full object-cover object-top"
           />
@@ -85,7 +85,7 @@ export default function LandingPage() {
       visual: (
         <div className="w-full h-64 rounded overflow-hidden shadow-md">
           <img
-            src="/screenshots/screenshot-portfolio.webp"
+            src="./screenshots/screenshot-portfolio.webp"
             alt="Public portfolio"
             className="w-full h-full object-cover object-top"
           />
