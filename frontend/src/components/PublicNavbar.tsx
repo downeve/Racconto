@@ -35,13 +35,13 @@ export default function PublicNavbar() {
           </button>
           <Link
             to="/login"
-            className="text-xs sm:text-sm tracking-wider text-stone-600 hover:text-stone-900 transition-colors"
+            className="hidden sm:inline-flex text-xs sm:text-sm tracking-wider text-stone-600 hover:text-stone-900 transition-colors"
           >
             {t('auth.login')}
           </Link>
           <Link
             to="/register"
-            className="text-xs sm:text-sm tracking-wider bg-stone-900 text-white px-3 py-1.5 sm:px-4 sm:py-2 hover:bg-stone-700 transition-colors rounded whitespace-nowrap"
+            className="hidden sm:inline-flex text-xs sm:text-sm tracking-wider bg-stone-900 text-white px-3 py-1.5 sm:px-4 sm:py-2 hover:bg-stone-700 transition-colors rounded whitespace-nowrap"
           >
             {t('auth.register')}
           </Link>
