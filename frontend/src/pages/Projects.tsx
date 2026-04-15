@@ -104,6 +104,7 @@ export default function Projects() {
   const handleDelete = async (projectId: string) => {
     if (!confirm((t('project.deleteConfirm')))) return
     await axios.delete(`${API}/projects/${projectId}`)
+    window.racconto?.unlinkByProject(projectId)
     fetchProjects()
     triggerRefresh()
   }
