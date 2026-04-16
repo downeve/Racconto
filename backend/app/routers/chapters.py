@@ -104,6 +104,8 @@ def create_chapter(
         parent = db.query(models.Chapter).filter(models.Chapter.id == chapter.parent_id).first()
         if not parent:
             raise HTTPException(status_code=404, detail="Parent chapter not found")
+        if parent.project_id != chapter.project_id:
+            raise HTTPException(status_code=403, detail="FORBIDDEN")
         if parent.parent_id is not None:
             raise HTTPException(
                 status_code=400,
@@ -170,6 +172,8 @@ def update_chapter(
         parent = db.query(models.Chapter).filter(models.Chapter.id == update_data["parent_id"]).first()
         if not parent:
             raise HTTPException(status_code=404, detail="Parent chapter not found")
+        if parent.project_id != db_chapter.project_id:
+            raise HTTPException(status_code=403, detail="FORBIDDEN")
         if parent.parent_id is not None:
             raise HTTPException(
                 status_code=400,

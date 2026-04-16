@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from app.database import get_db
 from app import models
@@ -133,7 +133,6 @@ def get_portfolio(db: Session = Depends(get_db)):
 
 @router.get("/{username}")
 def get_public_portfolio(username: str, db: Session = Depends(get_db)):
-    from fastapi import HTTPException
     user = db.query(models.User).filter(
         models.User.username == username
     ).first()

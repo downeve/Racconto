@@ -150,8 +150,8 @@ def delete_from_cloudflare(image_url: str):
             f"{CF_UPLOAD_URL}/{image_id}",
             headers={"Authorization": f"Bearer {CF_API_TOKEN}"},
         )
-    except:
-        pass
+    except Exception as e:
+        print(f"CF 이미지 삭제 실패 (무시): {e}")
 
 def delete_cf_files_parallel(urls: list[str]):
     """CF 이미지 병렬 삭제 (최대 10개 동시)"""
@@ -304,13 +304,10 @@ def get_upload_url(
             detail={"code": "PHOTO_LIMIT_EXCEEDED", "limit": current_user.photo_limit}
         )
 
-    print(f"CF_ACCOUNT_ID: {CF_ACCOUNT_ID}")
-    print(f"CF_API_TOKEN: {CF_API_TOKEN[:10] if CF_API_TOKEN else None}")
     res = requests.post(
         f"https://api.cloudflare.com/client/v4/accounts/{CF_ACCOUNT_ID}/images/v2/direct_upload",
         headers={"Authorization": f"Bearer {CF_API_TOKEN}"},
     )
-    print(f"CF 응답: {res.status_code} {res.text}")
     data = res.json()
     if not data.get("success"):
         raise HTTPException(status_code=500, detail="CF_UPLOAD_URL_FAILED")

@@ -80,7 +80,7 @@ def register(body: UserRegister, db: Session = Depends(get_db)):
 
     send_verification_email(body.email, verify_token, lang=body.lang)
 
-    return {"message": "REGTISTER_SUCCESS"}
+    return {"message": "REGISTER_SUCCESS"}
 
 
 @router.post("/login", response_model=Token)
@@ -153,7 +153,7 @@ def verify_email(token: str, db: Session = Depends(get_db)):
     if not user:
         raise HTTPException(status_code=400, detail="INVALID_TOKEN")
     
-    if user.verify_token_expires_at < datetime.utcnow():
+    if not user.verify_token_expires_at or user.verify_token_expires_at < datetime.utcnow():
         raise HTTPException(status_code=400, detail="INVALID_TOKEN")
     
     user.is_verified = True

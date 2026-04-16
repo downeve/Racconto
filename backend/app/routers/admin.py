@@ -1,5 +1,6 @@
 import httpx
 from fastapi import APIRouter, Depends, HTTPException, BackgroundTasks
+from sqlalchemy import func
 from sqlalchemy.orm import Session
 from app.database import get_db
 from app import models
@@ -39,6 +40,21 @@ def get_users(
     _: models.User = Depends(require_admin)
 ):
     users = db.query(models.User).order_by(models.User.created_at.asc()).all()
+
+    project_counts = dict(
+        db.query(models.Project.user_id, func.count(models.Project.id))
+        .filter(models.Project.deleted_at == None)
+        .group_by(models.Project.user_id)
+        .all()
+    )
+    photo_counts = dict(
+        db.query(models.Project.user_id, func.count(models.Photo.id))
+        .join(models.Photo, models.Photo.project_id == models.Project.id)
+        .filter(models.Project.deleted_at == None, models.Photo.deleted_at == None)
+        .group_by(models.Project.user_id)
+        .all()
+    )
+
     return [
         {
             "id": u.id,
@@ -47,19 +63,8 @@ def get_users(
             "project_limit": u.project_limit,
             "photo_limit": u.photo_limit,
             "created_at": u.created_at,
-            "project_count": db.query(models.Project).filter(
-                models.Project.user_id == u.id,
-                models.Project.deleted_at == None
-            ).count(),
-            "photo_count": db.query(models.Photo).filter(
-                models.Photo.project_id.in_(
-                    db.query(models.Project.id).filter(
-                        models.Project.user_id == u.id,
-                        models.Project.deleted_at == None
-                    )
-                ),
-                models.Photo.deleted_at == None
-            ).count(),
+            "project_count": project_counts.get(u.id, 0),
+            "photo_count": photo_counts.get(u.id, 0),
         }
         for u in users
     ]
