@@ -132,7 +132,7 @@
     "trashEmpty": "No deleted photos",
     "uploadPhotos": "+ files",
     "uploadFolder": "+ folder",
-    "uploading": "Uploading",
+    "uploading": "...",
     "uploadFail": "Upload failed",
     "upload": {
       "ExcludeWarning_one": "1 unsupported file was excluded.",

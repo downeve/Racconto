@@ -22,7 +22,7 @@ function DownloadBanner() {
       <div>
         <p className="text-xs tracking-[0.2em] text-stone-400 uppercase mb-1">Desktop App · Beta</p>
         <p className="text-sm text-stone-600 leading-relaxed">
-          macOS(.dmg)와 Windows(.exe) 설치 파일을 무료로 다운로드할 수 있습니다.
+          Free Download for macOS(.dmg) & Windows(.exe) install file here.
         </p>
       </div>
       <div className="flex gap-3 shrink-0">

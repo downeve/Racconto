@@ -102,6 +102,8 @@ function Lightbox({
 
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
+      const tag = (e.target as HTMLElement).tagName
+      if (tag === 'INPUT' || tag === 'TEXTAREA') return
       if (e.key === 'Escape') onClose()
       if (e.key === 'ArrowRight' && idx < photos.length - 1) onNavigate(photos[idx + 1])
       if (e.key === 'ArrowLeft' && idx > 0) onNavigate(photos[idx - 1])
