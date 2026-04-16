@@ -488,7 +488,6 @@ export default function ProjectDetail({
   const [deletingTrash, setDeletingTrash] = useState(false)
   const [photoNoteIds, setPhotoNoteIds] = useState<Set<string>>(new Set())
   const [filterHasNote, setFilterHasNote] = useState(false)
-  const [notesKey, setNotesKey] = useState(0)
   const [confirmModal, setConfirmModal] = useState<{ message: string; onConfirm: () => void } | null>(null)
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' | 'warning' } | null>(null)
   const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
@@ -807,8 +806,6 @@ export default function ProjectDetail({
       ]);
     }
     
-    setNotesKey(prev => prev + 1); // 노트 컴포넌트 갱신 트리거
-
     try {
       // 3. 서버에 삭제 요청 
       await axios.delete(`${API}/photos/${photoId}`);
@@ -897,7 +894,6 @@ export default function ProjectDetail({
         await fetchChapterPhotoIds()
         await fetchPhotoNoteIds()
         await axios.get(`${API}/projects/${id}`).then(res => setProject(res.data))
-        setNotesKey(prev => prev + 1)
         setDeletingMissing(false)
       },
     })
@@ -945,7 +941,6 @@ export default function ProjectDetail({
         await fetchChapterPhotoIds()
         await fetchPhotoNoteIds()
         await axios.get(`${API}/projects/${id}`).then(res => setProject(res.data))
-        setNotesKey(prev => prev + 1)
       },
     })
   }
@@ -1637,12 +1632,13 @@ export default function ProjectDetail({
       <div style={{ display: activeTab === 'story' ? 'block' : 'none' }}>
         <ProjectStory
           projectId={numericId!}
+          activeTab={activeTab} // 🔥 추가: 컴포넌트 내부에서 현재 탭을 알 수 있게 전달
           allPhotos={photos.filter(p => !p.deleted_at)} 
           onChapterChange={() => fetchChapterPhotoIds()} 
           onPhotoUpdate={(photoId, newCaption) => {
             setPhotos(prev => prev.map(p => 
-            p.id === photoId ? { ...p, caption: newCaption } : p
-          ));
+              p.id === photoId ? { ...p, caption: newCaption } : p
+            ));
           }}
         />
       </div>
@@ -1651,8 +1647,9 @@ export default function ProjectDetail({
 
       <div style={{ display: activeTab === 'notes' ? 'block' : 'none' }}>
         <ProjectNotes
-          key={notesKey}
+          // key={notesKey} // 💡 삭제: 컴포넌트를 유지하여 속도 향상
           projectId={numericId!}
+          activeTab={activeTab} // 🔥 추가: 컴포넌트 내부에서 현재 탭을 알 수 있게 전달
           photos={photos.filter(p => !p.deleted_at)}
         />
       </div>

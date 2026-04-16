@@ -19,9 +19,11 @@ interface Note {
 
 export default function ProjectNotes({
     projectId,
+    activeTab,
     photos,
   }: {
     projectId: string
+    activeTab: string
     photos: { id: string; image_url: string; caption: string | null }[]
   }) {
   const { t, i18n } = useTranslation()
@@ -67,9 +69,15 @@ export default function ProjectNotes({
     setNotes(res.data)
   }
 
+  const [dataLoaded, setDataLoaded] = useState(false);
+
   useEffect(() => {
-    fetchNotes()
-  }, [projectId])
+    // 🔥 중요: 탭이 notes일 때 + 아직 데이터를 안 불렀을 때만 fetch 실행
+    if (activeTab === 'notes' && !dataLoaded) {
+      fetchNotes(); // 기존에 쓰시던 데이터 로딩 함수명으로 맞추세요
+      setDataLoaded(true);
+    }
+  }, [activeTab, dataLoaded, projectId]);
 
   const handleAdd = async () => {
     if (!newContent.trim()) return

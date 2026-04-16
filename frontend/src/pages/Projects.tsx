@@ -29,7 +29,7 @@ interface Project {
   created_at: string
 }
 
-// 🔥 최적화 1: React.memo로 감싸서 내용이 안 바뀐 카드는 다시 그리지 않음
+// 🔥 최적화: React.memo로 감싸서 불필요한 리렌더링 방지
 const SortableProjectCard = memo(function SortableProjectCard({
   project,
   onDelete,
@@ -43,7 +43,7 @@ const SortableProjectCard = memo(function SortableProjectCard({
   const style = {
     transform: CSS.Transform.toString(transform),
     transition,
-    opacity: isDragging ? 0.4 : 1,
+    opacity: isDragging ? 0.4 : 1, // 기존의 깔끔한 반투명 피드백 유지
   }
   return (
     <div ref={setNodeRef} style={style} className="relative group">
@@ -114,7 +114,7 @@ export default function Projects() {
     triggerRefresh()
   }
 
-  // 🔥 최적화 2: useCallback + fetchProjects 제거로 리렌더링 및 딜레이 방지
+  // 🔥 최적화: useCallback 및 상태 직접 조작(prev filter)으로 빠른 UI 갱신
   const handleDelete = useCallback((projectId: string) => {
     setConfirmModal({
       message: t('project.deleteConfirm'),
@@ -124,7 +124,6 @@ export default function Projects() {
           await axios.delete(`${API}/projects/${projectId}`)
           window.racconto?.unlinkByProject(projectId)
           
-          // 화면에서 삭제된 프로젝트 즉시 제거 (fetchProjects 대체)
           setProjects(prev => prev.filter(p => p.id !== projectId))
           triggerRefresh()
         } catch (error) {
@@ -132,7 +131,7 @@ export default function Projects() {
         }
       },
     })
-  }, [t, triggerRefresh]) // 의존성 배열
+  }, [t, triggerRefresh])
 
   const fetchProjects = async () => {
     const res = await axios.get(`${API}/projects/`)

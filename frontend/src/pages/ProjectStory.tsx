@@ -138,12 +138,14 @@ function SortablePhotoChapter({ id, imageUrl, photoId, chapterId, caption, onRem
 }
 
 export default function ProjectStory({ 
-  projectId, 
+  projectId,
+  activeTab,
   allPhotos, 
   onChapterChange, 
   onPhotoUpdate 
 }: { 
-  projectId: string, 
+  projectId: string,
+  activeTab: string, 
   allPhotos: Photo[], 
   onChapterChange?: (count: number) => void,
   onPhotoUpdate?: (photoId: string, newCaption: string) => void
@@ -306,9 +308,15 @@ export default function ProjectStory({
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [selectedPhotoIndex, currentChapterPhotos]);
 
+  const [dataLoaded, setDataLoaded] = useState(false);
+
   useEffect(() => {
-    fetchChapters()
-  }, [projectId])
+    // 🔥 중요: 탭이 story일 때 + 아직 데이터를 안 불렀을 때만 fetch 실행
+    if (activeTab === 'story' && !dataLoaded) {
+      fetchChapters(); // 기존에 쓰시던 데이터 로딩 함수명으로 맞추세요
+      setDataLoaded(true);
+    }
+  }, [activeTab, dataLoaded, projectId]);
 
   const handleAddChapter = async () => {
     if (!newTitle.trim()) return
