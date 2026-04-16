@@ -43,7 +43,7 @@ export default function LandingPage() {
       visual: (
         <div className="w-full h-64 rounded overflow-hidden shadow-md">
           <img
-            src="./screenshots/screenshot-electron.webp"
+            src="./screenshots/screenshot-electron-1.webp"
             alt="Desktop app"
             className="w-full h-full object-cover object-top"
           />
@@ -190,7 +190,7 @@ export default function LandingPage() {
           {/* 메인 스크린샷 */}
           <div className="rounded-lg overflow-hidden shadow-xl border border-stone-200 mb-6">
             <img
-              src="./screenshots/screenshot-projects.webp"
+              src="./screenshots/screenshot-main.webp"
               alt="Racconto app"
               className="w-full object-cover object-top"
             />

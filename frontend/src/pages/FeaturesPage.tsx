@@ -143,7 +143,7 @@ export default function FeaturesPage() {
       title: t('landing.feature.feature2DetailTitle'),
       desc: t('landing.feature.feature2DetailDesc'),
       screenshotAlt: 'Desktop app screenshot',
-      screenshotSrc: './screenshots/screenshot-electron.webp',
+      screenshotSrc: './screenshots/screenshot-electron-2.webp',
       isDesktop: true,
     },
     {
