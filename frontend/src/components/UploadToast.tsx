@@ -7,6 +7,7 @@ interface ProgressState {
   failed: number
   finished: boolean
   limitExceeded?: boolean
+  limitSuccessCount?: number
 }
 
 export default function UploadToast() {
@@ -27,9 +28,9 @@ export default function UploadToast() {
       timerRef.current = setTimeout(() => setProgress(null), 3000)
     })
 
-    window.racconto.onLimitExceeded(() => {
+    window.racconto.onLimitExceeded((data: { success: number }) => {
       if (timerRef.current) clearTimeout(timerRef.current)
-      setProgress({ done: 0, total: 0, failed: 0, finished: true, limitExceeded: true })
+      setProgress({ done: 0, total: 0, failed: 0, finished: true, limitExceeded: true, limitSuccessCount: data?.success ?? 0 })
     })
   }, [])
 
@@ -42,7 +43,9 @@ export default function UploadToast() {
       <div className="flex items-center justify-between mb-2">
       <span className="text-sm font-medium">
         {progress.limitExceeded
-          ? t('electron.upload.limitExceeded')
+          ? (progress.limitSuccessCount ?? 0) > 0
+            ? t('electron.upload.limitExceededPartial', { success: progress.limitSuccessCount })
+            : t('electron.upload.limitExceeded')
           : progress.finished
             ? progress.failed > 0
               ? t('electron.upload.status_with_error', {

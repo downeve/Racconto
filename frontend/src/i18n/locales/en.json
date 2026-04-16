@@ -450,7 +450,8 @@
       "status_with_error": "{{success}} completed · {{failed}} failed",
       "status_success": "{{total}} uploads completed",
       "status_progress": "Uploading... {{done}} / {{total}}",
-      "limitExceeded": "Photo upload limit reached"
+      "limitExceeded": "Photo upload limit reached",
+      "limitExceededPartial": "{{success}} uploaded · limit reached"
     }
   },
   "feedback": {

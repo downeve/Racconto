@@ -323,14 +323,17 @@ async function processQueue() {
   const total = uploadItems.length
   let successCount = 0
   let failedCount = 0
+  let limitExceeded = false
 
   if (total > 0) {
     mainWindow?.webContents.send('upload:progress', { done: 0, total, failed: 0 })
 
     for (let i = 0; i < uploadItems.length; i += CONCURRENCY) {
+      if (limitExceeded) break
       const chunk = uploadItems.slice(i, i + CONCURRENCY)
       await Promise.allSettled(
         chunk.map(async (item) => {
+          if (limitExceeded) return
           try {
             await uploadFile(item)
             markSuccess(item.id)
@@ -338,8 +341,9 @@ async function processQueue() {
             console.log('업로드 성공:', item.filePath)
           } catch (err) {
             if (err.code === 'PHOTO_LIMIT_EXCEEDED') {
+              limitExceeded = true
               clearPending()
-              mainWindow?.webContents.send('upload:limitExceeded')
+              mainWindow?.webContents.send('upload:limitExceeded', { success: successCount })
               console.log('사진 한도 초과 → 큐 초기화')
               return
             }
@@ -356,11 +360,13 @@ async function processQueue() {
       )
     }
 
-    mainWindow?.webContents.send('upload:done', {
-      total,
-      success: successCount,
-      failed: failedCount,
-    })
+    if (!limitExceeded) {
+      mainWindow?.webContents.send('upload:done', {
+        total,
+        success: successCount,
+        failed: failedCount,
+      })
+    }
   }
 
   isProcessing = false

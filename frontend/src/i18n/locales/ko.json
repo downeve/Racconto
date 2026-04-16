@@ -448,7 +448,8 @@
       "status_with_error": "{{success}}개 완료 · {{failed}}개 실패",
       "status_success": "{{total}}개 업로드 완료",
       "status_progress": "업로드 중... {{done}} / {{total}}개",
-      "limitExceeded": "사진 업로드 한도를 초과했습니다"
+      "limitExceeded": "사진 업로드 한도를 초과했습니다",
+      "limitExceededPartial": "{{success}}개 업로드 후 한도 초과"
     }
   },
   "feedback": {
