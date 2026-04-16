@@ -618,11 +618,13 @@ export default function ProjectDetail({
         const code = typeof detail === 'object' ? detail.code : detail
         const limit = typeof detail === 'object' ? detail.limit : undefined
 
-        if (code === 'PHOTO_LIMIT_EXCEEDED') {
+        if (status === 401) {
+          // 인증 만료 — 더 이상 업로드 시도 불필요
+          break
+        } else if (code === 'PHOTO_LIMIT_EXCEEDED') {
           alert(t('api.error.PHOTO_LIMIT_EXCEEDED', { limit }))
           break
-        } else if (status !== 401) {
-          // 401(로그아웃 등)은 alert 생략
+        } else {
           failedCount++
         }
       }
@@ -632,9 +634,14 @@ export default function ProjectDetail({
     }
 
     // 모든 루프가 끝난 뒤에 상태 업데이트 및 새로고침
-    await fetchPhotos()
-    setUploading(false)
-    e.target.value = ''
+    try {
+      await fetchPhotos()
+    } catch {
+      // 로그아웃 등으로 fetchPhotos 실패해도 uploading은 반드시 해제
+    } finally {
+      setUploading(false)
+      e.target.value = ''
+    }
   }
 
   const handleSetCover = async (photo: Photo) => {

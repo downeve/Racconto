@@ -132,7 +132,7 @@
     "trashEmpty": "삭제한 사진이 없습니다.",
     "uploadPhotos": "+ 사진",
     "uploadFolder": "+ 폴더",
-    "uploading": "진행 중...",
+    "uploading": "...",
     "uploadFail": "업로드  실패",
     "upload": {
       "ExcludWarning": "지원하지 않는 파일 {{count}}개가 제외되었습니다."
@@ -377,7 +377,7 @@
     "REMOVED": "제거되었습니다."
   },
   "status": {
-    "in_progress": "...",
+    "in_progress": "진행 중",
     "completed": "완성",
     "published": "발표됨",
     "archived": "보관"
