@@ -15,6 +15,8 @@ import Admin from './pages/Admin'
 import PublicPortfolio from './pages/PublicPortfolio'
 import LandingPage from './pages/LandingPage'
 import FeaturesPage from './pages/FeaturesPage'
+import MobileLandingPage from './pages/MobileLandingPage'
+import MobileFeaturesPage from './pages/MobileFeaturesPage'
 import ScrollToTop from './components/ScrollToTop';
 import UploadToast from './components/UploadToast'
 import ElectronSidebar from './components/ElectronSidebar'
@@ -101,8 +103,8 @@ function AppRoutes() {
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
           <Route path="/verify-email" element={<VerifyEmail />} />
-          <Route path="/" element={isAuthenticated ? <Navigate to="/projects" replace /> : <LandingPage />} />
-          <Route path="/features" element={<FeaturesPage />} />
+          <Route path="/" element={isAuthenticated ? <Navigate to="/projects" replace /> : (isMobileDevice ? <MobileLandingPage /> : <LandingPage />)} />
+          <Route path="/features" element={isMobileDevice ? <MobileFeaturesPage /> : <FeaturesPage />} />
           <Route path="/projects" element={<PrivateRoute><Projects /></PrivateRoute>} />
           <Route path="/projects/:id" element={
             <PrivateRoute>
