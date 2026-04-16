@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState, useCallback, memo } from 'react'
 import axios from 'axios'
 import ProjectCard from '../components/ProjectCard'
 import { Link } from 'react-router-dom'
@@ -29,7 +29,8 @@ interface Project {
   created_at: string
 }
 
-function SortableProjectCard({
+// 🔥 최적화 1: React.memo로 감싸서 내용이 안 바뀐 카드는 다시 그리지 않음
+const SortableProjectCard = memo(function SortableProjectCard({
   project,
   onDelete,
   t,
@@ -77,7 +78,7 @@ function SortableProjectCard({
       </div>
     </div>
   )
-}
+})
 
 export default function Projects() {
   const [projects, setProjects] = useState<Project[]>([])
@@ -113,18 +114,25 @@ export default function Projects() {
     triggerRefresh()
   }
 
-  const handleDelete = (projectId: string) => {
+  // 🔥 최적화 2: useCallback + fetchProjects 제거로 리렌더링 및 딜레이 방지
+  const handleDelete = useCallback((projectId: string) => {
     setConfirmModal({
       message: t('project.deleteConfirm'),
       onConfirm: async () => {
         setConfirmModal(null)
-        await axios.delete(`${API}/projects/${projectId}`)
-        window.racconto?.unlinkByProject(projectId)
-        fetchProjects()
-        triggerRefresh()
+        try {
+          await axios.delete(`${API}/projects/${projectId}`)
+          window.racconto?.unlinkByProject(projectId)
+          
+          // 화면에서 삭제된 프로젝트 즉시 제거 (fetchProjects 대체)
+          setProjects(prev => prev.filter(p => p.id !== projectId))
+          triggerRefresh()
+        } catch (error) {
+          console.error("Delete failed:", error)
+        }
       },
     })
-  }
+  }, [t, triggerRefresh]) // 의존성 배열
 
   const fetchProjects = async () => {
     const res = await axios.get(`${API}/projects/`)
