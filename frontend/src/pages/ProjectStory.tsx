@@ -152,6 +152,7 @@ export default function ProjectStory({
 }) {
   const [chapters, setChapters] = useState<Chapter[]>([])
   const [chapterPhotos, setChapterPhotos] = useState<Record<string, ChapterPhoto[]>>({})
+  const [hasFetched, setHasFetched] = useState(false);
   const [newTitle, setNewTitle] = useState('')
   const [newDesc, setNewDesc] = useState('')
   const [showAddChapter, setShowAddChapter] = useState(false)
@@ -213,14 +214,25 @@ export default function ProjectStory({
   };
 
   const fetchChapters = async () => {
-  const res = await axios.get(`${API}/chapters/?project_id=${projectId}`)
-    setChapters(res.data)
-    onChapterChange?.(res.data.length)
-    for (const chapter of res.data) {
+    try {
+      const res = await axios.get(`${API}/chapters/?project_id=${projectId}`)
+      setChapters(res.data)
+      
+      // 원본 로직: 부모에게 데이터 길이 전달
+      onChapterChange?.(res.data.length)
+      
+      // 원본 로직: 각 챕터별 사진들 순차적으로 페칭
+      for (const chapter of res.data) {
         fetchChapterPhotos(chapter.id)
+      }
+      
+      // ✅ 모든 호출이 끝나면 true로 변경하여 '기억' 상태 돌입
+      setHasFetched(true); 
+    } catch (err) {
+      console.error(err)
     }
   }
-
+  
   const fetchChapterPhotos = async (chapterId: string) => {
     const res = await axios.get(`${API}/chapters/${chapterId}/photos`)
     setChapterPhotos(prev => ({ ...prev, [chapterId]: res.data }))
@@ -308,15 +320,13 @@ export default function ProjectStory({
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [selectedPhotoIndex, currentChapterPhotos]);
 
-  const [dataLoaded, setDataLoaded] = useState(false);
-
+  // 3. useEffect 수정 (실제 존재하는 함수만 호출)
   useEffect(() => {
-    // 🔥 중요: 탭이 story일 때 + 아직 데이터를 안 불렀을 때만 fetch 실행
-    if (activeTab === 'story' && !dataLoaded) {
-      fetchChapters(); // 기존에 쓰시던 데이터 로딩 함수명으로 맞추세요
-      setDataLoaded(true);
+    // 탭이 'story'이고, 아직 데이터를 가져온 적이 없을 때만 실행
+    if (activeTab === 'story' && !hasFetched) {
+      fetchChapters();
     }
-  }, [activeTab, dataLoaded, projectId]);
+  }, [activeTab, hasFetched, projectId]);
 
   const handleAddChapter = async () => {
     if (!newTitle.trim()) return

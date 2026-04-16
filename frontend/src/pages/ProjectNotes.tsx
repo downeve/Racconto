@@ -29,6 +29,7 @@ export default function ProjectNotes({
   const { t, i18n } = useTranslation()
   const [notes, setNotes] = useState<Note[]>([])
   const [newContent, setNewContent] = useState('')
+  const [hasFetched, setHasFetched] = useState(false);
   const [newType, setNewType] = useState('memo')
   const [editingNote, setEditingNote] = useState<string | null>(null)
   const [editContent, setEditContent] = useState('')
@@ -65,19 +66,20 @@ export default function ProjectNotes({
   }
 
   const fetchNotes = async () => {
-    const res = await axios.get(`${API}/notes/?project_id=${projectId}`)
-    setNotes(res.data)
+    try {
+      const res = await axios.get(`${API}/notes/?project_id=${projectId}`)
+      setNotes(res.data)
+      setHasFetched(true); // ✅ 추가
+    } catch (err) {
+      console.error(err)
+    }
   }
 
-  const [dataLoaded, setDataLoaded] = useState(false);
-
   useEffect(() => {
-    // 🔥 중요: 탭이 notes일 때 + 아직 데이터를 안 불렀을 때만 fetch 실행
-    if (activeTab === 'notes' && !dataLoaded) {
-      fetchNotes(); // 기존에 쓰시던 데이터 로딩 함수명으로 맞추세요
-      setDataLoaded(true);
+    if (activeTab === 'notes' && !hasFetched) {
+      fetchNotes();
     }
-  }, [activeTab, dataLoaded, projectId]);
+  }, [activeTab, hasFetched, projectId]);
 
   const handleAdd = async () => {
     if (!newContent.trim()) return
