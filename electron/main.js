@@ -3,7 +3,7 @@ const path = require('path')
 const chokidar = require('chokidar')
 const fs = require('fs')
 const { addToQueue, getPendingItems, markSuccess, markFailed, resetFailedToPending, initQueue } = require('./queue')
-const { linkFolder, unlinkFolder, getProjectForFolder, getAllMappings } = require('./folderMap')
+const { linkFolder, unlinkFolder, getProjectForFolder, getMappingsForUser, getAllMappings } = require('./folderMap')
 const exifr = require('exifr')
 
 const isDev = !app.isPackaged
@@ -12,6 +12,16 @@ let mainWindow = null
 let isOnline = true
 let watchers = {} // 폴더별 watcher 관리 (단일 → 복수로 변경)
 let authToken = null
+let currentUserId = null
+
+function getUserIdFromToken(token) {
+  try {
+    const payload = JSON.parse(Buffer.from(token.split('.')[1], 'base64url').toString('utf-8'))
+    return payload.sub || null
+  } catch {
+    return null
+  }
+}
 
 const API_BASE = isDev ? 'http://localhost:8000' : 'https://racconto.app/api'
 const IMAGE_EXTENSIONS = ['.jpg', '.jpeg', '.png', '.tif', '.tiff', '.webp']
@@ -19,9 +29,10 @@ const IMAGE_EXTENSIONS = ['.jpg', '.jpeg', '.png', '.tif', '.tiff', '.webp']
 // ── 인증 ────────────────────────────────────────────
 ipcMain.handle('auth:setToken', (event, token) => {
   authToken = token
+  currentUserId = getUserIdFromToken(token)
   if (isOnline) {
-    // 로그인 시 매핑된 폴더 감시 시작
-    const mappings = getAllMappings()
+    // 현재 유저의 매핑된 폴더만 감시 시작
+    const mappings = getMappingsForUser(currentUserId)
     Object.keys(mappings).forEach(folderPath => {
       const projectId = mappings[folderPath].projectId
       syncFolderOnStart(folderPath, projectId)
@@ -34,6 +45,7 @@ ipcMain.handle('auth:setToken', (event, token) => {
 // ── 로그아웃 ────────────────────────────────────────────
 ipcMain.handle('auth:logout', async () => {
   authToken = null
+  currentUserId = null
   // 모든 감시 중지
   for (const p of Object.keys(watchers)) {
     await stopWatcherForPath(p)
@@ -44,7 +56,7 @@ ipcMain.handle('auth:logout', async () => {
 
 // ── 폴더 매핑 ────────────────────────────────────────
 ipcMain.handle('folderMap:link', (event, { folderPath, projectId, projectName }) => {
-  linkFolder(folderPath, projectId, projectName)
+  linkFolder(folderPath, projectId, projectName, currentUserId)
   if (authToken) {
     syncFolderOnStart(folderPath, projectId)
     startWatcherForPath(folderPath)
@@ -361,7 +373,7 @@ function startWatcherForPath(folderPath) {
     console.log('새 이미지 감지:', filePath)
     mainWindow?.webContents.send('watcher:newFile', filePath)
 
-    const mapping = getProjectForFolder(path.dirname(filePath))
+    const mapping = getProjectForFolder(path.dirname(filePath), currentUserId)
     if (!mapping) {
       console.log('매핑된 프로젝트 없음:', filePath)
       mainWindow?.webContents.send('watcher:unmapped', filePath)
@@ -387,7 +399,7 @@ function startWatcherForPath(folderPath) {
 
     try {
       const filename = path.basename(filePath)
-      const mapping = getProjectForFolder(path.dirname(filePath))
+      const mapping = getProjectForFolder(path.dirname(filePath), currentUserId)
       if (!mapping) return
 
       // DB에서 해당 파일 찾기

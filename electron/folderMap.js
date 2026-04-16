@@ -19,9 +19,9 @@ function saveMap(map) {
 }
 
 // 폴더 → 프로젝트 연결
-function linkFolder(folderPath, projectId, projectName) {
+function linkFolder(folderPath, projectId, projectName, userId) {
   const map = loadMap()
-  map[folderPath] = { projectId, projectName, linkedAt: new Date().toISOString() }
+  map[folderPath] = { projectId, projectName, userId, linkedAt: new Date().toISOString() }
   saveMap(map)
 }
 
@@ -32,14 +32,32 @@ function unlinkFolder(folderPath) {
   saveMap(map)
 }
 
-// 폴더에 연결된 프로젝트 조회
-function getProjectForFolder(folderPath) {
+// 폴더에 연결된 프로젝트 조회 (현재 유저 소유 매핑만)
+function getProjectForFolder(folderPath, userId) {
   const map = loadMap()
-  // 정확한 폴더 매칭 먼저, 없으면 상위 폴더 탐색
-  if (map[folderPath]) return map[folderPath]
+  if (map[folderPath]) {
+    // userId가 일치하거나 레거시 데이터(userId 없음)는 허용
+    if (!userId || !map[folderPath].userId || map[folderPath].userId === userId) {
+      return map[folderPath]
+    }
+    return null
+  }
   const parent = path.dirname(folderPath)
-  if (parent !== folderPath) return getProjectForFolder(parent)
+  if (parent !== folderPath) return getProjectForFolder(parent, userId)
   return null
+}
+
+// 특정 유저의 매핑만 반환
+function getMappingsForUser(userId) {
+  const map = loadMap()
+  const result = {}
+  for (const [folderPath, mapping] of Object.entries(map)) {
+    // userId가 일치하거나 레거시 데이터(userId 없음)는 포함
+    if (!mapping.userId || mapping.userId === userId) {
+      result[folderPath] = mapping
+    }
+  }
+  return result
 }
 
 // 전체 매핑 목록
@@ -51,5 +69,6 @@ module.exports = {
   linkFolder,
   unlinkFolder,
   getProjectForFolder,
+  getMappingsForUser,
   getAllMappings,
 }
