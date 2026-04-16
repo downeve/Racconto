@@ -46,7 +46,7 @@
     "mac": {
       "category": "public.app-category.photography",
       "icon": "icons/icon.icns",
-      "artifactName": "Racconto(beta).${ext}",
+      "artifactName": "Racconto-beta-${arch}.${ext}",
       "identity": null,
       "target": [
         {
@@ -63,7 +63,7 @@
     },
     "win": {
       "icon": "icons/icon.ico",
-      "artifactName": "Racconto(beta)_Setup.${ext}",
+      "artifactName": "Racconto-beta-Setup.${ext}",
       "target": "nsis"
     }
   }
