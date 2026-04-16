@@ -97,6 +97,15 @@ export default function LandingPage() {
   return (
     <div className="min-h-screen bg-[#F7F4F0] text-stone-900" style={{ fontFamily: "'Georgia', 'Times New Roman', serif" }}>
 
+      {/* ─── 아래 스타일 코드를 추가하세요 ─── */}
+      <style>{`
+        @keyframes slowScroll {
+          from { transform: translateY(0); }
+          to   { transform: translateY(-15%); } /* -20%에서 -12%로 변경: 숫자를 줄일수록 덜 올라갑니다 */
+        }
+      `}</style>
+      {/* ─────────────────────────────────── */}
+
       <PublicNavbar />
 
       {/* Hero */}

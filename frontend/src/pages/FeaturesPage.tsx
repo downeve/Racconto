@@ -135,7 +135,7 @@ export default function FeaturesPage() {
       desc: t('landing.feature.feature1DetailDesc'),
       screenshotAlt: 'Story structure screenshot',
       screenshotSrc: './screenshots/screenshot-story.webp',
-      animateScroll: true,
+      //animateScroll: true,
     },
     {
       number: '02',
@@ -180,7 +180,7 @@ export default function FeaturesPage() {
       <style>{`
         @keyframes slowScroll {
           from { transform: translateY(0); }
-          to   { transform: translateY(-20%); }
+          to   { transform: translateY(-7%); }
         }
       `}</style>
 
