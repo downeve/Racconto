@@ -15,6 +15,7 @@ import Admin from './pages/Admin'
 import PublicPortfolio from './pages/PublicPortfolio'
 import LandingPage from './pages/LandingPage'
 import FeaturesPage from './pages/FeaturesPage'
+import ScrollToTop from './components/ScrollToTop';
 import UploadToast from './components/UploadToast'
 import ElectronSidebar from './components/ElectronSidebar'
 import { useState } from 'react'
@@ -93,6 +94,7 @@ function AppRoutes() {
 
       {/* 메인 콘텐츠 — Electron일 때 사이드바 너비만큼 밀기 */}
       <div className={isElectron && isAuthenticated && !hideNavbar ? 'ml-56' : ''}>
+        <ScrollToTop />
         <Routes>
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
