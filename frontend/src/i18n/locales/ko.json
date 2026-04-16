@@ -135,7 +135,11 @@
     "uploading": "...",
     "uploadFail": "업로드  실패",
     "upload": {
-      "ExcludWarning": "지원하지 않는 파일 {{count}}개가 제외되었습니다."
+      "ExcludWarning": "지원하지 않는 파일 {{count}}개가 제외되었습니다.",
+      "success": "{{count}}개 업로드 완료",
+      "limitExceeded": "사진 업로드 한도를 초과했습니다",
+      "limitExceededPartial": "{{success}}개 업로드 후 한도 초과",
+      "fail": "{{count}}개 파일 업로드 실패"
     },
     "trashComment": {
       "DeleteAllConfirm": "휴지통 사진 {{count}}개를 모두 삭제할까요?"

@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo } from 'react'
+import { useEffect, useState, useMemo, useRef } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import axios from 'axios'
 import exifr from 'exifr'
@@ -486,6 +486,8 @@ export default function ProjectDetail({
   const [photoNoteIds, setPhotoNoteIds] = useState<Set<string>>(new Set())
   const [filterHasNote, setFilterHasNote] = useState(false)
   const [notesKey, setNotesKey] = useState(0)
+  const [uploadToast, setUploadToast] = useState<{ message: string; type: 'success' | 'error' | 'limit' } | null>(null)
+  const uploadToastTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   const fetchPhotos = async () => {
     if (!id) return
@@ -611,6 +613,12 @@ export default function ProjectDetail({
     })
   }
 
+  const showUploadToast = (message: string, type: 'success' | 'error' | 'limit') => {
+    if (uploadToastTimer.current) clearTimeout(uploadToastTimer.current)
+    setUploadToast({ message, type })
+    uploadToastTimer.current = setTimeout(() => setUploadToast(null), 4000)
+  }
+
   const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!e.target.files || !id) return
     setUploading(true)
@@ -623,6 +631,8 @@ export default function ProjectDetail({
     }
 
     let failedCount = 0
+    let successCount = 0
+    let limitExceeded = false
     for (const file of validFiles) {
       try {
         // 1. EXIF 추출 (리사이즈 전 원본에서)
@@ -676,6 +686,7 @@ export default function ProjectDetail({
           source: 'web',
           ...exifData,
         })
+        successCount++
 
       } catch (error) {
         console.error(`❌ ${file.name} ${t('photo.uploadFail')}:`, error)
@@ -683,20 +694,28 @@ export default function ProjectDetail({
         const status = (error as any)?.response?.status
         const detail = (error as any)?.response?.data?.detail
         const code = typeof detail === 'object' ? detail.code : detail
-        const limit = typeof detail === 'object' ? detail.limit : undefined
 
         if (status === 401) {
           break
         } else if (code === 'PHOTO_LIMIT_EXCEEDED') {
-          alert(t('api.error.PHOTO_LIMIT_EXCEEDED', { limit }))
+          limitExceeded = true
           break
         } else {
           failedCount++
         }
       }
     }
-    if (failedCount > 0) {
-      alert(`❌ ${failedCount}개 파일 ${t('photo.uploadFail')}`)
+
+    if (limitExceeded) {
+      if (successCount > 0) {
+        showUploadToast(t('photo.upload.limitExceededPartial', { success: successCount }), 'limit')
+      } else {
+        showUploadToast(t('photo.upload.limitExceeded'), 'limit')
+      }
+    } else if (failedCount > 0) {
+      showUploadToast(t('photo.upload.fail', { count: failedCount }), 'error')
+    } else if (successCount > 0) {
+      showUploadToast(t('photo.upload.success', { count: successCount }), 'success')
     }
 
     try {
@@ -1049,6 +1068,15 @@ export default function ProjectDetail({
 
   return (
     <div className={`${isElectron ? 'w-full' : 'max-w-7xl mx-auto'} p-6`}>
+      {uploadToast && (
+        <div className={`fixed bottom-6 right-6 z-50 w-72 text-white rounded-lg shadow-lg px-4 py-3 flex items-center justify-between gap-3 ${
+          uploadToast.type === 'success' ? 'bg-stone-800' :
+          uploadToast.type === 'limit' ? 'bg-amber-700' : 'bg-red-700'
+        }`}>
+          <span className="text-sm font-medium">{uploadToast.message}</span>
+          <button onClick={() => setUploadToast(null)} className="opacity-60 hover:opacity-100 text-lg leading-none shrink-0">×</button>
+        </div>
+      )}
       {lightboxPhoto && (
         <Lightbox
           photo={lightboxPhoto}

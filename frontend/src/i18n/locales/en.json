@@ -135,7 +135,11 @@
     "uploadFail": "Upload failed",
     "upload": {
       "ExcludeWarning_one": "1 unsupported file was excluded.",
-      "ExcludeWarning_other": "{{count}} unsupported files were excluded."
+      "ExcludeWarning_other": "{{count}} unsupported files were excluded.",
+      "success": "{{count}} uploaded",
+      "limitExceeded": "Photo upload limit reached",
+      "limitExceededPartial": "{{success}} uploaded · limit reached",
+      "fail": "{{count}} file(s) failed to upload"
     },
     "trashComment": {
       "DeleteAllConfirm_one": "Are you sure you want to permanently delete 1 photo in the trash?",
