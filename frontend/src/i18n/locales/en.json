@@ -12,7 +12,8 @@
     "confirm": "Confirm",
     "reset": "Reset",
     "all": "All",
-    "copied": "Copied!"
+    "copied": "Copied!",
+    "error": "An error occurred"
   },
   "auth": {
     "login": "Login",

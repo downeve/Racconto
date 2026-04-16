@@ -12,7 +12,8 @@
     "confirm": "확인",
     "reset": "초기화",
     "all": "전체",
-    "copied": "복사됨!"
+    "copied": "복사됨!",
+    "error": "오류가 발생했습니다"
   },
   "auth": {
     "login": "로그인",

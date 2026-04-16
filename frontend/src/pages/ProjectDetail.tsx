@@ -10,6 +10,8 @@ import Heading from '../components/Heading' //
 import ProjectNotes from './ProjectNotes'
 import PhotoNotePanel from '../components/PhotoNotePanel'
 import { useElectronSidebar } from '../context/ElectronSidebarContext'
+import ConfirmModal from '../components/ConfirmModal'
+import ToastNotification from '../components/ToastNotification'
 
 const API = import.meta.env.VITE_API_URL
 const DELIVERY_ENABLED = import.meta.env.VITE_ENABLE_DELIVERY === 'true'
@@ -486,8 +488,15 @@ export default function ProjectDetail({
   const [photoNoteIds, setPhotoNoteIds] = useState<Set<string>>(new Set())
   const [filterHasNote, setFilterHasNote] = useState(false)
   const [notesKey, setNotesKey] = useState(0)
-  const [uploadToast, setUploadToast] = useState<{ message: string; type: 'success' | 'error' | 'limit' } | null>(null)
-  const uploadToastTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const [confirmModal, setConfirmModal] = useState<{ message: string; onConfirm: () => void } | null>(null)
+  const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' | 'warning' } | null>(null)
+  const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  const showToast = (message: string, type: 'success' | 'error' | 'warning') => {
+    if (toastTimer.current) clearTimeout(toastTimer.current)
+    setToast({ message, type })
+    toastTimer.current = setTimeout(() => setToast(null), 4000)
+  }
 
   const fetchPhotos = async () => {
     if (!id) return
@@ -613,12 +622,6 @@ export default function ProjectDetail({
     })
   }
 
-  const showUploadToast = (message: string, type: 'success' | 'error' | 'limit') => {
-    if (uploadToastTimer.current) clearTimeout(uploadToastTimer.current)
-    setUploadToast({ message, type })
-    uploadToastTimer.current = setTimeout(() => setUploadToast(null), 4000)
-  }
-
   const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!e.target.files || !id) return
     setUploading(true)
@@ -708,14 +711,14 @@ export default function ProjectDetail({
 
     if (limitExceeded) {
       if (successCount > 0) {
-        showUploadToast(t('photo.upload.limitExceededPartial', { success: successCount }), 'limit')
+        showToast(t('photo.upload.limitExceededPartial', { success: successCount }), 'warning')
       } else {
-        showUploadToast(t('photo.upload.limitExceeded'), 'limit')
+        showToast(t('photo.upload.limitExceeded'), 'warning')
       }
     } else if (failedCount > 0) {
-      showUploadToast(t('photo.upload.fail', { count: failedCount }), 'error')
+      showToast(t('photo.upload.fail', { count: failedCount }), 'error')
     } else if (successCount > 0) {
-      showUploadToast(t('photo.upload.success', { count: successCount }), 'success')
+      showToast(t('photo.upload.success', { count: successCount }), 'success')
     }
 
     try {
@@ -787,58 +790,73 @@ export default function ProjectDetail({
     fetchPhotos()
   }
 
-  const handleClearRatings = async () => {
-    if (!confirm(t('actions.resetRatingsConfirm'))) return
-    await Promise.all(
-      photos.filter(p => p.rating !== null).map(p => axios.put(`${API}/photos/${p.id}`, { ...p, rating: null }))
-    )
-    fetchPhotos()
+  const handleClearRatings = () => {
+    setConfirmModal({
+      message: t('actions.resetRatingsConfirm'),
+      onConfirm: async () => {
+        setConfirmModal(null)
+        await Promise.all(
+          photos.filter(p => p.rating !== null).map(p => axios.put(`${API}/photos/${p.id}`, { ...p, rating: null }))
+        )
+        fetchPhotos()
+      },
+    })
   }
 
-  const handleClearColorLabels = async () => {
-    if (!confirm(t('actions.resetColorsConfirm'))) return
-    await Promise.all(
-      photos.filter(p => p.color_label !== null).map(p => axios.put(`${API}/photos/${p.id}`, { ...p, color_label: null }))
-    )
-    fetchPhotos()
+  const handleClearColorLabels = () => {
+    setConfirmModal({
+      message: t('actions.resetColorsConfirm'),
+      onConfirm: async () => {
+        setConfirmModal(null)
+        await Promise.all(
+          photos.filter(p => p.color_label !== null).map(p => axios.put(`${API}/photos/${p.id}`, { ...p, color_label: null }))
+        )
+        fetchPhotos()
+      },
+    })
   }
 
-  const handleDeleteAllMissing = async () => {
+  const handleDeleteAllMissing = () => {
     const missingPhotos = photos.filter(p => p.local_missing && !p.deleted_at)
     if (missingPhotos.length === 0) return
-    if (!confirm(t('photo.local.deleteMissingConfirm', { count: missingPhotos.length }))) return
-    setDeletingMissing(true)
-    await axios.delete(`${API}/photos/bulk-delete`, {
-      data: { photo_ids: missingPhotos.map(p => p.id) }
+    setConfirmModal({
+      message: t('photo.local.deleteMissingConfirm', { count: missingPhotos.length }),
+      onConfirm: async () => {
+        setConfirmModal(null)
+        setDeletingMissing(true)
+        await axios.delete(`${API}/photos/bulk-delete`, {
+          data: { photo_ids: missingPhotos.map(p => p.id) }
+        })
+        await fetchPhotos()
+        await fetchTrash()
+        await fetchChapterPhotoIds()
+        await fetchPhotoNoteIds()
+        await axios.get(`${API}/projects/${id}`).then(res => setProject(res.data))
+        setNotesKey(prev => prev + 1)
+        setDeletingMissing(false)
+      },
     })
-    await fetchPhotos()
-    await fetchTrash()
-    await fetchChapterPhotoIds()
-    await fetchPhotoNoteIds()
-    await axios.get(`${API}/projects/${id}`).then(res => setProject(res.data))
-    setNotesKey(prev => prev + 1)
-    setDeletingMissing(false)
   }
 
-  const handleDeleteAllTrash = async () => {
+  const handleDeleteAllTrash = () => {
     if (trashedPhotos.length === 0) return
-
-    // ✅ 다국어 적용 및 count 변수 전달
-    if (!confirm(t('photo.trashComment.DeleteAllConfirm', { count: trashedPhotos.length }))) {
-      return
-    }
-
-    setDeletingTrash(true)
-    try {
-      await axios.delete(`${API}/photos/bulk-permanent`, {
-        data: { photo_ids: trashedPhotos.map(p => p.id) }
-      })
-      await fetchTrash()
-    } catch (error) {
-      console.error(error)
-    } finally {
-      setDeletingTrash(false)
-    }
+    setConfirmModal({
+      message: t('photo.trashComment.DeleteAllConfirm', { count: trashedPhotos.length }),
+      onConfirm: async () => {
+        setConfirmModal(null)
+        setDeletingTrash(true)
+        try {
+          await axios.delete(`${API}/photos/bulk-permanent`, {
+            data: { photo_ids: trashedPhotos.map(p => p.id) }
+          })
+          await fetchTrash()
+        } catch (error) {
+          console.error(error)
+        } finally {
+          setDeletingTrash(false)
+        }
+      },
+    })
   }
 
   const handleSaveCaption = async (photo: Photo) => {
@@ -847,19 +865,24 @@ export default function ProjectDetail({
     fetchPhotos()
   }
 
-  const handleDeleteFolder = async (folder: string) => {
+  const handleDeleteFolder = (folder: string) => {
     const folderPhotos = photos.filter(p => p.folder === folder && !p.deleted_at)
-    if (!confirm(t('filter.deleteFolderConfirm', { folder, count: folderPhotos.length }))) return
-    await axios.delete(`${API}/photos/bulk-delete`, {
-      data: { photo_ids: folderPhotos.map(p => p.id) }
+    setConfirmModal({
+      message: t('filter.deleteFolderConfirm', { folder, count: folderPhotos.length }),
+      onConfirm: async () => {
+        setConfirmModal(null)
+        await axios.delete(`${API}/photos/bulk-delete`, {
+          data: { photo_ids: folderPhotos.map(p => p.id) }
+        })
+        if (filterFolder === folder) setFilterFolder(null)
+        await fetchPhotos()
+        await fetchTrash()
+        await fetchChapterPhotoIds()
+        await fetchPhotoNoteIds()
+        await axios.get(`${API}/projects/${id}`).then(res => setProject(res.data))
+        setNotesKey(prev => prev + 1)
+      },
     })
-    if (filterFolder === folder) setFilterFolder(null)
-    await fetchPhotos()
-    await fetchTrash()
-    await fetchChapterPhotoIds()
-    await fetchPhotoNoteIds()
-    await axios.get(`${API}/projects/${id}`).then(res => setProject(res.data))
-    setNotesKey(prev => prev + 1)
   }
 
   const handleAddToChapter = async (photoId: string, chapterId: string) => {
@@ -1068,15 +1091,15 @@ export default function ProjectDetail({
 
   return (
     <div className={`${isElectron ? 'w-full' : 'max-w-7xl mx-auto'} p-6`}>
-      {uploadToast && (
-        <div className={`fixed bottom-6 right-6 z-50 w-72 text-white rounded-lg shadow-lg px-4 py-3 flex items-center justify-between gap-3 ${
-          uploadToast.type === 'success' ? 'bg-stone-800' :
-          uploadToast.type === 'limit' ? 'bg-amber-700' : 'bg-red-700'
-        }`}>
-          <span className="text-sm font-medium">{uploadToast.message}</span>
-          <button onClick={() => setUploadToast(null)} className="opacity-60 hover:opacity-100 text-lg leading-none shrink-0">×</button>
-        </div>
+      {confirmModal && (
+        <ConfirmModal
+          message={confirmModal.message}
+          onConfirm={confirmModal.onConfirm}
+          onCancel={() => setConfirmModal(null)}
+          dangerous
+        />
       )}
+      {toast && <ToastNotification message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
       {lightboxPhoto && (
         <Lightbox
           photo={lightboxPhoto}
@@ -1505,7 +1528,7 @@ export default function ProjectDetail({
                                   const limit = typeof detail === 'object' ? detail.limit : undefined
 
                                   if (code === 'PHOTO_LIMIT_EXCEEDED') {
-                                    alert(t('api.error.PHOTO_LIMIT_EXCEEDED', { limit }))
+                                    showToast(t('api.error.PHOTO_LIMIT_EXCEEDED', { limit }), 'warning')
                                   }
                                 }
                               }}
@@ -1514,10 +1537,15 @@ export default function ProjectDetail({
                                ↺ {t('trash.restore')}
                             </button>
                             <button
-                              onClick={async () => {
-                                if (!confirm(t('trash.permanentDeleteConfirm'))) return
-                                await axios.delete(`${API}/photos/${photo.id}/permanent`)
-                                fetchTrash()
+                              onClick={() => {
+                                setConfirmModal({
+                                  message: t('trash.permanentDeleteConfirm'),
+                                  onConfirm: async () => {
+                                    setConfirmModal(null)
+                                    await axios.delete(`${API}/photos/${photo.id}/permanent`)
+                                    fetchTrash()
+                                  },
+                                })
                               }}
                               className="w-full text-center px-4 py-1.5 text-xs bg-red-600 text-white rounded hover:bg-red-700 font-medium shadow-lg"
                             >

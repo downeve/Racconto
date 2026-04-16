@@ -1,9 +1,11 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import axios from 'axios'
 import ProjectCard from '../components/ProjectCard'
 import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import Heading from '../components/Heading'
+import ConfirmModal from '../components/ConfirmModal'
+import ToastNotification from '../components/ToastNotification'
 import { useElectronSidebar } from '../context/ElectronSidebarContext'
 import {
   DndContext, closestCenter, PointerSensor, useSensor, useSensors,
@@ -79,6 +81,15 @@ function SortableProjectCard({
 export default function Projects() {
   const [projects, setProjects] = useState<Project[]>([])
   const [showForm, setShowForm] = useState(false)
+  const [confirmModal, setConfirmModal] = useState<{ message: string; onConfirm: () => void } | null>(null)
+  const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' | 'warning' } | null>(null)
+  const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  const showToast = (message: string, type: 'success' | 'error' | 'warning') => {
+    if (toastTimer.current) clearTimeout(toastTimer.current)
+    setToast({ message, type })
+    toastTimer.current = setTimeout(() => setToast(null), 4000)
+  }
   const [title, setTitle] = useState('')
   const [titleEn, setTitleEn] = useState('')
   const [description, setDescription] = useState('')
@@ -101,12 +112,17 @@ export default function Projects() {
     triggerRefresh()
   }
 
-  const handleDelete = async (projectId: string) => {
-    if (!confirm((t('project.deleteConfirm')))) return
-    await axios.delete(`${API}/projects/${projectId}`)
-    window.racconto?.unlinkByProject(projectId)
-    fetchProjects()
-    triggerRefresh()
+  const handleDelete = (projectId: string) => {
+    setConfirmModal({
+      message: t('project.deleteConfirm'),
+      onConfirm: async () => {
+        setConfirmModal(null)
+        await axios.delete(`${API}/projects/${projectId}`)
+        window.racconto?.unlinkByProject(projectId)
+        fetchProjects()
+        triggerRefresh()
+      },
+    })
   }
 
   const fetchProjects = async () => {
@@ -138,7 +154,7 @@ export default function Projects() {
       const limit = typeof detail === 'object' ? detail.limit : undefined
 
       if (code === 'PROJECT_LIMIT_EXCEEDED') {
-        alert(t('api.error.PROJECT_LIMIT_EXCEEDED', { limit }))
+        showToast(t('api.error.PROJECT_LIMIT_EXCEEDED', { limit }), 'warning')
       }
     }
   }
@@ -147,6 +163,15 @@ export default function Projects() {
 
   return (
     <div className={`${isElectron ? 'w-full' : 'max-w-7xl mx-auto'} p-6`}>
+      {confirmModal && (
+        <ConfirmModal
+          message={confirmModal.message}
+          onConfirm={confirmModal.onConfirm}
+          onCancel={() => setConfirmModal(null)}
+          dangerous
+        />
+      )}
+      {toast && <ToastNotification message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
       <div className="flex items-center justify-between mb-8">
           <Heading level={2} className="mb-2">
             {t('nav.projects')}

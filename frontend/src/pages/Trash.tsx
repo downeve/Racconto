@@ -1,7 +1,9 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import axios from 'axios'
 import { useTranslation } from 'react-i18next'
-import Heading from '../components/Heading' //
+import Heading from '../components/Heading'
+import ConfirmModal from '../components/ConfirmModal'
+import ToastNotification from '../components/ToastNotification'
 import { useElectronSidebar } from '../context/ElectronSidebarContext'
 
 const API = import.meta.env.VITE_API_URL
@@ -19,7 +21,17 @@ export default function Trash() {
   const [projects, setProjects] = useState<Project[]>([])
   const { t } = useTranslation()
   const { triggerRefresh } = useElectronSidebar()
-  
+
+  const [confirmModal, setConfirmModal] = useState<{ message: string; onConfirm: () => void } | null>(null)
+  const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' | 'warning' } | null>(null)
+  const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  const showToast = (message: string, type: 'success' | 'error' | 'warning') => {
+    if (toastTimer.current) clearTimeout(toastTimer.current)
+    setToast({ message, type })
+    toastTimer.current = setTimeout(() => setToast(null), 4000)
+  }
+
   const fetchTrash = async () => {
     const res = await axios.get(`${API}/projects/trash`)
     setProjects(res.data)
@@ -39,29 +51,31 @@ export default function Trash() {
       const code = typeof detail === 'object' ? detail.code : detail
       const limit = typeof detail === 'object' ? detail.limit : undefined
 
-      // 💡 코드에 따라 번역된 메시지 출력
       if (code === 'PHOTO_LIMIT_EXCEEDED') {
-        alert(t('api.error.PHOTO_LIMIT_EXCEEDED', { limit })) // limit 변수 전달
+        showToast(t('api.error.PHOTO_LIMIT_EXCEEDED', { limit }), 'warning')
       } else if (code === 'PROJECT_LIMIT_EXCEEDED') {
-        alert(t('api.error.PROJECT_LIMIT_EXCEEDED', { limit }))
+        showToast(t('api.error.PROJECT_LIMIT_EXCEEDED', { limit }), 'warning')
       } else {
-        alert(t('common.error')) // 알 수 없는 일반 에러 처리
+        showToast(t('common.error'), 'error')
       }
     }
   }
 
-  const handlePermanentDelete = async (projectId: string) => {
-    if (!confirm(t('trash.permanentDeleteConfirm'))) return
-    
-    try {
-      await axios.delete(`${API}/projects/${projectId}/permanent`)
-      fetchTrash() // 삭제 성공 시 목록 갱신
-    } catch (err: any) {
-      console.error(err);
-      // 다국어 적용: 기본 에러 메시지를 t 함수로 변경
-      const errorMessage = err.response?.data?.detail || t('trash.deleteProjectError');
-      alert(errorMessage);
-    }
+  const handlePermanentDelete = (projectId: string) => {
+    setConfirmModal({
+      message: t('trash.permanentDeleteConfirm'),
+      onConfirm: async () => {
+        setConfirmModal(null)
+        try {
+          await axios.delete(`${API}/projects/${projectId}/permanent`)
+          fetchTrash()
+        } catch (err: any) {
+          console.error(err)
+          const errorMessage = err.response?.data?.detail || t('trash.deleteProjectError')
+          showToast(errorMessage, 'error')
+        }
+      },
+    })
   }
 
   const getDaysLeft = (deletedAt: string) => {
@@ -73,6 +87,16 @@ export default function Trash() {
 
   return (
     <div className="max-w-4xl mx-auto p-6">
+      {confirmModal && (
+        <ConfirmModal
+          message={confirmModal.message}
+          onConfirm={confirmModal.onConfirm}
+          onCancel={() => setConfirmModal(null)}
+          dangerous
+        />
+      )}
+      {toast && <ToastNotification message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
+
       <Heading level={2} className="mb-2">
         {t('trash.title')}
       </Heading>
