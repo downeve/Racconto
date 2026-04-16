@@ -18,6 +18,7 @@ import FeaturesPage from './pages/FeaturesPage'
 import ScrollToTop from './components/ScrollToTop';
 import UploadToast from './components/UploadToast'
 import ElectronSidebar from './components/ElectronSidebar'
+import FeedbackWidget from './components/FeedbackWidget'
 import { useState } from 'react'
 import { ElectronSidebarProvider } from './context/ElectronSidebarContext'
 
@@ -51,7 +52,7 @@ function AppRoutes() {
     <div className="min-h-screen bg-[#F7F4F0] pt-14">
       {/* 모바일 기기 차단 — UA 기반 감지 */}
       {isMobileDevice &&
-      !['/', '/login', '/register', '/verify-email'].includes(location.pathname) &&
+      !['/', '/features', '/login', '/register', '/verify-email'].includes(location.pathname) &&
       !location.pathname.startsWith('/p/') &&
       !location.pathname.startsWith('/delivery/') && (
         <div className="fixed inset-0 bg-[#F7F4F0] z-50 flex items-center justify-center p-8 text-center">
@@ -95,6 +96,7 @@ function AppRoutes() {
       {/* 메인 콘텐츠 — Electron일 때 사이드바 너비만큼 밀기 */}
       <div className={isElectron && isAuthenticated && !hideNavbar ? 'ml-56' : ''}>
         <ScrollToTop />
+        <FeedbackWidget />
         <Routes>
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />

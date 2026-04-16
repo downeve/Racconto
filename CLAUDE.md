@@ -20,8 +20,10 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 # 백엔드만 실행
 cd backend && source venv/bin/activate && uvicorn app.main:app --reload
 
-# 백엔드 테스트
+# 백엔드 테스트 전체
 cd backend && pytest
+# 백엔드 테스트 단일
+cd backend && pytest tests/test_file.py::test_function_name
 
 # 프론트엔드 빌드
 cd frontend && npm run build
@@ -51,6 +53,8 @@ FastAPI + SQLAlchemy + PostgreSQL (Docker). `database.py`의 `get_db()`를 DI로
 - `settings` — 사용자 설정 key-value
 - `admin` — 관리자 전용
 
+> `Pitch` 모델은 `models.py`에 정의되어 있으나 전용 라우터 없음 — `projects` 라우터 내에서 처리됨.
+
 **핵심 모델 관계**:
 ```
 User → Project(s) → Photo(s)
@@ -68,6 +72,7 @@ React + Vite + TypeScript + Tailwind CSS.
 - **Context**: `AuthContext` (JWT + 유저 상태), `ElectronSidebarContext` (Electron 사이드바 상태)
 - **Electron 감지**: `window.racconto` 존재 여부로 웹/Electron 분기
 - **라우팅**: React Router, 페이지는 `pages/` 디렉터리
+- **환경변수**: `frontend/.env` (`VITE_API_URL=http://localhost:8000`), `frontend/.env.production` (`VITE_API_URL=https://racconto.app/api`)
 
 ### Electron (`electron/`)
 데스크톱 앱. **preload.js의 `contextBridge`를 통해서만 IPC 노출** (보안 규칙).
@@ -106,68 +111,34 @@ API 베이스: dev는 `http://localhost:8000`, 패키징 후는 `https://raccont
 - 폴더 구조/DB 구조·CASCADE 변경 시 해당 섹션 반영
 - 진행 중/예정 항목은 `### 진행 중 / 예정` 섹션 관리
 
-# CLAUDE.md
-
-Behavioral guidelines to reduce common LLM coding mistakes. Merge with project-specific instructions as needed.
-
-**Tradeoff:** These guidelines bias toward caution over speed. For trivial tasks, use judgment.
-
-## 1. Think Before Coding
-
-**Don't assume. Don't hide confusion. Surface tradeoffs.**
-
-Before implementing:
-- State your assumptions explicitly. If uncertain, ask.
-- If multiple interpretations exist, present them - don't pick silently.
-- If a simpler approach exists, say so. Push back when warranted.
-- If something is unclear, stop. Name what's confusing. Ask.
-
-## 2. Simplicity First
-
-**Minimum code that solves the problem. Nothing speculative.**
-
-- No features beyond what was asked.
-- No abstractions for single-use code.
-- No "flexibility" or "configurability" that wasn't requested.
-- No error handling for impossible scenarios.
-- If you write 200 lines and it could be 50, rewrite it.
-
-Ask yourself: "Would a senior engineer say this is overcomplicated?" If yes, simplify.
-
-## 3. Surgical Changes
-
-**Touch only what you must. Clean up only your own mess.**
-
-When editing existing code:
-- Don't "improve" adjacent code, comments, or formatting.
-- Don't refactor things that aren't broken.
-- Match existing style, even if you'd do it differently.
-- If you notice unrelated dead code, mention it - don't delete it.
-
-When your changes create orphans:
-- Remove imports/variables/functions that YOUR changes made unused.
-- Don't remove pre-existing dead code unless asked.
-
-The test: Every changed line should trace directly to the user's request.
-
-## 4. Goal-Driven Execution
-
-**Define success criteria. Loop until verified.**
-
-Transform tasks into verifiable goals:
-- "Add validation" → "Write tests for invalid inputs, then make them pass"
-- "Fix the bug" → "Write a test that reproduces it, then make it pass"
-- "Refactor X" → "Ensure tests pass before and after"
-
-For multi-step tasks, state a brief plan:
-```
-1. [Step] → verify: [check]
-2. [Step] → verify: [check]
-3. [Step] → verify: [check]
-```
-
-Strong success criteria let you loop independently. Weak criteria ("make it work") require constant clarification.
-
 ---
 
-**These guidelines are working if:** fewer unnecessary changes in diffs, fewer rewrites due to overcomplication, and clarifying questions come before implementation rather than after mistakes.
+## 코딩 가이드라인
+
+### 구현 전 사고
+
+- 가정을 명시적으로 밝힐 것. 불확실하면 먼저 질문.
+- 해석이 여러 가지라면 제시할 것 — 묵묵히 선택하지 말 것.
+- 더 단순한 접근법이 있으면 말할 것.
+
+### 단순성 우선
+
+- 요청된 기능 외 추가 금지.
+- 단일 사용 코드에 추상화 금지.
+- "유연성"이나 요청되지 않은 설정 가능성 금지.
+- 불가능한 시나리오에 대한 에러 핸들링 금지.
+
+### 수술적 변경
+
+- 필요한 곳만 수정. 인접 코드 정리 금지.
+- 깨지지 않은 것 리팩토링 금지.
+- 기존 스타일 유지.
+- 내 변경이 만든 orphan(미사용 import/변수/함수)은 제거.
+
+### 목표 중심 실행
+
+다단계 작업 시 간단한 계획을 먼저 제시:
+```
+1. [단계] → 검증: [확인 방법]
+2. [단계] → 검증: [확인 방법]
+```

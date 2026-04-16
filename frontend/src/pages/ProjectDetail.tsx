@@ -1535,6 +1535,7 @@ export default function ProjectDetail({
       {/* ⬆️ 맨 위로 가기 플로팅 버튼 */}
       {!lightboxPhoto && (
       <button
+        id="floating-top-button"
         onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
         className="fixed bottom-8 right-8 w-12 h-12 bg-black/70 hover:bg-black text-white rounded-full flex items-center justify-center shadow-2xl transition-all z-50 backdrop-blur-sm"
         title="Top"

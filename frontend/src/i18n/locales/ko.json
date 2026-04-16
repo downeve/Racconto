@@ -440,5 +440,15 @@
       "status_success": "{{total}}개 업로드 완료",
       "status_progress": "업로드 중... {{done}} / {{total}}개"
     }
+  },
+  "feedback": {
+    "buttonTitle": "피드백 보내기",
+    "modalTitle": "피드백 보내기",
+    "modalDesc": "버그, 개선 사항, 무엇이든 자유롭게 적어주세요!",
+    "placeholder": "여기에 내용을 입력하세요...",
+    "send": "보내기",
+    "sending": "전송 중...",
+    "success": "감사합니다! 🎉",
+    "error": "전송 실패 (다시 시도)"
   }
 }

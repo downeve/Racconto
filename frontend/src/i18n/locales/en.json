@@ -443,5 +443,15 @@
       "status_success": "{{total}} uploads completed",
       "status_progress": "Uploading... {{done}} / {{total}}"
     }
+  },
+  "feedback": {
+    "buttonTitle": "Send Feedback",
+    "modalTitle": "Send Feedback",
+    "modalDesc": "Bugs, improvements, or anything else—feel free to write!",
+    "placeholder": "Enter your feedback here...",
+    "send": "Send",
+    "sending": "Sending...",
+    "success": "Thank you! 🎉",
+    "error": "Failed (Try again)"
   }
 }
