@@ -1,8 +1,7 @@
 const { contextBridge, ipcRenderer } = require('electron')
-const packageJson = require('./package.json');
 
 contextBridge.exposeInMainWorld('racconto', {
-  version: packageJson.version,
+  version: process.env.APP_VERSION || '0.0.0',
   openFolder: () => ipcRenderer.invoke('dialog:openFolder'),
   startWatcher: (folderPath) => ipcRenderer.invoke('watcher:start', folderPath),
   stopWatcher: () => ipcRenderer.invoke('watcher:stop'),

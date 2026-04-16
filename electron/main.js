@@ -483,6 +483,7 @@ function createWindow() {
 // ── 앱 시작 ──────────────────────────────────────────
 app.whenReady().then(() => {
   initQueue()
+  process.env.APP_VERSION = app.getVersion()
   createWindow()
 
   // 토큰이 있을 때만 감시 시작 — auth:setToken에서 처리

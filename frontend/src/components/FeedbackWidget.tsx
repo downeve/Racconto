@@ -44,7 +44,7 @@ export default function FeedbackWidget() {
     // 1. OS 정보 가져오기
     const osInfo = window.navigator.platform; // Win32, MacIntel 등
     const userAgent = window.navigator.userAgent;
-    const appVersion = (window as any).electronData?.version || 'Unknown';
+    const appVersion = window.racconto?.version || 'Unknown';
 
     try {
       await fetch(DISCORD_WEBHOOK_URL, {
