@@ -116,11 +116,7 @@ function FeatureSection({
           {feature.desc}
         </p>
 
-        {feature.isDesktop && (
-          <div className="hidden sm:block">
-            <DownloadBanner />
-          </div>
-        )}
+        {feature.isDesktop && <DownloadBanner />}
       </div>
     </div>
   )
