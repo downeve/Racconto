@@ -458,12 +458,11 @@ export default function ProjectDetail({
   const { id } = useParams()
   const [project, setProject] = useState<Project | null>(null)
   const [photos, setPhotos] = useState<Photo[]>([])
-  const [uploading, setUploading] = useState(false)
-  
+  const { setSidebarContent, triggerRefresh, uploadInProgress: uploading, setUploadInProgress: setUploading } = useElectronSidebar()
+
   const [activeTab, setActiveTab] = useState<'photos' | 'story' | 'notes' | 'delivery'>('photos')
 
   const isElectron = !!window.racconto
-  const { setSidebarContent, triggerRefresh } = useElectronSidebar()
 
   const [photoSubTab, setPhotoSubTab] = useState<'all' | 'trash'>('all')
   const [trashedPhotos, setTrashedPhotos] = useState<Photo[]>([])
@@ -596,27 +595,25 @@ export default function ProjectDetail({
       );
     }
 
-    // 💡 2. 필터링된 정상 파일들만 업로드 진행
+    // 2. 필터링된 정상 파일들만 업로드 진행
+    let failedCount = 0
     for (const file of validFiles) {
       try {
         const formData = new FormData()
         formData.append('file', file)
         const relativePath = (file as any).webkitRelativePath
         const folder = relativePath ? relativePath.split('/')[0] : null
-        
+
         const url = folder
           ? `${API}/photos/upload?project_id=${id}&folder=${encodeURIComponent(folder)}`
           : `${API}/photos/upload?project_id=${id}`
-          
-        // 정상 업로드 시도
+
         await axios.post(url, formData, { headers: { 'Content-Type': 'multipart/form-data' } })
-        
+
       } catch (error) {
-        // 💡 3. [핵심] 특정 파일 업로드 중 에러가 나더라도 함수를 멈추지 않고, 
-        // 콘솔에 에러만 찍은 뒤 다음 파일로 계속 진행하도록 try-catch로 감쌌습니다.
-        // 💡 t('photo.uploadFail')을 템플릿 리터럴 안에 삽입
         console.error(`❌ ${file.name} ${t('photo.uploadFail')}:`, error)
-        
+
+        const status = (error as any)?.response?.status
         const detail = (error as any)?.response?.data?.detail
         const code = typeof detail === 'object' ? detail.code : detail
         const limit = typeof detail === 'object' ? detail.limit : undefined
@@ -624,10 +621,14 @@ export default function ProjectDetail({
         if (code === 'PHOTO_LIMIT_EXCEEDED') {
           alert(t('api.error.PHOTO_LIMIT_EXCEEDED', { limit }))
           break
-        } else {
-          alert(`❌ ${file.name} ${t('photo.uploadFail')}`)
+        } else if (status !== 401) {
+          // 401(로그아웃 등)은 alert 생략
+          failedCount++
         }
       }
+    }
+    if (failedCount > 0) {
+      alert(`❌ ${failedCount}개 파일 ${t('photo.uploadFail')}`)
     }
 
     // 모든 루프가 끝난 뒤에 상태 업데이트 및 새로고침
