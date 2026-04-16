@@ -377,7 +377,7 @@
     "REMOVED": "제거되었습니다."
   },
   "status": {
-    "in_progress": "진행 중",
+    "in_progress": "...",
     "completed": "완성",
     "published": "발표됨",
     "archived": "보관"

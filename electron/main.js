@@ -45,6 +45,10 @@ ipcMain.handle('auth:logout', async () => {
 // ── 폴더 매핑 ────────────────────────────────────────
 ipcMain.handle('folderMap:link', (event, { folderPath, projectId, projectName }) => {
   linkFolder(folderPath, projectId, projectName)
+  if (authToken) {
+    syncFolderOnStart(folderPath, projectId)
+    startWatcherForPath(folderPath)
+  }
   return { success: true }
 })
 
