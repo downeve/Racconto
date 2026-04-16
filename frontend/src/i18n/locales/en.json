@@ -181,6 +181,7 @@
     "allPhotos": "All Photos",
     "folder": "Folders",
     "allFolders": "All Folders",
+    "deleteFolderConfirm": "Move all {{count}} photos in '{{folder}}' to trash?",
     "rating": "Ratings",
     "allRatings": "All Ratings",
     "unrated": "Unrated",

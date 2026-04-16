@@ -763,6 +763,21 @@ export default function ProjectDetail({
     fetchPhotos()
   }
 
+  const handleDeleteFolder = async (folder: string) => {
+    const folderPhotos = photos.filter(p => p.folder === folder && !p.deleted_at)
+    if (!confirm(t('filter.deleteFolderConfirm', { folder, count: folderPhotos.length }))) return
+    await axios.delete(`${API}/photos/bulk-delete`, {
+      data: { photo_ids: folderPhotos.map(p => p.id) }
+    })
+    if (filterFolder === folder) setFilterFolder(null)
+    await fetchPhotos()
+    await fetchTrash()
+    await fetchChapterPhotoIds()
+    await fetchPhotoNoteIds()
+    await axios.get(`${API}/projects/${id}`).then(res => setProject(res.data))
+    setNotesKey(prev => prev + 1)
+  }
+
   const handleAddToChapter = async (photoId: string, chapterId: string) => {
   try {
       await axios.post(`${API}/chapters/${chapterId}/photos`, { photo_id: photoId })
@@ -906,11 +921,18 @@ export default function ProjectDetail({
               <span>{t('filter.allFolders')}</span><span className="text-gray-400">{photos.length}</span>
             </button>
             {[...new Set(photos.filter(p => p.folder).map(p => p.folder))].map(folder => (
-              <button key={folder} onClick={() => setFilterFolder(filterFolder === folder ? null : folder!)}
-                className={`w-full text-left px-2 py-1 text-xs rounded flex items-center justify-between ${filterFolder === folder ? 'bg-black text-white' : 'hover:bg-gray-50'}`}>
-                <span className="flex items-center gap-1 min-w-0"><span className="shrink-0">📁</span><span className="truncate">{folder}</span></span>
-                <span className="text-gray-400 shrink-0 ml-2">{photos.filter(p => p.folder === folder).length}</span>
-              </button>
+              <div key={folder} className={`flex items-center rounded ${filterFolder === folder ? 'bg-black text-white' : 'hover:bg-gray-50'}`}>
+                <button onClick={() => setFilterFolder(filterFolder === folder ? null : folder!)}
+                  className="flex-1 text-left px-2 py-1 text-xs flex items-center justify-between min-w-0">
+                  <span className="flex items-center gap-1 min-w-0"><span className="shrink-0">📁</span><span className="truncate">{folder}</span></span>
+                  <span className={`shrink-0 ml-2 ${filterFolder === folder ? 'text-gray-300' : 'text-gray-400'}`}>{photos.filter(p => p.folder === folder && !p.deleted_at).length}</span>
+                </button>
+                <button
+                  onClick={() => handleDeleteFolder(folder!)}
+                  className={`shrink-0 px-1.5 py-1 text-xs ${filterFolder === folder ? 'text-gray-400 hover:text-white' : 'text-gray-300 hover:text-red-500'}`}
+                  title={t('photo.trash')}
+                >🗑</button>
+              </div>
             ))}
           </div>
         )}
@@ -1222,17 +1244,24 @@ export default function ProjectDetail({
                       <span>{t('filter.allFolders')}</span><span className="text-gray-400">{photos.length}</span>
                     </button>
                       {[...new Set(photos.filter(p => p.folder).map(p => p.folder))].map(folder => {
-                      const count = photos.filter(p => p.folder === folder).length
+                      const count = photos.filter(p => p.folder === folder && !p.deleted_at).length
                       return (
-                        <button key={folder} onClick={() => setFilterFolder(filterFolder === folder ? null : folder!)}
-                          title={folder!}
-                          className={`w-full text-left px-2 py-1 text-xs rounded flex items-center justify-between ${filterFolder === folder ? 'bg-black text-white' : 'hover:bg-gray-50'}`}>
-                          <span className="flex items-center gap-1 min-w-0">
-                            <span className="shrink-0">📁</span>
-                            <span className="truncate">{folder}</span>
-                          </span>
-                          <span className="text-gray-400 shrink-0 ml-2">{count}</span>
-                        </button>
+                        <div key={folder} className={`flex items-center rounded ${filterFolder === folder ? 'bg-black text-white' : 'hover:bg-gray-50'}`}>
+                          <button onClick={() => setFilterFolder(filterFolder === folder ? null : folder!)}
+                            title={folder!}
+                            className="flex-1 text-left px-2 py-1 text-xs flex items-center justify-between min-w-0">
+                            <span className="flex items-center gap-1 min-w-0">
+                              <span className="shrink-0">📁</span>
+                              <span className="truncate">{folder}</span>
+                            </span>
+                            <span className={`shrink-0 ml-2 ${filterFolder === folder ? 'text-gray-300' : 'text-gray-400'}`}>{count}</span>
+                          </button>
+                          <button
+                            onClick={() => handleDeleteFolder(folder!)}
+                            className={`shrink-0 px-1.5 py-1 text-xs ${filterFolder === folder ? 'text-gray-400 hover:text-white' : 'text-gray-300 hover:text-red-500'}`}
+                            title={t('photo.trash')}
+                          >🗑</button>
+                        </div>
                       )
                     })}
                   </div>

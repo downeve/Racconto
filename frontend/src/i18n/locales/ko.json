@@ -178,6 +178,7 @@
     "allPhotos": "모든 사진",
     "folder": "폴더 리스트",
     "allFolders": "모든 폴더",
+    "deleteFolderConfirm": "'{{folder}}' 폴더의 사진 {{count}}개를 모두 휴지통으로 보낼까요?",
     "rating": "별점",
     "allRatings": "별점 모두",
     "unrated": "별점 없음",
