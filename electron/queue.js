@@ -72,6 +72,12 @@ function resetFailedToPending() {
   persistQueue()
 }
 
+function clearPending() {
+  if (!memoryQueue) initQueue()
+  memoryQueue = memoryQueue.filter(item => item.status !== 'pending')
+  persistQueue()
+}
+
 module.exports = {
   initQueue,
   addToQueue,
@@ -79,4 +85,5 @@ module.exports = {
   markSuccess,
   markFailed,
   resetFailedToPending,
+  clearPending,
 }

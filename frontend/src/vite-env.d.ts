@@ -14,6 +14,7 @@ interface Window {
     onUploadProgress: (callback: (data: { done: number; total: number; failed: number }) => void) => void
     onUploadDone: (callback: (data: { total: number; success: number; failed: number }) => void) => void
     onAuthExpired: (callback: () => void) => void
+    onLimitExceeded: (callback: () => void) => void
     setAuthToken: (token: string) => Promise<void>
     logout: () => Promise<{ success: boolean }>
     linkFolder: (folderPath: string, projectId: string, projectName: string) => Promise<{ success: boolean }>

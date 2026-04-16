@@ -2,7 +2,7 @@ const { app, BrowserWindow, ipcMain, dialog, net, nativeImage } = require('elect
 const path = require('path')
 const chokidar = require('chokidar')
 const fs = require('fs')
-const { addToQueue, getPendingItems, markSuccess, markFailed, resetFailedToPending, initQueue } = require('./queue')
+const { addToQueue, getPendingItems, markSuccess, markFailed, resetFailedToPending, clearPending, initQueue } = require('./queue')
 const { linkFolder, unlinkFolder, getProjectForFolder, getMappingsForUser, getAllMappings } = require('./folderMap')
 const exifr = require('exifr')
 
@@ -110,10 +110,19 @@ async function uploadFile(item) {
   // 1. FastAPI에서 CF 업로드 URL 발급
   const urlRes = await fetchWithAuth(`${API_BASE}/photos/cf-upload-url`)
   
-  // 상세 에러 로깅
   if (!urlRes.ok) {
     const errText = await urlRes.text()
     console.error('업로드 URL 발급 실패 상세:', urlRes.status, errText)
+    try {
+      const errData = JSON.parse(errText)
+      if (errData.detail?.code === 'PHOTO_LIMIT_EXCEEDED') {
+        const err = new Error('PHOTO_LIMIT_EXCEEDED')
+        err.code = 'PHOTO_LIMIT_EXCEEDED'
+        throw err
+      }
+    } catch (e) {
+      if (e.code === 'PHOTO_LIMIT_EXCEEDED') throw e
+    }
     throw new Error(`업로드 URL 발급 실패: ${urlRes.status} ${errText}`)
   }
 
@@ -328,6 +337,12 @@ async function processQueue() {
             successCount++
             console.log('업로드 성공:', item.filePath)
           } catch (err) {
+            if (err.code === 'PHOTO_LIMIT_EXCEEDED') {
+              clearPending()
+              mainWindow?.webContents.send('upload:limitExceeded')
+              console.log('사진 한도 초과 → 큐 초기화')
+              return
+            }
             markFailed(item.id)
             failedCount++
             console.error('업로드 실패:', item.filePath, err.message)

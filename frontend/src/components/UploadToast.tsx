@@ -6,6 +6,7 @@ interface ProgressState {
   total: number
   failed: number
   finished: boolean
+  limitExceeded?: boolean
 }
 
 export default function UploadToast() {
@@ -25,6 +26,11 @@ export default function UploadToast() {
       setProgress({ done: data.total, total: data.total, failed: data.failed, finished: true })
       timerRef.current = setTimeout(() => setProgress(null), 3000)
     })
+
+    window.racconto.onLimitExceeded(() => {
+      if (timerRef.current) clearTimeout(timerRef.current)
+      setProgress({ done: 0, total: 0, failed: 0, finished: true, limitExceeded: true })
+    })
   }, [])
 
   if (!progress) return null
@@ -35,17 +41,19 @@ export default function UploadToast() {
     <div className="fixed bottom-6 right-6 z-50 w-72 bg-stone-800 text-white rounded-lg shadow-lg px-4 py-3">
       <div className="flex items-center justify-between mb-2">
       <span className="text-sm font-medium">
-        {progress.finished
-          ? progress.failed > 0
-            ? t('electron.upload.status_with_error', { 
-                success: progress.done - progress.failed, 
-                failed: progress.failed 
+        {progress.limitExceeded
+          ? t('electron.upload.limitExceeded')
+          : progress.finished
+            ? progress.failed > 0
+              ? t('electron.upload.status_with_error', {
+                  success: progress.done - progress.failed,
+                  failed: progress.failed
+                })
+              : t('electron.upload.status_success', { total: progress.total })
+            : t('electron.upload.status_progress', {
+                done: progress.done,
+                total: progress.total
               })
-            : t('electron.upload.status_success', { total: progress.total })
-          : t('electron.upload.status_progress', { 
-              done: progress.done, 
-              total: progress.total 
-            })
         }
       </span>
         {progress.finished && (
@@ -62,9 +70,9 @@ export default function UploadToast() {
       <div className="w-full bg-stone-600 rounded-full h-1.5">
         <div
           className={`h-1.5 rounded-full transition-all duration-300 ${
-            progress.failed > 0 && progress.finished ? 'bg-red-400' : 'bg-white'
+            progress.limitExceeded || (progress.failed > 0 && progress.finished) ? 'bg-red-400' : 'bg-white'
           }`}
-          style={{ width: `${percent}%` }}
+          style={{ width: progress.limitExceeded ? '100%' : `${percent}%` }}
         />
       </div>
 
