@@ -770,14 +770,49 @@ export default function ProjectDetail({
   }
 
   const handleDeletePhoto = async (photoId: string) => {
-    await axios.delete(`${API}/photos/${photoId}`)
-    if (lightboxPhoto?.id === photoId) setLightboxPhoto(null)
-    await axios.get(`${API}/projects/${id}`).then(res => setProject(res.data))  // ← 추가
-    await fetchPhotos()
-    await fetchChapterPhotoIds()
-    await fetchTrash()
-    await fetchPhotoNoteIds()
-    setNotesKey(prev => prev + 1)
+    // 1. 에러 시 롤백을 위한 상태 백업
+    const prevPhotos = [...photos];
+    const prevTrash = [...trashedPhotos];
+    const photoToDelete = photos.find(p => p.id === photoId);
+
+    // 2. ⚡️ 낙관적 업데이트: 서버 대기 없이 화면부터 즉시 변경 (딜레이 제로)
+    if (lightboxPhoto?.id === photoId) setLightboxPhoto(null);
+    
+    setPhotos(prev => prev.filter(p => p.id !== photoId));
+    
+    if (photoToDelete) {
+      setTrashedPhotos(prev => [
+        ...prev, 
+        { ...photoToDelete, deleted_at: new Date().toISOString() }
+      ]);
+    }
+    
+    setNotesKey(prev => prev + 1); // 노트 컴포넌트 갱신 트리거
+
+    try {
+      // 3. 서버에 삭제 요청 
+      await axios.delete(`${API}/photos/${photoId}`);
+
+      // 4. 백그라운드 데이터 동기화 (UI를 멈추지 않음)
+      // 화면은 이미 바뀌었으므로, 사진 수 등 부수적인 데이터만 조용히 최신화합니다.
+      // 여러 API를 순서대로 기다리지 않고 Promise.all로 한 번에 병렬 처리합니다.
+      Promise.all([
+        axios.get(`${API}/projects/${id}`).then(res => setProject(res.data)),
+        fetchChapterPhotoIds(),
+        fetchPhotoNoteIds()
+      ]);
+      
+      // 🔥 주의: fetchPhotos()와 fetchTrash()는 2번에서 UI를 이미 변경했으므로 제거했습니다. 
+      // 이렇게 하면 서버 부하도 줄고 훨씬 빠릅니다.
+
+    } catch (error) {
+      console.error("사진 삭제 실패:", error);
+      
+      // 5. 서버 에러 시 화면을 원래대로 복구 (롤백)
+      setPhotos(prevPhotos);
+      setTrashedPhotos(prevTrash);
+      // (선택) showToast(t('common.error'), 'error'); 
+    }
   }
 
   const handleSetRating = async (photo: Photo, rating: number) => {
