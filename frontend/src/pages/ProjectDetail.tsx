@@ -459,6 +459,7 @@ export default function ProjectDetail({
   const { t } = useTranslation()
 
   const { id } = useParams()
+  const [numericId, setNumericId] = useState<string | null>(null)
   const [project, setProject] = useState<Project | null>(null)
   const [photos, setPhotos] = useState<Photo[]>([])
   const { setSidebarContent, triggerRefresh, uploadInProgress: uploading, setUploadInProgress: setUploading } = useElectronSidebar()
@@ -499,19 +500,20 @@ export default function ProjectDetail({
   }
 
   const fetchPhotos = async () => {
-    if (!id) return
-    const res = await axios.get(`${API}/photos/?project_id=${id}`)
+    if (!numericId) return
+    const res = await axios.get(`${API}/photos/?project_id=${numericId}`)
     setPhotos(res.data)
   }
 
   const fetchTrash = async () => {
-    const res = await axios.get(`${API}/photos/trash/${id}`)
+    if (!numericId) return
+    const res = await axios.get(`${API}/photos/trash/${numericId}`)
     setTrashedPhotos(res.data)
   }
 
   const fetchChapterPhotoIds = async () => {
-    if (!id) return
-    const res = await axios.get(`${API}/chapters/?project_id=${id}`)
+    if (!numericId) return
+    const res = await axios.get(`${API}/chapters/?project_id=${numericId}`)
     const chapters: ChapterResponse[] = res.data
     setChapters(
       chapters
@@ -527,8 +529,8 @@ export default function ProjectDetail({
   }
 
   const fetchPhotoNoteIds = async () => {
-    if (!id) return
-    const res = await axios.get(`${API}/notes/?project_id=${id}`)
+    if (!numericId) return
+    const res = await axios.get(`${API}/notes/?project_id=${numericId}`)
     const ids = new Set<string>(
       (res.data as NoteResponse[])
         .filter(n => n.photo_id)
@@ -565,13 +567,21 @@ export default function ProjectDetail({
 
   useEffect(() => {
     if (!id) return
-    axios.get(`${API}/projects/${id}`).then(res => setProject(res.data))
-    fetchPhotos()
-    fetchTrash()
-    fetchPhotoNoteIds()  // ← 추가
+    setNumericId(null)
+    axios.get(`${API}/projects/${id}`).then(res => {
+      setProject(res.data)
+      setNumericId(String(res.data.id))
+    })
   }, [id])
 
-  useEffect(() => { if (id) fetchChapterPhotoIds() }, [id])
+  useEffect(() => {
+    if (!numericId) return
+    fetchPhotos()
+    fetchTrash()
+    fetchPhotoNoteIds()
+  }, [numericId])
+
+  useEffect(() => { if (numericId) fetchChapterPhotoIds() }, [numericId])
 
   useEffect(() => {
     if (!window.racconto) return
@@ -682,7 +692,7 @@ export default function ProjectDetail({
         const relativePath = (file as any).webkitRelativePath
         const folder = relativePath ? relativePath.split('/')[0] : null
         await axios.post(`${API}/photos/`, {
-          project_id: id,
+          project_id: numericId,
           image_url: imageUrl,
           folder,
           original_filename: file.name,
@@ -1113,7 +1123,7 @@ export default function ProjectDetail({
           onSaveCaption={handleSaveCaptionLightbox}
           showExif={showExif}
           chapters={chapters}
-          projectId={id!}
+          projectId={numericId!}
           onAddToChapter={async (photoId, chapterId) => {
             await axios.post(`${API}/chapters/${chapterId}/photos`, { photo_id: photoId })
             await fetchChapterPhotoIds()
@@ -1570,20 +1580,20 @@ export default function ProjectDetail({
       )}
 
       {activeTab === 'story' && (
-        <ProjectStory 
-          projectId={id!} 
+        <ProjectStory
+          projectId={numericId!}
           allPhotos={photos.filter(p => !p.deleted_at)} 
           onChapterChange={() => fetchChapterPhotoIds()} 
           onPhotoUpdate={fetchPhotos} 
         />
       )}
 
-      {DELIVERY_ENABLED && activeTab === 'delivery' && <DeliveryManager projectId={id!} />}
+      {DELIVERY_ENABLED && activeTab === 'delivery' && <DeliveryManager projectId={numericId!} />}
 
       {activeTab === 'notes' && (
         <ProjectNotes
           key={notesKey}
-          projectId={id!}
+          projectId={numericId!}
           photos={photos.filter(p => !p.deleted_at)}
         />
       )}
