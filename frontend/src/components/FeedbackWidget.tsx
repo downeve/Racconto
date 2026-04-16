@@ -1,5 +1,7 @@
 import { useState, useEffect } from 'react';
-import { useTranslation } from 'react-i18next'; // i18n 임포트
+import { useTranslation } from 'react-i18next';
+
+declare const __APP_VERSION__: string;
 
 const DISCORD_WEBHOOK_URL = import.meta.env.VITE_DISCORD_WEBHOOK_URL;
 
@@ -39,12 +41,17 @@ export default function FeedbackWidget() {
     if (!feedback.trim()) return;
     setStatus('loading');
 
+    // 1. OS 정보 가져오기
+    const osInfo = window.navigator.platform; // Win32, MacIntel 등
+    const userAgent = window.navigator.userAgent;
+    const appVersion = (window as any).electronData?.version || 'Unknown';
+
     try {
       await fetch(DISCORD_WEBHOOK_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          content: `🚨 **New Beta Feedback**\n\`\`\`${feedback}\`\`\``,
+          content: `🚨 **새로운 베타 피드백**\n**내용:** ${feedback}\n\n---\n**💻 기기 정보**\n- **OS:** ${osInfo}\n- **App Version:** v${appVersion}\n- **User Agent:** \`${userAgent.substring(0, 100)}...\`\n`,
         }),
       });
       setStatus('success');
@@ -63,8 +70,8 @@ export default function FeedbackWidget() {
     <>
       <button
         onClick={() => setIsOpen(true)}
-        // isShifted가 true면 bottom-18(위로 이동), false면 bottom-6(기본)
-        className={`fixed right-8 ${isShifted ? 'bottom-24' : 'bottom-6'} bg-stone-600 text-white p-3 rounded-full shadow-lg hover:bg-stone-900 transition-all duration-300 z-50 flex items-center justify-center w-12 h-12`}
+        // isShifted가 true면 bottom-[88px](위로 이동), false면 bottom-6(기본)
+        className={`fixed right-8 ${isShifted ? 'bottom-[84px]' : 'bottom-6'} bg-stone-800 text-white p-3 rounded-full shadow-lg hover:bg-stone-600 transition-all duration-300 z-50 flex items-center justify-center w-12 h-12`}
         title={t('feedback.buttonTitle')}
       >
         💬

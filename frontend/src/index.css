@@ -12,5 +12,5 @@
 
 @keyframes slowScroll {
   0% { transform: translateY(0); }
-  100% { transform: translateY(-55%); }
+  100% { transform: translateY(-25%); }
 }
