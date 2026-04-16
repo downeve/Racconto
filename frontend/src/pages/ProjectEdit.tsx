@@ -9,6 +9,9 @@ const API = import.meta.env.VITE_API_URL
 export default function ProjectEdit() {
   const { id } = useParams()
   const navigate = useNavigate()
+
+  const [numericId, setNumericId] = useState<string | null>(null)
+
   const [title, setTitle] = useState('')
   const [titleEn, setTitleEn] = useState('')
   const [description, setDescription] = useState('')
@@ -23,6 +26,7 @@ export default function ProjectEdit() {
     if (!id) return
     axios.get(`${API}/projects/${id}`).then(res => {
       const p = res.data
+      setNumericId(p.id)
       setTitle(p.title || '')
       setTitleEn(p.title_en || '')
       setDescription(p.description || '')
@@ -34,13 +38,21 @@ export default function ProjectEdit() {
   }, [id])
 
   const handleSubmit = async () => {
-    if (!title) return
-    await axios.put(`${API}/projects/${id}`, {
-      title, title_en: titleEn,
-      description, description_en: descriptionEn,
-      location, status, is_public: isPublic
-    })
-    navigate(`/projects/${id}`)
+    if (!title || !numericId) return
+
+    try {
+      await axios.put(`${API}/projects/${numericId}`, { // 👈 id 대신 numericId 사용
+        title, title_en: titleEn,
+        description, description_en: descriptionEn,
+        location,
+        status,
+        is_public: isPublic
+      })
+      // 저장이 끝나면 다시 프로젝트 상세 페이지로 이동 (상세페이지는 slug 사용 가능)
+      navigate(`/projects/${id}`) 
+    } catch (error) {
+      console.error('Update failed:', error)
+    }
   }
 
   return (

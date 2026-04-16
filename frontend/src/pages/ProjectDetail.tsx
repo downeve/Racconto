@@ -741,18 +741,38 @@ export default function ProjectDetail({
     }
   }
 
+  // ProjectDetail.tsx 내부의 handleSetCover 수정
   const handleSetCover = async (photo: Photo) => {
-    if (!project) return
-    const statusValue = typeof project.status === 'object' ? (project.status as { value: string }).value : project.status
-    await axios.put(`${API}/projects/${id}`, {
-      title: project.title, title_en: project.title_en,
-      description: project.description, description_en: project.description_en,
-      location: project.location, is_public: project.is_public,
-      status: statusValue, cover_image_url: photo.image_url
-    })
-    const res = await axios.get(`${API}/projects/${id}`)
-    setProject(res.data)
-    triggerRefresh()
+    // 1. project 데이터와 numericId(UUID)가 모두 있을 때만 실행
+    if (!project || !numericId) return
+
+    const statusValue = typeof project.status === 'object' 
+      ? (project.status as { value: string }).value 
+      : project.status
+
+    try {
+      // 2. 수정 API 호출 시 id(슬러그) 대신 numericId(UUID) 사용
+      await axios.put(`${API}/projects/${numericId}`, {
+        title: project.title, 
+        title_en: project.title_en,
+        description: project.description, 
+        description_en: project.description_en,
+        location: project.location, 
+        is_public: project.is_public,
+        status: statusValue, 
+        cover_image_url: photo.image_url
+      })
+
+      // 3. 정보 갱신을 위한 GET 요청에서도 numericId 사용
+      const res = await axios.get(`${API}/projects/${numericId}`)
+      setProject(res.data)
+      
+      // 4. 화면 리프레시 트리거
+      triggerRefresh()
+    } catch (error) {
+      console.error('Failed to set cover image:', error)
+      // 필요 시 alert(t('photo.error.SaveFailedAlert')) 추가
+    }
   }
 
   const handleRemoveCover = async () => {
@@ -1259,7 +1279,7 @@ export default function ProjectDetail({
       </div>
 
       {/* 사진 탭 */}
-      {activeTab === 'photos' && (
+      <div style={{ display: activeTab === 'photos' ? 'block' : 'none' }}>
         <div className="flex gap-6 items-start">
           
           {/* 👈 좌측 사이드바 (필터 & 라이브러리 통합) */}
@@ -1612,26 +1632,30 @@ export default function ProjectDetail({
             )}
           </div>
         </div>
-      )}
+      </div>
 
-      {activeTab === 'story' && (
+      <div style={{ display: activeTab === 'story' ? 'block' : 'none' }}>
         <ProjectStory
           projectId={numericId!}
           allPhotos={photos.filter(p => !p.deleted_at)} 
           onChapterChange={() => fetchChapterPhotoIds()} 
-          onPhotoUpdate={fetchPhotos} 
+          onPhotoUpdate={(photoId, newCaption) => {
+            setPhotos(prev => prev.map(p => 
+            p.id === photoId ? { ...p, caption: newCaption } : p
+          ));
+          }}
         />
-      )}
+      </div>
 
       {DELIVERY_ENABLED && activeTab === 'delivery' && <DeliveryManager projectId={numericId!} />}
 
-      {activeTab === 'notes' && (
+      <div style={{ display: activeTab === 'notes' ? 'block' : 'none' }}>
         <ProjectNotes
           key={notesKey}
           projectId={numericId!}
           photos={photos.filter(p => !p.deleted_at)}
         />
-      )}
+      </div>
       
       {/* ⬆️ 맨 위로 가기 플로팅 버튼 */}
       {!lightboxPhoto && (

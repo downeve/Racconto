@@ -146,7 +146,7 @@ export default function ProjectStory({
   projectId: string, 
   allPhotos: Photo[], 
   onChapterChange?: (count: number) => void,
-  onPhotoUpdate?: () => void
+  onPhotoUpdate?: (photoId: string, newCaption: string) => void
 }) {
   const [chapters, setChapters] = useState<Chapter[]>([])
   const [chapterPhotos, setChapterPhotos] = useState<Record<string, ChapterPhoto[]>>({})
@@ -224,45 +224,60 @@ export default function ProjectStory({
     setChapterPhotos(prev => ({ ...prev, [chapterId]: res.data }))
   }
 
-  // 캡션 저장 로직 (PUT 방식으로 변경)
-    const handleSaveCaption = async () => {
-      if (!editingCaptionPhotoId) return;
-      try {
-        // 1. 전체 사진 목록(allPhotos)에서 현재 수정 중인 원본 사진 데이터를 찾습니다.
-        const originalPhoto = allPhotos.find(p => p.id === editingCaptionPhotoId);
-        
-        // ✅ 다국어 적용: 에러 메시지
-        if (!originalPhoto) throw new Error(t('photo.error.OriginalNotFound'));
+  // 캡션 저장 로직 (PUT 방식으로 변경) + 낙관적 업데이트 적용 (딜레이 0초)
+  const handleSaveCaption = async () => {
+    if (!editingCaptionPhotoId) return;
 
-        // 2. patch 대신 put을 사용하고, 기존 사진 데이터에 caption만 새것으로 교체하여 서버에 전체를 보냅니다.
-        await axios.put(`${API}/photos/${editingCaptionPhotoId}`, { 
-          ...originalPhoto, 
-          caption: captionDraft 
-        });
-        
-        // 화면에 즉시 반영되도록 상태 업데이트
-        setChapterPhotos(prev => {
-          const next = { ...prev };
-          for (const [chId, photos] of Object.entries(next)) {
-            next[chId] = photos.map(p => 
-              p.photo_id === editingCaptionPhotoId ? { ...p, caption: captionDraft } : p
-            );
-          }
-          return next;
-        });
+    const targetId = editingCaptionPhotoId;
+    const newCaption = captionDraft;
 
-        setEditingCaptionPhotoId(null);
-        setCaptionDraft('');
+    // 1. 전체 사진 목록(allPhotos)에서 현재 수정 중인 원본 사진 데이터를 찾습니다.
+    const originalPhoto = allPhotos.find(p => p.id === targetId);
+    
+    // ✅ 다국어 적용: 에러 메시지
+    if (!originalPhoto) {
+      alert(t('photo.error.OriginalNotFound'));
+      return;
+    }
 
-        if (onPhotoUpdate) {
-          onPhotoUpdate();
-        }
-      } catch (error) {
-        // ✅ 다국어 적용: 콘솔 에러 로그 및 사용자 알림(alert)
-        console.error(t('photo.error.SaveCaptionFailed'), error);
-        alert(t('photo.error.SaveFailedAlert'));
+    // 🔥 [Optimistic Update 1] 서버 응답 대기 없이 화면에 즉시 반영되도록 상태 업데이트
+    setChapterPhotos(prev => {
+      const next = { ...prev };
+      for (const [chId, photos] of Object.entries(next)) {
+        next[chId] = photos.map(p => 
+          p.photo_id === targetId ? { ...p, caption: newCaption } : p
+        );
       }
-    };
+      return next;
+    });
+
+    // 🔥 [Optimistic Update 2] 부모(ProjectDetail)의 전체 사진 배열도 즉시 업데이트!
+    // (이전에 안내해 드린 대로 onPhotoUpdate가 인자를 받도록 수정된 상태여야 합니다)
+    if (onPhotoUpdate) {
+      onPhotoUpdate(targetId, newCaption); 
+    }
+
+    // 입력창 즉시 닫기
+    setEditingCaptionPhotoId(null);
+    setCaptionDraft('');
+
+    try {
+      // 2. patch 대신 put을 사용하고, 기존 사진 데이터에 caption만 새것으로 교체하여 서버에 전체를 보냅니다.
+      // 화면은 이미 바뀌었으므로 여기서 발생하는 네트워크 딜레이는 사용자가 느끼지 못합니다.
+      await axios.put(`${API}/photos/${targetId}`, { 
+        ...originalPhoto, 
+        caption: newCaption 
+      });
+      
+    } catch (error) {
+      // ✅ 다국어 적용: 콘솔 에러 로그 및 사용자 알림(alert)
+      console.error(t('photo.error.SaveCaptionFailed'), error);
+      alert(t('photo.error.SaveFailedAlert'));
+      
+      // (선택) 에러가 났을 때만 부모의 전체 데이터를 다시 불러와 원래대로 복구시킬 수 있습니다.
+      // onPhotoUpdate(); // 인자 없이 호출하면 기존처럼 fetchPhotos()를 하도록 짤 수도 있습니다.
+    }
+  };
 
   // 라이트박스 키보드 네비게이션
   useEffect(() => {
