@@ -290,9 +290,20 @@ def get_photos(
 
 @router.get("/cf-upload-url")
 def get_upload_url(
+    db: Session = Depends(get_db),
     current_user: models.User = Depends(get_current_user)
 ):
-    """Electron 앱용 CF 업로드 일회성 URL 발급"""
+    """CF 업로드 일회성 URL 발급 (웹/Electron 공용)"""
+    photo_count = db.query(models.Photo).join(models.Project).filter(
+        models.Project.user_id == current_user.id,
+        models.Photo.deleted_at == None
+    ).count()
+    if photo_count >= current_user.photo_limit:
+        raise HTTPException(
+            status_code=403,
+            detail={"code": "PHOTO_LIMIT_EXCEEDED", "limit": current_user.photo_limit}
+        )
+
     print(f"CF_ACCOUNT_ID: {CF_ACCOUNT_ID}")
     print(f"CF_API_TOKEN: {CF_API_TOKEN[:10] if CF_API_TOKEN else None}")
     res = requests.post(

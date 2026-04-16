@@ -1,6 +1,7 @@
 import { useEffect, useState, useMemo } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import axios from 'axios'
+import exifr from 'exifr'
 
 import ProjectStory from './ProjectStory'
 import DeliveryManager from '../components/DeliveryManager'
@@ -577,38 +578,104 @@ export default function ProjectDetail({
     if (isElectron && electronTab) setActiveTab(electronTab)
   }, [electronTab])
 
+  const resizeImage = (file: File): Promise<Blob> => {
+    const MAX_SIZE = 2400
+    return new Promise((resolve, reject) => {
+      const img = new Image()
+      const url = URL.createObjectURL(file)
+      img.onload = () => {
+        URL.revokeObjectURL(url)
+        const { width, height } = img
+        let newW = width, newH = height
+        if (Math.max(width, height) > MAX_SIZE) {
+          if (width >= height) {
+            newW = MAX_SIZE
+            newH = Math.round(height * MAX_SIZE / width)
+          } else {
+            newH = MAX_SIZE
+            newW = Math.round(width * MAX_SIZE / height)
+          }
+        }
+        const canvas = document.createElement('canvas')
+        canvas.width = newW
+        canvas.height = newH
+        canvas.getContext('2d')!.drawImage(img, 0, 0, newW, newH)
+        canvas.toBlob(
+          blob => blob ? resolve(blob) : reject(new Error('toBlob failed')),
+          'image/jpeg',
+          0.88
+        )
+      }
+      img.onerror = reject
+      img.src = url
+    })
+  }
+
   const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!e.target.files || !id) return
     setUploading(true)
 
-    // 💡 1. 백엔드가 허용하는 이미지 형식만 남기고 필터링 (.DS_Store 등 제외)
     const allowedTypes = ['image/jpeg', 'image/png', 'image/webp']
     const validFiles = Array.from(e.target.files).filter(file => allowedTypes.includes(file.type))
 
-    // 안내 메시지 (옵션)
     if (validFiles.length !== e.target.files.length) {
-      const excludedCount = e.target.files.length - validFiles.length;
-      
-      // 콘솔이나 토스트 알림 등에 사용
-      console.warn(
-        t('photo.upload.ExlcudeWarning', { count: excludedCount })
-      );
+      console.warn(t('photo.upload.ExlcudeWarning', { count: e.target.files.length - validFiles.length }))
     }
 
-    // 2. 필터링된 정상 파일들만 업로드 진행
     let failedCount = 0
     for (const file of validFiles) {
       try {
+        // 1. EXIF 추출 (리사이즈 전 원본에서)
+        const exifData: Record<string, string> = {}
+        try {
+          const parsed = await exifr.parse(file, {
+            pick: ['DateTimeOriginal', 'Make', 'Model', 'LensModel',
+                   'ISO', 'ExposureTime', 'FNumber', 'FocalLength',
+                   'GPSLatitude', 'GPSLongitude']
+          })
+          if (parsed) {
+            if (parsed.DateTimeOriginal) exifData.taken_at = new Date(parsed.DateTimeOriginal).toISOString()
+            if (parsed.Make || parsed.Model) exifData.camera = `${parsed.Make || ''} ${parsed.Model || ''}`.trim()
+            if (parsed.LensModel) exifData.lens = parsed.LensModel
+            if (parsed.ISO) exifData.iso = `ISO ${parsed.ISO}`
+            if (parsed.ExposureTime) exifData.shutter_speed = parsed.ExposureTime < 1
+              ? `1/${Math.round(1 / parsed.ExposureTime)}s`
+              : `${parsed.ExposureTime.toFixed(1)}s`
+            if (parsed.FNumber) exifData.aperture = `f/${parsed.FNumber.toFixed(1)}`
+            if (parsed.FocalLength) exifData.focal_length = `${Math.round(parsed.FocalLength)}mm`
+            if (parsed.GPSLatitude) exifData.gps_lat = String(parsed.GPSLatitude)
+            if (parsed.GPSLongitude) exifData.gps_lng = String(parsed.GPSLongitude)
+          }
+        } catch {
+          // EXIF 추출 실패 무시
+        }
+
+        // 2. Canvas 리사이즈 (장변 2400px, JPEG q88)
+        const resizedBlob = await resizeImage(file)
+
+        // 3. CF 업로드 URL 발급 (photo_limit 체크 포함)
+        const { data: urlData } = await axios.get(`${API}/photos/cf-upload-url`)
+        const { uploadURL } = urlData
+
+        // 4. CF에 직접 업로드
         const formData = new FormData()
-        formData.append('file', file)
+        formData.append('file', resizedBlob, file.name)
+        const cfRes = await fetch(uploadURL, { method: 'POST', body: formData })
+        const cfData = await cfRes.json()
+        if (!cfData.success) throw new Error('CF upload failed')
+        const imageUrl = cfData.result.variants[0]
+
+        // 5. 메타데이터 저장
         const relativePath = (file as any).webkitRelativePath
         const folder = relativePath ? relativePath.split('/')[0] : null
-
-        const url = folder
-          ? `${API}/photos/upload?project_id=${id}&folder=${encodeURIComponent(folder)}`
-          : `${API}/photos/upload?project_id=${id}`
-
-        await axios.post(url, formData, { headers: { 'Content-Type': 'multipart/form-data' } })
+        await axios.post(`${API}/photos/`, {
+          project_id: id,
+          image_url: imageUrl,
+          folder,
+          original_filename: file.name,
+          source: 'web',
+          ...exifData,
+        })
 
       } catch (error) {
         console.error(`❌ ${file.name} ${t('photo.uploadFail')}:`, error)
@@ -619,7 +686,6 @@ export default function ProjectDetail({
         const limit = typeof detail === 'object' ? detail.limit : undefined
 
         if (status === 401) {
-          // 인증 만료 — 더 이상 업로드 시도 불필요
           break
         } else if (code === 'PHOTO_LIMIT_EXCEEDED') {
           alert(t('api.error.PHOTO_LIMIT_EXCEEDED', { limit }))
@@ -633,7 +699,6 @@ export default function ProjectDetail({
       alert(`❌ ${failedCount}개 파일 ${t('photo.uploadFail')}`)
     }
 
-    // 모든 루프가 끝난 뒤에 상태 업데이트 및 새로고침
     try {
       await fetchPhotos()
     } catch {
