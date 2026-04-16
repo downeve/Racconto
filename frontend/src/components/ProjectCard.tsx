@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next'
 
 interface Project {
   id: string
+  slug: string | null
   title: string
   title_en: string
   description: string
@@ -24,7 +25,7 @@ export default function ProjectCard({ project }: { project: Project }) {
   const { t } = useTranslation()
 
   return (
-    <Link to={`/projects/${project.id}`}>
+    <Link to={`/projects/${project.slug || project.id}`}>
       <div className="bg-white rounded-lg shadow hover:shadow-md transition-shadow overflow-hidden">
         <div className="h-48 bg-gray-100 flex items-center justify-center">
           {project.cover_image_url ? (

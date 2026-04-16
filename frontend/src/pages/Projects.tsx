@@ -18,6 +18,7 @@ const API = import.meta.env.VITE_API_URL
 
 interface Project {
   id: string
+  slug: string | null
   title: string
   title_en: string
   description: string
@@ -61,7 +62,7 @@ function SortableProjectCard({
       <ProjectCard project={project} />
       <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity flex gap-1">
         <Link
-          to={`/projects/${project.id}/edit`}
+          to={`/projects/${project.slug || project.id}/edit`}
           className="bg-white text-black px-2 py-1 text-xs rounded shadow hover:bg-gray-100"
           onClick={e => e.stopPropagation()}
         >

@@ -9,6 +9,25 @@ from app.auth import get_current_user
 from app.routers.photos import delete_from_cloudflare, delete_cf_files_parallel
 import uuid
 import os
+import re
+
+
+def slugify(text: str) -> str:
+    text = text.lower().strip()
+    text = re.sub(r'[^\w\s-]', '', text)
+    text = re.sub(r'[\s_]+', '-', text)
+    text = re.sub(r'-+', '-', text)
+    return text.strip('-') or 'project'
+
+
+def generate_unique_slug(db: Session, base: str) -> str:
+    slug = slugify(base)
+    candidate = slug
+    counter = 2
+    while db.query(models.Project).filter(models.Project.slug == candidate).first():
+        candidate = f"{slug}-{counter}"
+        counter += 1
+    return candidate
 
 router = APIRouter(prefix="/projects", tags=["projects"])
 
@@ -28,6 +47,7 @@ class ProjectCreate(BaseModel):
 
 class ProjectResponse(BaseModel):
     id: str
+    slug: Optional[str]
     title: str
     title_en: Optional[str]
     description: Optional[str]
@@ -100,9 +120,13 @@ def create_project(
             detail={"code": "PROJECT_LIMIT_EXCEEDED", "limit": current_user.project_limit}
         )
     
+    slug_base = project.title_en or project.title or str(uuid.uuid4())[:8]
+    slug = generate_unique_slug(db, slug_base)
+
     db_project = models.Project(
         id=str(uuid.uuid4()),
         user_id=current_user.id,
+        slug=slug,
         title=project.title,
         title_en=project.title_en,
         description=project.description,
@@ -117,7 +141,7 @@ def create_project(
     db.refresh(db_project)
     return db_project
 
-# GET /projects/{project_id}
+# GET /projects/{project_id_or_slug}
 @router.get("/{project_id}", response_model=ProjectResponse)
 def get_project(
     project_id: str,
@@ -125,9 +149,9 @@ def get_project(
     current_user: models.User = Depends(get_current_user)
 ):
     project = db.query(models.Project).filter(
-        models.Project.id == project_id,
         models.Project.user_id == current_user.id,
-        models.Project.deleted_at == None
+        models.Project.deleted_at == None,
+        (models.Project.id == project_id) | (models.Project.slug == project_id)
     ).first()
     if not project:
         raise HTTPException(status_code=404, detail="PROJECT_NOT_FOUND")
