@@ -18,6 +18,7 @@ class User(Base):
     project_limit = Column(Integer, default=3)
     username = Column(String, unique=True, nullable=True, index=True)
     is_admin = Column(Boolean, default=False, nullable=False, server_default='false')
+    tier = Column(String, default='open_beta', nullable=False, server_default='open_beta')
     created_at = Column(DateTime, default=datetime.utcnow)
 
 class ProjectStatus(enum.Enum):

@@ -74,6 +74,7 @@ def register(body: UserRegister, db: Session = Depends(get_db)):
         verify_token=verify_token,
         verify_token_expires_at=datetime.utcnow() + timedelta(hours=24),
         photo_limit=1000,
+        tier='open_beta',
     )
     db.add(user)
     db.commit()
@@ -121,6 +122,7 @@ def get_me(
         "email": current_user.email,
         "username": current_user.username,
         "is_admin": current_user.is_admin,
+        "tier": current_user.tier,
         "project_count": project_count,
         "project_limit": current_user.project_limit,
         "photo_count": total_photo_count,

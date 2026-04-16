@@ -46,6 +46,12 @@ export default function Settings() {
   const [usernameStatus, setUsernameStatus] = useState<'idle' | 'checking' | 'available' | 'taken' | 'invalid'>('idle')
   const [usernameSaved, setUsernameSaved] = useState(false)
 
+  const [tier, setTier] = useState('')
+  const [projectCount, setProjectCount] = useState(0)
+  const [projectLimit, setProjectLimit] = useState(0)
+  const [photoCount, setPhotoCount] = useState(0)
+  const [photoLimit, setPhotoLimit] = useState(0)
+
   const [withdrawing, setWithdrawing] = useState(false)
   const [withdrawPassword, setWithdrawPassword] = useState('')
   const [withdrawError, setWithdrawError] = useState('')
@@ -104,6 +110,11 @@ export default function Settings() {
       }).then(res => {
         setUsername(res.data.username || '')
         setEmail(res.data.email || '')
+        setTier(res.data.tier || '')
+        setProjectCount(res.data.project_count ?? 0)
+        setProjectLimit(res.data.project_limit ?? 0)
+        setPhotoCount(res.data.photo_count ?? 0)
+        setPhotoLimit(res.data.photo_limit ?? 0)
       })
     })
   }, [])
@@ -198,18 +209,51 @@ export default function Settings() {
         {t('settings.title')}
       </Heading>
 
-      {/* 사용자 정보(이메일) 출력 추가 */}
-      <div className="mb-5 flex items-center gap-3 p-3 bg-stone-50 rounded-lg border border-stone-200 shadow-sm">
-        <div className="bg-white p-2 rounded-full shadow-inner">
-          <UserCircleIcon className="w-8 h-8 text-stone-400" />
+      {/* 사용자 정보 */}
+      <div className="mb-5 p-4 bg-stone-50 rounded-lg border border-stone-200 shadow-sm">
+        <div className="flex items-center gap-3 mb-3">
+          <div className="bg-white p-2 rounded-full shadow-inner">
+            <UserCircleIcon className="w-8 h-8 text-stone-400" />
+          </div>
+          <div>
+            <p className="text-xs text-stone-500 font-bold uppercase tracking-widest mb-0.5">
+              {t('settings.currentUser')}
+            </p>
+            <p className="text-base text-stone-900 font-semibold tracking-tight">
+              {email || 'Loading...'}
+            </p>
+          </div>
+          {tier && (
+            <span className="ml-auto text-xs font-semibold px-2.5 py-1 rounded-full bg-stone-800 text-white tracking-wide">
+              {t(`settings.tier.${tier}`, tier)}
+            </span>
+          )}
         </div>
-        <div>
-          <p className="text-xs text-stone-500 font-bold uppercase tracking-widest mb-0.5">
-            {t('settings.currentUser') || 'Logged in as'}
-          </p>
-          <p className="text-lg text-stone-900 font-semibold tracking-tight">
-            {email || 'Loading...'}
-          </p>
+        <div className="grid grid-cols-2 gap-2">
+          <div className="bg-white rounded-md p-3 border border-stone-100">
+            <p className="text-xs text-stone-400 mb-1">{t('settings.usage.projects')}</p>
+            <p className="text-sm font-semibold text-stone-800">
+              {projectCount} / {projectLimit}
+            </p>
+            <div className="mt-1.5 h-1 bg-stone-100 rounded-full overflow-hidden">
+              <div
+                className="h-full bg-stone-600 rounded-full"
+                style={{ width: `${projectLimit > 0 ? Math.min((projectCount / projectLimit) * 100, 100) : 0}%` }}
+              />
+            </div>
+          </div>
+          <div className="bg-white rounded-md p-3 border border-stone-100">
+            <p className="text-xs text-stone-400 mb-1">{t('settings.usage.photos')}</p>
+            <p className="text-sm font-semibold text-stone-800">
+              {photoCount} / {photoLimit}
+            </p>
+            <div className="mt-1.5 h-1 bg-stone-100 rounded-full overflow-hidden">
+              <div
+                className="h-full bg-stone-600 rounded-full"
+                style={{ width: `${photoLimit > 0 ? Math.min((photoCount / photoLimit) * 100, 100) : 0}%` }}
+              />
+            </div>
+          </div>
         </div>
       </div>
 

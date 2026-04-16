@@ -344,7 +344,16 @@
     "withdrawWrongPassword": "비밀번호가 틀렸습니다.",
     "withdrawFailed": "탈퇴 처리 중 오류가 발생했습니다.",
     "withdrawConfirm": "탈퇴 확인",
-    "withdrawing": "탈퇴 중..."
+    "withdrawing": "탈퇴 중...",
+    "tier": {
+      "open_beta": "오픈 베타",
+      "pro": "Pro",
+      "free": "Free"
+    },
+    "usage": {
+      "projects": "프로젝트 사용량",
+      "photos": "사진 사용량"
+    }
   },
   "trash": {
     "title": "프로젝트 휴지통",
@@ -392,7 +401,7 @@
     "ctaSecondary": "주요 기능 살펴보기",
     "betaBadge": "오픈 베타 준비 중",
     "featuresEyebrow": "주요 기능",
-    "featuresTitle": "당신만의 이야기를 위한 모든 것", 
+    "featuresTitle": "당신만의 이야기를 위한 모든 것",
     "feature1Title": "챕터로 스토리 구성하기",
     "feature1Desc": "멈춰진 한 순간이 아닌, 흘러가는 시간의 의미를 발견하세요. 프레임을 이어 담은 당신만의 스토리가 펼쳐집니다.",
     "feature2Title": "손쉬운 사진 분류 & 선별",
