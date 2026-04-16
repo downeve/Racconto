@@ -1,4 +1,4 @@
-const { app, BrowserWindow, ipcMain, dialog, net } = require('electron')
+const { app, BrowserWindow, ipcMain, dialog, net, nativeImage } = require('electron')
 const path = require('path')
 const chokidar = require('chokidar')
 const fs = require('fs')
@@ -107,10 +107,22 @@ async function uploadFile(item) {
 
   const { uploadURL } = await urlRes.json()
 
-  // 2. CF에 직접 업로드
+  // 2. 장변 2400px 리사이즈 후 CF에 직접 업로드
+  const MAX_SIZE = 2400
+  const img = nativeImage.createFromPath(item.filePath)
+  const { width, height } = img.getSize()
+  let imageBuffer
+  if (Math.max(width, height) > MAX_SIZE) {
+    const isLandscape = width >= height
+    const newW = isLandscape ? MAX_SIZE : Math.round(width * MAX_SIZE / height)
+    const newH = isLandscape ? Math.round(height * MAX_SIZE / width) : MAX_SIZE
+    imageBuffer = img.resize({ width: newW, height: newH }).toJPEG(88)
+  } else {
+    imageBuffer = fs.readFileSync(item.filePath)
+  }
+
   const { Blob } = require('buffer')
-  const fileBuffer = fs.readFileSync(item.filePath)
-  const blob = new Blob([fileBuffer])
+  const blob = new Blob([imageBuffer])
   const form = new globalThis.FormData()
   form.append('file', blob, path.basename(item.filePath))
 
