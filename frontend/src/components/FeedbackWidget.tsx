@@ -41,7 +41,10 @@ export default function FeedbackWidget() {
     setStatus('loading');
 
     const isElectron = !!window.racconto;
-    const appVersion = isElectron ? (window.racconto?.version || 'Unknown') : __APP_VERSION__ || 'web';
+    const appVersion = isElectron 
+    ? (window.racconto?.version || 'Unknown') 
+    : (typeof __APP_VERSION__ !== 'undefined' ? __APP_VERSION__ : 'web-dev');
+    
     const userAgent = window.navigator.userAgent;
 
     // userAgent에서 OS 파싱
@@ -61,27 +64,42 @@ export default function FeedbackWidget() {
       return 'Unknown'
     }
 
-    const platform = isElectron ? `Electron (${getOS()})` : `Web / ${getBrowser()} (${getOS()})`
-
+    // OS/Browser 판별 로직은 그대로 사용하되, 가독성을 위해 Embed 구조로 변경
+    const discordPayload = {
+      embeds: [{
+        title: "🚨 새로운 베타 피드백",
+        description: feedback,
+        color: 0x2b2d31, // 어두운 회색
+        fields: [
+          { name: "플랫폼", value: isElectron ? `Electron` : `Web`, inline: true },
+          { name: "App Version", value: `v${appVersion}`, inline: true },
+          { name: "OS/Browser", value: `${getOS()} / ${getBrowser()}`, inline: true },
+          { name: "User Agent", value: `\`\`\`${userAgent.substring(0, 150)}\`\`\`` }
+        ],
+        timestamp: new Date().toISOString()
+      }]
+    };
+    
     try {
-      await fetch(DISCORD_WEBHOOK_URL, {
+      const response = await fetch(DISCORD_WEBHOOK_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          content: `🚨 **새로운 베타 피드백**\n**내용:** ${feedback}\n\n---\n**💻 기기 정보**\n- **플랫폼:** ${platform}\n- **App Version:** v${appVersion}\n- **User Agent:** \`${userAgent.substring(0, 150)}\``,
-        }),
+        body: JSON.stringify(discordPayload),
       });
+
+      if (!response.ok) throw new Error('Network response was not ok');
+      
       setStatus('success');
-      setTimeout(() => {
-        setIsOpen(false);
-        setFeedback('');
-        setStatus('idle');
-      }, 2000);
-    } catch (error) {
-      console.error(error);
-      setStatus('error');
-    }
-  };
+        setTimeout(() => {
+          setIsOpen(false);
+          setFeedback('');
+          setStatus('idle');
+        }, 2000);
+      } catch (error) {
+        console.error("Feedback submission failed:", error);
+        setStatus('error');
+      }
+    };
 
   return (
     <>

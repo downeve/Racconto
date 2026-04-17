@@ -583,6 +583,23 @@ export default function ProjectDetail({
 
   useEffect(() => { if (numericId) fetchChapterPhotoIds() }, [numericId])
 
+  const numericIdRef = useRef(numericId)
+  useEffect(() => { numericIdRef.current = numericId }, [numericId])
+
+  useEffect(() => {
+    const handler = async () => {
+      if (!numericIdRef.current) return
+      const res = await axios.get(`${API}/photos/?project_id=${numericIdRef.current}`)
+      setPhotos(res.data)
+    }
+    window.addEventListener('racconto:uploadDone', handler)
+    window.addEventListener('racconto:limitExceeded', handler)
+    return () => {
+      window.removeEventListener('racconto:uploadDone', handler)
+      window.removeEventListener('racconto:limitExceeded', handler)
+    }
+  }, []) // ← dependency 빈 배열로 변경
+
   useEffect(() => {
     if (!window.racconto) return
     window.racconto.onDeletedFile((filePath: string) => {

@@ -25,12 +25,14 @@ export default function UploadToast() {
 
     window.racconto.onUploadDone((data: { total: number; success: number; failed: number }) => {
       setProgress({ done: data.total, total: data.total, failed: data.failed, finished: true })
+      window.dispatchEvent(new CustomEvent('racconto:uploadDone'))
       timerRef.current = setTimeout(() => setProgress(null), 3000)
     })
 
     window.racconto.onLimitExceeded((data: { success: number }) => {
       if (timerRef.current) clearTimeout(timerRef.current)
       setProgress({ done: 0, total: 0, failed: 0, finished: true, limitExceeded: true, limitSuccessCount: data?.success ?? 0 })
+      window.dispatchEvent(new CustomEvent('racconto:limitExceeded'))
     })
   }, [])
 
