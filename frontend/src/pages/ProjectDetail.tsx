@@ -783,13 +783,13 @@ export default function ProjectDetail({
   const handleRemoveCover = async () => {
     if (!project) return
     const statusValue = typeof project.status === 'object' ? (project.status as { value: string }).value : project.status
-    await axios.put(`${API}/projects/${id}`, {
+    await axios.put(`${API}/projects/${numericId}`, {
       title: project.title, title_en: project.title_en,
       description: project.description, description_en: project.description_en,
       location: project.location, is_public: project.is_public,
       status: statusValue, cover_image_url: null
     })
-    const res = await axios.get(`${API}/projects/${id}`)
+    const res = await axios.get(`${API}/projects/${numericId}`)
     setProject(res.data)
     triggerRefresh()
   }
@@ -820,7 +820,7 @@ export default function ProjectDetail({
       // 화면은 이미 바뀌었으므로, 사진 수 등 부수적인 데이터만 조용히 최신화합니다.
       // 여러 API를 순서대로 기다리지 않고 Promise.all로 한 번에 병렬 처리합니다.
       Promise.all([
-        axios.get(`${API}/projects/${id}`).then(res => setProject(res.data)),
+        axios.get(`${API}/projects/${numericId}`).then(res => setProject(res.data)),
         fetchChapterPhotoIds(),
         fetchPhotoNoteIds()
       ]);
@@ -892,15 +892,18 @@ export default function ProjectDetail({
       onConfirm: async () => {
         setConfirmModal(null)
         setDeletingMissing(true)
-        await axios.delete(`${API}/photos/bulk-delete`, {
-          data: { photo_ids: missingPhotos.map(p => p.id) }
-        })
-        await fetchPhotos()
-        await fetchTrash()
-        await fetchChapterPhotoIds()
-        await fetchPhotoNoteIds()
-        await axios.get(`${API}/projects/${id}`).then(res => setProject(res.data))
-        setDeletingMissing(false)
+        try {
+          await axios.delete(`${API}/photos/bulk-delete`, {
+            data: { photo_ids: missingPhotos.map(p => p.id) }
+          })
+          await fetchPhotos()
+          await fetchTrash()
+          await fetchChapterPhotoIds()
+          await fetchPhotoNoteIds()
+          await axios.get(`${API}/projects/${numericId}`).then(res => setProject(res.data))
+        } finally {
+          setDeletingMissing(false)
+        }
       },
     })
   }
@@ -946,7 +949,7 @@ export default function ProjectDetail({
         await fetchTrash()
         await fetchChapterPhotoIds()
         await fetchPhotoNoteIds()
-        await axios.get(`${API}/projects/${id}`).then(res => setProject(res.data))
+        await axios.get(`${API}/projects/${numericId}`).then(res => setProject(res.data))
       },
     })
   }
@@ -1009,11 +1012,27 @@ export default function ProjectDetail({
         {/* 업로드 버튼 */}
         <div className="mb-3 flex gap-2">
           <label className={`flex-1 cursor-pointer bg-black text-white px-1.5 py-1.5 text-xs tracking-wider hover:bg-gray-800 inline-flex items-center justify-center gap-1 rounded ${uploading ? 'opacity-60 cursor-not-allowed' : ''}`}>
-            {uploading ? t('photo.uploading') : t('photo.uploadPhotos')}
+            {uploading ? (
+              <>
+                <svg className="animate-spin w-3 h-3 shrink-0" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/>
+                </svg>
+                {t('photo.uploading')}
+              </>
+            ) : t('photo.uploadPhotos')}
             <input type="file" accept="image/jpeg, image/png, image/webp" multiple className="hidden" onChange={handleUpload} disabled={uploading} />
           </label>
           <label className={`flex-1 cursor-pointer bg-gray-700 text-white px-1.5 py-1.5 text-xs tracking-wider hover:bg-gray-600 inline-flex items-center justify-center gap-1 rounded ${uploading ? 'opacity-60 cursor-not-allowed' : ''}`}>
-            {uploading ? t('photo.uploading') : t('photo.uploadFolder')}
+            {uploading ? (
+              <>
+                <svg className="animate-spin w-3 h-3 shrink-0" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/>
+                </svg>
+                {t('photo.uploading')}
+              </>
+            ) : t('photo.uploadFolder')}
             <input type="file" accept="image/jpeg, image/png, image/webp" multiple className="hidden" onChange={handleUpload} disabled={uploading} {...{ webkitdirectory: '' } as any} />
           </label>
         </div>
@@ -1529,7 +1548,7 @@ export default function ProjectDetail({
                   ))}
                 </div>
 
-                {filteredPhotos.length === 0 && !uploading && (
+                {filteredPhotos.length === 0 && (
                   <div className="text-center py-20 text-gray-400">
                     {photos.length === 0
                       ? <><p className="text-lg mb-2">{t('photo.noPhotos')}</p></>
