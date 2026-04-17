@@ -468,7 +468,7 @@ export default function ProjectDetail({
 
   const isElectron = !!window.racconto
 
-  const [photoSubTab, setPhotoSubTab] = useState<'all' | 'trash'>('all')
+  const [photoSubTab, setPhotoSubTab] = useState<'all' | 'folder' | 'trash'>('all')
   const [trashedPhotos, setTrashedPhotos] = useState<Photo[]>([])
   
   const [filterRating, setFilterRating] = useState<number | null>(null)
@@ -595,7 +595,13 @@ export default function ProjectDetail({
 
   // Electron일 때 사이드바 탭과 동기화
   useEffect(() => {
-    if (isElectron && electronTab) setActiveTab(electronTab)
+    if (isElectron && electronTab) {
+      setActiveTab(electronTab)
+      if (electronTab === 'photos') {
+        setPhotoSubTab('all')
+        setFilterFolder(null)
+      }
+    }
   }, [electronTab])
 
   const resizeImage = (file: File): Promise<Blob> => {
@@ -1017,17 +1023,20 @@ export default function ProjectDetail({
           <p className="text-xs font-semibold text-gray-500 mb-2">{t('photo.library')}</p>
           <div className="flex flex-col gap-1">
             {/* 전체 사진 */}
-            <button onClick={() => setPhotoSubTab('all')}
+            <button onClick={() => { setPhotoSubTab('all'); setFilterFolder(null); }}
               className={`w-full text-left px-2 py-1.5 text-xs rounded flex items-center justify-between ${photoSubTab === 'all' ? 'bg-black text-white' : 'hover:bg-gray-50 text-gray-700'}`}>
               <span>{t('photo.allPhotos')}</span>
               <span className={photoSubTab === 'all' ? 'text-gray-300' : 'text-gray-400'}>{photos.filter(p => !p.deleted_at).length}</span>
             </button>
-              {/* 폴더 리스트 */}
+              {/* 서브 폴더 리스트 */}
               {photos.some(p => p.folder) && (
-              <div className="mt-3 mb-3">
+              <div>
                   {[...new Set(photos.filter(p => p.folder).map(p => p.folder))].map(folder => (
                   <div key={folder} className={`flex items-center rounded ${filterFolder === folder ? 'bg-black text-white' : 'hover:bg-gray-50'}`}>
-                    <button onClick={() => setFilterFolder(filterFolder === folder ? null : folder!)}
+                    <button onClick={() => {
+                      setFilterFolder(filterFolder === folder ? null : folder!);
+                      setPhotoSubTab(filterFolder === folder ? 'all' : 'folder');
+                    }}
                       className="flex-1 text-left px-2 py-1 text-xs flex items-center justify-between min-w-0">
                       <span className="flex items-center gap-1 min-w-0"><span className="shrink-0">📁</span><span className="truncate">{folder}</span></span>
                       <span className={`shrink-0 ml-2 ${filterFolder === folder ? 'text-gray-300' : 'text-gray-400'}`}>{photos.filter(p => p.folder === folder && !p.deleted_at).length}</span>
@@ -1095,35 +1104,10 @@ export default function ProjectDetail({
 
         {/* 노트 필터 */}
         <button onClick={() => setFilterHasNote(!filterHasNote)}
-          className={`w-full text-left px-2 py-1.5 text-xs rounded flex items-center justify-between ${filterHasNote ? 'bg-black text-white' : 'hover:bg-gray-50 text-gray-700'}`}>
+          className={`w-full text-left px-2 py-3 text-xs rounded flex items-center justify-between ${filterHasNote ? 'bg-black text-white' : 'hover:bg-gray-50 text-gray-700'}`}>
           <span>📝 {t('photo.hasNote')}</span>
           <span className={filterHasNote ? 'text-gray-300' : 'text-gray-400'}>{photos.filter(p => !p.deleted_at && photoNoteIds.has(p.id)).length}</span>
         </button>
-
-        {/* 폴더 필터 */}
-        {photos.some(p => p.folder) && (
-          <div className="mt-3 mb-3">
-            <p className="text-xs font-semibold text-gray-500 mb-2">{t('filter.folder')}</p>
-            <button onClick={() => setFilterFolder(null)}
-              className={`w-full text-left px-2 py-1 text-xs rounded flex items-center justify-between mb-1 ${filterFolder === null ? 'bg-black text-white' : 'hover:bg-gray-50'}`}>
-              <span>{t('filter.allFolders')}</span><span className="text-gray-400">{photos.length}</span>
-            </button>
-            {[...new Set(photos.filter(p => p.folder).map(p => p.folder))].map(folder => (
-              <div key={folder} className={`flex items-center rounded ${filterFolder === folder ? 'bg-black text-white' : 'hover:bg-gray-50'}`}>
-                <button onClick={() => setFilterFolder(filterFolder === folder ? null : folder!)}
-                  className="flex-1 text-left px-2 py-1 text-xs flex items-center justify-between min-w-0">
-                  <span className="flex items-center gap-1 min-w-0"><span className="shrink-0">📁</span><span className="truncate">{folder}</span></span>
-                  <span className={`shrink-0 ml-2 ${filterFolder === folder ? 'text-gray-300' : 'text-gray-400'}`}>{photos.filter(p => p.folder === folder && !p.deleted_at).length}</span>
-                </button>
-                <button
-                  onClick={() => handleDeleteFolder(folder!)}
-                  className={`shrink-0 px-1.5 py-1 text-xs ${filterFolder === folder ? 'text-gray-400 hover:text-white' : 'text-gray-300 hover:text-red-500'}`}
-                  title={t('photo.trash')}
-                >🗑</button>
-              </div>
-            ))}
-          </div>
-        )}
 
         {/* 별점 필터 */}
         <div className="mb-4">
@@ -1145,8 +1129,8 @@ export default function ProjectDetail({
           </button>
         </div>
 
-        {/* 컬러 필터 */}
-        <div className="mb-4">
+        {/* 컬러 레이블 필터 */}
+        <div className="mb-2">
           <div className="flex items-center justify-between mb-2">
             <p className="text-xs font-semibold text-gray-500">{t('filter.colors')}</p>
             <button onClick={handleClearColorLabels} className="text-xs text-gray-400 hover:text-red-500">{t('common.reset')}</button>
@@ -1271,7 +1255,8 @@ export default function ProjectDetail({
       <div className={`flex border-b mb-6 sticky top-14 z-30 bg-[#F7F4F0] ${isElectron ? 'hidden' : ''}`}>
         <button onClick={() => { 
             setActiveTab('photos'); 
-            setPhotoSubTab('all'); 
+            setPhotoSubTab('all');
+            setFilterFolder(null);
             fetchPhotos(); 
             fetchChapterPhotoIds() 
           }}
@@ -1340,8 +1325,9 @@ export default function ProjectDetail({
                 <div className="mb-2">
                   <p className="text-xs font-semibold text-gray-500 mb-2">{t('photo.library')}</p>
                   <div className="flex flex-col gap-1">
+                    {/* 전체 사진 */}
                     <button 
-                      onClick={() => setPhotoSubTab('all')}
+                      onClick={() => { setPhotoSubTab('all'); setFilterFolder(null); }}
                       className={`w-full text-left px-2 py-1.5 text-xs rounded flex items-center justify-between ${photoSubTab === 'all' ? 'bg-black text-white' : 'hover:bg-gray-50 text-gray-700'}`}
                     >
                       <span>{t('photo.allPhotos')}</span>
@@ -1349,6 +1335,29 @@ export default function ProjectDetail({
                         {photos.filter(p => !p.deleted_at).length}
                       </span>
                     </button>
+                    {/* 서브 폴더 리스트 */}
+                    {photos.some(p => p.folder) && (
+                    <div>
+                        {[...new Set(photos.filter(p => p.folder).map(p => p.folder))].map(folder => (
+                        <div key={folder} className={`flex items-center rounded ${filterFolder === folder ? 'bg-black text-white' : 'hover:bg-gray-50'}`}>
+                          <button onClick={() => {
+                            setFilterFolder(filterFolder === folder ? null : folder!);
+                            setPhotoSubTab(filterFolder === folder ? 'all' : 'folder');
+                          }}
+                            className="flex-1 text-left px-2 py-1 text-xs flex items-center justify-between min-w-0">
+                            <span className="flex items-center gap-1 min-w-0"><span className="shrink-0">📁</span><span className="truncate">{folder}</span></span>
+                            <span className={`shrink-0 ml-2 ${filterFolder === folder ? 'text-gray-300' : 'text-gray-400'}`}>{photos.filter(p => p.folder === folder && !p.deleted_at).length}</span>
+                          </button>
+                          <button
+                            onClick={() => handleDeleteFolder(folder!)}
+                            className={`shrink-0 px-1.5 py-1 text-xs ${filterFolder === folder ? 'text-gray-400 hover:text-white' : 'text-gray-300 hover:text-red-500'}`}
+                            title={t('photo.trash')}
+                          >🗑</button>
+                        </div>
+                      ))}
+                    </div>
+                    )}
+                    {/* 지운 사진 */}
                     <button 
                       onClick={() => { setPhotoSubTab('trash'); fetchTrash(); }}
                       className={`w-full text-left px-2 py-1.5 text-xs rounded flex items-center justify-between ${photoSubTab === 'trash' ? 'bg-red-600 text-white font-medium shadow-md' : 'hover:bg-red-50 text-gray-700'}`}
@@ -1422,7 +1431,7 @@ export default function ProjectDetail({
                 {/* 노트 필터 */}
                 <button
                   onClick={() => setFilterHasNote(!filterHasNote)}
-                  className={`w-full text-left px-2 py-1.5 text-xs rounded flex items-center justify-between ${
+                  className={`w-full text-left px-2 py-3 text-xs rounded flex items-center justify-between ${
                     filterHasNote ? 'bg-black text-white' : 'hover:bg-gray-50 text-gray-700'
                   }`}
                 >
@@ -1432,38 +1441,7 @@ export default function ProjectDetail({
                   </span>
                 </button>
 
-                {/* 폴더 필터 */}
-                {photos.some(p => p.folder) && (
-                  <div className="mt-3 mb-3">
-                    <p className="text-xs font-semibold text-gray-500 mb-2">{t('filter.folder')}</p>
-                    <button onClick={() => setFilterFolder(null)}
-                      className={`w-full text-left px-2 py-1 text-xs rounded flex items-center justify-between mb-1 ${filterFolder === null ? 'bg-black text-white' : 'hover:bg-gray-50'}`}>
-                      <span>{t('filter.allFolders')}</span><span className="text-gray-400">{photos.length}</span>
-                    </button>
-                      {[...new Set(photos.filter(p => p.folder).map(p => p.folder))].map(folder => {
-                      const count = photos.filter(p => p.folder === folder && !p.deleted_at).length
-                      return (
-                        <div key={folder} className={`flex items-center rounded ${filterFolder === folder ? 'bg-black text-white' : 'hover:bg-gray-50'}`}>
-                          <button onClick={() => setFilterFolder(filterFolder === folder ? null : folder!)}
-                            title={folder!}
-                            className="flex-1 text-left px-2 py-1 text-xs flex items-center justify-between min-w-0">
-                            <span className="flex items-center gap-1 min-w-0">
-                              <span className="shrink-0">📁</span>
-                              <span className="truncate">{folder}</span>
-                            </span>
-                            <span className={`shrink-0 ml-2 ${filterFolder === folder ? 'text-gray-300' : 'text-gray-400'}`}>{count}</span>
-                          </button>
-                          <button
-                            onClick={() => handleDeleteFolder(folder!)}
-                            className={`shrink-0 px-1.5 py-1 text-xs ${filterFolder === folder ? 'text-gray-400 hover:text-white' : 'text-gray-300 hover:text-red-500'}`}
-                            title={t('photo.trash')}
-                          >🗑</button>
-                        </div>
-                      )
-                    })}
-                  </div>
-                )}
-
+                {/* 별점 필터 */}
                 <div className="mb-4">
                   <div className="flex items-center justify-between mb-2">
                     <p className="text-xs font-semibold text-gray-500">{t('filter.rating')}</p>
@@ -1486,7 +1464,8 @@ export default function ProjectDetail({
                   </button>
                 </div>
 
-                <div className="mb-4">
+                {/* 컬러 레이블 필터 */}
+                <div className="mb-2">
                   <div className="flex items-center justify-between mb-2">
                     <p className="text-xs font-semibold text-gray-500">{t('filter.colors')}</p>
                     <button onClick={handleClearColorLabels} className="text-xs text-gray-400 hover:text-red-500">{t('common.reset')}</button>
@@ -1511,7 +1490,7 @@ export default function ProjectDetail({
           <div className="flex-1 min-w-0">
             
             {/* 전체 사진 뷰 */}
-            {photoSubTab === 'all' && (
+            {(photoSubTab === 'all' || photoSubTab === 'folder')&& (
               <div>
                   {/* local_missing 일괄 삭제 버튼 — Electron 앱 + missing 사진 있을 때만 표시 */}
                   {/* ✅ photos.some 대신 missingCount > 0 으로 수정 */}
