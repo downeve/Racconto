@@ -2,7 +2,7 @@ const { app, BrowserWindow, ipcMain, dialog, net, nativeImage } = require('elect
 const path = require('path')
 const chokidar = require('chokidar')
 const fs = require('fs')
-const { addToQueue, getPendingItems, markSuccess, markFailed, resetFailedToPending, clearPending, initQueue } = require('./queue')
+const { addToQueue, getPendingItems, markSuccess, markFailed, resetFailedToPending, clearPending, clearQueueForFolder, initQueue } = require('./queue')
 const { linkFolder, unlinkFolder, getProjectForFolder, getMappingsForUser, getAllMappings } = require('./folderMap')
 const exifr = require('exifr')
 
@@ -67,6 +67,8 @@ ipcMain.handle('folderMap:link', (event, { folderPath, projectId, projectName })
 ipcMain.handle('folderMap:unlink', (event, folderPath) => {
   unlinkFolder(folderPath)
   stopWatcherForPath(folderPath)
+  clearQueueForFolder(folderPath)
+  console.log('폴더 연결 해제 → 큐 항목 제거:', folderPath)
   return { success: true }
 })
 
@@ -189,7 +191,10 @@ async function uploadFile(item) {
       ...exifData,
     }),
   })
-  if (!metaRes.ok) throw new Error('메타데이터 저장 실패')
+  if (!metaRes.ok) {
+    const errBody = await metaRes.text().catch(() => '')
+    throw new Error(`메타데이터 저장 실패 (${metaRes.status}): ${errBody}`)
+  }
 
   return await metaRes.json()
 }
@@ -270,7 +275,25 @@ async function processQueue() {
   }
   isProcessing = true
   resetFailedToPending()
-  const pending = getPendingItems()
+  let pending = getPendingItems()
+  if (pending.length === 0) {
+    isProcessing = false
+    return
+  }
+
+  // 현재 유저의 매핑된 폴더에 속하지 않는 항목 제거
+  if (currentUserId) {
+    const mappedFolders = Object.keys(getMappingsForUser(currentUserId))
+    const orphaned = pending.filter(item =>
+      !mappedFolders.some(folder => item.filePath.startsWith(folder + path.sep) || item.filePath === folder)
+    )
+    if (orphaned.length > 0) {
+      orphaned.forEach(item => markSuccess(item.id)) // 큐에서 조용히 제거
+      pending = pending.filter(item => !orphaned.includes(item))
+      console.log(`매핑 해제된 폴더 항목 ${orphaned.length}개 제거`)
+    }
+  }
+
   if (pending.length === 0) {
     isProcessing = false
     return

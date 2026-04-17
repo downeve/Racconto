@@ -78,6 +78,12 @@ function clearPending() {
   persistQueue()
 }
 
+function clearQueueForFolder(folderPath) {
+  if (!memoryQueue) initQueue()
+  memoryQueue = memoryQueue.filter(item => !item.filePath.startsWith(folderPath + require('path').sep) && item.filePath !== folderPath)
+  persistQueue()
+}
+
 module.exports = {
   initQueue,
   addToQueue,
@@ -86,4 +92,5 @@ module.exports = {
   markFailed,
   resetFailedToPending,
   clearPending,
+  clearQueueForFolder,
 }
