@@ -37,21 +37,38 @@ export default function FeedbackWidget() {
       setStatus('error');
       return;
     }
-
     if (!feedback.trim()) return;
     setStatus('loading');
 
-    // 1. OS 정보 가져오기
-    const osInfo = window.navigator.platform; // Win32, MacIntel 등
+    const isElectron = !!window.racconto;
+    const appVersion = isElectron ? (window.racconto?.version || 'Unknown') : __APP_VERSION__ || 'web';
     const userAgent = window.navigator.userAgent;
-    const appVersion = window.racconto?.version || 'Unknown';
+
+    // userAgent에서 OS 파싱
+    const getOS = () => {
+      if (userAgent.includes('Win')) return 'Windows'
+      if (userAgent.includes('Mac')) return 'macOS'
+      if (userAgent.includes('Linux')) return 'Linux'
+      return 'Unknown'
+    }
+
+    // userAgent에서 브라우저 파싱
+    const getBrowser = () => {
+      if (userAgent.includes('Chrome')) return 'Chrome'
+      if (userAgent.includes('Safari')) return 'Safari'
+      if (userAgent.includes('Firefox')) return 'Firefox'
+      if (userAgent.includes('Edg')) return 'Edge'
+      return 'Unknown'
+    }
+
+    const platform = isElectron ? `Electron (${getOS()})` : `Web / ${getBrowser()} (${getOS()})`
 
     try {
       await fetch(DISCORD_WEBHOOK_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          content: `🚨 **새로운 베타 피드백**\n**내용:** ${feedback}\n\n---\n**💻 기기 정보**\n- **OS:** ${osInfo}\n- **App Version:** v${appVersion}\n- **User Agent:** \`${userAgent.substring(0, 100)}...\`\n`,
+          content: `🚨 **새로운 베타 피드백**\n**내용:** ${feedback}\n\n---\n**💻 기기 정보**\n- **플랫폼:** ${platform}\n- **App Version:** v${appVersion}\n- **User Agent:** \`${userAgent.substring(0, 150)}\``,
         }),
       });
       setStatus('success');
