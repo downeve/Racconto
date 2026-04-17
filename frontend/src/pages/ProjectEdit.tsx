@@ -26,7 +26,7 @@ export default function ProjectEdit() {
     if (!id) return
     axios.get(`${API}/projects/${id}`).then(res => {
       const p = res.data
-      setNumericId(p.id)
+      setNumericId(String(p.id))  // numericId 세팅
       setTitle(p.title || '')
       setTitleEn(p.title_en || '')
       setDescription(p.description || '')
@@ -36,6 +36,7 @@ export default function ProjectEdit() {
       setIsPublic(p.is_public || 'false')
     })
   }, [id])
+
 
   const handleSubmit = async () => {
     if (!title || !numericId) return
