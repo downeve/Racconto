@@ -305,10 +305,31 @@ async function processQueue() {
   }
 
   // 실제 업로드할 항목만 추려서 전체 수 계산
-  const uploadItems = pending.filter(item => {
+  let uploadItems = pending.filter(item => {
     const key = `${item.projectId}::${path.basename(item.filePath)}`
     return !existingFiles.has(key)
   })
+
+  // 사진 한도 사전 체크: 남은 슬롯만큼만 업로드 시도
+  try {
+    const meRes = await fetchWithAuth(`${API_BASE}/auth/me`)
+    if (meRes.ok) {
+      const me = await meRes.json()
+      const remaining = me.photo_limit - me.photo_count
+      if (remaining <= 0) {
+        mainWindow?.webContents.send('upload:limitExceeded', { success: 0 })
+        console.log('사진 한도 초과 → 업로드 취소')
+        isProcessing = false
+        return
+      }
+      if (uploadItems.length > remaining) {
+        console.log(`사진 한도로 업로드 ${uploadItems.length}개 → ${remaining}개로 제한`)
+        uploadItems = uploadItems.slice(0, remaining)
+      }
+    }
+  } catch (e) {
+    console.error('사진 한도 조회 실패 (업로드 계속):', e.message)
+  }
 
   // 중복 항목 즉시 스킵 처리
   for (const item of pending) {
