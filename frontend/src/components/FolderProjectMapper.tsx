@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
 import axios from 'axios'
 import { FolderOpenIcon, XMarkIcon, LinkIcon } from '@heroicons/react/24/outline'
+import ConfirmModal from './ConfirmModal'
 
 const API = import.meta.env.VITE_API_URL
 
@@ -21,6 +22,7 @@ export default function FolderProjectMapper() {
   const [projects, setProjects] = useState<Project[]>([])
   const [selectedFolder, setSelectedFolder] = useState<string | null>(null)
   const [selectedProjectId, setSelectedProjectId] = useState<string>('')
+  const [confirmModal, setConfirmModal] = useState<{ folderPath: string; projectId: string; count: number } | null>(null)
   const { t } = useTranslation()
 
   const isElectron = !!window.racconto
@@ -64,13 +66,44 @@ export default function FolderProjectMapper() {
   }
 
   const handleUnlink = async (folderPath: string) => {
+    const mapping = mappings[folderPath]
+    const token = localStorage.getItem('token')
+    const res = await axios.get(`${API}/photos/?project_id=${mapping.projectId}`, {
+      headers: { Authorization: `Bearer ${token}` }
+    })
+    const count = res.data.filter((p: any) => p.folder === folderPath && !p.deleted_at).length
+    setConfirmModal({ folderPath, projectId: mapping.projectId, count })
+  }
+
+  const confirmUnlink = async () => {
+    if (!confirmModal) return
+    const { folderPath, projectId, count } = confirmModal
+    const token = localStorage.getItem('token')
+    if (count > 0) {
+      await axios.delete(`${API}/photos/by-folder`, {
+        params: { project_id: projectId, folder: folderPath },
+        headers: { Authorization: `Bearer ${token}` }
+      })
+    }
     await window.racconto!.unlinkFolder(folderPath)
+    setConfirmModal(null)
     loadMappings()
   }
 
   if (!isElectron) return null // 웹에서는 표시 안 함
 
   return (
+    <>
+    {confirmModal && (
+      <ConfirmModal
+        message={confirmModal.count > 0
+          ? t('electron.unlinkConfirm', { count: confirmModal.count })
+          : t('electron.unlinkConfirmNoPhotos')}
+        onConfirm={confirmUnlink}
+        onCancel={() => setConfirmModal(null)}
+        dangerous
+      />
+    )}
     <div className="bg-white rounded-lg shadow p-6 mb-6">
       <h3 className="font-semibold mb-1 flex items-center gap-2">
         <FolderOpenIcon className="w-5 h-5 text-gray-500" />
@@ -128,5 +161,6 @@ export default function FolderProjectMapper() {
         <p className="text-xs text-gray-400 mt-1.5 truncate">{selectedFolder}</p>
       )}
     </div>
+    </>
   )
 }

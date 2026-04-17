@@ -449,6 +449,8 @@
     "selectFolder": "폴더 선택",
     "selectProject": "프로젝트 선택",
     "connect": "연결",
+    "unlinkConfirm": "이 폴더 연결을 해제하면 폴더에서 올라온 사진 {{count}}개가 휴지통으로 이동됩니다.\n계속할까요?",
+    "unlinkConfirmNoPhotos": "이 폴더 연결을 해제할까요?",
     "upload": {
       "status_with_error": "{{success}}개 완료 · {{failed}}개 실패",
       "status_success": "{{total}}개 업로드 완료",

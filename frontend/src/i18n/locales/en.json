@@ -450,7 +450,9 @@
     "localFolderConnectInfo": "Added / deleted files from the connected folder will be automatically found.",
     "selectFolder": "Select Folder",
     "selectProject": "Select Project",
-    "connect": "Conect",
+    "connect": "Connect",
+    "unlinkConfirm": "Unlinking this folder will move {{count}} photo(s) uploaded from it to the trash.\nContinue?",
+    "unlinkConfirmNoPhotos": "Disconnect this folder?",
     "upload": {
       "status_with_error": "{{success}} completed · {{failed}} failed",
       "status_success": "{{total}} uploads completed",

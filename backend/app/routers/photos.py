@@ -372,6 +372,41 @@ def update_local_missing_by_filename(
     return photo
 
 
+@router.delete("/by-folder")
+def delete_photos_by_folder(
+    project_id: str,
+    folder: str,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user)
+):
+    """폴더 연결 해제 시 해당 폴더의 사진 일괄 소프트 삭제"""
+    project = db.query(models.Project).filter(
+        models.Project.id == project_id,
+        models.Project.user_id == current_user.id,
+        models.Project.deleted_at == None
+    ).first()
+    if not project:
+        raise HTTPException(status_code=404, detail="PROJECT_NOT_FOUND")
+
+    photos = db.query(models.Photo).filter(
+        models.Photo.project_id == project_id,
+        models.Photo.folder == folder,
+        models.Photo.deleted_at == None
+    ).all()
+
+    now = datetime.utcnow()
+    for photo in photos:
+        photo.deleted_at = now
+        clear_cover_if_deleted(project_id, photo.image_url, db)
+        db.query(models.Note).filter(
+            models.Note.photo_id == photo.id,
+            models.Note.deleted_at == None
+        ).update({"deleted_at": now}, synchronize_session=False)
+
+    db.commit()
+    return {"deleted": len(photos)}
+
+
 @router.delete("/bulk-delete")
 def bulk_delete_photos(
     body: BulkDeleteRequest,
