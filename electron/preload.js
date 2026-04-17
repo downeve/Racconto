@@ -22,5 +22,4 @@ contextBridge.exposeInMainWorld('racconto', {
   onAuthExpired: (callback) => ipcRenderer.on('auth:expired', () => callback()),
   onLimitExceeded: (callback) => ipcRenderer.on('upload:limitExceeded', (event, data) => callback(data)),
   onFolderUnlinked: (callback) => ipcRenderer.on('folderMap:unlinked', (event, folderPath) => callback(folderPath)),
-  moveToTrash: (filePath) => ipcRenderer.invoke('shell:moveToTrash', filePath),
 })

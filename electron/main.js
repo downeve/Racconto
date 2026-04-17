@@ -1,4 +1,4 @@
-const { app, BrowserWindow, ipcMain, dialog, net, nativeImage, shell } = require('electron')
+const { app, BrowserWindow, ipcMain, dialog, net, nativeImage } = require('electron')
 const path = require('path')
 const chokidar = require('chokidar')
 const fs = require('fs')
@@ -52,19 +52,6 @@ ipcMain.handle('auth:logout', async () => {
   }
   console.log('로그아웃 → 모든 감시 중지')
   return { success: true }
-})
-
-// ── 로컬 파일 휴지통 이동 ────────────────────────────────────────
-ipcMain.handle('shell:moveToTrash', async (event, filePath) => {
-  try {
-    if (!fs.existsSync(filePath)) return { success: false, reason: 'NOT_FOUND' }
-    await shell.trashItem(filePath)
-    console.log('휴지통 이동:', filePath)
-    return { success: true }
-  } catch (e) {
-    console.error('휴지통 이동 실패:', filePath, e.message)
-    return { success: false, reason: e.message }
-  }
 })
 
 // ── 폴더 매핑 ────────────────────────────────────────
@@ -233,7 +220,6 @@ async function syncFolderOnStart(folderPath, projectId) {
     if (!res.ok) return
 
     const allPhotos = await res.json()
-    const deletedPhotos = allPhotos.filter(p => p.deleted_at)
     const activePhotos = allPhotos.filter(p => !p.deleted_at)
 
     const localFiles = fs.readdirSync(folderPath)
@@ -241,19 +227,7 @@ async function syncFolderOnStart(folderPath, projectId) {
     const localFileSet = new Set(localFiles)
     const allFilenameSet = new Set(allPhotos.map(p => p.original_filename).filter(Boolean))
 
-    // 1) 서버에서 삭제된 사진의 로컬 파일 → 휴지통 이동
-    for (const photo of deletedPhotos) {
-      if (!photo.original_filename || !localFileSet.has(photo.original_filename)) continue
-      const filePath = path.join(photo.folder || folderPath, photo.original_filename)
-      try {
-        await shell.trashItem(filePath)
-        console.log('삭제된 사진 로컬 파일 휴지통 이동:', photo.original_filename)
-      } catch (e) {
-        console.log('휴지통 이동 실패 (무시):', photo.original_filename, e.message)
-      }
-    }
-
-    // 2) local_missing 플래그 업데이트 (활성 사진만)
+    // 1) local_missing 플래그 업데이트 (활성 사진만)
     const updates = []
     for (const photo of activePhotos) {
       if (!photo.original_filename || photo.source !== 'electron') continue

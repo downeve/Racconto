@@ -370,6 +370,8 @@
     "restore": "Restore",
     "permanentDelete": "Delete Permanently",
     "permanentDeleteConfirm": "Are you sure you want to permanently delete this? This action cannot be undone.",
+    "permanentDeleteWebBlocked": "Local-linked photos can only be permanently deleted from the desktop app.",
+    "permanentDeleteLocalExists": "The original file must be deleted from your PC folder before permanently deleting.",
     "deleteProjectError": "An error occurred while deleting the project. (There might be photos remaining inside.)",
     "delete_warning": "{{daysLeft}} days left"
   },

@@ -849,11 +849,6 @@ export default function ProjectDetail({
       // 3. 서버에 삭제 요청
       await axios.delete(`${API}/photos/${photoId}`);
 
-      // 4. Electron: 로컬 파일 휴지통 이동
-      if (window.racconto && photoToDelete?.source === 'electron' && photoToDelete.folder && photoToDelete.original_filename) {
-        window.racconto.moveToTrash(`${photoToDelete.folder}/${photoToDelete.original_filename}`).catch(() => {})
-      }
-
       // 백그라운드 데이터 동기화
       Promise.all([
         axios.get(`${API}/projects/${numericId}`).then(res => setProject(res.data)),
@@ -939,16 +934,30 @@ export default function ProjectDetail({
     })
   }
 
+  const canHardDelete = (photo: Photo): boolean => {
+    if (!photo.folder) return true
+    if (!isElectron) return false
+    return !!photo.local_missing
+  }
+
   const handleDeleteAllTrash = () => {
     if (trashedPhotos.length === 0) return
+    const deletablePhotos = trashedPhotos.filter(p => canHardDelete(p))
+    if (deletablePhotos.length === 0) {
+      showToast(
+        isElectron ? t('trash.permanentDeleteLocalExists') : t('trash.permanentDeleteWebBlocked'),
+        'warning'
+      )
+      return
+    }
     setConfirmModal({
-      message: t('photo.trashComment.DeleteAllConfirm', { count: trashedPhotos.length }),
+      message: t('photo.trashComment.DeleteAllConfirm', { count: deletablePhotos.length }),
       onConfirm: async () => {
         setConfirmModal(null)
         setDeletingTrash(true)
         try {
           await axios.delete(`${API}/photos/bulk-permanent`, {
-            data: { photo_ids: trashedPhotos.map(p => p.id) }
+            data: { photo_ids: deletablePhotos.map(p => p.id) }
           })
           await fetchTrash()
         } catch (error) {
@@ -975,14 +984,6 @@ export default function ProjectDetail({
         await axios.delete(`${API}/photos/bulk-delete`, {
           data: { photo_ids: folderPhotos.map(p => p.id) }
         })
-        // Electron: 로컬 파일 휴지통 이동
-        if (window.racconto) {
-          for (const photo of folderPhotos) {
-            if (photo.source === 'electron' && photo.folder && photo.original_filename) {
-              window.racconto.moveToTrash(`${photo.folder}/${photo.original_filename}`).catch(() => {})
-            }
-          }
-        }
         if (filterFolder === folder) setFilterFolder(null)
         await fetchPhotos()
         await fetchTrash()
@@ -1656,6 +1657,15 @@ export default function ProjectDetail({
                             </button>
                             <button
                               onClick={() => {
+                                if (!canHardDelete(photo)) {
+                                  showToast(
+                                    !isElectron
+                                      ? t('trash.permanentDeleteWebBlocked')
+                                      : t('trash.permanentDeleteLocalExists'),
+                                    'warning'
+                                  )
+                                  return
+                                }
                                 setConfirmModal({
                                   message: t('trash.permanentDeleteConfirm'),
                                   onConfirm: async () => {
@@ -1665,7 +1675,11 @@ export default function ProjectDetail({
                                   },
                                 })
                               }}
-                              className="w-full text-center px-4 py-1.5 text-xs bg-red-600 text-white rounded hover:bg-red-700 font-medium shadow-lg"
+                              className={`w-full text-center px-4 py-1.5 text-xs rounded font-medium shadow-lg ${
+                                canHardDelete(photo)
+                                  ? 'bg-red-600 text-white hover:bg-red-700'
+                                  : 'bg-gray-500 text-white hover:bg-gray-600'
+                              }`}
                             >
                               ✕ {t('trash.permanentDelete')}
                             </button>
