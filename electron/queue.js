@@ -28,8 +28,16 @@ function persistQueue() {
 
 function addToQueue(item) {
   if (!memoryQueue) initQueue()
-  const exists = memoryQueue.some(q => q.filePath === item.filePath)
-  if (exists) return
+  const existingIdx = memoryQueue.findIndex(q => q.filePath === item.filePath)
+  if (existingIdx >= 0) {
+    const existing = memoryQueue[existingIdx]
+    // 다른 프로젝트이거나 영구 실패(retryCount >= 3) 항목은 새 정보로 초기화
+    if (existing.projectId !== item.projectId || (existing.status === 'failed' && existing.retryCount >= 3)) {
+      memoryQueue[existingIdx] = { ...existing, projectId: item.projectId, status: 'pending', retryCount: 0 }
+      persistQueue()
+    }
+    return
+  }
   memoryQueue.push({
     id: `${Date.now()}-${Math.random().toString(36).slice(2)}`,
     filePath: item.filePath,
