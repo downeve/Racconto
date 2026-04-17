@@ -128,6 +128,7 @@ export default function ProjectNotes({
 
   useEffect(() => {
     if (!isElectron) return
+    if (activeTab !== 'notes') return
     setSidebarContent(
       <div className="p-4">
         <p className="text-xs font-semibold text-gray-500 mb-3">{t('note.filter')}</p>
@@ -175,7 +176,7 @@ export default function ProjectNotes({
         )}
       </div>
     )
-  }, [isElectron, notes, filterType, filterPinned, t])
+  }, [isElectron, activeTab, notes, filterType, filterPinned, t])
 
   return (
     <div className="flex gap-6">

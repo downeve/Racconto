@@ -443,6 +443,7 @@ export default function ProjectStory({
 
   useEffect(() => {
     if (!isElectron) return
+    if (activeTab !== 'story') return
     setSidebarContent(
       <div className="p-4">
         <p className="text-xs font-semibold text-gray-500 mb-3">{t('story.chapters')}</p>
@@ -492,7 +493,7 @@ export default function ProjectStory({
         </div>
       </div>
     )
-  }, [isElectron, chapters, t])
+  }, [isElectron, activeTab, chapters, t])
 
   return (
     <div className="flex gap-6 relative">
