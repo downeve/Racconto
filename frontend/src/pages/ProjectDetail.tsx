@@ -63,8 +63,9 @@ interface Photo {
   gps_lng: string | null
   rating: number | null
   color_label: string | null
+  source?: string | null
   local_missing?: boolean
-  deleted_at?: string | null 
+  deleted_at?: string | null
 }
 
 // ── 라이트박스 ─────────────────────────────────────────────
@@ -653,6 +654,20 @@ export default function ProjectDetail({
     let limitExceeded = false
     for (const file of validFiles) {
       try {
+        // 0. 휴지통에 같은 파일명이 있으면 새 업로드 대신 복구 (Workflow 4)
+        let restored = false
+        try {
+          await axios.post(`${API}/photos/restore-by-filename`, {
+            project_id: numericId,
+            original_filename: file.name,
+          })
+          restored = true
+        } catch (e: any) {
+          if (e.response?.status !== 404) throw e
+          // 404 = 휴지통에 없음, 정상 업로드 진행
+        }
+
+        if (!restored) {
         // 1. EXIF 추출 (리사이즈 전 원본에서)
         const exifData: Record<string, string> = {}
         try {
@@ -704,6 +719,7 @@ export default function ProjectDetail({
           source: 'web',
           ...exifData,
         })
+        } // end if (!restored)
         successCount++
 
       } catch (error) {
@@ -813,25 +829,23 @@ export default function ProjectDetail({
     }
     
     try {
-      // 3. 서버에 삭제 요청 
+      // 3. 서버에 삭제 요청
       await axios.delete(`${API}/photos/${photoId}`);
 
-      // 4. 백그라운드 데이터 동기화 (UI를 멈추지 않음)
-      // 화면은 이미 바뀌었으므로, 사진 수 등 부수적인 데이터만 조용히 최신화합니다.
-      // 여러 API를 순서대로 기다리지 않고 Promise.all로 한 번에 병렬 처리합니다.
+      // 4. Electron: 로컬 파일 휴지통 이동
+      if (window.racconto && photoToDelete?.source === 'electron' && photoToDelete.folder && photoToDelete.original_filename) {
+        window.racconto.moveToTrash(`${photoToDelete.folder}/${photoToDelete.original_filename}`).catch(() => {})
+      }
+
+      // 백그라운드 데이터 동기화
       Promise.all([
         axios.get(`${API}/projects/${numericId}`).then(res => setProject(res.data)),
         fetchChapterPhotoIds(),
         fetchPhotoNoteIds()
       ]);
-      
-      // 🔥 주의: fetchPhotos()와 fetchTrash()는 2번에서 UI를 이미 변경했으므로 제거했습니다. 
-      // 이렇게 하면 서버 부하도 줄고 훨씬 빠릅니다.
 
     } catch (error) {
       console.error("사진 삭제 실패:", error);
-      
-      // 5. 서버 에러 시 화면을 원래대로 복구 (롤백)
       setPhotos(prevPhotos);
       setTrashedPhotos(prevTrash);
       // (선택) showToast(t('common.error'), 'error'); 
@@ -944,6 +958,14 @@ export default function ProjectDetail({
         await axios.delete(`${API}/photos/bulk-delete`, {
           data: { photo_ids: folderPhotos.map(p => p.id) }
         })
+        // Electron: 로컬 파일 휴지통 이동
+        if (window.racconto) {
+          for (const photo of folderPhotos) {
+            if (photo.source === 'electron' && photo.folder && photo.original_filename) {
+              window.racconto.moveToTrash(`${photo.folder}/${photo.original_filename}`).catch(() => {})
+            }
+          }
+        }
         if (filterFolder === folder) setFilterFolder(null)
         await fetchPhotos()
         await fetchTrash()

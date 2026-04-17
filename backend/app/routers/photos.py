@@ -239,9 +239,10 @@ class PhotoResponse(BaseModel):
     original_filename: Optional[str] = None
     source: Optional[str] = 'web'
     local_missing: bool = False
+    deleted_at: Optional[datetime] = None
 
-class Config:
-    from_attributes = True
+    class Config:
+        from_attributes = True
 
 class BulkExistsRequest(BaseModel):
     project_id: str
@@ -249,6 +250,10 @@ class BulkExistsRequest(BaseModel):
 
 class BulkDeleteRequest(BaseModel):
     photo_ids: list[str]
+
+class RestoreByFilenameRequest(BaseModel):
+    project_id: str
+    original_filename: str
 
 class BulkPermanentDeleteRequest(BaseModel):
     photo_ids: list[str]
@@ -263,6 +268,7 @@ class BulkLocalMissingUpdate(BaseModel):
 @router.get("/", response_model=list[PhotoResponse])
 def get_photos(
     project_id: Optional[str] = None,
+    include_deleted: bool = False,
     db: Session = Depends(get_db),
     current_user: models.User = Depends(get_current_user)
 ):
@@ -274,17 +280,19 @@ def get_photos(
         if not project:
             raise HTTPException(status_code=403, detail="FORBIDDEN")
         query = db.query(models.Photo).filter(
-            models.Photo.deleted_at == None,
             models.Photo.project_id == project_id
         )
+        if not include_deleted:
+            query = query.filter(models.Photo.deleted_at == None)
     else:
         my_project_ids = db.query(models.Project.id).filter(
             models.Project.user_id == current_user.id
         ).subquery()
         query = db.query(models.Photo).filter(
-            models.Photo.deleted_at == None,
             models.Photo.project_id.in_(my_project_ids)
         )
+        if not include_deleted:
+            query = query.filter(models.Photo.deleted_at == None)
     return query.order_by(models.Photo.order).all()
 
 
@@ -470,6 +478,40 @@ def bulk_permanent_delete_photos(
         background_tasks.add_task(delete_cf_files_parallel, cf_urls)
 
     return {"deleted": len(body.photo_ids)}
+
+
+@router.post("/restore-by-filename", response_model=PhotoResponse)
+def restore_photo_by_filename(
+    body: RestoreByFilenameRequest,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user)
+):
+    """파일명으로 휴지통 사진 복구 (수동 재업로드 시 새 레코드 생성 대신 복구)"""
+    project = db.query(models.Project).filter(
+        models.Project.id == body.project_id,
+        models.Project.user_id == current_user.id,
+        models.Project.deleted_at == None
+    ).first()
+    if not project:
+        raise HTTPException(status_code=404, detail="PROJECT_NOT_FOUND")
+
+    photo = db.query(models.Photo).filter(
+        models.Photo.project_id == body.project_id,
+        models.Photo.original_filename == body.original_filename,
+        models.Photo.deleted_at != None
+    ).order_by(models.Photo.deleted_at.desc()).first()
+
+    if not photo:
+        raise HTTPException(status_code=404, detail="PHOTO_NOT_FOUND_IN_TRASH")
+
+    photo.deleted_at = None
+    db.query(models.Note).filter(
+        models.Note.photo_id == photo.id,
+        models.Note.deleted_at != None
+    ).update({"deleted_at": None}, synchronize_session=False)
+    db.commit()
+    db.refresh(photo)
+    return photo
 
 
 @router.get("/{photo_id}", response_model=PhotoResponse)
