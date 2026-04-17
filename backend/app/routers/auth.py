@@ -111,9 +111,10 @@ def get_me(
         models.Project.deleted_at == None
     ).count()
 
-    # 유저 계정 전체 사진 수 합계 (업로드 제한과 동일 기준)
+    # 유저 계정 전체 사진 수 합계 (업로드 제한과 동일 기준, 삭제된 프로젝트 제외)
     total_photo_count = db.query(models.Photo).join(models.Project).filter(
         models.Project.user_id == current_user.id,
+        models.Project.deleted_at == None,
         models.Photo.deleted_at == None
     ).count()
 
