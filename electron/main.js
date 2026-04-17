@@ -311,6 +311,7 @@ async function processQueue() {
   })
 
   // 사진 한도 사전 체크: 남은 슬롯만큼만 업로드 시도
+  let wasLimitTrimmed = false
   try {
     const meRes = await fetchWithAuth(`${API_BASE}/auth/me`)
     if (meRes.ok) {
@@ -325,6 +326,7 @@ async function processQueue() {
       if (uploadItems.length > remaining) {
         console.log(`사진 한도로 업로드 ${uploadItems.length}개 → ${remaining}개로 제한`)
         uploadItems = uploadItems.slice(0, remaining)
+        wasLimitTrimmed = true
       }
     }
   } catch (e) {
@@ -382,11 +384,15 @@ async function processQueue() {
     }
 
     if (!limitExceeded) {
-      mainWindow?.webContents.send('upload:done', {
-        total,
-        success: successCount,
-        failed: failedCount,
-      })
+      if (wasLimitTrimmed) {
+        mainWindow?.webContents.send('upload:limitExceeded', { success: successCount })
+      } else {
+        mainWindow?.webContents.send('upload:done', {
+          total,
+          success: successCount,
+          failed: failedCount,
+        })
+      }
     }
   }
 
