@@ -3,6 +3,7 @@ import axios from 'axios'
 import ReactMarkdown from 'react-markdown'
 import { useTranslation } from 'react-i18next'
 import { useElectronSidebar } from '../context/ElectronSidebarContext'
+import ConfirmModal from '../components/ConfirmModal'
 
 const API = import.meta.env.VITE_API_URL
 
@@ -36,6 +37,7 @@ export default function ProjectNotes({
   const [editType, setEditType] = useState('memo')
   const [previewMode, setPreviewMode] = useState(false)
   const [editPreviewMode, setEditPreviewMode] = useState(false)
+  const [confirmModal, setConfirmModal] = useState<{ message: string; onConfirm: () => void } | null>(null)
 
   const [filterType, setFilterType] = useState<string | null>(null)
   const [filterPinned, setFilterPinned] = useState(false)
@@ -114,9 +116,14 @@ export default function ProjectNotes({
   }
 
   const handleDelete = async (noteId: string) => {
-    if (!confirm(t('note.deleteConfirm'))) return
-    await axios.delete(`${API}/notes/${noteId}`)
-    fetchNotes()
+    setConfirmModal({
+      message: t('note.deleteConfirm'),
+      onConfirm: async () => {
+        setConfirmModal(null)
+        await axios.delete(`${API}/notes/${noteId}`)
+        fetchNotes()
+      }
+    })
   }
 
   const startEdit = (note: Note) => {
@@ -180,6 +187,15 @@ export default function ProjectNotes({
 
   return (
     <div className="flex gap-6">
+
+    {confirmModal && (
+      <ConfirmModal
+        message={confirmModal.message}
+        onConfirm={confirmModal.onConfirm}
+        onCancel={() => setConfirmModal(null)}
+        dangerous
+      />
+    )}
 
       {/* 사이드바 */}
       <div className={`${isElectron ? 'hidden' : ''} w-48 shrink-0 sticky top-4 self-start`}>

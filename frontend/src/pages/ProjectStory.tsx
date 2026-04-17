@@ -3,6 +3,7 @@ import axios from 'axios'
 import { useTranslation } from 'react-i18next'
 import PhotoNotePanel from '../components/PhotoNotePanel'
 import { useElectronSidebar } from '../context/ElectronSidebarContext'
+import ConfirmModal from '../components/ConfirmModal'
 
 import {
   DndContext,
@@ -161,6 +162,8 @@ export default function ProjectStory({
   const [editTitle, setEditTitle] = useState('')
   const [editDesc, setEditDesc] = useState('')
   const [activePhotoUrl, setActivePhotoUrl] = useState<string | null>(null)
+  const [confirmModal, setConfirmModal] = useState<{ message: string; onConfirm: () => void } | null>(null)
+
   const { t } = useTranslation()
 
   // 라이트박스 상태
@@ -357,9 +360,14 @@ export default function ProjectStory({
   }
 
   const handleDeleteChapter = async (chapterId: string) => {
-    if (!confirm(t('story.chapterDeleteWarning'))) return
-    await axios.delete(`${API}/chapters/${chapterId}`)
-    fetchChapters()
+    setConfirmModal({
+      message: t('story.chapterDeleteWarning'),
+      onConfirm: async () => {
+        setConfirmModal(null)
+        await axios.delete(`${API}/chapters/${chapterId}`)
+        fetchChapters()
+      }
+    })
   }
 
   const handleRemovePhoto = async (chapterId: string, photoId: string) => {
@@ -497,6 +505,15 @@ export default function ProjectStory({
 
   return (
     <div className="flex gap-6 relative">
+    
+    {confirmModal && (
+      <ConfirmModal
+        message={confirmModal.message}
+        onConfirm={confirmModal.onConfirm}
+        onCancel={() => setConfirmModal(null)}
+        dangerous
+      />
+    )}
 
       {/* 사이드바 */}
       <div className={`${isElectron ? 'hidden' : ''} w-48 shrink-0 sticky top-4 self-start`}>
