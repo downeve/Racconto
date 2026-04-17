@@ -1016,11 +1016,32 @@ export default function ProjectDetail({
         <div className="mb-2">
           <p className="text-xs font-semibold text-gray-500 mb-2">{t('photo.library')}</p>
           <div className="flex flex-col gap-1">
+            {/* 전체 사진 */}
             <button onClick={() => setPhotoSubTab('all')}
               className={`w-full text-left px-2 py-1.5 text-xs rounded flex items-center justify-between ${photoSubTab === 'all' ? 'bg-black text-white' : 'hover:bg-gray-50 text-gray-700'}`}>
               <span>{t('photo.allPhotos')}</span>
               <span className={photoSubTab === 'all' ? 'text-gray-300' : 'text-gray-400'}>{photos.filter(p => !p.deleted_at).length}</span>
             </button>
+              {/* 폴더 리스트 */}
+              {photos.some(p => p.folder) && (
+              <div className="mt-3 mb-3">
+                  {[...new Set(photos.filter(p => p.folder).map(p => p.folder))].map(folder => (
+                  <div key={folder} className={`flex items-center rounded ${filterFolder === folder ? 'bg-black text-white' : 'hover:bg-gray-50'}`}>
+                    <button onClick={() => setFilterFolder(filterFolder === folder ? null : folder!)}
+                      className="flex-1 text-left px-2 py-1 text-xs flex items-center justify-between min-w-0">
+                      <span className="flex items-center gap-1 min-w-0"><span className="shrink-0">📁</span><span className="truncate">{folder}</span></span>
+                      <span className={`shrink-0 ml-2 ${filterFolder === folder ? 'text-gray-300' : 'text-gray-400'}`}>{photos.filter(p => p.folder === folder && !p.deleted_at).length}</span>
+                    </button>
+                    <button
+                      onClick={() => handleDeleteFolder(folder!)}
+                      className={`shrink-0 px-1.5 py-1 text-xs ${filterFolder === folder ? 'text-gray-400 hover:text-white' : 'text-gray-300 hover:text-red-500'}`}
+                      title={t('photo.trash')}
+                    >🗑</button>
+                  </div>
+                ))}
+              </div>
+              )}
+            {/* 지운 사진 */}
             <button onClick={() => { setPhotoSubTab('trash'); fetchTrash() }}
               className={`w-full text-left px-2 py-1.5 text-xs rounded flex items-center justify-between ${photoSubTab === 'trash' ? 'bg-red-600 text-white' : 'hover:bg-red-50 text-gray-700'}`}>
               <span>{t('photo.trash')}</span>
