@@ -366,7 +366,7 @@ export default function Admin() {
             { label: 'Total Users', value: stats.total_users },
             { label: 'Verified', value: stats.verified_users },
             { label: 'Projects', value: stats.total_projects },
-            { label: 'Photos (CF)', value: stats.total_photos },
+            { label: 'Photos (DB)', value: stats.total_photos },
             { label: 'Notes', value: stats.total_notes },
           ].map(stat => (
             <div key={stat.label} className="bg-white rounded-lg shadow p-4 text-center">
