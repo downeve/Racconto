@@ -284,9 +284,7 @@ function ProjectStory({
       const res = await axios.get(`${API}/chapters/?project_id=${projectId}`)
       setChapters(res.data)
       onChapterChange?.(res.data.length)
-      for (const chapter of res.data) {
-        fetchChapterPhotos(chapter.id)
-      }
+      await Promise.all(res.data.map((chapter: Chapter) => fetchChapterPhotos(chapter.id)))
     } catch (err) {
       console.error(err)
     }
@@ -833,7 +831,6 @@ function ProjectStory({
                       onDragCancel={() => setActivePhotoUrl(null)}>
                       <SortableContext items={getVisibleChapterItems(chapter.id).map(p => p.id)} strategy={rectSortingStrategy}>
                         <div className="grid grid-cols-3 gap-2 mb-3">
-                          // 변경 후
                           {getVisibleChapterItems(chapter.id).map(item => (
                             item.item_type === 'TEXT' ? (
                               <SortableTextBlock
@@ -962,14 +959,13 @@ function ProjectStory({
                         onDragCancel={() => setActivePhotoUrl(null)}>
                         <SortableContext items={getVisibleChapterItems(subChapter.id).map(p => p.id)} strategy={rectSortingStrategy}>
                           <div className="grid grid-cols-3 gap-2 mb-3">
-                            // 변경 후
-                            {getVisibleChapterItems(chapter.id).map(item => (
+                            {getVisibleChapterItems(subChapter.id).map(item => (
                               item.item_type === 'TEXT' ? (
                                 <SortableTextBlock
                                   key={item.id}
                                   id={item.id}
                                   itemId={item.id}
-                                  chapterId={chapter.id}
+                                  chapterId={subChapter.id}
                                   text_content={item.text_content || ''}
                                   onRemove={handleRemoveItem}
                                   onEdit={(itemId, text) => { setEditingTextItemId(itemId); setTextDraft(text) }}
@@ -980,7 +976,7 @@ function ProjectStory({
                                   id={item.id}
                                   imageUrl={item.image_url ?? ''}
                                   photoId={item.photo_id ?? ''}
-                                  chapterId={chapter.id}
+                                  chapterId={subChapter.id}
                                   caption={item.caption}
                                   onRemove={handleRemoveItem}
                                   onClick={() => {
@@ -1006,7 +1002,7 @@ function ProjectStory({
                         </DragOverlay>
                       </DndContext>
                       <button
-                        onClick={() => handleAddTextBlock(chapter.id)}
+                        onClick={() => handleAddTextBlock(subChapter.id)}
                         className="mt-2 text-xs text-gray-400 hover:text-gray-600 border border-dashed border-gray-300 hover:border-gray-400 rounded px-3 py-1.5 w-full transition-colors"
                       >
                         + 텍스트 블록 추가

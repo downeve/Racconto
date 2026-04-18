@@ -571,6 +571,7 @@ export default function ProjectDetail({
   const [confirmModal, setConfirmModal] = useState<{ message: string; onConfirm: () => void } | null>(null)
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' | 'warning' } | null>(null)
   const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const [chapterPhotoVersion, setChapterPhotoVersion] = useState(0)
 
   const showToast = (message: string, type: 'success' | 'error' | 'warning') => {
     if (toastTimer.current) clearTimeout(toastTimer.current)
@@ -612,7 +613,8 @@ export default function ProjectDetail({
     }))
     
     setChapterPhotoIds(ids)
-    setPhotoChapterMap(map) //
+    setPhotoChapterMap(map)
+    setChapterPhotoVersion(v => v + 1)
   }
 
   const fetchPhotoNoteIds = async () => {
@@ -1266,7 +1268,7 @@ export default function ProjectDetail({
       setSelectionMode(false)
       setSelectedPhotoIds(new Set())
       setShowBulkChapterMenu(false)
-      fetchChapterPhotoIds()
+      await fetchChapterPhotoIds()
       showToast(t('story.addMultiplePhotoSuccess', {count: selectedPhotoIds.size}), 'success')
     } catch (error) {
       console.error("일괄 추가 실패", error)
@@ -2016,7 +2018,7 @@ export default function ProjectDetail({
           projectId={numericId!}
           activeTab={activeTab}
           allPhotos={photos.filter(p => !p.deleted_at)}
-          chapterPhotoCount={chapterPhotoIds.size}
+          chapterPhotoCount={chapterPhotoVersion}
           onChapterChange={() => fetchChapterPhotoIds()}
           onPhotoUpdate={(photoId, newCaption) => {
             setPhotos(prev => prev.map(p =>
