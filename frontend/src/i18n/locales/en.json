@@ -140,7 +140,8 @@
       "success": "{{count}} uploaded",
       "limitExceeded": "Photo upload limit reached",
       "limitExceededPartial": "{{success}} uploaded · limit reached",
-      "fail": "{{count}} file(s) failed to upload"
+      "fail": "{{count}} file(s) failed to upload",
+      "allSkipped": "{{count}} photo(s) already exist — skipped"
     },
     "trashComment": {
       "DeleteAllConfirm_one": "Are you sure you want to permanently delete 1 photo in the trash?",
@@ -373,7 +374,11 @@
     "permanentDeleteWebBlocked": "Local-linked photos can only be permanently deleted from the desktop app.",
     "permanentDeleteLocalExists": "The original file must be deleted from your PC folder before permanently deleting.",
     "deleteProjectError": "An error occurred while deleting the project. (There might be photos remaining inside.)",
-    "delete_warning": "{{daysLeft}} days left"
+    "delete_warning": "{{daysLeft}} days left",
+    "deleteAllWebConfirm": "Permanently delete {{count}} photo(s) from trash?",
+    "deleteAllLocalBlocked": "All selected photos are linked to a local folder. Please delete the files from your PC folder first.",
+    "deleteAllMixedConfirm": "{{local}} photo(s) linked to a local folder must be deleted from your PC first.\nOnly {{web}} web-uploaded photo(s) will be permanently deleted now. Continue?",
+    "localSyncBadge": "💻 Delete from PC"
   },
   "actions": {
     "resetAllRatings": "Reset All Ratings",

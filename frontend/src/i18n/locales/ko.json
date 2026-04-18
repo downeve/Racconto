@@ -140,7 +140,8 @@
       "success": "{{count}}개 업로드 완료",
       "limitExceeded": "사진 업로드 한도를 초과했습니다",
       "limitExceededPartial": "{{success}}개 업로드 후 한도 초과",
-      "fail": "{{count}}개 파일 업로드 실패"
+      "fail": "{{count}}개 파일 업로드 실패",
+      "allSkipped": "{{count}}개 사진이 이미 존재하여 건너뜀"
     },
     "trashComment": {
       "DeleteAllConfirm": "휴지통 사진 {{count}}개를 모두 삭제할까요?"
@@ -371,7 +372,11 @@
     "permanentDeleteWebBlocked": "로컬 연동 파일은 데스크톱 앱에서만 영구 삭제가 가능합니다.",
     "permanentDeleteLocalExists": "PC 폴더에서 원본 파일을 먼저 지워야 영구 삭제가 가능합니다.",
     "deleteProjectError": "프로젝트를 삭제하는 중 오류가 발생했습니다. (내부에 사진이 남아있을 수 있습니다.)",
-    "delete_warning": "{{daysLeft}}일 후 자동 삭제"
+    "delete_warning": "{{daysLeft}}일 후 자동 삭제",
+    "deleteAllWebConfirm": "휴지통의 사진 {{count}}개를 영구 삭제하시겠습니까?",
+    "deleteAllLocalBlocked": "선택된 사진은 모두 로컬 폴더와 연동되어 있습니다. 영구 삭제를 위해 PC 폴더에서 먼저 파일을 지워주세요.",
+    "deleteAllMixedConfirm": "로컬 폴더와 연동된 사진 {{local}}개는 PC에서 먼저 지워야 합니다.\n웹에서 업로드한 사진 {{web}}개만 영구 삭제됩니다. 진행하시겠습니까?",
+    "localSyncBadge": "💻 PC 삭제 필요"
   },
   "actions": {
     "resetAllRatings": "전체 별점 초기화",

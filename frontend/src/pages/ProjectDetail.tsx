@@ -490,6 +490,7 @@ export default function ProjectDetail({
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc')
   const [deletingMissing, setDeletingMissing] = useState(false)
   const [deletingTrash, setDeletingTrash] = useState(false)
+  const [isProjectFolderLinked, setIsProjectFolderLinked] = useState(false)
   const [photoNoteIds, setPhotoNoteIds] = useState<Set<string>>(new Set())
   const [filterHasNote, setFilterHasNote] = useState(false)
   const [confirmModal, setConfirmModal] = useState<{ message: string; onConfirm: () => void } | null>(null)
@@ -614,6 +615,20 @@ export default function ProjectDetail({
     return () => window.racconto?.offDeletedFile?.()
   }, [])
 
+  useEffect(() => {
+    if (!isElectron || !numericId) return
+    window.racconto!.getAllMappings().then(mappings => {
+      const linked = Object.values(mappings).some(m => m.projectId === numericId)
+      setIsProjectFolderLinked(linked)
+    })
+    window.racconto!.onFolderUnlinked(() => {
+      window.racconto!.getAllMappings().then(mappings => {
+        const linked = Object.values(mappings).some(m => m.projectId === numericId)
+        setIsProjectFolderLinked(linked)
+      })
+    })
+  }, [numericId, isElectron])
+
   // Electron일 때 사이드바 탭과 동기화
   useEffect(() => {
     if (isElectron && electronTab) {
@@ -658,23 +673,25 @@ export default function ProjectDetail({
     })
   }
 
-  const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (!e.target.files || !id) return
+  const doUpload = async (validFiles: File[]) => {
     setUploading(true)
-
-    const allowedTypes = ['image/jpeg', 'image/png', 'image/webp']
-    const validFiles = Array.from(e.target.files).filter(file => allowedTypes.includes(file.type))
-
-    if (validFiles.length !== e.target.files.length) {
-      console.warn(t('photo.upload.ExlcudeWarning', { count: e.target.files.length - validFiles.length }))
-    }
 
     let failedCount = 0
     let successCount = 0
     let limitExceeded = false
+    let skipCount = 0
     for (const file of validFiles) {
       try {
-        // 0. 휴지통에 같은 파일명이 있으면 새 업로드 대신 복구 (Workflow 4)
+        const relativePath = (file as any).webkitRelativePath
+        const folder = relativePath ? relativePath.split('/')[0] : null
+
+        // 0-a. 활성 사진 중 동일 파일명+폴더가 있으면 중복 스킵
+        const isDuplicate = photos.some(
+          p => p.original_filename === file.name && p.folder === folder && !p.deleted_at
+        )
+        if (isDuplicate) { skipCount++; successCount++; continue }
+
+        // 0-b. 휴지통에 같은 파일명이 있으면 새 업로드 대신 복구 (Workflow 4)
         let restored = false
         try {
           await axios.post(`${API}/photos/restore-by-filename`, {
@@ -729,8 +746,6 @@ export default function ProjectDetail({
         const imageUrl = cfData.result.variants[0]
 
         // 5. 메타데이터 저장
-        const relativePath = (file as any).webkitRelativePath
-        const folder = relativePath ? relativePath.split('/')[0] : null
         await axios.post(`${API}/photos/`, {
           project_id: numericId,
           image_url: imageUrl,
@@ -768,8 +783,10 @@ export default function ProjectDetail({
       }
     } else if (failedCount > 0) {
       showToast(t('photo.upload.fail', { count: failedCount }), 'error')
-    } else if (successCount > 0) {
-      showToast(t('photo.upload.success', { count: successCount }), 'success')
+    } else if (successCount - skipCount > 0) {
+      showToast(t('photo.upload.success', { count: successCount - skipCount }), 'success')
+    } else if (skipCount > 0) {
+      showToast(t('photo.upload.allSkipped', { count: skipCount }), 'warning')
     }
 
     try {
@@ -778,8 +795,18 @@ export default function ProjectDetail({
       // 로그아웃 등으로 fetchPhotos 실패해도 uploading은 반드시 해제
     } finally {
       setUploading(false)
-      e.target.value = ''
     }
+  }
+
+  const handleUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!e.target.files || !id) return
+    const inputEl = e.target
+    const allowedTypes = ['image/jpeg', 'image/png', 'image/webp']
+    const validFiles = Array.from(e.target.files).filter(file => allowedTypes.includes(file.type))
+    inputEl.value = ''
+    if (validFiles.length === 0) return
+
+    doUpload(validFiles)
   }
 
   // ProjectDetail.tsx 내부의 handleSetCover 수정
@@ -913,6 +940,14 @@ export default function ProjectDetail({
     })
   }
 
+  const handleResetAll = () => {
+    setFilterFolder(null)
+    setFilterRating(null)
+    setFilterColor(null)
+    setFilterHasNote(false)
+    setPhotoSubTab('all')
+  }
+
   const handleDeleteAllMissing = () => {
     const missingPhotos = photos.filter(p => p.local_missing && !p.deleted_at)
     if (missingPhotos.length === 0) return
@@ -938,38 +973,58 @@ export default function ProjectDetail({
   }
 
   const canHardDelete = (photo: Photo): boolean => {
-    if (!photo.folder) return true
+    if (photo.source !== 'electron') return true
     if (!isElectron) return false
+    if (!isProjectFolderLinked) return true
     return !!photo.local_missing
   }
 
+  const webTrashPhotos = useMemo(
+    () => trashedPhotos.filter(p => canHardDelete(p)),
+    [trashedPhotos, isElectron]
+  )
+  const localTrashPhotos = useMemo(
+    () => trashedPhotos.filter(p => !canHardDelete(p)),
+    [trashedPhotos, isElectron]
+  )
+
   const handleDeleteAllTrash = () => {
     if (trashedPhotos.length === 0) return
-    const deletablePhotos = trashedPhotos.filter(p => canHardDelete(p))
-    if (deletablePhotos.length === 0) {
-      showToast(
-        isElectron ? t('trash.permanentDeleteLocalExists') : t('trash.permanentDeleteWebBlocked'),
-        'warning'
-      )
-      return
+
+    const doDelete = async () => {
+      setConfirmModal(null)
+      setDeletingTrash(true)
+      try {
+        await axios.delete(`${API}/photos/bulk-permanent`, {
+          data: { photo_ids: webTrashPhotos.map(p => p.id) }
+        })
+        await fetchTrash()
+      } catch (error) {
+        console.error(error)
+      } finally {
+        setDeletingTrash(false)
+      }
     }
-    setConfirmModal({
-      message: t('photo.trashComment.DeleteAllConfirm', { count: deletablePhotos.length }),
-      onConfirm: async () => {
-        setConfirmModal(null)
-        setDeletingTrash(true)
-        try {
-          await axios.delete(`${API}/photos/bulk-permanent`, {
-            data: { photo_ids: deletablePhotos.map(p => p.id) }
-          })
-          await fetchTrash()
-        } catch (error) {
-          console.error(error)
-        } finally {
-          setDeletingTrash(false)
-        }
-      },
-    })
+
+    if (localTrashPhotos.length === 0) {
+      // 웹 사진만
+      setConfirmModal({
+        message: t('trash.deleteAllWebConfirm', { count: webTrashPhotos.length }),
+        onConfirm: doDelete,
+      })
+    } else if (webTrashPhotos.length === 0) {
+      // 로컬 사진만 — 안내 모달
+      setConfirmModal({
+        message: t('trash.deleteAllLocalBlocked'),
+        onConfirm: () => setConfirmModal(null),
+      })
+    } else {
+      // 혼합 — 웹 사진만 삭제
+      setConfirmModal({
+        message: t('trash.deleteAllMixedConfirm', { web: webTrashPhotos.length, local: localTrashPhotos.length }),
+        onConfirm: doDelete,
+      })
+    }
   }
 
   const handleSaveCaption = async (photo: Photo) => {
@@ -1016,9 +1071,10 @@ export default function ProjectDetail({
     { value: 'purple', color: 'bg-purple-500', label: labelSettings['color_label_purple'] },
   ], [labelSettings])
 
-  const filteredPhotos = photos.filter(photo => {
-    if (photo.deleted_at) return false
+  const isAllActive = photoSubTab === 'all' && filterFolder === null && filterRating === null && filterColor === null && !filterHasNote
 
+  const filteredPhotos = useMemo(() => photos.filter(photo => {
+    if (photo.deleted_at) return false
     if (filterRating !== null) {
       if (filterRating === 0) { if (photo.rating !== null) return false }
       else { if (photo.rating !== filterRating) return false }
@@ -1042,7 +1098,7 @@ export default function ProjectDetail({
       result = (a.order ?? 0) - (b.order ?? 0)
     }
     return sortOrder === 'desc' ? -result : result
-  })
+  }), [photos, filterRating, filterColor, filterFolder, filterHasNote, photoNoteIds, sortBy, sortOrder])
 
   const missingCount = photos.filter(p => p.local_missing && !p.deleted_at).length;
 
@@ -1085,10 +1141,10 @@ export default function ProjectDetail({
           <p className="text-xs font-semibold text-gray-500 mb-2">{t('photo.library')}</p>
           <div className="flex flex-col gap-1">
             {/* 전체 사진 */}
-            <button onClick={() => { setPhotoSubTab('all'); setFilterFolder(null); }}
-              className={`w-full text-left px-2 py-1.5 text-xs rounded flex items-center justify-between ${photoSubTab === 'all' ? 'bg-black text-white' : 'hover:bg-gray-50 text-gray-700'}`}>
+            <button onClick={handleResetAll}
+              className={`w-full text-left px-2 py-1.5 text-xs rounded flex items-center justify-between ${isAllActive ? 'bg-black text-white font-semibold' : 'hover:bg-gray-50 text-gray-700'}`}>
               <span>{t('photo.allPhotos')}</span>
-              <span className={photoSubTab === 'all' ? 'text-gray-300' : 'text-gray-400'}>{photos.filter(p => !p.deleted_at).length}</span>
+              <span className={isAllActive ? 'text-gray-300' : 'text-gray-400'}>{photos.filter(p => !p.deleted_at).length}</span>
             </button>
               {/* 서브 폴더 리스트 */}
               {photos.some(p => p.folder) && (
@@ -1165,49 +1221,56 @@ export default function ProjectDetail({
         <div className="border-t border-gray-100 my-2" />
 
         {/* 노트 필터 */}
-        <button onClick={() => setFilterHasNote(!filterHasNote)}
-          className={`w-full text-left px-2 py-3 text-xs rounded flex items-center justify-between ${filterHasNote ? 'bg-black text-white' : 'hover:bg-gray-50 text-gray-700'}`}>
-          <span>📝 {t('photo.hasNote')}</span>
-          <span className={filterHasNote ? 'text-gray-300' : 'text-gray-400'}>{photos.filter(p => !p.deleted_at && photoNoteIds.has(p.id)).length}</span>
-        </button>
+        {(() => {
+          const base = photos.filter(p => !p.deleted_at && (filterFolder === null || p.folder === filterFolder))
+          return (
+            <>
+              <button onClick={() => setFilterHasNote(!filterHasNote)}
+                className={`w-full text-left px-2 py-3 text-xs rounded flex items-center justify-between ${filterHasNote ? 'bg-black text-white' : 'hover:bg-gray-50 text-gray-700'}`}>
+                <span>📝 {t('photo.hasNote')}</span>
+                <span className={filterHasNote ? 'text-gray-300' : 'text-gray-400'}>{base.filter(p => photoNoteIds.has(p.id)).length}</span>
+              </button>
 
-        {/* 별점 필터 */}
-        <div className="mb-4">
-          <div className="flex items-center justify-between mb-2">
-            <p className="text-xs font-semibold text-gray-500">{t('filter.rating')}</p>
-            <button onClick={handleClearRatings} className="text-xs text-gray-400 hover:text-red-500">{t('common.reset')}</button>
-          </div>
-          {[5, 4, 3, 2, 1].map(star => (
-            <button key={star} onClick={() => setFilterRating(filterRating === star ? null : star)}
-              className={`w-full text-left px-2 py-1 text-xs rounded flex items-center justify-between ${filterRating === star ? 'bg-black text-white' : 'hover:bg-gray-50'}`}>
-              <span>{'★'.repeat(star)}{'☆'.repeat(5 - star)}</span>
-              <span className="text-gray-400">{photos.filter(p => p.rating === star).length}</span>
-            </button>
-          ))}
-          <button onClick={() => setFilterRating(filterRating === 0 ? null : 0)}
-            className={`w-full text-left px-2 py-1 text-xs rounded flex items-center justify-between ${filterRating === 0 ? 'bg-black text-white' : 'hover:bg-gray-50'}`}>
-            <span className="text-gray-400">{t('filter.unrated')}</span>
-            <span className="text-gray-400">{photos.filter(p => !p.rating).length}</span>
-          </button>
-        </div>
+              {/* 별점 필터 */}
+              <div className="mb-4">
+                <div className="flex items-center justify-between mb-2">
+                  <p className="text-xs font-semibold text-gray-500">{t('filter.rating')}</p>
+                  <button onClick={handleClearRatings} className="text-xs text-gray-400 hover:text-red-500">{t('common.reset')}</button>
+                </div>
+                {[5, 4, 3, 2, 1].map(star => (
+                  <button key={star} onClick={() => setFilterRating(filterRating === star ? null : star)}
+                    className={`w-full text-left px-2 py-1 text-xs rounded flex items-center justify-between ${filterRating === star ? 'bg-black text-white' : 'hover:bg-gray-50'}`}>
+                    <span>{'★'.repeat(star)}{'☆'.repeat(5 - star)}</span>
+                    <span className={filterRating === star ? 'text-gray-300' : 'text-gray-400'}>{base.filter(p => p.rating === star).length}</span>
+                  </button>
+                ))}
+                <button onClick={() => setFilterRating(filterRating === 0 ? null : 0)}
+                  className={`w-full text-left px-2 py-1 text-xs rounded flex items-center justify-between ${filterRating === 0 ? 'bg-black text-white' : 'hover:bg-gray-50'}`}>
+                  <span className={filterRating === 0 ? 'text-gray-300' : 'text-gray-400'}>{t('filter.unrated')}</span>
+                  <span className={filterRating === 0 ? 'text-gray-300' : 'text-gray-400'}>{base.filter(p => !p.rating).length}</span>
+                </button>
+              </div>
 
-        {/* 컬러 레이블 필터 */}
-        <div className="mb-2">
-          <div className="flex items-center justify-between mb-2">
-            <p className="text-xs font-semibold text-gray-500">{t('filter.colors')}</p>
-            <button onClick={handleClearColorLabels} className="text-xs text-gray-400 hover:text-red-500">{t('common.reset')}</button>
-          </div>
-          {colorLabels.map(label => (
-            <button key={label.value} onClick={() => setFilterColor(filterColor === label.value ? null : label.value)}
-              className={`w-full text-left px-2 py-1 text-xs rounded flex items-center justify-between ${filterColor === label.value ? 'bg-black text-white' : 'hover:bg-gray-50'}`}>
-              <span className="flex items-center gap-2"><span className={`w-3 h-3 rounded-full ${label.color}`} />{label.label}</span>
-              <span className="text-gray-400">{photos.filter(p => p.color_label === label.value).length}</span>
-            </button>
-          ))}
-        </div>
+              {/* 컬러 레이블 필터 */}
+              <div className="mb-2">
+                <div className="flex items-center justify-between mb-2">
+                  <p className="text-xs font-semibold text-gray-500">{t('filter.colors')}</p>
+                  <button onClick={handleClearColorLabels} className="text-xs text-gray-400 hover:text-red-500">{t('common.reset')}</button>
+                </div>
+                {colorLabels.map(label => (
+                  <button key={label.value} onClick={() => setFilterColor(filterColor === label.value ? null : label.value)}
+                    className={`w-full text-left px-2 py-1 text-xs rounded flex items-center justify-between ${filterColor === label.value ? 'bg-black text-white' : 'hover:bg-gray-50'}`}>
+                    <span className="flex items-center gap-2"><span className={`w-3 h-3 rounded-full ${label.color}`} />{label.label}</span>
+                    <span className={filterColor === label.value ? 'text-gray-300' : 'text-gray-400'}>{base.filter(p => p.color_label === label.value).length}</span>
+                  </button>
+                ))}
+              </div>
+            </>
+          )
+        })()}
       </div>
     )
-  }, [isElectron, activeTab, photoSubTab, photos, trashedPhotos, uploading, gridCols, sortBy, sortOrder, showExif, filterRating, filterColor, filterFolder, filterHasNote, photoNoteIds, colorLabels, t])
+  }, [isElectron, activeTab, photoSubTab, photos, trashedPhotos, uploading, gridCols, sortBy, sortOrder, showExif, filterRating, filterColor, filterFolder, filterHasNote, photoNoteIds, colorLabels, isAllActive, t])
 
 
   if (!project) return (
@@ -1241,7 +1304,7 @@ export default function ProjectDetail({
           showExif={showExif}
           chapters={chapters}
           projectId={numericId!}
-          onNoteChange={() => setNotesVersion(v => v + 1)}
+          onNoteChange={() => { setNotesVersion(v => v + 1); fetchPhotoNoteIds() }}
           onAddToChapter={async (photoId, chapterId) => {
             await axios.post(`${API}/chapters/${chapterId}/photos`, { photo_id: photoId })
             await fetchChapterPhotoIds()
@@ -1389,12 +1452,12 @@ export default function ProjectDetail({
                   <p className="text-xs font-semibold text-gray-500 mb-2">{t('photo.library')}</p>
                   <div className="flex flex-col gap-1">
                     {/* 전체 사진 */}
-                    <button 
-                      onClick={() => { setPhotoSubTab('all'); setFilterFolder(null); }}
-                      className={`w-full text-left px-2 py-1.5 text-xs rounded flex items-center justify-between ${photoSubTab === 'all' ? 'bg-black text-white' : 'hover:bg-gray-50 text-gray-700'}`}
+                    <button
+                      onClick={handleResetAll}
+                      className={`w-full text-left px-2 py-1.5 text-xs rounded flex items-center justify-between ${isAllActive ? 'bg-black text-white font-semibold' : 'hover:bg-gray-50 text-gray-700'}`}
                     >
                       <span>{t('photo.allPhotos')}</span>
-                      <span className={`${photoSubTab === 'all' ? 'text-gray-300' : 'text-gray-400'}`}>
+                      <span className={isAllActive ? 'text-gray-300' : 'text-gray-400'}>
                         {photos.filter(p => !p.deleted_at).length}
                       </span>
                     </button>
@@ -1491,59 +1554,59 @@ export default function ProjectDetail({
                 
                 <div className="border-t border-gray-100 my-2"></div>
 
-                {/* 노트 필터 */}
-                <button
-                  onClick={() => setFilterHasNote(!filterHasNote)}
-                  className={`w-full text-left px-2 py-3 text-xs rounded flex items-center justify-between ${
-                    filterHasNote ? 'bg-black text-white' : 'hover:bg-gray-50 text-gray-700'
-                  }`}
-                >
-                <span>📝 {t('photo.hasNote')}</span>
-                  <span className={`${filterHasNote ? 'text-gray-300' : 'text-gray-400'}`}>
-                    {photos.filter(p => !p.deleted_at && photoNoteIds.has(p.id)).length}
-                  </span>
-                </button>
-
-                {/* 별점 필터 */}
-                <div className="mb-4">
-                  <div className="flex items-center justify-between mb-2">
-                    <p className="text-xs font-semibold text-gray-500">{t('filter.rating')}</p>
-                    <button onClick={handleClearRatings} className="text-xs text-gray-400 hover:text-red-500">{t('common.reset')}</button>
-                  </div>
-                  {[5, 4, 3, 2, 1].map(star => {
-                    const count = photos.filter(p => p.rating === star).length
-                    return (
-                      <button key={star} onClick={() => setFilterRating(filterRating === star ? null : star)}
-                        className={`w-full text-left px-2 py-1 text-xs rounded flex items-center justify-between ${filterRating === star ? 'bg-black text-white' : 'hover:bg-gray-50'}`}>
-                        <span>{'★'.repeat(star)}{'☆'.repeat(5 - star)}</span>
-                        <span className="text-gray-400">{count}</span>
+                {/* 노트 · 별점 · 컬러 필터 (폴더 선택 시 해당 폴더 내 카운트로 컨텍스트 반영) */}
+                {(() => {
+                  const base = photos.filter(p => !p.deleted_at && (filterFolder === null || p.folder === filterFolder))
+                  return (
+                    <>
+                      {/* 노트 필터 */}
+                      <button
+                        onClick={() => setFilterHasNote(!filterHasNote)}
+                        className={`w-full text-left px-2 py-3 text-xs rounded flex items-center justify-between ${filterHasNote ? 'bg-black text-white' : 'hover:bg-gray-50 text-gray-700'}`}
+                      >
+                        <span>📝 {t('photo.hasNote')}</span>
+                        <span className={filterHasNote ? 'text-gray-300' : 'text-gray-400'}>
+                          {base.filter(p => photoNoteIds.has(p.id)).length}
+                        </span>
                       </button>
-                    )
-                  })}
-                  <button onClick={() => setFilterRating(filterRating === 0 ? null : 0)}
-                    className={`w-full text-left px-2 py-1 text-xs rounded flex items-center justify-between ${filterRating === 0 ? 'bg-black text-white' : 'hover:bg-gray-50'}`}>
-                    <span className="text-gray-400">{t('filter.unrated')}</span>
-                    <span className="text-gray-400">{photos.filter(p => !p.rating).length}</span>
-                  </button>
-                </div>
 
-                {/* 컬러 레이블 필터 */}
-                <div className="mb-2">
-                  <div className="flex items-center justify-between mb-2">
-                    <p className="text-xs font-semibold text-gray-500">{t('filter.colors')}</p>
-                    <button onClick={handleClearColorLabels} className="text-xs text-gray-400 hover:text-red-500">{t('common.reset')}</button>
-                  </div>
-                  {colorLabels.map(label => {
-                    const count = photos.filter(p => p.color_label === label.value).length
-                    return (
-                      <button key={label.value} onClick={() => setFilterColor(filterColor === label.value ? null : label.value)}
-                        className={`w-full text-left px-2 py-1 text-xs rounded flex items-center justify-between ${filterColor === label.value ? 'bg-black text-white' : 'hover:bg-gray-50'}`}>
-                        <span className="flex items-center gap-2"><span className={`w-3 h-3 rounded-full ${label.color}`} />{label.label}</span>
-                        <span className="text-gray-400">{count}</span>
-                      </button>
-                    )
-                  })}
-                </div>
+                      {/* 별점 필터 */}
+                      <div className="mb-4">
+                        <div className="flex items-center justify-between mb-2">
+                          <p className="text-xs font-semibold text-gray-500">{t('filter.rating')}</p>
+                          <button onClick={handleClearRatings} className="text-xs text-gray-400 hover:text-red-500">{t('common.reset')}</button>
+                        </div>
+                        {[5, 4, 3, 2, 1].map(star => (
+                          <button key={star} onClick={() => setFilterRating(filterRating === star ? null : star)}
+                            className={`w-full text-left px-2 py-1 text-xs rounded flex items-center justify-between ${filterRating === star ? 'bg-black text-white' : 'hover:bg-gray-50'}`}>
+                            <span>{'★'.repeat(star)}{'☆'.repeat(5 - star)}</span>
+                            <span className={filterRating === star ? 'text-gray-300' : 'text-gray-400'}>{base.filter(p => p.rating === star).length}</span>
+                          </button>
+                        ))}
+                        <button onClick={() => setFilterRating(filterRating === 0 ? null : 0)}
+                          className={`w-full text-left px-2 py-1 text-xs rounded flex items-center justify-between ${filterRating === 0 ? 'bg-black text-white' : 'hover:bg-gray-50'}`}>
+                          <span className={filterRating === 0 ? 'text-gray-300' : 'text-gray-400'}>{t('filter.unrated')}</span>
+                          <span className={filterRating === 0 ? 'text-gray-300' : 'text-gray-400'}>{base.filter(p => !p.rating).length}</span>
+                        </button>
+                      </div>
+
+                      {/* 컬러 레이블 필터 */}
+                      <div className="mb-2">
+                        <div className="flex items-center justify-between mb-2">
+                          <p className="text-xs font-semibold text-gray-500">{t('filter.colors')}</p>
+                          <button onClick={handleClearColorLabels} className="text-xs text-gray-400 hover:text-red-500">{t('common.reset')}</button>
+                        </div>
+                        {colorLabels.map(label => (
+                          <button key={label.value} onClick={() => setFilterColor(filterColor === label.value ? null : label.value)}
+                            className={`w-full text-left px-2 py-1 text-xs rounded flex items-center justify-between ${filterColor === label.value ? 'bg-black text-white' : 'hover:bg-gray-50'}`}>
+                            <span className="flex items-center gap-2"><span className={`w-3 h-3 rounded-full ${label.color}`} />{label.label}</span>
+                            <span className={filterColor === label.value ? 'text-gray-300' : 'text-gray-400'}>{base.filter(p => p.color_label === label.value).length}</span>
+                          </button>
+                        ))}
+                      </div>
+                    </>
+                  )
+                })()}
 
               </div>
             )}
@@ -1606,38 +1669,58 @@ export default function ProjectDetail({
             {photoSubTab === 'trash' && (
               <div>
                 {trashedPhotos.length > 0 && (
-                  <div className="mb-4 flex items-center justify-between bg-red-50 border border-red-200 rounded-lg px-4 py-2.5">
-                    <p className="text-xs text-red-600">
-                      🗑️ {t('photo.trash')} {trashedPhotos.length}{t('photo.countText')}
-                    </p>
+                  <div className="mb-4 flex items-center justify-between bg-red-50 border border-red-200 rounded-lg px-4 py-2.5 gap-3">
+                    <div className="min-w-0">
+                      <p className="text-xs text-red-600">
+                        🗑️ {t('photo.trash')} {trashedPhotos.length}{t('photo.countText')}
+                      </p>
+                      {localTrashPhotos.length > 0 && (
+                        <p className="text-xs text-amber-600 mt-0.5">
+                          ⚠️ {t('trash.localSyncBadge')} {localTrashPhotos.length}{t('photo.countText')}
+                        </p>
+                      )}
+                    </div>
                     <button
                       onClick={handleDeleteAllTrash}
                       disabled={deletingTrash}
-                      className="text-xs px-3 py-1.5 bg-red-500 hover:bg-red-600 text-white rounded disabled:opacity-50"
+                      className="shrink-0 text-xs px-3 py-1.5 bg-red-500 hover:bg-red-600 text-white rounded disabled:opacity-50"
                     >
-                      {deletingTrash ? t('photo.deleting') : t('photo.deleteAllPermanent')}
+                      {deletingTrash
+                        ? t('photo.deleting')
+                        : webTrashPhotos.length > 0 && localTrashPhotos.length > 0
+                          ? t('photo.deleteAllPermanent') + ` (웹 ${webTrashPhotos.length}개)`
+                          : t('photo.deleteAllPermanent')}
                     </button>
                   </div>
                 )}
                 {trashedPhotos.length === 0 ? (
                   <div className="text-center py-20 text-gray-400 border rounded-xl bg-gray-50">
                     <p className="text-lg mb-2">{t('photo.trashEmpty')}</p>
-                    {/* <p className="text-sm">{t('photo.deleteInfo')}</p> */}
                   </div>
                 ) : (
                   <div className="grid grid-cols-3 gap-4">
                     {trashedPhotos.map(photo => {
                       const deletedDate = new Date(photo.deleted_at!)
                       const daysLeft = 30 - Math.floor((Date.now() - deletedDate.getTime()) / (1000 * 60 * 60 * 24))
-                      
+                      const isLocal = !canHardDelete(photo)
+
                       return (
                         <div key={photo.id} className="rounded overflow-hidden bg-transparent group relative shadow-sm border border-gray-200">
-                          <img 
-                            src={photo.image_url} 
-                            alt={photo.caption || ''} 
-                            className="w-full aspect-[3/2] object-contain"
-                          />
-                          <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity bg-black/70 flex flex-col items-center justify-center gap-2 px-4 z-10">
+                          <div className="relative">
+                            <img
+                              src={photo.image_url}
+                              alt={photo.caption || ''}
+                              className="w-full aspect-[3/2] object-contain"
+                            />
+                            {isLocal && (
+                              <div className="absolute top-1.5 left-1.5 z-10">
+                                <span className="inline-flex items-center gap-1 px-1.5 py-0.5 text-[10px] font-medium rounded bg-amber-500/90 text-white backdrop-blur-sm">
+                                  {t('trash.localSyncBadge')}
+                                </span>
+                              </div>
+                            )}
+                          </div>
+                          <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity bg-black/70 flex flex-col items-center justify-center gap-2 px-4 z-20">
                             <button
                               onClick={async () => {
                                 try {
@@ -1649,7 +1732,6 @@ export default function ProjectDetail({
                                   const detail = err.response?.data?.detail
                                   const code = typeof detail === 'object' ? detail.code : detail
                                   const limit = typeof detail === 'object' ? detail.limit : undefined
-
                                   if (code === 'PHOTO_LIMIT_EXCEEDED') {
                                     showToast(t('api.error.PHOTO_LIMIT_EXCEEDED', { limit }), 'warning')
                                   }
@@ -1657,11 +1739,11 @@ export default function ProjectDetail({
                               }}
                               className="w-full text-center px-4 py-1.5 text-xs bg-white text-black rounded hover:bg-gray-200 font-medium shadow-lg"
                             >
-                               ↺ {t('trash.restore')}
+                              ↺ {t('trash.restore')}
                             </button>
                             <button
                               onClick={() => {
-                                if (!canHardDelete(photo)) {
+                                if (isLocal) {
                                   showToast(
                                     !isElectron
                                       ? t('trash.permanentDeleteWebBlocked')
@@ -1680,7 +1762,7 @@ export default function ProjectDetail({
                                 })
                               }}
                               className={`w-full text-center px-4 py-1.5 text-xs rounded font-medium shadow-lg ${
-                                canHardDelete(photo)
+                                !isLocal
                                   ? 'bg-red-600 text-white hover:bg-red-700'
                                   : 'bg-gray-500 text-white hover:bg-gray-600'
                               }`}
@@ -1689,9 +1771,8 @@ export default function ProjectDetail({
                             </button>
                           </div>
                           <div className="p-2 bg-transparent flex items-center justify-center h-10">
-                            {/* 💡 날짜 표시 버그 수정 (이전에 요청하신 {daysLeft}일 후 영구 삭제로 복구) */}
                             <p className="text-xs text-red-500 font-medium">
-                              {t('trash.delete_warning', { daysLeft: daysLeft })}
+                              {t('trash.delete_warning', { daysLeft })}
                             </p>
                           </div>
                         </div>
