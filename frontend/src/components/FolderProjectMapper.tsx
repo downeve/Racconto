@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
 import axios from 'axios'
-import { FolderOpenIcon, XMarkIcon, LinkIcon } from '@heroicons/react/24/outline'
+import { FolderOpenIcon, XMarkIcon, LinkIcon, ExclamationTriangleIcon } from '@heroicons/react/24/outline'
 import ConfirmModal from './ConfirmModal'
 
 const API = import.meta.env.VITE_API_URL
@@ -23,6 +23,7 @@ export default function FolderProjectMapper() {
   const [selectedFolder, setSelectedFolder] = useState<string | null>(null)
   const [selectedProjectId, setSelectedProjectId] = useState<string>('')
   const [confirmModal, setConfirmModal] = useState<{ folderPath: string; projectId: string; count: number } | null>(null)
+  const [missingFolders, setMissingFolders] = useState<Set<string>>(new Set())
   const { t } = useTranslation()
 
   const isElectron = !!window.racconto
@@ -36,6 +37,18 @@ export default function FolderProjectMapper() {
   const loadMappings = async () => {
     const result = await window.racconto!.getAllMappings()
     setMappings(result)
+    checkMissingFolders(result)
+  }
+
+  const checkMissingFolders = async (mappingResult: Record<string, Mapping>) => {
+    const missing = new Set<string>()
+    await Promise.all(
+      Object.keys(mappingResult).map(async (folderPath) => {
+        const exists = await window.racconto!.folderExists(folderPath)
+        if (!exists) missing.add(folderPath)
+      })
+    )
+    setMissingFolders(missing)
   }
 
   const loadProjects = async () => {
@@ -116,22 +129,35 @@ export default function FolderProjectMapper() {
       {/* 연결된 폴더 목록 */}
       {Object.keys(mappings).length > 0 && (
         <div className="mb-4 space-y-2">
-          {Object.entries(mappings).map(([folderPath, mapping]) => (
-            <div key={folderPath}
-              className="flex items-center justify-between bg-gray-50 rounded px-3 py-2 text-sm">
-              <div className="flex items-center gap-2 min-w-0">
-                <LinkIcon className="w-4 h-4 text-gray-400 shrink-0" />
-                <div className="min-w-0">
-                  <p className="font-medium text-gray-700 truncate">{mapping.projectName}</p>
-                  <p className="text-xs text-gray-400 truncate">{folderPath}</p>
+          {Object.entries(mappings).map(([folderPath, mapping]) => {
+            const isMissing = missingFolders.has(folderPath)
+            return (
+              <div key={folderPath}
+                className={`flex items-center justify-between rounded px-3 py-2 text-sm ${isMissing ? 'bg-amber-50 border border-amber-200' : 'bg-gray-50'}`}>
+                <div className="flex items-center gap-2 min-w-0">
+                  {isMissing
+                    ? <ExclamationTriangleIcon className="w-4 h-4 text-amber-500 shrink-0" />
+                    : <LinkIcon className="w-4 h-4 text-gray-400 shrink-0" />
+                  }
+                  <div className="min-w-0">
+                    <p className={`font-medium truncate ${isMissing ? 'text-amber-700' : 'text-gray-700'}`}>
+                      {mapping.projectName}
+                    </p>
+                    <p className={`text-xs truncate ${isMissing ? 'text-amber-500' : 'text-gray-400'}`}>
+                      {folderPath}
+                    </p>
+                    {isMissing && (
+                      <p className="text-xs text-amber-600 mt-0.5">{t('electron.folderMissingTooltip')}</p>
+                    )}
+                  </div>
                 </div>
+                <button onClick={() => handleUnlink(folderPath)}
+                  className="ml-2 text-gray-400 hover:text-red-500 shrink-0">
+                  <XMarkIcon className="w-4 h-4" />
+                </button>
               </div>
-              <button onClick={() => handleUnlink(folderPath)}
-                className="ml-2 text-gray-400 hover:text-red-500 shrink-0">
-                <XMarkIcon className="w-4 h-4" />
-              </button>
-            </div>
-          ))}
+            )
+          })}
         </div>
       )}
 

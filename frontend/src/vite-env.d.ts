@@ -23,5 +23,6 @@ interface Window {
     getAllMappings: () => Promise<Record<string, { projectId: string; projectName: string; linkedAt: string }>>
     onUnmapped: (callback: (filePath: string) => void) => void
     onFolderUnlinked: (callback: (folderPath: string) => void) => void
+    folderExists: (folderPath: string) => Promise<boolean>
   }
 }

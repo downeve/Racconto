@@ -455,6 +455,8 @@
     "connect": "Connect",
     "unlinkConfirm": "Unlinking this folder will move {{count}} photo(s) uploaded from it to the trash.\nContinue?",
     "unlinkConfirmNoPhotos": "Disconnect this folder?",
+    "folderMissing": "Folder not found",
+    "folderMissingTooltip": "This folder has been moved or deleted. Please unlink and re-connect it.",
     "upload": {
       "status_with_error": "{{success}} completed · {{failed}} failed",
       "status_success": "{{total}} uploads completed",

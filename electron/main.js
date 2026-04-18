@@ -202,8 +202,9 @@ async function uploadFile(item) {
 let isProcessing = false
 
 // 로그인 시 폴더 초기 동기화:
-// 1) local_missing 플래그 업데이트
-// 2) DB에 없는 로컬 파일만 업로드 큐에 추가 (ignoreInitial: true와 쌍으로 동작)
+// 1) 폴더 경로 유효성 검사 → 경로 없으면 전체 local_missing = true 일괄 처리 후 종료
+// 2) local_missing 플래그 업데이트 (state diffing: 변경분만 bulk 업데이트)
+// 3) DB에 없는 로컬 파일만 업로드 큐에 추가 (ignoreInitial: true와 쌍으로 동작)
 async function syncFolderOnStart(folderPath, projectId) {
   if (!authToken) return
   try {
@@ -222,22 +223,45 @@ async function syncFolderOnStart(folderPath, projectId) {
     const allPhotos = await res.json()
     const activePhotos = allPhotos.filter(p => !p.deleted_at)
 
-    const localFiles = fs.readdirSync(folderPath)
-      .filter(f => IMAGE_EXTENSIONS.includes(path.extname(f).toLowerCase()))
+    // 1) 폴더 경로 유효성 검사 (non-blocking async)
+    let folderExists = true
+    try {
+      await fs.promises.access(folderPath)
+    } catch {
+      folderExists = false
+    }
+
+    if (!folderExists) {
+      // 폴더 자체가 사라진 경우 — 파일 스캔 없이 모든 electron 사진을 일괄 처리
+      // state diffing: 이미 local_missing = true 인 사진은 제외
+      const updates = allPhotos
+        .filter(p => p.source === 'electron' && p.original_filename && !p.local_missing)
+        .map(p => ({ filename: p.original_filename, local_missing: true }))
+      if (updates.length > 0) {
+        await fetchWithAuth(
+          `${API_BASE}/photos/bulk-local-missing?project_id=${encodeURIComponent(projectId)}`,
+          { method: 'PATCH', body: JSON.stringify({ updates }) }
+        )
+        console.log(`폴더 경로 없음, local_missing 일괄 설정: ${updates.length}개`)
+      }
+      return
+    }
+
+    // 2) 폴더 파일 목록 비동기 1회 읽기 → Set 생성 (O(N), non-blocking)
+    const rawFiles = await fs.promises.readdir(folderPath)
+    const localFiles = rawFiles.filter(f => IMAGE_EXTENSIONS.includes(path.extname(f).toLowerCase()))
     const localFileSet = new Set(localFiles)
     const allFilenameSet = new Set(allPhotos.map(p => p.original_filename).filter(Boolean))
 
-    // 1) local_missing 플래그 업데이트 (활성 사진만)
+    // local_missing 플래그 업데이트 (휴지통 포함 전체, state diffing: 변경분만 수집)
     const updates = []
-    for (const photo of activePhotos) {
+    for (const photo of allPhotos) {
       if (!photo.original_filename || photo.source !== 'electron') continue
       const isLocal = localFileSet.has(photo.original_filename)
       if (!isLocal && !photo.local_missing) {
         updates.push({ filename: photo.original_filename, local_missing: true })
-        console.log('local_missing 감지:', photo.original_filename)
       } else if (isLocal && photo.local_missing) {
         updates.push({ filename: photo.original_filename, local_missing: false })
-        console.log('local_missing 복구:', photo.original_filename)
       }
     }
     if (updates.length > 0) {
@@ -527,6 +551,16 @@ ipcMain.handle('watcher:stop', async (event, folderPath) => {
     }
   }
   return { success: true }
+})
+
+// ── 폴더 존재 여부 확인 ──────────────────────────────
+ipcMain.handle('fs:folderExists', async (event, folderPath) => {
+  try {
+    await fs.promises.access(folderPath)
+    return true
+  } catch {
+    return false
+  }
 })
 
 // ── 폴더 선택 다이얼로그 ─────────────────────────────

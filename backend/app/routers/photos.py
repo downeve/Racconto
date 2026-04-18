@@ -396,6 +396,13 @@ def delete_photos_by_folder(
     if not project:
         raise HTTPException(status_code=404, detail="PROJECT_NOT_FOUND")
 
+    # 이미 휴지통에 있던 사진도 local_missing = True로 업데이트 (연동 해제 전 삭제된 사진 포함)
+    db.query(models.Photo).filter(
+        models.Photo.project_id == project_id,
+        models.Photo.folder == folder,
+        models.Photo.deleted_at != None
+    ).update({"local_missing": True}, synchronize_session=False)
+
     photos = db.query(models.Photo).filter(
         models.Photo.project_id == project_id,
         models.Photo.folder == folder,
@@ -813,7 +820,6 @@ def bulk_update_local_missing(
         photo = db.query(models.Photo).filter(
             models.Photo.project_id == project_id,
             models.Photo.original_filename == item["filename"],
-            models.Photo.deleted_at == None
         ).first()
         if photo:
             photo.local_missing = item["local_missing"]
