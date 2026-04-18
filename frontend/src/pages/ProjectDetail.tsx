@@ -72,7 +72,7 @@ interface Photo {
 function Lightbox({
   photo, photos, colorLabels, chapterPhotoIds,
   onClose, onNavigate, onSetRating, onSetColorLabel, onSaveCaption,
-  showExif, chapters, onAddToChapter, projectId,
+  showExif, chapters, onAddToChapter, projectId, onNoteChange,
 }: {
   photo: Photo
   photos: Photo[]
@@ -87,6 +87,7 @@ function Lightbox({
   chapters: { id: string; title: string; parent_id?: string | null; order_num?: number }[]
   onAddToChapter: (photoId: string, chapterId: string) => void
   projectId: string
+  onNoteChange: () => void
 }) {
   const idx = photos.findIndex(p => p.id === photo.id)
   const [editingCaption, setEditingCaption] = useState(false)
@@ -309,6 +310,7 @@ function Lightbox({
           photoId={photo.id}
           projectId={projectId}
           onClose={() => setShowNotePanel(false)}
+          onNoteChange={onNoteChange}
         />
       )}
     </div>
@@ -480,6 +482,7 @@ export default function ProjectDetail({
   const [editingCaption, setEditingCaption] = useState<string | null>(null)
   const [captionKo, setCaptionKo] = useState('')
   const [chapterPhotoIds, setChapterPhotoIds] = useState<Set<string>>(new Set())
+  const [notesVersion, setNotesVersion] = useState(0)
   const [lightboxPhoto, setLightboxPhoto] = useState<Photo | null>(null)
   const [chapterMenuPhoto, setChapterMenuPhoto] = useState<string | null>(null)
   const [chapters, setChapters] = useState<{ id: string; title: string; parent_id?: string | null; order_num?: number }[]>([])
@@ -1238,6 +1241,7 @@ export default function ProjectDetail({
           showExif={showExif}
           chapters={chapters}
           projectId={numericId!}
+          onNoteChange={() => setNotesVersion(v => v + 1)}
           onAddToChapter={async (photoId, chapterId) => {
             await axios.post(`${API}/chapters/${chapterId}/photos`, { photo_id: photoId })
             await fetchChapterPhotoIds()
@@ -1704,13 +1708,14 @@ export default function ProjectDetail({
       <div style={{ display: activeTab === 'story' ? 'block' : 'none' }}>
         <ProjectStory
           projectId={numericId!}
-          activeTab={activeTab} // 🔥 추가: 컴포넌트 내부에서 현재 탭을 알 수 있게 전달
-          allPhotos={photos.filter(p => !p.deleted_at)} 
-          onChapterChange={() => fetchChapterPhotoIds()} 
+          activeTab={activeTab}
+          allPhotos={photos.filter(p => !p.deleted_at)}
+          chapterPhotoCount={chapterPhotoIds.size}
+          onChapterChange={() => fetchChapterPhotoIds()}
           onPhotoUpdate={(photoId, newCaption) => {
-            setPhotos(prev => prev.map(p => 
+            setPhotos(prev => prev.map(p =>
               p.id === photoId ? { ...p, caption: newCaption } : p
-            ));
+            ))
           }}
         />
       </div>
@@ -1719,9 +1724,9 @@ export default function ProjectDetail({
 
       <div style={{ display: activeTab === 'notes' ? 'block' : 'none' }}>
         <ProjectNotes
-          // key={notesKey} // 💡 삭제: 컴포넌트를 유지하여 속도 향상
           projectId={numericId!}
-          activeTab={activeTab} // 🔥 추가: 컴포넌트 내부에서 현재 탭을 알 수 있게 전달
+          activeTab={activeTab}
+          notesVersion={notesVersion}
           photos={photos.filter(p => !p.deleted_at)}
         />
       </div>

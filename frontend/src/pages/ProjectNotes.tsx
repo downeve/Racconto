@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef } from 'react'
+import { useEffect, useState, useRef, useMemo, memo } from 'react'
 import axios from 'axios'
 import ReactMarkdown from 'react-markdown'
 import { useTranslation } from 'react-i18next'
@@ -18,19 +18,152 @@ interface Note {
   updated_at: string
 }
 
-export default function ProjectNotes({
+interface NoteItemProps {
+  note: Note
+  photos: { id: string; image_url: string; caption: string | null }[]
+  editingNote: string | null
+  editContent: string
+  editType: string
+  editPreviewMode: boolean
+  NOTE_TYPES: { value: string; label: string; color: string }[]
+  getNoteType: (value: string) => { value: string; label: string; color: string }
+  setEditType: (v: string) => void
+  setEditPreviewMode: (v: boolean) => void
+  setEditContent: (v: string) => void
+  setEditingNote: (v: string | null) => void
+  handleUpdate: (id: string) => void
+  handleTogglePin: (id: string) => void
+  handleDelete: (id: string) => void
+  startEdit: (note: Note) => void
+  noteRef: (el: HTMLDivElement | null) => void
+}
+
+const NoteItem = memo(function NoteItem({
+  note, photos, editingNote, editContent, editType, editPreviewMode,
+  NOTE_TYPES, getNoteType, setEditType, setEditPreviewMode, setEditContent,
+  setEditingNote, handleUpdate, handleTogglePin, handleDelete, startEdit, noteRef,
+}: NoteItemProps) {
+  const { t, i18n } = useTranslation()
+  const typeInfo = getNoteType(note.note_type)
+  return (
+    <div
+      ref={noteRef}
+      className={`bg-white rounded-lg shadow p-4 ${note.is_pinned ? 'ring-1 ring-stone-300' : ''}`}
+    >
+      {editingNote === note.id ? (
+        <div>
+          <div className="flex items-center gap-2 mb-3">
+            <div className="flex gap-1.5 flex-wrap">
+              {NOTE_TYPES.map(type => (
+                <button
+                  key={type.value}
+                  onClick={() => setEditType(type.value)}
+                  className={`px-2.5 py-1 text-xs rounded-full transition-colors ${
+                    editType === type.value
+                      ? type.color + ' font-semibold ring-1 ring-current'
+                      : 'bg-gray-100 text-gray-400 hover:bg-gray-200'
+                  }`}
+                >
+                  {type.label}
+                </button>
+              ))}
+            </div>
+            <button
+              onClick={() => setEditPreviewMode(!editPreviewMode)}
+              className="ml-auto text-xs text-gray-400 hover:text-black"
+            >
+              {editPreviewMode ? `✏️ ${t('note.editNote')}` : `👁 ${t('note.preview')}`}
+            </button>
+          </div>
+          {editPreviewMode ? (
+            <div className="min-h-[100px] px-3 py-2 text-sm text-gray-700 prose prose-sm max-w-none border rounded bg-gray-50">
+              <ReactMarkdown>{editContent}</ReactMarkdown>
+            </div>
+          ) : (
+            <textarea
+              className="w-full border rounded px-3 py-2 text-sm mb-2 focus:outline-none focus:ring-1 focus:ring-black resize-none"
+              rows={4}
+              value={editContent}
+              onChange={e => setEditContent(e.target.value)}
+            />
+          )}
+          <div className="flex gap-2 mt-2">
+            <button
+              onClick={() => handleUpdate(note.id)}
+              className="bg-stone-600 text-white px-3 py-1 text-xs tracking-wider hover:bg-stone-700 transition-colors rounded"
+            >
+              {t('note.saveNote')}
+            </button>
+            <button
+              onClick={() => { setEditingNote(null); setEditPreviewMode(false) }}
+              className="border px-3 py-1 text-xs hover:bg-gray-50 rounded"
+            >
+              {t('note.cancelNote')}
+            </button>
+          </div>
+        </div>
+      ) : (
+        <div>
+          <div className="flex items-center gap-2 mb-2">
+            <span className={`px-2.5 py-0.5 text-xs rounded-full ${typeInfo.color}`}>
+              {typeInfo.label}
+            </span>
+            {note.photo_id && (() => {
+              const photo = photos.find(p => p.id === note.photo_id)
+              return photo ? (
+                <div className="flex items-center gap-2">
+                  <img src={photo.image_url} alt="" className="w-8 h-8 object-cover rounded border border-gray-200" />
+                  {photo.caption && <span className="text-xs text-gray-400 italic">{photo.caption}</span>}
+                </div>
+              ) : null
+            })()}
+            {note.is_pinned && <span className="text-xs text-stone-400">📌 {t('note.pinned')}</span>}
+            <div className="ml-auto flex items-center gap-3">
+              <span className="text-xs text-gray-400">
+                {new Date(note.updated_at).toLocaleString(
+                  i18n.language?.startsWith('ko') ? 'ko-KR' : 'en-US',
+                  { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' }
+                )}
+              </span>
+              <button
+                onClick={() => handleTogglePin(note.id)}
+                className={`text-xs hover:text-black transition-colors ${note.is_pinned ? 'text-stone-500' : 'text-gray-300 hover:text-stone-400'}`}
+                title={note.is_pinned ? `${t('note.pinRemove')}` : `${t('note.pin')}`}
+              >
+                📌
+              </button>
+              <button onClick={() => startEdit(note)} className="text-xs text-gray-400 hover:text-black">
+                {t('note.editNote')}
+              </button>
+              <button onClick={() => handleDelete(note.id)} className="text-xs text-red-400 hover:text-red-600">
+                {t('note.deleteNote')}
+              </button>
+            </div>
+          </div>
+          <div className="prose prose-sm max-w-none text-gray-700">
+            <ReactMarkdown>{note.content}</ReactMarkdown>
+          </div>
+        </div>
+      )}
+    </div>
+  )
+})
+
+function ProjectNotes({
     projectId,
     activeTab,
+    notesVersion,
     photos,
   }: {
     projectId: string
     activeTab: string
+    notesVersion: number
     photos: { id: string; image_url: string; caption: string | null }[]
   }) {
   const { t, i18n } = useTranslation()
   const [notes, setNotes] = useState<Note[]>([])
   const [newContent, setNewContent] = useState('')
-  const [hasFetched, setHasFetched] = useState(false);
+  const fetchedAtVersion = useRef(-1)
   const [newType, setNewType] = useState('memo')
   const [editingNote, setEditingNote] = useState<string | null>(null)
   const [editContent, setEditContent] = useState('')
@@ -50,11 +183,11 @@ export default function ProjectNotes({
     noteRefs.current[noteId]?.scrollIntoView({ behavior: 'smooth', block: 'start' })
   }
 
-  const filteredNotes = notes.filter(note => {
+  const filteredNotes = useMemo(() => notes.filter(note => {
     if (filterPinned && !note.is_pinned) return false
     if (filterType && note.note_type !== filterType) return false
     return true
-  })
+  }), [notes, filterPinned, filterType])
 
   const NOTE_TYPES = [
     { value: 'memo',     label: t('note.labelWork'), color: 'bg-stone-100 text-stone-600' },
@@ -71,17 +204,17 @@ export default function ProjectNotes({
     try {
       const res = await axios.get(`${API}/notes/?project_id=${projectId}`)
       setNotes(res.data)
-      setHasFetched(true); // ✅ 추가
     } catch (err) {
       console.error(err)
     }
   }
 
   useEffect(() => {
-    if (activeTab === 'notes' && !hasFetched) {
-      fetchNotes();
-    }
-  }, [activeTab, hasFetched, projectId]);
+    if (activeTab !== 'notes') return
+    if (fetchedAtVersion.current === notesVersion) return
+    fetchedAtVersion.current = notesVersion
+    fetchNotes()
+  }, [activeTab, notesVersion, projectId])
 
   const handleAdd = async () => {
     if (!newContent.trim()) return
@@ -331,128 +464,28 @@ export default function ProjectNotes({
 
         {/* 노트 목록 */}
         <div className="space-y-4">
-          {filteredNotes.map(note => {
-            const typeInfo = getNoteType(note.note_type)
-            return (
-              <div
-                key={note.id}
-                ref={el => { noteRefs.current[note.id] = el }}
-                className={`bg-white rounded-lg shadow p-4 ${note.is_pinned ? 'ring-1 ring-stone-300' : ''}`}
-              >
-                {editingNote === note.id ? (
-                  <div>
-                    <div className="flex items-center gap-2 mb-3">
-                      <div className="flex gap-1.5 flex-wrap">
-                        {NOTE_TYPES.map(type => (
-                          <button
-                            key={type.value}
-                            onClick={() => setEditType(type.value)}
-                            className={`px-2.5 py-1 text-xs rounded-full transition-colors ${
-                              editType === type.value
-                                ? type.color + ' font-semibold ring-1 ring-current'
-                                : 'bg-gray-100 text-gray-400 hover:bg-gray-200'
-                            }`}
-                          >
-                            {type.label}
-                          </button>
-                        ))}
-                      </div>
-                      <button
-                        onClick={() => setEditPreviewMode(!editPreviewMode)}
-                        className="ml-auto text-xs text-gray-400 hover:text-black"
-                      >
-                        {editPreviewMode ? `✏️ ${t('note.editNote')}` : `👁 ${t('note.preview')}`}
-                      </button>
-                    </div>
-
-                    {editPreviewMode ? (
-                      <div className="min-h-[100px] px-3 py-2 text-sm text-gray-700 prose prose-sm max-w-none border rounded bg-gray-50">
-                        <ReactMarkdown>{editContent}</ReactMarkdown>
-                      </div>
-                    ) : (
-                      <textarea
-                        className="w-full border rounded px-3 py-2 text-sm mb-2 focus:outline-none focus:ring-1 focus:ring-black resize-none"
-                        rows={4}
-                        value={editContent}
-                        onChange={e => setEditContent(e.target.value)}
-                      />
-                    )}
-
-                    <div className="flex gap-2 mt-2">
-                      <button
-                        onClick={() => handleUpdate(note.id)}
-                        className="bg-stone-600 text-white px-3 py-1 text-xs tracking-wider hover:bg-stone-700 transition-colors rounded"
-                      >
-                        {t('note.saveNote')}
-                      </button>
-                      <button
-                        onClick={() => { setEditingNote(null); setEditPreviewMode(false) }}
-                        className="border px-3 py-1 text-xs hover:bg-gray-50 rounded"
-                      >
-                        {t('note.cancelNote')}
-                      </button>
-                    </div>
-                  </div>
-                ) : (
-                  <div>
-                    <div className="flex items-center gap-2 mb-2">
-                      <span className={`px-2.5 py-0.5 text-xs rounded-full ${typeInfo.color}`}>
-                        {typeInfo.label}
-                      </span>
-                      {note.photo_id && (() => {
-                        const photo = photos.find(p => p.id === note.photo_id)
-                        return photo ? (
-                          <div className="flex items-center gap-2">
-                            <img
-                              src={photo.image_url}
-                              alt=""
-                              className="w-8 h-8 object-cover rounded border border-gray-200"
-                            />
-                            {photo.caption && (
-                              <span className="text-xs text-gray-400 italic">{photo.caption}</span>
-                            )}
-                          </div>
-                        ) : null
-                      })()}
-                      {note.is_pinned && (
-                        <span className="text-xs text-stone-400">📌 {t('note.pinned')}</span>
-                      )}
-                      <div className="ml-auto flex items-center gap-3">
-                        <span className="text-xs text-gray-400">
-                          {new Date(note.updated_at).toLocaleString(
-                            i18n.language?.startsWith('ko') ? 'ko-KR' : 'en-US',
-                            { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' }
-                          )}
-                        </span>
-                        <button
-                          onClick={() => handleTogglePin(note.id)}
-                          className={`text-xs hover:text-black transition-colors ${note.is_pinned ? 'text-stone-500' : 'text-gray-300 hover:text-stone-400'}`}
-                          title={note.is_pinned ? `${t('note.pinRemove')}` : `${t('note.pin')}`}
-                        >
-                          📌
-                        </button>
-                        <button
-                          onClick={() => startEdit(note)}
-                          className="text-xs text-gray-400 hover:text-black"
-                        >
-                          {t('note.editNote')}
-                        </button>
-                        <button
-                          onClick={() => handleDelete(note.id)}
-                          className="text-xs text-red-400 hover:text-red-600"
-                        >
-                          {t('note.deleteNote')}
-                        </button>
-                      </div>
-                    </div>
-                    <div className="prose prose-sm max-w-none text-gray-700">
-                      <ReactMarkdown>{note.content}</ReactMarkdown>
-                    </div>
-                  </div>
-                )}
-              </div>
-            )
-          })}
+          {filteredNotes.map(note => (
+            <NoteItem
+              key={note.id}
+              note={note}
+              photos={photos}
+              editingNote={editingNote}
+              editContent={editContent}
+              editType={editType}
+              editPreviewMode={editPreviewMode}
+              NOTE_TYPES={NOTE_TYPES}
+              getNoteType={getNoteType}
+              setEditType={setEditType}
+              setEditPreviewMode={setEditPreviewMode}
+              setEditContent={setEditContent}
+              setEditingNote={setEditingNote}
+              handleUpdate={handleUpdate}
+              handleTogglePin={handleTogglePin}
+              handleDelete={handleDelete}
+              startEdit={startEdit}
+              noteRef={el => { noteRefs.current[note.id] = el }}
+            />
+          ))}
 
           {filteredNotes.length === 0 && (
             <div className="text-center py-20 text-gray-400">
@@ -470,3 +503,5 @@ export default function ProjectNotes({
     </div>
   )
 }
+
+export default memo(ProjectNotes)

@@ -18,10 +18,12 @@ export default function PhotoNotePanel({
   photoId,
   projectId,
   onClose,
+  onNoteChange,
 }: {
   photoId: string
   projectId: string
   onClose: () => void
+  onNoteChange?: () => void
 }) {
   const { t, i18n } = useTranslation()
   const [notes, setNotes] = useState<Note[]>([])
@@ -63,6 +65,7 @@ export default function PhotoNotePanel({
     setNewContent('')
     setNewType('memo')
     fetchNotes()
+    onNoteChange?.()
   }
 
   const handleUpdate = async (noteId: string) => {
@@ -74,12 +77,14 @@ export default function PhotoNotePanel({
     })
     setEditingNote(null)
     fetchNotes()
+    onNoteChange?.()
   }
 
   const handleDelete = async (noteId: string) => {
     if (!confirm(t('note.deleteConfirm'))) return
     await axios.delete(`${API}/notes/${noteId}`)
     fetchNotes()
+    onNoteChange?.()
   }
 
   return (

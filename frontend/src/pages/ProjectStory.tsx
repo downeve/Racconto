@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo, useRef } from 'react'
+import { useEffect, useState, useMemo, useRef, memo } from 'react'
 import axios from 'axios'
 import { useTranslation } from 'react-i18next'
 import PhotoNotePanel from '../components/PhotoNotePanel'
@@ -138,22 +138,24 @@ function SortablePhotoChapter({ id, imageUrl, photoId, chapterId, caption, onRem
   );
 }
 
-export default function ProjectStory({ 
+function ProjectStory({
   projectId,
   activeTab,
-  allPhotos, 
-  onChapterChange, 
-  onPhotoUpdate 
-}: { 
+  allPhotos,
+  chapterPhotoCount,
+  onChapterChange,
+  onPhotoUpdate
+}: {
   projectId: string,
-  activeTab: string, 
-  allPhotos: Photo[], 
+  activeTab: string,
+  allPhotos: Photo[],
+  chapterPhotoCount: number,
   onChapterChange?: (count: number) => void,
   onPhotoUpdate?: (photoId: string, newCaption: string) => void
 }) {
   const [chapters, setChapters] = useState<Chapter[]>([])
   const [chapterPhotos, setChapterPhotos] = useState<Record<string, ChapterPhoto[]>>({})
-  const [hasFetched, setHasFetched] = useState(false);
+  const fetchedAtCount = useRef(-1)
   const [newTitle, setNewTitle] = useState('')
   const [newDesc, setNewDesc] = useState('')
   const [showAddChapter, setShowAddChapter] = useState(false)
@@ -220,17 +222,10 @@ export default function ProjectStory({
     try {
       const res = await axios.get(`${API}/chapters/?project_id=${projectId}`)
       setChapters(res.data)
-      
-      // 원본 로직: 부모에게 데이터 길이 전달
       onChapterChange?.(res.data.length)
-      
-      // 원본 로직: 각 챕터별 사진들 순차적으로 페칭
       for (const chapter of res.data) {
         fetchChapterPhotos(chapter.id)
       }
-      
-      // ✅ 모든 호출이 끝나면 true로 변경하여 '기억' 상태 돌입
-      setHasFetched(true); 
     } catch (err) {
       console.error(err)
     }
@@ -323,13 +318,12 @@ export default function ProjectStory({
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [selectedPhotoIndex, currentChapterPhotos]);
 
-  // 3. useEffect 수정 (실제 존재하는 함수만 호출)
   useEffect(() => {
-    // 탭이 'story'이고, 아직 데이터를 가져온 적이 없을 때만 실행
-    if (activeTab === 'story' && !hasFetched) {
-      fetchChapters();
-    }
-  }, [activeTab, hasFetched, projectId]);
+    if (activeTab !== 'story') return
+    if (fetchedAtCount.current === chapterPhotoCount) return
+    fetchedAtCount.current = chapterPhotoCount
+    fetchChapters()
+  }, [activeTab, chapterPhotoCount, projectId])
 
   const handleAddChapter = async () => {
     if (!newTitle.trim()) return
@@ -864,7 +858,7 @@ export default function ProjectStory({
                         }}
                         onDragEnd={(e) => { handleDragEnd(e, subChapter.id); setActivePhotoUrl(null) }}
                         onDragCancel={() => setActivePhotoUrl(null)}>
-                        <SortableContext items={getVisibleChapterPhotos(chapter.id).map(p => p.id)} strategy={rectSortingStrategy}>
+                        <SortableContext items={getVisibleChapterPhotos(subChapter.id).map(p => p.id)} strategy={rectSortingStrategy}>
                           <div className="grid grid-cols-3 gap-2 mb-3">
                             {getVisibleChapterPhotos(subChapter.id).map(cp => (
                               <SortablePhotoChapter
@@ -1025,3 +1019,4 @@ export default function ProjectStory({
     </div>
   )
 }
+export default memo(ProjectStory)
