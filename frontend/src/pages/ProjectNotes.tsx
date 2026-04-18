@@ -160,7 +160,7 @@ function ProjectNotes({
     notesVersion: number
     photos: { id: string; image_url: string; caption: string | null }[]
   }) {
-  const { t, i18n } = useTranslation()
+  const { t } = useTranslation()
   const [notes, setNotes] = useState<Note[]>([])
   const [newContent, setNewContent] = useState('')
   const fetchedAtVersion = useRef(-1)
