@@ -35,6 +35,127 @@ interface ExternalStatsData {
   }
 }
 
+interface OrphanResult {
+  orphan_ids: string[]
+  count: number
+  scanned_cf: number
+  scanned_db: number
+}
+
+const OrphanSection = () => {
+  const [result, setResult] = useState<OrphanResult | null>(null)
+  const [scanLoading, setScanLoading] = useState(false)
+  const [cleanupLoading, setCleanupLoading] = useState(false)
+  const [toast, setToast] = useState<{ message: string; ok: boolean } | null>(null)
+
+  const showToast = (message: string, ok: boolean) => {
+    setToast({ message, ok })
+    setTimeout(() => setToast(null), 4000)
+  }
+
+  const handleScan = async () => {
+    setScanLoading(true)
+    setResult(null)
+    try {
+      const token = localStorage.getItem('token')
+      const res = await axios.get(`${API}/admin/orphan-images/scan`, {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+      setResult(res.data)
+    } catch {
+      showToast('Scan failed.', false)
+    } finally {
+      setScanLoading(false)
+    }
+  }
+
+  const handleCleanup = async () => {
+    if (!result || result.count === 0) return
+    if (!confirm(`Delete ${result.count} orphan image(s) from Cloudflare? This cannot be undone.`)) return
+    setCleanupLoading(true)
+    try {
+      const token = localStorage.getItem('token')
+      await axios.post(
+        `${API}/admin/orphan-images/cleanup`,
+        { image_ids: result.orphan_ids },
+        { headers: { Authorization: `Bearer ${token}` } },
+      )
+      showToast(`Queued deletion of ${result.count} orphan image(s).`, true)
+      setResult(null)
+    } catch {
+      showToast('Cleanup failed.', false)
+    } finally {
+      setCleanupLoading(false)
+    }
+  }
+
+  return (
+    <div className="mb-8">
+      <h2 className="text-xs font-semibold text-gray-400 tracking-widest uppercase mb-3">Orphan Images</h2>
+      <div className="bg-white rounded-lg shadow p-5 max-w-xl">
+        <p className="text-xs text-gray-500 mb-4">
+          CF에 존재하지만 DB에 없는 이미지(업로드 24시간 경과)를 검사하고 삭제합니다.
+        </p>
+
+        <div className="flex gap-2 mb-4">
+          <button
+            onClick={handleScan}
+            disabled={scanLoading}
+            className="flex items-center gap-1.5 px-4 py-2 text-xs bg-black text-white rounded hover:bg-gray-800 disabled:opacity-40"
+          >
+            {scanLoading ? (
+              <>
+                <svg className="animate-spin w-3 h-3" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/>
+                </svg>
+                Scanning...
+              </>
+            ) : '🔍 고아 이미지 검사'}
+          </button>
+
+          {result && result.count > 0 && (
+            <button
+              onClick={handleCleanup}
+              disabled={cleanupLoading}
+              className="flex items-center gap-1.5 px-4 py-2 text-xs bg-red-600 text-white rounded hover:bg-red-700 disabled:opacity-40"
+            >
+              {cleanupLoading ? (
+                <>
+                  <svg className="animate-spin w-3 h-3" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/>
+                  </svg>
+                  Deleting...
+                </>
+              ) : `🗑 고아 이미지 일괄 삭제 (${result.count}개)`}
+            </button>
+          )}
+        </div>
+
+        {result && (
+          <div className="text-xs text-gray-600 space-y-1 border-t pt-3">
+            <p>CF 전체: <span className="font-mono font-medium">{result.scanned_cf}</span>장 &nbsp;|&nbsp; DB 등록: <span className="font-mono font-medium">{result.scanned_db}</span>장</p>
+            <p>
+              고아 이미지:{' '}
+              <span className={`font-mono font-bold ${result.count > 0 ? 'text-red-500' : 'text-green-600'}`}>
+                {result.count}개
+              </span>
+              {result.count === 0 && ' — 정상'}
+            </p>
+          </div>
+        )}
+
+        {toast && (
+          <p className={`text-xs mt-3 ${toast.ok ? 'text-green-600' : 'text-red-500'}`}>
+            {toast.ok ? '✓' : '✗'} {toast.message}
+          </p>
+        )}
+      </div>
+    </div>
+  )
+}
+
 const ExternalStatsSection = () => {
     const [data, setData] = useState<ExternalStatsData | null>(null);
     const [loading, setLoading] = useState(true);
@@ -258,6 +379,9 @@ export default function Admin() {
 
       {/* 외부 사용량 통계 UI*/}
       <ExternalStatsSection />
+
+      {/* 고아 이미지 관리 */}
+      <OrphanSection />
 
       {/* 인프라 비용 현황 */}
       <div className="mb-8">

@@ -1,4 +1,6 @@
 import httpx
+import requests
+from concurrent.futures import ThreadPoolExecutor
 from fastapi import APIRouter, Depends, HTTPException, BackgroundTasks
 from sqlalchemy import func
 from sqlalchemy.orm import Session
@@ -9,6 +11,7 @@ from pydantic import BaseModel
 from typing import Optional, Dict, Any, List
 from app.routers.photos import delete_from_cloudflare, delete_cf_files_parallel
 from app.email import send_notice_email
+from datetime import datetime, timedelta
 import os
 
 router = APIRouter(prefix="/admin", tags=["admin"])
@@ -16,6 +19,29 @@ router = APIRouter(prefix="/admin", tags=["admin"])
 LINODE_TOKEN = os.getenv("LINODE_API_TOKEN")
 CF_TOKEN = os.getenv("CF_API_TOKEN")
 CF_ACCOUNT_ID = os.getenv("CF_ACCOUNT_ID")
+
+class OrphanScanResult(BaseModel):
+    orphan_ids: List[str]
+    count: int
+    scanned_cf: int
+    scanned_db: int
+
+class OrphanCleanupRequest(BaseModel):
+    image_ids: List[str]
+
+def _delete_cf_by_id(image_id: str):
+    try:
+        requests.delete(
+            f"https://api.cloudflare.com/client/v4/accounts/{CF_ACCOUNT_ID}/images/v1/{image_id}",
+            headers={"Authorization": f"Bearer {CF_TOKEN}"},
+        )
+    except Exception as e:
+        print(f"CF orphan 삭제 실패 (무시): {e}")
+
+def _delete_cf_ids_parallel(image_ids: List[str]):
+    with ThreadPoolExecutor(max_workers=10) as executor:
+        executor.map(_delete_cf_by_id, image_ids)
+
 
 class UserLimitUpdate(BaseModel):
     project_limit: Optional[int] = None
@@ -221,3 +247,75 @@ def send_notice(
     background_tasks.add_task(send_all, users, body.subject, body.content)
 
     return {"message": "NOTICE_QUEUED", "recipients": len(users)}
+
+
+@router.get("/orphan-images/scan", response_model=OrphanScanResult)
+async def scan_orphan_images(
+    db: Session = Depends(get_db),
+    _: models.User = Depends(require_admin)
+):
+    # 1. DB에 등록된 CF 이미지 ID 수집 (삭제된 사진 포함)
+    db_photos = db.query(models.Photo.image_url).filter(
+        models.Photo.image_url.contains("imagedelivery.net")
+    ).all()
+    db_cf_ids: set[str] = set()
+    for (url,) in db_photos:
+        try:
+            db_cf_ids.add(url.rstrip('/').split('/')[-2])
+        except Exception:
+            pass
+
+    # 2. CF API 전체 이미지 목록 수집 (페이지네이션)
+    cf_images = []
+    page = 1
+    per_page = 100
+    async with httpx.AsyncClient(timeout=30.0) as client:
+        while True:
+            res = await client.get(
+                f"https://api.cloudflare.com/client/v4/accounts/{CF_ACCOUNT_ID}/images/v1",
+                headers={"Authorization": f"Bearer {CF_TOKEN}"},
+                params={"page": page, "per_page": per_page},
+            )
+            data = res.json()
+            if not data.get("success"):
+                raise HTTPException(status_code=500, detail="CF_API_ERROR")
+            images = data["result"].get("images", [])
+            cf_images.extend(images)
+            total_pages = data["result"].get("total_pages", 1)
+            if page >= total_pages or len(images) < per_page:
+                break
+            page += 1
+
+    # 3. DB에 없고 업로드 24시간 경과된 이미지 = 고아
+    cutoff = datetime.utcnow() - timedelta(hours=24)
+    orphan_ids: List[str] = []
+    for img in cf_images:
+        if img["id"] in db_cf_ids:
+            continue
+        try:
+            uploaded_dt = datetime.fromisoformat(
+                img.get("uploaded", "").replace("Z", "+00:00")
+            ).replace(tzinfo=None)
+            if uploaded_dt < cutoff:
+                orphan_ids.append(img["id"])
+        except Exception:
+            orphan_ids.append(img["id"])
+
+    return OrphanScanResult(
+        orphan_ids=orphan_ids,
+        count=len(orphan_ids),
+        scanned_cf=len(cf_images),
+        scanned_db=len(db_cf_ids),
+    )
+
+
+@router.post("/orphan-images/cleanup")
+def cleanup_orphan_images(
+    body: OrphanCleanupRequest,
+    background_tasks: BackgroundTasks,
+    _: models.User = Depends(require_admin)
+):
+    if not body.image_ids:
+        return {"deleted": 0}
+    background_tasks.add_task(_delete_cf_ids_parallel, body.image_ids)
+    return {"deleted": len(body.image_ids), "message": "CLEANUP_QUEUED"}
