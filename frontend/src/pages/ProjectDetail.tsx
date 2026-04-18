@@ -1408,7 +1408,7 @@ export default function ProjectDetail({
                 setSelectedPhotoIds(new Set()) // 끌 때 선택 초기화
                 setShowBulkChapterMenu(false)
               }}
-              className={`flex-1 py-1 text-xs rounded ${showExif ? 'bg-black text-white' : 'bg-gray-100 hover:bg-gray-200'}`}>
+              className={`flex-1 py-1 text-xs rounded ${selectionMode ? 'bg-black text-white' : 'bg-gray-100 hover:bg-gray-200'}`}>
               {selectionMode ? t('common.cancel') : t('common.select')}
             </button>
           </div>
@@ -1768,7 +1768,7 @@ export default function ProjectDetail({
                           setSelectedPhotoIds(new Set()) // 끌 때 선택 초기화
                           setShowBulkChapterMenu(false)
                         }}
-                        className={`flex-1 py-1 text-xs rounded ${showExif ? 'bg-black text-white' : 'bg-gray-100 hover:bg-gray-200'}`}>
+                        className={`flex-1 py-1 text-xs rounded ${selectionMode ? 'bg-black text-white' : 'bg-gray-100 hover:bg-gray-200'}`}>
                         {selectionMode ? t('common.cancel') : t('common.select')}
                       </button>
                     </div>

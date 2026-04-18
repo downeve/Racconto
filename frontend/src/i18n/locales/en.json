@@ -236,7 +236,7 @@
     "noChapter2": "Please make a chapter in the Story tab.",
     "addToChapter": "Add to Chapter",
     "noChapters": "No chapters yet",
-    "addPhotoGuide": "Add photos to this chapter using the 📖 button in the Photos tab.",
+    "addPhotoGuide": "Add images to the chapter in the Photos tab.",
     "addMultiplePhoto": "Add photos to the chapter",
     "addMultiplePhotoSuccess_one": "{{ count }} image added to the chapter.",
     "addMultiplePhotoSuccess_other": "{{ count }} images added to the chapter.",

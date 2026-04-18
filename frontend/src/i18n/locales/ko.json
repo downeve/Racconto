@@ -234,7 +234,7 @@
     "noChapter2": "스토리 탭에서 챕터를 추가해 주세요.",
     "addToChapter": "챕터에 추가",
     "noChapters": "생성된 챕터가 없습니다",
-    "addPhotoGuide": "사진 탭에서 📖 버튼으로 이 챕터에 사진을 추가하세요.",
+    "addPhotoGuide": "사진 탭에서 원하는 이미지를 추가하세요.",
     "addMultiplePhoto": "선택한 사진을 챕터에 추가하세요",
     "addMultiplePhotoSuccess": "{{ count }} 장을 챕터에 추가하였습니다.",
     "multiplePhotoSelected": "{{ count }}장을 선택함",

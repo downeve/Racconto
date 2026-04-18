@@ -1,4 +1,7 @@
 #!/bin/bash
+echo "🧹 이전 프로세스 정리 중..."
+lsof -ti:8000 | xargs kill -9 2>/dev/null || true
+lsof -ti:5173 | xargs kill -9 2>/dev/null || true
 
 echo "📦 1. Docker DB를 시작합니다..."
 docker start racconto_db
@@ -7,15 +10,13 @@ echo "🐍 2. 백엔드(FastAPI) 서버를 시작합니다..."
 cd ~/Racconto/backend
 source venv/bin/activate
 uvicorn app.main:app --reload &
-BACKEND_PID=$!  # 백엔드 프로세스 ID 저장
+BACKEND_PID=$!
 
 echo "⚛️ 3. 프론트엔드(React) 서버를 시작합니다..."
 cd ~/Racconto/frontend
 npm run dev &
-FRONTEND_PID=$! # 프론트엔드 프로세스 ID 저장
+FRONTEND_PID=$!
 
-# 🛑 꿀팁: Ctrl+C (종료) 누를 때 백엔드/프론트엔드 프로세스 한 번에 죽이기 (포트 꼬임 방지)
-trap "echo '🛑 개발 서버를 모두 종료합니다...'; kill $BACKEND_PID $FRONTEND_PID; exit" SIGINT SIGTERM EXIT
+trap "echo '🛑 개발 서버를 모두 종료합니다...'; kill -- -$BACKEND_PID -$FRONTEND_PID 2>/dev/null; lsof -ti:8000 | xargs kill -9 2>/dev/null || true; lsof -ti:5173 | xargs kill -9 2>/dev/null || true; exit" SIGINT SIGTERM EXIT
 
-# 백그라운드 작업들이 끝날 때까지 대기 (이게 있어야 터미널이 안 꺼집니다)
 wait
