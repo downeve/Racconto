@@ -314,6 +314,8 @@ def cleanup_orphan_images(
     background_tasks: BackgroundTasks,
     _: models.User = Depends(require_admin)
 ):
+    if os.getenv("APP_ENV") != "production":
+        raise HTTPException(status_code=403, detail="로컬 환경에서는 실제 이미지 삭제가 금지되어 있습니다.")
     if not body.image_ids:
         return {"deleted": 0}
     background_tasks.add_task(_delete_cf_ids_parallel, body.image_ids)
