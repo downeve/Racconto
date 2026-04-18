@@ -429,6 +429,51 @@ def reorder_chapter_items(
     return {"message": "순서가 성공적으로 변경되었습니다."}
 
 
+# 12. 사진 일괄 추가 (bulk)
+class ChapterItemPhotoBulkAdd(BaseModel):
+    photo_ids: List[str]
+
+@router.post("/{chapter_id}/photos/bulk")
+def bulk_add_photos_to_chapter(
+    chapter_id: str,
+    body: ChapterItemPhotoBulkAdd,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user)
+):
+    get_owned_chapter_or_404(chapter_id, current_user.id, db)
+
+    if not body.photo_ids:
+        raise HTTPException(status_code=400, detail="PHOTO_IDS_EMPTY")
+
+    # 이미 챕터에 있는 photo_id 목록을 한 번에 조회
+    existing_ids = {
+        row.photo_id for row in db.query(models.ChapterItem.photo_id).filter(
+            models.ChapterItem.chapter_id == chapter_id,
+            models.ChapterItem.item_type == "PHOTO",
+            models.ChapterItem.photo_id.in_(body.photo_ids)
+        ).all()
+    }
+
+    next_order = get_next_order_num(chapter_id, db)
+    added = 0
+
+    for photo_id in body.photo_ids:
+        if photo_id in existing_ids:
+            continue  # 중복 스킵
+        db.add(models.ChapterItem(
+            id=str(uuid.uuid4()),
+            chapter_id=chapter_id,
+            item_type="PHOTO",
+            photo_id=photo_id,
+            order_num=next_order
+        ))
+        next_order += 1
+        added += 1
+
+    db.commit()
+    return {"message": f"{added}장이 추가되었습니다.", "added": added, "skipped": len(body.photo_ids) - added}
+
+
 # ── 하위 호환 엔드포인트 ────────────────────────────────────
 # 기존 프론트엔드가 /photos 경로로 목록을 조회하는 코드가 있어
 # 2단계(프론트 교체) 완료 전까지 유지. 교체 후 제거 예정.
