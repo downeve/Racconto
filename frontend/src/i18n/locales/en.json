@@ -141,7 +141,8 @@
       "limitExceeded": "Photo upload limit reached",
       "limitExceededPartial": "{{success}} uploaded · limit reached",
       "fail": "{{count}} file(s) failed to upload",
-      "allSkipped": "{{count}} photo(s) already exist — skipped"
+      "allSkipped": "{{count}} photo(s) already exist — skipped",
+      "folderConfirm": "Upload {{count}} photo(s) from this folder?"
     },
     "trashComment": {
       "DeleteAllConfirm_one": "Are you sure you want to permanently delete 1 photo in the trash?",

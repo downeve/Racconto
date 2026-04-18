@@ -806,7 +806,15 @@ export default function ProjectDetail({
     inputEl.value = ''
     if (validFiles.length === 0) return
 
-    doUpload(validFiles)
+    const isFolder = validFiles.some(f => !!(f as any).webkitRelativePath)
+    if (isFolder) {
+      setConfirmModal({
+        message: t('photo.upload.folderConfirm', { count: validFiles.length }),
+        onConfirm: () => { setConfirmModal(null); doUpload(validFiles) },
+      })
+    } else {
+      doUpload(validFiles)
+    }
   }
 
   // ProjectDetail.tsx 내부의 handleSetCover 수정
@@ -939,6 +947,8 @@ export default function ProjectDetail({
       },
     })
   }
+
+  const exitTrash = () => { if (photoSubTab === 'trash') setPhotoSubTab('all') }
 
   const handleResetAll = () => {
     setFilterFolder(null)
@@ -1181,7 +1191,7 @@ export default function ProjectDetail({
               </div>
               )}
             {/* 지운 사진 */}
-            <button onClick={() => { setPhotoSubTab('trash'); fetchTrash() }}
+            <button onClick={() => { handleResetAll(); setPhotoSubTab('trash'); fetchTrash() }}
               className={`w-full text-left px-2 py-1.5 text-xs rounded flex items-center justify-between ${photoSubTab === 'trash' ? 'bg-red-600 text-white' : 'hover:bg-red-50 text-gray-700'}`}>
               <span>{t('photo.trash')}</span>
               <span className={photoSubTab === 'trash' ? 'text-red-200' : 'text-gray-400'}>{trashedPhotos.length}</span>
@@ -1237,7 +1247,7 @@ export default function ProjectDetail({
           const base = photos.filter(p => !p.deleted_at && (filterFolder === null || p.folder === filterFolder))
           return (
             <>
-              <button onClick={() => setFilterHasNote(!filterHasNote)}
+              <button onClick={() => { exitTrash(); setFilterHasNote(!filterHasNote) }}
                 className={`w-full text-left px-2 py-3 text-xs rounded flex items-center justify-between ${filterHasNote ? 'bg-black text-white' : 'hover:bg-gray-50 text-gray-700'}`}>
                 <span>📝 {t('photo.hasNote')}</span>
                 <span className={filterHasNote ? 'text-gray-300' : 'text-gray-400'}>{base.filter(p => photoNoteIds.has(p.id)).length}</span>
@@ -1250,13 +1260,13 @@ export default function ProjectDetail({
                   <button onClick={handleClearRatings} className="text-xs text-gray-400 hover:text-red-500">{t('common.reset')}</button>
                 </div>
                 {[5, 4, 3, 2, 1].map(star => (
-                  <button key={star} onClick={() => setFilterRating(filterRating === star ? null : star)}
+                  <button key={star} onClick={() => { exitTrash(); setFilterRating(filterRating === star ? null : star) }}
                     className={`w-full text-left px-2 py-1 text-xs rounded flex items-center justify-between ${filterRating === star ? 'bg-black text-white' : 'hover:bg-gray-50'}`}>
                     <span>{'★'.repeat(star)}{'☆'.repeat(5 - star)}</span>
                     <span className={filterRating === star ? 'text-gray-300' : 'text-gray-400'}>{base.filter(p => p.rating === star).length}</span>
                   </button>
                 ))}
-                <button onClick={() => setFilterRating(filterRating === 0 ? null : 0)}
+                <button onClick={() => { exitTrash(); setFilterRating(filterRating === 0 ? null : 0) }}
                   className={`w-full text-left px-2 py-1 text-xs rounded flex items-center justify-between ${filterRating === 0 ? 'bg-black text-white' : 'hover:bg-gray-50'}`}>
                   <span className={filterRating === 0 ? 'text-gray-300' : 'text-gray-400'}>{t('filter.unrated')}</span>
                   <span className={filterRating === 0 ? 'text-gray-300' : 'text-gray-400'}>{base.filter(p => !p.rating).length}</span>
@@ -1270,7 +1280,7 @@ export default function ProjectDetail({
                   <button onClick={handleClearColorLabels} className="text-xs text-gray-400 hover:text-red-500">{t('common.reset')}</button>
                 </div>
                 {colorLabels.map(label => (
-                  <button key={label.value} onClick={() => setFilterColor(filterColor === label.value ? null : label.value)}
+                  <button key={label.value} onClick={() => { exitTrash(); setFilterColor(filterColor === label.value ? null : label.value) }}
                     className={`w-full text-left px-2 py-1 text-xs rounded flex items-center justify-between ${filterColor === label.value ? 'bg-black text-white' : 'hover:bg-gray-50'}`}>
                     <span className="flex items-center gap-2"><span className={`w-3 h-3 rounded-full ${label.color}`} />{label.label}</span>
                     <span className={filterColor === label.value ? 'text-gray-300' : 'text-gray-400'}>{base.filter(p => p.color_label === label.value).length}</span>
@@ -1503,7 +1513,7 @@ export default function ProjectDetail({
                     )}
                     {/* 지운 사진 */}
                     <button
-                      onClick={() => { setPhotoSubTab('trash'); fetchTrash(); }}
+                      onClick={() => { handleResetAll(); setPhotoSubTab('trash'); fetchTrash(); }}
                       className={`w-full text-left px-2 py-1.5 text-xs rounded flex items-center justify-between ${photoSubTab === 'trash' ? 'bg-red-600 text-white font-medium shadow-md' : 'hover:bg-red-50 text-gray-700'}`}
                     >
                       <span>{t('photo.trash')}</span>
@@ -1579,8 +1589,8 @@ export default function ProjectDetail({
                     <>
                       {/* 노트 필터 */}
                       <button
-                        onClick={() => setFilterHasNote(!filterHasNote)}
-                        className={`w-full text-left px-2 py-3 text-xs rounded flex items-center justify-between ${filterHasNote ? 'bg-black text-white' : 'hover:bg-gray-50 text-gray-700'}`}
+                        onClick={() => { exitTrash(); setFilterHasNote(!filterHasNote) }}
+                        className={`w-full text-left px-1.5 py-1.5 mb-2 text-xs rounded flex items-center justify-between ${filterHasNote ? 'bg-black text-white' : 'hover:bg-gray-50 text-gray-700'}`}
                       >
                         <span>📝 {t('photo.hasNote')}</span>
                         <span className={filterHasNote ? 'text-gray-300' : 'text-gray-400'}>
@@ -1595,13 +1605,13 @@ export default function ProjectDetail({
                           <button onClick={handleClearRatings} className="text-xs text-gray-400 hover:text-red-500">{t('common.reset')}</button>
                         </div>
                         {[5, 4, 3, 2, 1].map(star => (
-                          <button key={star} onClick={() => setFilterRating(filterRating === star ? null : star)}
+                          <button key={star} onClick={() => { exitTrash(); setFilterRating(filterRating === star ? null : star) }}
                             className={`w-full text-left px-2 py-1 text-xs rounded flex items-center justify-between ${filterRating === star ? 'bg-black text-white' : 'hover:bg-gray-50'}`}>
                             <span>{'★'.repeat(star)}{'☆'.repeat(5 - star)}</span>
                             <span className={filterRating === star ? 'text-gray-300' : 'text-gray-400'}>{base.filter(p => p.rating === star).length}</span>
                           </button>
                         ))}
-                        <button onClick={() => setFilterRating(filterRating === 0 ? null : 0)}
+                        <button onClick={() => { exitTrash(); setFilterRating(filterRating === 0 ? null : 0) }}
                           className={`w-full text-left px-2 py-1 text-xs rounded flex items-center justify-between ${filterRating === 0 ? 'bg-black text-white' : 'hover:bg-gray-50'}`}>
                           <span className={filterRating === 0 ? 'text-gray-300' : 'text-gray-400'}>{t('filter.unrated')}</span>
                           <span className={filterRating === 0 ? 'text-gray-300' : 'text-gray-400'}>{base.filter(p => !p.rating).length}</span>
@@ -1615,7 +1625,7 @@ export default function ProjectDetail({
                           <button onClick={handleClearColorLabels} className="text-xs text-gray-400 hover:text-red-500">{t('common.reset')}</button>
                         </div>
                         {colorLabels.map(label => (
-                          <button key={label.value} onClick={() => setFilterColor(filterColor === label.value ? null : label.value)}
+                          <button key={label.value} onClick={() => { exitTrash(); setFilterColor(filterColor === label.value ? null : label.value) }}
                             className={`w-full text-left px-2 py-1 text-xs rounded flex items-center justify-between ${filterColor === label.value ? 'bg-black text-white' : 'hover:bg-gray-50'}`}>
                             <span className="flex items-center gap-2"><span className={`w-3 h-3 rounded-full ${label.color}`} />{label.label}</span>
                             <span className={filterColor === label.value ? 'text-gray-300' : 'text-gray-400'}>{base.filter(p => p.color_label === label.value).length}</span>
