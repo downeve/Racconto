@@ -281,8 +281,7 @@ async def scan_orphan_images(
                 raise HTTPException(status_code=500, detail="CF_API_ERROR")
             images = data["result"].get("images", [])
             cf_images.extend(images)
-            total_pages = data["result"].get("total_pages", 1)
-            if page >= total_pages or len(images) < per_page:
+            if len(images) < per_page:
                 break
             page += 1
 
