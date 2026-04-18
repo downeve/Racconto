@@ -405,6 +405,7 @@ def delete_photos_by_folder(
     now = datetime.utcnow()
     for photo in photos:
         photo.deleted_at = now
+        photo.local_missing = True
         clear_cover_if_deleted(project_id, photo.image_url, db)
         db.query(models.Note).filter(
             models.Note.photo_id == photo.id,
