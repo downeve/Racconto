@@ -13,7 +13,8 @@
     "reset": "Reset",
     "all": "All",
     "copied": "Copied!",
-    "error": "An error occurred"
+    "error": "An error occurred",
+    "select": "Select"
   },
   "auth": {
     "login": "Login",
@@ -197,7 +198,8 @@
     "noColor": "No Color",
     "allPortfolio": "Portfolios",
     "portfolioOnly": "Portfolio Only",
-    "noMatch": "No matching photos. Try changing the filters."
+    "noMatch": "No matching photos. Try changing the filters.",
+    "addToChapter": "Add to Chapter"
   },
   "colors": {
     "reject": "Reject",
@@ -235,6 +237,11 @@
     "addToChapter": "Add to Chapter",
     "noChapters": "No chapters yet",
     "addPhotoGuide": "Add photos to this chapter using the 📖 button in the Photos tab.",
+    "addMultiplePhoto": "Add photos to the chapter",
+    "addMultiplePhotoSuccess_one": "{{ count }} image added to the chapter.",
+    "addMultiplePhotoSuccess_other": "{{ count }} images added to the chapter.",
+    "multiplePhotoSelected_one": "{{ count }} image selected",
+    "multiplePhotoSelected_other": "{{ count }} images selected",
     "error": {
       "ReorderFailedLog": "Failed to reorder chapters:",
       "ReorderFailedAlert": "Failed to change the order."

@@ -317,11 +317,12 @@ function Lightbox({
   )
 }
 
-// ── PhotoCard (💡 여기에 챕터 버튼이 100% 안전하게 들어있습니다!) ──────────────────────────────────────────
+// ── PhotoCard ───
 function PhotoCard({
   photo, project, editingCaption, captionKo, setCaptionKo, setEditingCaption,
   onSetCover, onDelete, onSaveCaption, onSetRating, onSetColorLabel,
-  onOpenLightbox, showExif, gridCols, colorLabels, chapterPhotoIds, onShowChapterMenu
+  onOpenLightbox, showExif, gridCols, colorLabels, chapterPhotoIds, //onShowChapterMenu,
+  selectionMode, isSelected, onToggleSelect
 }: {
   photo: Photo
   project: Project
@@ -339,18 +340,62 @@ function PhotoCard({
   gridCols: number
   colorLabels: { value: string; color: string; label: string }[]
   chapterPhotoIds: Set<string>
-  onShowChapterMenu: (photoId: string) => void
+  // onShowChapterMenu: (photoId: string) => void
+  selectionMode: boolean
+  isSelected: boolean
+  onToggleSelect: (id: string) => void
 }) {
   const { t, i18n } = useTranslation()
 
+  const isAlreadyInStory = chapterPhotoIds.has(photo.id);
+
   return (
     <div className="rounded overflow-hidden bg-gray-100">
-      <div className="relative group">
+
+      {/* 🚀 선택되었을 때 파란색 테두리 효과 (ring) 부여 */}
+      <div className={`relative group ${isSelected ? 'ring-4 ring-blue-500' : ''}`}>
         <img
+          src={photo.image_url} alt={photo.caption}
+          className={`w-full aspect-[3/2] object-contain transition-all ${
+            selectionMode && isAlreadyInStory
+              ? 'opacity-40 grayscale-[50%] cursor-not-allowed' // 1. 선택모드 + 이미 챕터에 있음
+              : isSelected
+                ? 'opacity-80 scale-[0.98] cursor-pointer'      // 2. 선택된 상태
+                : 'cursor-pointer hover:opacity-90'             // 3. 기본 상태
+          }`}
+          onClick={() => {
+              if (selectionMode) {
+                if (isAlreadyInStory) return; 
+                onToggleSelect(photo.id);
+              } else {
+                onOpenLightbox(photo);
+              }
+          }}
+        />
+
+        {/* 🚀 선택 모드일 때 보여줄 좌측 상단 체크박스 UI */}
+        {selectionMode && !isAlreadyInStory && (
+          <div 
+            className="absolute top-3 left-3 z-20 cursor-pointer"
+            onClick={(e) => { e.stopPropagation(); onToggleSelect(photo.id); }}
+          >
+            <div className={`w-4 h-4 rounded-full border-1 flex items-center justify-center transition-colors shadow-sm ${
+              isSelected ? 'bg-blue-500 border-blue-500' : 'bg-black/40 border-white/80 hover:bg-black/60'
+            }`}>
+              {isSelected && <span className="text-white text-xs font-bold">✓</span>}
+            </div>
+          </div>
+        )}
+      </div> 
+
+      {/* 기존 코드 유지 */}
+      <div className="relative group">
+      {/*  <img
           src={photo.image_url} alt={photo.caption}
           className="w-full aspect-[3/2] object-contain cursor-pointer"
           onClick={() => onOpenLightbox(photo)}
         />
+      */}
 
         {photo.local_missing && (
           <div className="absolute top-2 left-2 z-10 bg-yellow-400 text-black text-xs font-bold px-2 py-0.5 rounded-full flex items-center gap-1">
@@ -366,27 +411,33 @@ function PhotoCard({
               className={`${gridCols >= 4 ? 'px-1 py-0.5 text-xs' : 'px-2 py-1 text-xs'} rounded ${project?.cover_image_url === photo.image_url ? 'bg-yellow-400 text-black' : 'bg-white text-black'}`}>
               {project?.cover_image_url === photo.image_url ? t('photo.isCover') : t('photo.setCover')}
             </button>
-            {/* 💡 chapters.length > 0 조건을 지워서 항상 아이콘이 나오게 수정! */}
+            {/* 사진 그리드 배열일 때 챕터 버튼 비활성화 */}
+            {/* chapters.length > 0 조건을 지워서 항상 아이콘이 나오게 수정! */}
+            {/*
             {chapterPhotoIds.has(photo.id) ? (
               <button
                 className={`${gridCols >= 4 ? 'px-1 py-0.5 text-xs' : 'px-2 py-1 text-xs'} rounded bg-blue-500 text-white opacity-70 cursor-default`}
                 title="이미 챕터에 포함된 사진"
               >📖</button>
             ) : (
+            // 사진 그리드 배열일 때는 챕터 추가 버튼 비활성화
+            // {/* onClick={e => { e.stopPropagation(); onShowChapterMenu(photo.id) }}
               <button
-                onClick={e => { e.stopPropagation(); onShowChapterMenu(photo.id) }}
                 className={`${gridCols >= 4 ? 'px-1 py-0.5 text-xs' : 'px-2 py-1 text-xs'} rounded bg-white text-black`}
                 title="챕터에 추가"
               >📖</button>
             )}
+            */}
             <button
               onClick={e => { e.stopPropagation(); onDelete(photo.id) }}
-              className="w-6 h-6 flex items-center justify-center bg-red-500 text-white rounded-full text-xs font-bold">
+              className="w-6 h-6 flex items-center justify-center bg-red-400 text-white rounded-full text-xs font-bold">
               ✕
             </button>
           </div>
         </div>
       </div>
+
+      <div className={`bg-white transition-opacity ${selectionMode ? 'opacity-40 pointer-events-none' : ''}`}>
 
       <div className="px-2 py-2 bg-white flex items-center justify-between">
         <div className="flex gap-0.5">
@@ -449,6 +500,7 @@ function PhotoCard({
           </div>
         </div>
       )}
+      </div>
     </div>
   )
 }
@@ -473,6 +525,11 @@ export default function ProjectDetail({
 
   const [photoSubTab, setPhotoSubTab] = useState<'all' | 'folder' | 'trash'>('all')
   const [trashedPhotos, setTrashedPhotos] = useState<Photo[]>([])
+
+  // 🚀 [추가할 State] 다중 선택 모드 관련 상태
+  const [selectionMode, setSelectionMode] = useState(false)
+  const [selectedPhotoIds, setSelectedPhotoIds] = useState<Set<string>>(new Set())
+  const [showBulkChapterMenu, setShowBulkChapterMenu] = useState(false)
   
   const [filterRating, setFilterRating] = useState<number | null>(null)
   const [filterColor, setFilterColor] = useState<string | null>(null)
@@ -639,6 +696,15 @@ export default function ProjectDetail({
       }
     }
   }, [electronTab])
+
+  useEffect(() => {
+    if (selectionMode) {
+      setSelectionMode(false)
+      setSelectedPhotoIds(new Set())
+      setShowBulkChapterMenu(false)
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeTab, filterFolder, filterRating, filterColor, sortBy])
 
   const resizeImage = (file: File): Promise<Blob> => {
     const MAX_SIZE = 2400
@@ -1153,6 +1219,35 @@ export default function ProjectDetail({
 
   const missingCount = photos.filter(p => p.local_missing && !p.deleted_at).length;
 
+  // 🚀 [추가할 함수] 사진 선택/해제 토글
+  const togglePhotoSelection = (photoId: string) => {
+    setSelectedPhotoIds(prev => {
+      const next = new Set(prev)
+      if (next.has(photoId)) next.delete(photoId)
+      else next.add(photoId)
+      return next
+    })
+  }
+
+  // 🚀 [추가할 함수] 선택된 사진들을 특정 챕터에 일괄 전송
+  const handleBulkAddToChapter = async (chapterId: string) => {
+    if (selectedPhotoIds.size === 0) return
+    try {
+      await axios.post(`${API}/chapters/${chapterId}/photos/bulk`, {
+        photo_ids: Array.from(selectedPhotoIds)
+      })
+      // 성공 후 상태 초기화 및 새로고침
+      setSelectionMode(false)
+      setSelectedPhotoIds(new Set())
+      setShowBulkChapterMenu(false)
+      fetchChapterPhotoIds()
+      showToast(t('story.addMultiplePhotoSuccess', {count: selectedPhotoIds.size}), 'success')
+    } catch (error) {
+      console.error("일괄 추가 실패", error)
+      showToast('챕터 추가에 실패했습니다.', 'error')
+    }
+  }
+
   useEffect(() => {
     if (!isElectron) return
     if (activeTab !== 'photos') return
@@ -1272,6 +1367,24 @@ export default function ProjectDetail({
               className={`flex-1 py-1 text-xs rounded ${showExif ? 'bg-black text-white' : 'bg-gray-100 hover:bg-gray-200'}`}>On</button>
             <button onClick={() => setShowExif(false)}
               className={`flex-1 py-1 text-xs rounded ${!showExif ? 'bg-black text-white' : 'bg-gray-100 hover:bg-gray-200'}`}>Off</button>
+          </div>
+        </div>
+
+        <div className="border-t border-gray-100 my-2"></div>
+
+        {/* 사진 다중 선택 - 챕터 추가 버튼 */}
+        <div className="mb-2 flex items-center justify-between">
+          <p className="text-xs font-semibold text-gray-500 mr-3 shrink-0">{t('filter.addToChapter')}</p>
+          <div className="flex gap-1 flex-1">
+            <button
+              onClick={() => {
+                setSelectionMode(v => !v)
+                setSelectedPhotoIds(new Set()) // 끌 때 선택 초기화
+                setShowBulkChapterMenu(false)
+              }}
+              className={`flex-1 py-1 text-xs rounded ${showExif ? 'bg-black text-white' : 'bg-gray-100 hover:bg-gray-200'}`}>
+              {selectionMode ? t('common.cancel') : t('common.select')}
+            </button>
           </div>
         </div>
 
@@ -1601,6 +1714,7 @@ export default function ProjectDetail({
                   </div>
                 </div>
 
+                {/* EXIF 정보 On/Off */}
                 <div className="mb-2 flex items-center justify-between">
                     <p className="text-xs font-semibold text-gray-500 mr-3 shrink-0">{t('filter.exifOnOff')}</p>
                     <div className="flex gap-1 flex-1">
@@ -1611,6 +1725,24 @@ export default function ProjectDetail({
                       <button onClick={() => setShowExif(false)}
                         className={`flex-1 py-1 text-xs rounded ${!showExif ? 'bg-black text-white' : 'bg-gray-100 hover:bg-gray-200'}`}>
                         Off
+                      </button>
+                    </div>
+                </div>
+                
+                <div className="border-t border-gray-100 my-2"></div>
+
+                {/* 사진 다중 선택 - 챕터 추가 버튼 */}
+                <div className="mb-2 flex items-center justify-between">
+                    <p className="text-xs font-semibold text-gray-500 mr-3 shrink-0">{t('filter.addToChapter')}</p>
+                    <div className="flex gap-1 flex-1">
+                      <button
+                        onClick={() => {
+                          setSelectionMode(v => !v)
+                          setSelectedPhotoIds(new Set()) // 끌 때 선택 초기화
+                          setShowBulkChapterMenu(false)
+                        }}
+                        className={`flex-1 py-1 text-xs rounded ${showExif ? 'bg-black text-white' : 'bg-gray-100 hover:bg-gray-200'}`}>
+                        {selectionMode ? t('common.cancel') : t('common.select')}
                       </button>
                     </div>
                 </div>
@@ -1711,9 +1843,12 @@ export default function ProjectDetail({
                       onDelete={handleDeletePhoto} onSaveCaption={handleSaveCaption}
                       onSetRating={handleSetRating} onSetColorLabel={handleSetColorLabel}
                       onOpenLightbox={setLightboxPhoto}
-                      onShowChapterMenu={setChapterMenuPhoto}
+                      //onShowChapterMenu={setChapterMenuPhoto}
                       showExif={showExif} gridCols={gridCols}
                       colorLabels={colorLabels} chapterPhotoIds={chapterPhotoIds}
+                      selectionMode={selectionMode}
+                      isSelected={selectedPhotoIds.has(photo.id)}
+                      onToggleSelect={togglePhotoSelection}
                     />
                   ))}
                 </div>
@@ -1886,6 +2021,67 @@ export default function ProjectDetail({
         <span className="text-2xl font-bold">↑</span>
       </button>
       )}
+
+      {/* 🚀 다중 선택 하단 플로팅 바 */}
+      {selectionMode && activeTab === 'photos' && (
+        <div className="fixed bottom-10 left-1/2 -translate-x-1/2 bg-gray-900 text-white px-3 py-2 rounded-lg shadow-2xl flex items-center gap-8 z-[100] animate-fade-in-up">
+          <div className="flex flex-col">
+            <span className="font-bold text-sm">{t('story.multiplePhotoSelected', { count: selectedPhotoIds.size })}</span>
+            <span className="text-xs text-gray-400">{t('story.addMultiplePhoto')}</span>
+          </div>
+          
+          <div className="flex gap-3 relative">
+            <button
+              onClick={() => setShowBulkChapterMenu(v => !v)}
+              disabled={selectedPhotoIds.size === 0}
+              className="px-2 py-1.5 bg-blue-500 hover:bg-blue-600 disabled:bg-gray-700 disabled:text-gray-500 rounded-lg text-xs font-bold transition-colors"
+            >
+              📖 {t('story.addToChapter')}
+            </button>
+
+            {/* 챕터 목록 드롭다운 (위로 열림) */}
+            {showBulkChapterMenu && selectedPhotoIds.size > 0 && (
+              <div className="absolute bottom-full left-0 mb-3 w-64 bg-white rounded-lg shadow-xl text-black py-2 max-h-64 overflow-y-auto">
+                {chapters.length === 0 ? (
+                  <p className="text-xs text-gray-500 px-3 py-1.5">{t('story.noChapter')}</p>
+                ) : (
+                  chapters.filter(c => !c.parent_id).map((parent, pIdx) => (
+                    <div key={parent.id}>
+                      <button
+                        onClick={() => handleBulkAddToChapter(parent.id)}
+                        className="w-full text-left px-3 py-1.5 hover:bg-blue-50 text-xs font-bold text-gray-600"
+                      >
+                        {t('story.chapter')} {pIdx + 1}. {parent.title}
+                      </button>
+                      {chapters.filter(c => c.parent_id === parent.id).map((child, cIdx) => (
+                        <button
+                          key={child.id}
+                          onClick={() => handleBulkAddToChapter(child.id)}
+                          className="w-full text-left px-3 py-1.5 hover:bg-gray-100 text-xs text-gray-500 pl-8"
+                        >
+                          ↳ {pIdx + 1}.{cIdx + 1}. {child.title}
+                        </button>
+                      ))}
+                    </div>
+                  ))
+                )}
+              </div>
+            )}
+
+            <button 
+              onClick={() => {
+                setSelectionMode(false)
+                setSelectedPhotoIds(new Set())
+                setShowBulkChapterMenu(false)
+              }}
+              className="px-2 py-1.5 bg-white/10 hover:bg-white/20 rounded-lg text-xs font-medium transition-colors"
+            >
+              {t('common.cancel')}
+            </button>
+          </div>
+        </div>
+      )}
+
     </div>
   )
 }

@@ -1,5 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
+from sqlalchemy import func
 from app.database import get_db
 from app import models
 from app.auth import get_current_user
@@ -54,8 +55,11 @@ class ChapterResponse(BaseModel):
     created_at: datetime
     updated_at: datetime
 
-    class Config:
-        from_attributes = True
+class Config:
+    from_attributes = True
+
+class BulkPhotoAdd(BaseModel):
+    photo_ids: List[str]
 
 
 def get_owned_project_or_403(project_id: str, user_id: str, db: Session) -> models.Project:
@@ -316,3 +320,34 @@ def get_chapter_photos(
                 "caption": photo.caption
             })
     return result
+
+
+@router.post("/{chapter_id}/photos/bulk")
+def bulk_add_photos(
+    chapter_id: str, 
+    body: BulkPhotoAdd, 
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user)
+):
+    # 1. 챕터 소유권 확인
+    get_owned_chapter_or_404(chapter_id, current_user.id, db)
+    
+    # 2. 현재 챕터에 있는 가장 마지막 사진의 order_num 찾기
+    last_order = db.query(func.max(models.ChapterPhoto.order_num)).filter_by(chapter_id=chapter_id).scalar() or 0
+    
+    # 3. 일괄 추가 진행 (이미 해당 챕터에 있는 사진은 스킵)
+    added_count = 0
+    for pid in body.photo_ids:
+        existing = db.query(models.ChapterPhoto).filter_by(chapter_id=chapter_id, photo_id=pid).first()
+        if not existing:
+            new_item = models.ChapterPhoto(
+                id=str(uuid.uuid4()),
+                chapter_id=chapter_id,
+                photo_id=pid,
+                order_num=last_order + added_count + 1
+            )
+            db.add(new_item)
+            added_count += 1
+            
+    db.commit()
+    return {"message": f"{added_count}장의 사진이 추가되었습니다."}
