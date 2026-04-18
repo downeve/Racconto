@@ -903,17 +903,52 @@ export default function ProjectDetail({
   }
 
   const handleSetRating = async (photo: Photo, rating: number) => {
-    const newRating = photo.rating === rating ? null : rating
-    await axios.put(`${API}/photos/${photo.id}`, { ...photo, rating: newRating })
-    if (lightboxPhoto?.id === photo.id) setLightboxPhoto(prev => prev ? { ...prev, rating: newRating } : null)
-    fetchPhotos()
+    // 1. 새 상태 계산 & 이전 상태 백업(롤백용)
+    const newRating = photo.rating === rating ? null : rating;
+    const previousRating = photo.rating;
+
+    // 2. ⚡️ 낙관적 업데이트: 서버 대기 없이 화면(메인 그리드, 라이트박스) 즉시 변경
+    setPhotos(prev => prev.map(p => p.id === photo.id ? { ...p, rating: newRating } : p));
+    if (lightboxPhoto?.id === photo.id) {
+      setLightboxPhoto(prev => prev ? { ...prev, rating: newRating } : null);
+    }
+
+    // 3. 백그라운드 서버 통신
+    try {
+      await axios.put(`${API}/photos/${photo.id}`, { ...photo, rating: newRating });
+    } catch (error) {
+      console.error("별점 업데이트 실패, 이전 상태로 롤백합니다.", error);
+      // 4. 🔄 에러 발생 시 롤백 (백업해둔 이전 상태로 화면 원상복구)
+      setPhotos(prev => prev.map(p => p.id === photo.id ? { ...p, rating: previousRating } : p));
+      if (lightboxPhoto?.id === photo.id) {
+        setLightboxPhoto(prev => prev ? { ...prev, rating: previousRating } : null);
+      }
+      // (선택) 여기에 토스트 알림을 추가해도 좋습니다. ex) toast.error("수정에 실패했습니다.")
+    }
   }
 
   const handleSetColorLabel = async (photo: Photo, label: string) => {
-    const newLabel = photo.color_label === label ? null : label
-    await axios.put(`${API}/photos/${photo.id}`, { ...photo, color_label: newLabel })
-    if (lightboxPhoto?.id === photo.id) setLightboxPhoto(prev => prev ? { ...prev, color_label: newLabel } : null)
-    fetchPhotos()
+    // 1. 새 상태 계산 & 이전 상태 백업(롤백용)
+    const newLabel = photo.color_label === label ? null : label;
+    const previousLabel = photo.color_label;
+
+    // 2. ⚡️ 낙관적 업데이트: 화면 즉시 변경
+    setPhotos(prev => prev.map(p => p.id === photo.id ? { ...p, color_label: newLabel } : p));
+    if (lightboxPhoto?.id === photo.id) {
+      setLightboxPhoto(prev => prev ? { ...prev, color_label: newLabel } : null);
+    }
+
+    // 3. 백그라운드 서버 통신
+    try {
+      await axios.put(`${API}/photos/${photo.id}`, { ...photo, color_label: newLabel });
+    } catch (error) {
+      console.error("컬러 라벨 업데이트 실패, 이전 상태로 롤백합니다.", error);
+      // 4. 🔄 에러 발생 시 롤백 (화면 원상복구)
+      setPhotos(prev => prev.map(p => p.id === photo.id ? { ...p, color_label: previousLabel } : p));
+      if (lightboxPhoto?.id === photo.id) {
+        setLightboxPhoto(prev => prev ? { ...prev, color_label: previousLabel } : null);
+      }
+    }
   }
 
   const handleSaveCaptionLightbox = async (photo: Photo, caption: string) => {
