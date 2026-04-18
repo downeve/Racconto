@@ -535,7 +535,7 @@ function ProjectStory({
                     onClick={() => scrollToChapter(chapter.id)}
                     className="flex-1 text-left px-2 py-1.5 text-xs flex items-center gap-1.5 min-w-0"
                   >
-                    <span className="text-gray-300 shrink-0">{idx + 1}</span>
+                    <span className="text-gray-500 shrink-0">{t('story.chapter')} {idx + 1}</span>
                     <span className="truncate text-gray-700 group-hover:text-black">{chapter.title}</span>
                   </button>
                   <div className="flex shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
@@ -559,7 +559,7 @@ function ProjectStory({
                       onClick={() => scrollToChapter(sub.id)}
                       className="flex-1 text-left pl-5 pr-1 py-1 text-xs flex items-center gap-1.5 min-w-0"
                     >
-                      <span className="text-gray-200 shrink-0">{idx + 1}.{subIdx + 1}</span>
+                      <span className="text-gray-400 shrink-0">{t('story.chapter')} {idx + 1}.{subIdx + 1}</span>
                       <span className="truncate text-gray-400 group-hover:text-gray-700">{sub.title}</span>
                     </button>
                     <div className="flex shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
@@ -659,7 +659,7 @@ function ProjectStory({
                     ) : (
                       <div className="flex items-start justify-between">
                         <div>
-                          <span className="text-xs text-gray-400 mr-2">{t('story.chapter')} {idx + 1}</span>
+                          <span className="text-xs text-gray-500 mr-2">{t('story.chapter')} {idx + 1}</span>
                           <span className="font-semibold">{chapter.title}</span>
                           {chapter.description && <p className="text-sm text-gray-500 mt-1">{chapter.description}</p>}
                         </div>
@@ -814,9 +814,9 @@ function ProjectStory({
                       ) : (
                         <div className="flex items-start justify-between">
                           <div>
-                            <span className="text-xs text-blue-500 mr-2">Chapter {idx + 1}.{subIdx + 1}</span>
+                            <span className="text-xs text-gray-400 mr-2">{t('story.chapter')} {idx + 1}.{subIdx + 1}</span>
                             <span className="font-semibold">{subChapter.title}</span>
-                            {subChapter.description && <p className="text-sm text-gray-500 mt-1">{subChapter.description}</p>}
+                            {subChapter.description && <p className="text-sm text-gray-400 mt-1">{subChapter.description}</p>}
                           </div>
                           <div className="flex gap-2 shrink-0">
                             <button
