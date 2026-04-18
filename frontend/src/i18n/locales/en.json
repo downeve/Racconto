@@ -376,9 +376,9 @@
     "deleteProjectError": "An error occurred while deleting the project. (There might be photos remaining inside.)",
     "delete_warning": "{{daysLeft}} days left",
     "deleteAllWebConfirm": "Permanently delete {{count}} photo(s) from trash?",
-    "deleteAllLocalBlocked": "All selected photos are linked to a local folder. Please delete the files from your PC folder first.",
+    "deleteAllLocalBlocked": "All selected photos are linked to a local folder. Please delete the files from your PC folder or unlink local folder first.",
     "deleteAllMixedConfirm": "{{local}} photo(s) linked to a local folder must be deleted from your PC first.\nOnly {{web}} web-uploaded photo(s) will be permanently deleted now. Continue?",
-    "localSyncBadge": "💻 Delete from PC"
+    "localSyncBadge": "💻 Delete from PC or terminate folder link"
   },
   "actions": {
     "resetAllRatings": "Reset All Ratings",
