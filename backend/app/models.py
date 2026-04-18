@@ -114,16 +114,34 @@ class Chapter(Base):
     order_num = Column(Integer, default=0)
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
-    photos = relationship("ChapterPhoto", back_populates="chapter")
+    # ↓ chapter_photos → chapter_items 로 relationship 이름 변경
+    items = relationship("ChapterItem", back_populates="chapter", cascade="all, delete-orphan")
 
-class ChapterPhoto(Base):
-    __tablename__ = "chapter_photos"
+
+# ── ChapterPhoto → ChapterItem ─────────────────────────────
+# 기존 chapter_photos 테이블을 chapter_items 로 교체.
+# item_type: 'PHOTO' (기본) | 'TEXT'
+# - PHOTO: photo_id 에 값, text_content 는 NULL
+# - TEXT:  text_content 에 값, photo_id 는 NULL
+# ──────────────────────────────────────────────────────────
+class ChapterItem(Base):
+    __tablename__ = "chapter_items"
     id = Column(String, primary_key=True)
-    chapter_id = Column(String, ForeignKey("chapters.id"))
-    photo_id = Column(String, ForeignKey("photos.id"))
-    order_num = Column(Integer, default=0)
-    chapter = relationship("Chapter", back_populates="photos")
+    chapter_id = Column(String, ForeignKey("chapters.id", ondelete="CASCADE"), nullable=False)
+    order_num = Column(Integer, default=0, nullable=False)
+
+    # 아이템 타입 구분
+    item_type = Column(String, nullable=False, default='PHOTO')  # 'PHOTO' | 'TEXT'
+
+    # PHOTO 전용 필드 (TEXT 일 때는 NULL)
+    photo_id = Column(String, ForeignKey("photos.id", ondelete="CASCADE"), nullable=True)
+
+    # TEXT 전용 필드 (PHOTO 일 때는 NULL)
+    text_content = Column(Text, nullable=True)
+
+    chapter = relationship("Chapter", back_populates="items")
     photo = relationship("Photo")
+
 
 class Setting(Base):
     __tablename__ = "settings"
@@ -142,10 +160,6 @@ class DeliveryLink(Base):
     label = Column(String, nullable=True)
     password_hash = Column(String, nullable=True)
     expires_at = Column(DateTime, nullable=True)
-    # 사진 필터 조건
-    # filter_rating: 이 값 이상인 사진만 포함 (NULL이면 조건 없음)
-    # filter_color:  이 컬러 레이블 사진만 포함 (NULL이면 조건 없음)
-    # 둘 다 지정하면 AND 조건 (별점 AND 컬러 둘 다 만족해야 포함)
     filter_rating = Column(Integer, nullable=True)
     filter_color = Column(String, nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow)

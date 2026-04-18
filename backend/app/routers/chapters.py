@@ -1,15 +1,17 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
-from sqlalchemy import func
 from app.database import get_db
 from app import models
 from app.auth import get_current_user
 from pydantic import BaseModel
-from typing import Optional, List
+from typing import Optional, List, Literal
 from datetime import datetime
 import uuid
 
 router = APIRouter(prefix="/chapters", tags=["chapters"])
+
+
+# ── Pydantic 모델 ───────────────────────────────────────────
 
 class ChapterCreate(BaseModel):
     project_id: str
@@ -24,26 +26,8 @@ class ChapterUpdate(BaseModel):
     order_num: Optional[int] = 0
     parent_id: Optional[str] = None
 
-class ChapterPhotoAdd(BaseModel):
-    photo_id: str
-    order_num: Optional[int] = 0
-
-class ChapterPhotoUpdate(BaseModel):
-    order_num: int
-
 class ChapterReorder(BaseModel):
     chapter_ids: List[str]
-
-class ChapterPhotoResponse(BaseModel):
-    id: str
-    chapter_id: str
-    photo_id: str
-    order_num: int
-    image_url: Optional[str] = None
-    caption: Optional[str] = None
-
-    class Config:
-        from_attributes = True
 
 class ChapterResponse(BaseModel):
     id: str
@@ -55,12 +39,48 @@ class ChapterResponse(BaseModel):
     created_at: datetime
     updated_at: datetime
 
-class Config:
-    from_attributes = True
+    class Config:
+        from_attributes = True
 
-class BulkPhotoAdd(BaseModel):
-    photo_ids: List[str]
 
+# ── 아이템 관련 Pydantic 모델 ────────────────────────────────
+
+class ChapterItemPhotoAdd(BaseModel):
+    """사진 아이템 추가"""
+    photo_id: str
+    order_num: Optional[int] = None  # None 이면 맨 끝에 자동 배치
+
+class ChapterItemTextAdd(BaseModel):
+    """텍스트 블록 아이템 추가"""
+    text_content: str
+    order_num: Optional[int] = None  # None 이면 맨 끝에 자동 배치
+
+class ChapterItemTextUpdate(BaseModel):
+    """텍스트 블록 내용 수정"""
+    text_content: str
+
+class ChapterItemReorder(BaseModel):
+    """챕터 내 아이템 일괄 순서 변경"""
+    item_ids: List[str]
+
+class ChapterItemResponse(BaseModel):
+    """아이템 목록 조회 응답 — 사진/텍스트 통합"""
+    id: str
+    chapter_id: str
+    order_num: int
+    item_type: str          # 'PHOTO' | 'TEXT'
+    # PHOTO 전용
+    photo_id: Optional[str] = None
+    image_url: Optional[str] = None
+    caption: Optional[str] = None
+    # TEXT 전용
+    text_content: Optional[str] = None
+
+    class Config:
+        from_attributes = True
+
+
+# ── 헬퍼 함수 ───────────────────────────────────────────────
 
 def get_owned_project_or_403(project_id: str, user_id: str, db: Session) -> models.Project:
     project = db.query(models.Project).filter(
@@ -81,6 +101,37 @@ def get_owned_chapter_or_404(chapter_id: str, user_id: str, db: Session) -> mode
         raise HTTPException(status_code=404, detail="CHAPTER_NOT_FOUND")
     return chapter
 
+
+def get_next_order_num(chapter_id: str, db: Session) -> int:
+    """챕터 내 마지막 order_num + 1 반환. 아이템이 없으면 0."""
+    last = db.query(models.ChapterItem).filter(
+        models.ChapterItem.chapter_id == chapter_id
+    ).order_by(models.ChapterItem.order_num.desc()).first()
+    return (last.order_num + 1) if last else 0
+
+
+def build_item_response(item: models.ChapterItem) -> dict:
+    """ChapterItem ORM 객체를 응답 딕셔너리로 변환."""
+    base = {
+        "id": item.id,
+        "chapter_id": item.chapter_id,
+        "order_num": item.order_num,
+        "item_type": item.item_type,
+        "photo_id": None,
+        "image_url": None,
+        "caption": None,
+        "text_content": None,
+    }
+    if item.item_type == "PHOTO" and item.photo:
+        base["photo_id"] = item.photo_id
+        base["image_url"] = item.photo.image_url
+        base["caption"] = item.photo.caption
+    elif item.item_type == "TEXT":
+        base["text_content"] = item.text_content
+    return base
+
+
+# ── 챕터 CRUD ───────────────────────────────────────────────
 
 # 1. 챕터 목록
 @router.get("/", response_model=List[ChapterResponse])
@@ -137,7 +188,7 @@ def create_chapter(
     return db_chapter
 
 
-# 3. 챕터 일괄 순서 변경 (/{chapter_id} 보다 위에 있어야 함)
+# 3. 챕터 일괄 순서 변경 (/{chapter_id} 라우트보다 위에 있어야 함)
 @router.put("/reorder")
 def reorder_chapters(
     body: ChapterReorder,
@@ -201,15 +252,17 @@ def delete_chapter(
 ):
     db_chapter = get_owned_chapter_or_404(chapter_id, current_user.id, db)
 
+    # 서브챕터 및 그 아이템 삭제 (CASCADE가 걸려 있지만 명시적으로 처리)
     sub_chapters = db.query(models.Chapter).filter(models.Chapter.parent_id == chapter_id).all()
     for sub in sub_chapters:
-        db.query(models.ChapterPhoto).filter(
-            models.ChapterPhoto.chapter_id == sub.id
+        db.query(models.ChapterItem).filter(
+            models.ChapterItem.chapter_id == sub.id
         ).delete(synchronize_session=False)
         db.delete(sub)
 
-    db.query(models.ChapterPhoto).filter(
-        models.ChapterPhoto.chapter_id == chapter_id
+    # 현재 챕터 아이템 삭제
+    db.query(models.ChapterItem).filter(
+        models.ChapterItem.chapter_id == chapter_id
     ).delete(synchronize_session=False)
 
     db.delete(db_chapter)
@@ -217,137 +270,228 @@ def delete_chapter(
     return {"message": "챕터와 관련된 하위 데이터가 모두 안전하게 삭제되었습니다."}
 
 
-# 6. 챕터에 사진 추가
-@router.post("/{chapter_id}/photos")
-def add_photo_to_chapter(
+# ── 아이템 CRUD ─────────────────────────────────────────────
+
+# 6. 챕터 아이템 목록 (사진 + 텍스트 혼합, order_num 순)
+@router.get("/{chapter_id}/items")
+def get_chapter_items(
     chapter_id: str,
-    body: ChapterPhotoAdd,
     db: Session = Depends(get_db),
     current_user: models.User = Depends(get_current_user)
 ):
-    db_chapter = get_owned_chapter_or_404(chapter_id, current_user.id, db)
+    get_owned_chapter_or_404(chapter_id, current_user.id, db)
 
-    existing = db.query(models.ChapterPhoto).filter(
-        models.ChapterPhoto.chapter_id == chapter_id,
-        models.ChapterPhoto.photo_id == body.photo_id
+    items = db.query(models.ChapterItem).filter(
+        models.ChapterItem.chapter_id == chapter_id
+    ).order_by(models.ChapterItem.order_num).all()
+
+    return [build_item_response(item) for item in items]
+
+
+# 7. 사진 아이템 추가
+@router.post("/{chapter_id}/photos")
+def add_photo_to_chapter(
+    chapter_id: str,
+    body: ChapterItemPhotoAdd,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user)
+):
+    get_owned_chapter_or_404(chapter_id, current_user.id, db)
+
+    # 동일 챕터에 동일 사진 중복 방지
+    existing = db.query(models.ChapterItem).filter(
+        models.ChapterItem.chapter_id == chapter_id,
+        models.ChapterItem.photo_id == body.photo_id,
+        models.ChapterItem.item_type == "PHOTO"
     ).first()
     if existing:
         raise HTTPException(status_code=400, detail="PHOTO_ALREADY_IN_CHAPTER")
 
-    last = db.query(models.ChapterPhoto).filter(
-        models.ChapterPhoto.chapter_id == chapter_id
-    ).order_by(models.ChapterPhoto.order_num.desc()).first()
-    next_order = (last.order_num + 1) if last else 0
+    order = body.order_num if body.order_num is not None else get_next_order_num(chapter_id, db)
 
-    db_cp = models.ChapterPhoto(
+    db_item = models.ChapterItem(
         id=str(uuid.uuid4()),
         chapter_id=chapter_id,
+        item_type="PHOTO",
         photo_id=body.photo_id,
-        order_num=next_order
+        order_num=order
     )
-    db.add(db_cp)
+    db.add(db_item)
     db.commit()
-    return {"message": "추가되었습니다"}
+    db.refresh(db_item)
+    return build_item_response(db_item)
 
 
-# 7. 챕터에서 사진 제거
-@router.delete("/{chapter_id}/photos/{photo_id}")
-def remove_photo_from_chapter(
+# 8. 텍스트 블록 추가
+@router.post("/{chapter_id}/texts")
+def add_text_to_chapter(
     chapter_id: str,
-    photo_id: str,
+    body: ChapterItemTextAdd,
     db: Session = Depends(get_db),
     current_user: models.User = Depends(get_current_user)
 ):
     get_owned_chapter_or_404(chapter_id, current_user.id, db)
 
-    cp = db.query(models.ChapterPhoto).filter(
-        models.ChapterPhoto.chapter_id == chapter_id,
-        models.ChapterPhoto.photo_id == photo_id
+    if not body.text_content.strip():
+        raise HTTPException(status_code=400, detail="TEXT_CONTENT_EMPTY")
+
+    order = body.order_num if body.order_num is not None else get_next_order_num(chapter_id, db)
+
+    db_item = models.ChapterItem(
+        id=str(uuid.uuid4()),
+        chapter_id=chapter_id,
+        item_type="TEXT",
+        text_content=body.text_content,
+        order_num=order
+    )
+    db.add(db_item)
+    db.commit()
+    db.refresh(db_item)
+    return build_item_response(db_item)
+
+
+# 9. 텍스트 블록 내용 수정
+@router.put("/{chapter_id}/texts/{item_id}")
+def update_text_item(
+    chapter_id: str,
+    item_id: str,
+    body: ChapterItemTextUpdate,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user)
+):
+    get_owned_chapter_or_404(chapter_id, current_user.id, db)
+
+    item = db.query(models.ChapterItem).filter(
+        models.ChapterItem.id == item_id,
+        models.ChapterItem.chapter_id == chapter_id,
+        models.ChapterItem.item_type == "TEXT"
     ).first()
-    if not cp:
+    if not item:
+        raise HTTPException(status_code=404, detail="TEXT_ITEM_NOT_FOUND")
+
+    if not body.text_content.strip():
+        raise HTTPException(status_code=400, detail="TEXT_CONTENT_EMPTY")
+
+    item.text_content = body.text_content
+    db.commit()
+    return build_item_response(item)
+
+
+# 10. 아이템 삭제 (사진/텍스트 공용)
+@router.delete("/{chapter_id}/items/{item_id}")
+def delete_chapter_item(
+    chapter_id: str,
+    item_id: str,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user)
+):
+    get_owned_chapter_or_404(chapter_id, current_user.id, db)
+
+    item = db.query(models.ChapterItem).filter(
+        models.ChapterItem.id == item_id,
+        models.ChapterItem.chapter_id == chapter_id
+    ).first()
+    if not item:
+        raise HTTPException(status_code=404, detail="ITEM_NOT_FOUND")
+
+    db.delete(item)
+    db.commit()
+    return {"message": "삭제되었습니다"}
+
+
+# 11. 챕터 내 아이템 일괄 순서 변경 (DnD 드롭 후 호출)
+@router.put("/{chapter_id}/items/reorder")
+def reorder_chapter_items(
+    chapter_id: str,
+    body: ChapterItemReorder,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user)
+):
+    get_owned_chapter_or_404(chapter_id, current_user.id, db)
+
+    if not body.item_ids:
+        return {"message": "변경할 아이템이 없습니다."}
+
+    # 소유권 검증: 전달된 item_ids 가 모두 해당 챕터 소속인지 확인
+    owned_count = db.query(models.ChapterItem).filter(
+        models.ChapterItem.id.in_(body.item_ids),
+        models.ChapterItem.chapter_id == chapter_id
+    ).count()
+    if owned_count != len(body.item_ids):
+        raise HTTPException(status_code=403, detail="FORBIDDEN")
+
+    for index, item_id in enumerate(body.item_ids):
+        db.query(models.ChapterItem).filter(
+            models.ChapterItem.id == item_id
+        ).update({"order_num": index}, synchronize_session=False)
+
+    db.commit()
+    return {"message": "순서가 성공적으로 변경되었습니다."}
+
+
+# ── 하위 호환 엔드포인트 ────────────────────────────────────
+# 기존 프론트엔드가 /photos 경로로 목록을 조회하는 코드가 있어
+# 2단계(프론트 교체) 완료 전까지 유지. 교체 후 제거 예정.
+
+@router.get("/{chapter_id}/photos")
+def get_chapter_photos_legacy(
+    chapter_id: str,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user)
+):
+    """[Deprecated] /items 로 마이그레이션 예정. PHOTO 타입 아이템만 반환."""
+    get_owned_chapter_or_404(chapter_id, current_user.id, db)
+
+    items = db.query(models.ChapterItem).filter(
+        models.ChapterItem.chapter_id == chapter_id,
+        models.ChapterItem.item_type == "PHOTO"
+    ).order_by(models.ChapterItem.order_num).all()
+
+    return [build_item_response(item) for item in items]
+
+
+@router.delete("/{chapter_id}/photos/{photo_id}")
+def remove_photo_legacy(
+    chapter_id: str,
+    photo_id: str,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user)
+):
+    """[Deprecated] /items/{item_id} 로 마이그레이션 예정."""
+    get_owned_chapter_or_404(chapter_id, current_user.id, db)
+
+    item = db.query(models.ChapterItem).filter(
+        models.ChapterItem.chapter_id == chapter_id,
+        models.ChapterItem.photo_id == photo_id,
+        models.ChapterItem.item_type == "PHOTO"
+    ).first()
+    if not item:
         raise HTTPException(status_code=404, detail="PHOTO_NOT_FOUND")
-    db.delete(cp)
+
+    db.delete(item)
     db.commit()
     return {"message": "제거되었습니다"}
 
 
-# 8. 챕터 내 사진 순서 업데이트
 @router.put("/{chapter_id}/photos/{photo_id}")
-def update_chapter_photo_order(
+def update_photo_order_legacy(
     chapter_id: str,
     photo_id: str,
-    body: ChapterPhotoUpdate,
+    body: dict,
     db: Session = Depends(get_db),
     current_user: models.User = Depends(get_current_user)
 ):
+    """[Deprecated] /items/reorder 로 마이그레이션 예정."""
     get_owned_chapter_or_404(chapter_id, current_user.id, db)
 
-    cp = db.query(models.ChapterPhoto).filter(
-        models.ChapterPhoto.chapter_id == chapter_id,
-        models.ChapterPhoto.photo_id == photo_id
+    item = db.query(models.ChapterItem).filter(
+        models.ChapterItem.chapter_id == chapter_id,
+        models.ChapterItem.photo_id == photo_id,
+        models.ChapterItem.item_type == "PHOTO"
     ).first()
-    if not cp:
+    if not item:
         raise HTTPException(status_code=404, detail="PHOTO_NOT_IN_CHAPTER")
 
-    cp.order_num = body.order_num
+    item.order_num = body.get("order_num", item.order_num)
     db.commit()
     return {"message": "순서가 업데이트되었습니다"}
-
-
-# 9. 챕터 사진 목록
-@router.get("/{chapter_id}/photos")
-def get_chapter_photos(
-    chapter_id: str,
-    db: Session = Depends(get_db),
-    current_user: models.User = Depends(get_current_user)
-):
-    get_owned_chapter_or_404(chapter_id, current_user.id, db)
-
-    chapter_photos = db.query(models.ChapterPhoto).filter(
-        models.ChapterPhoto.chapter_id == chapter_id
-    ).order_by(models.ChapterPhoto.order_num).all()
-
-    result = []
-    for cp in chapter_photos:
-        photo = db.query(models.Photo).filter(models.Photo.id == cp.photo_id).first()
-        if photo:
-            result.append({
-                "id": cp.id,
-                "chapter_id": cp.chapter_id,
-                "photo_id": cp.photo_id,
-                "order_num": cp.order_num,
-                "image_url": photo.image_url,
-                "caption": photo.caption
-            })
-    return result
-
-
-@router.post("/{chapter_id}/photos/bulk")
-def bulk_add_photos(
-    chapter_id: str, 
-    body: BulkPhotoAdd, 
-    db: Session = Depends(get_db),
-    current_user: models.User = Depends(get_current_user)
-):
-    # 1. 챕터 소유권 확인
-    get_owned_chapter_or_404(chapter_id, current_user.id, db)
-    
-    # 2. 현재 챕터에 있는 가장 마지막 사진의 order_num 찾기
-    last_order = db.query(func.max(models.ChapterPhoto.order_num)).filter_by(chapter_id=chapter_id).scalar() or 0
-    
-    # 3. 일괄 추가 진행 (이미 해당 챕터에 있는 사진은 스킵)
-    added_count = 0
-    for pid in body.photo_ids:
-        existing = db.query(models.ChapterPhoto).filter_by(chapter_id=chapter_id, photo_id=pid).first()
-        if not existing:
-            new_item = models.ChapterPhoto(
-                id=str(uuid.uuid4()),
-                chapter_id=chapter_id,
-                photo_id=pid,
-                order_num=last_order + added_count + 1
-            )
-            db.add(new_item)
-            added_count += 1
-            
-    db.commit()
-    return {"message": f"{added_count}장의 사진이 추가되었습니다."}
