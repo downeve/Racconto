@@ -37,6 +37,7 @@ interface ChapterResponse {
 
 interface ChapterPhotoResponse {
   photo_id: string
+  chapter_id: string
 }
 
 interface NoteResponse {
@@ -73,6 +74,7 @@ function Lightbox({
   photo, photos, colorLabels, chapterPhotoIds,
   onClose, onNavigate, onSetRating, onSetColorLabel, onSaveCaption,
   showExif, chapters, onAddToChapter, projectId, onNoteChange,
+  photoChapterMap
 }: {
   photo: Photo
   photos: Photo[]
@@ -85,6 +87,7 @@ function Lightbox({
   onSaveCaption: (p: Photo, c: string) => void
   showExif: boolean
   chapters: { id: string; title: string; parent_id?: string | null; order_num?: number }[]
+  photoChapterMap: Map<string, string>
   onAddToChapter: (photoId: string, chapterId: string) => void
   projectId: string
   onNoteChange: () => void
@@ -95,6 +98,8 @@ function Lightbox({
   const [captionDraft, setCaptionDraft] = useState(photo.caption || '')
   const [showNotePanel, setShowNotePanel] = useState(false)
   const { t, i18n } = useTranslation()
+
+  const inChapter = chapterPhotoIds.has(photo.id)
 
   const [hoverRating, setHoverRating] = useState<{ id: string, star: number } | null>(null);
 
@@ -117,11 +122,38 @@ function Lightbox({
     return () => window.removeEventListener('keydown', onKey)
   }, [photo, photos])
 
-  const inChapter = chapterPhotoIds.has(photo.id)
+  // 🚀 2번 요구사항: 진짜 챕터 번호와 제목을 찾아내는 함수
+  const getAssignedChapterInfo = () => {
+    // 1. Map에서 이 사진이 속한 챕터 ID를 찾음
+    const assignedChapterId = photoChapterMap.get(photo.id);
+    if (!assignedChapterId) return `📖 ${t('story.chapterIncl')}`;
+
+    // 2. 챕터 ID로 전체 챕터 배열에서 챕터 정보(객체)를 찾음
+    const assignedChapter = chapters.find(c => c.id === assignedChapterId);
+    if (!assignedChapter) return `📖 ${t('story.chapterIncl')}`;
+
+    // 3. 번호 계산 및 출력 (드롭다운 메뉴와 동일한 형식)
+    if (assignedChapter.parent_id) {
+      // 하위 챕터인 경우 (예: 1.1)
+      const parent = chapters.find(c => c.id === assignedChapter.parent_id);
+      const parentIdx = chapters.filter(c => !c.parent_id).findIndex(c => c.id === parent?.id) + 1;
+      const childIdx = chapters.filter(c => c.parent_id === parent?.id).findIndex(c => c.id === assignedChapter.id) + 1;
+      return `📖 ${parentIdx}.${childIdx}. ${assignedChapter.title}`;
+    } else {
+      // 부모 챕터인 경우 (예: 1)
+      const parentIdx = chapters.filter(c => !c.parent_id).findIndex(c => c.id === assignedChapter.id) + 1;
+      return `📖 ${parentIdx}. ${assignedChapter.title}`;
+    }
+  }
 
   return (
+    // 🚀 1번 요구사항: 최상위 div 클릭 시 onClose 동작 (바탕 클릭 시 닫힘)
     <div className="fixed inset-0 bg-black/90 z-50 flex flex-col" onClick={onClose}>
-      <div className="flex items-center justify-between px-6 py-3 shrink-0" style={{ paddingTop: window.racconto ? '2rem' : undefined }} onClick={e => e.stopPropagation()}>
+      
+      {/* 상단 바 - 클릭 시 닫히지 않도록 방어 */}
+      <div className="flex items-center justify-between px-6 py-3 shrink-0" 
+           style={{ paddingTop: window.racconto ? '2rem' : undefined }} 
+           onClick={e => e.stopPropagation()}>
         <span className="text-white/50 text-sm">{idx + 1} / {photos.length}</span>
         {photo.local_missing && (
           <span className="text-yellow-400 text-xs font-bold px-2 py-0.5 bg-yellow-400/20 rounded-full">
@@ -131,44 +163,36 @@ function Lightbox({
         <button onClick={onClose} className="text-white/70 hover:text-white text-2xl p-3">✕</button>
       </div>
 
-      <div className="flex-1 flex items-center justify-center relative min-h-0" onClick={onClose}>
+      {/* 중앙 이미지 영역 - 바탕을 누르면 닫히고, 사진/버튼을 누르면 안 닫힘 */}
+      <div className="flex-1 flex items-center justify-center relative min-h-0">
         {idx > 0 && (
-          <button className="absolute left-4 z-10 text-white/70 hover:text-white text-5xl select-none"
+          <button className="absolute left-4 z-10 text-white/70 hover:text-white text-5xl select-none p-4"
             onClick={e => { e.stopPropagation(); onNavigate(photos[idx - 1]) }}>‹</button>
         )}
         <img
           src={photo.image_url} alt={photo.caption || ''}
-          className="max-w-[calc(100%-8rem)] max-h-full object-contain"
-          onClick={e => e.stopPropagation()}
+          className="max-w-[calc(100%-8rem)] max-h-full object-contain cursor-default"
+          onClick={e => e.stopPropagation()} // 🚀 사진 클릭 시 닫힘 방지
         />
         {idx < photos.length - 1 && (
-          <button className="absolute right-4 z-10 text-white/70 hover:text-white text-5xl select-none"
+          <button className="absolute right-4 z-10 text-white/70 hover:text-white text-5xl select-none p-4"
             onClick={e => { e.stopPropagation(); onNavigate(photos[idx + 1]) }}>›</button>
         )}
       </div>
 
+      {/* 하단 정보 바 - 클릭 시 닫히지 않도록 방어 */}
       <div className="shrink-0 bg-black/80 border-t border-white/10 px-6 py-4" onClick={e => e.stopPropagation()}>
         <div className="max-w-[calc(100%-8rem)] mx-auto space-y-3">
           <div className="flex items-center gap-4 flex-wrap">
-            <div 
-              className="flex gap-1"
-              onMouseLeave={() => setHoverRating(null)} // 마우스가 별점 영역을 벗어나면 초기화
-            >
+            {/* 별점 영역 */}
+            <div className="flex gap-1" onMouseLeave={() => setHoverRating(null)}>
               {[1, 2, 3, 4, 5].map(star => {
-                // 1. 현재 마우스가 올라간 사진인지 확인
                 const isHoveringThis = hoverRating?.id === photo.id;
-                // 2. 현재 마우스가 위치한 별(star)보다 작거나 같은 번호인지 확인
                 const isHoveredStar = isHoveringThis && hoverRating.star >= star;
-                // 3. 기존에 확정된 평점인지 확인
                 const isRatedStar = photo.rating && photo.rating >= star;
-
-                // 색상 결정 로직
-                let colorClass = 'text-white/20'; // 기본 회색 (비활성)
-                if (isHoveredStar) {
-                  colorClass = 'text-yellow-300'; // 마우스 오버 시 채워지는 색상
-                } else if (!isHoveringThis && isRatedStar) {
-                  colorClass = 'text-yellow-400'; // 기존 저장된 평점 색상 (마우스 오버 중이 아닐 때만 표시)
-                }
+                let colorClass = 'text-white/20';
+                if (isHoveredStar) colorClass = 'text-yellow-300';
+                else if (!isHoveringThis && isRatedStar) colorClass = 'text-yellow-400';
 
                 return (
                   <button 
@@ -176,110 +200,98 @@ function Lightbox({
                     onMouseEnter={() => setHoverRating({ id: photo.id, star })}
                     onClick={() => onSetRating(photo, star)}
                     className={`text-xl transition-colors ${colorClass}`}
-                  >
-                    ★
-                  </button>
+                  >★</button>
                 )
               })}
             </div>
+            
             <div className="w-px h-5 bg-white/20" />
+            
+            {/* 컬러 라벨 영역 */}
             <div className="flex gap-1.5">
               {colorLabels.map(label => (
                 <button key={label.value} onClick={() => onSetColorLabel(photo, label.value)} title={label.label}
                   className={`w-5 h-5 rounded-full ${label.color} transition-all ${
-                    photo.color_label === label.value
-                      ? 'ring-2 ring-offset-2 ring-offset-black ring-white scale-110'
-                      : 'opacity-40 hover:opacity-80'
+                    photo.color_label === label.value ? 'ring-2 ring-offset-2 ring-offset-black ring-white scale-110' : 'opacity-40 hover:opacity-80'
                   }`} />
               ))}
             </div>
+
             <div className="w-px h-5 bg-white/20" />
-              {/* 💡 부모 div에 flex items-center를 주어 수직 중앙 정렬 기반 마련 */}
-              <div className="relative flex items-center">
-                {inChapter ? (
-                  /* 💡 버튼과 동일한 패딩(px-2 py-1)과 투명 보더(border-transparent)를 주어 박스 크기를 똑같이 맞춥니다 */
-                  <span className="flex items-center text-xs text-blue-400 px-2 py-1 border border-transparent">
-                    📖 {t('story.chapterIncl')}
-                  </span>
-                ) : (
-                  /* 💡 버튼에도 flex items-center를 주어 이모지와 텍스트의 중심을 완벽히 맞춥니다 */
-                  <button
-                    onClick={() => setShowChapterMenu(v => !v)}
-                    className="flex items-center text-xs px-2 py-1 border border-white/20 text-white/60 hover:text-white hover:border-white/50 rounded transition-colors"
-                  >
-                    📖 {t('story.addToChapter')}
-                  </button>
-                )}
-                {showChapterMenu && !inChapter && (
-                  <div className="absolute bottom-8 left-0 bg-white rounded shadow-lg z-50 min-w-[180px] py-1">
-                    {chapters.length === 0 ? (
-                      <p className="text-xs text-gray-400 px-3 py-2">{t('story.noChapters')}</p>
-                    ) : (
-                      chapters
-                        .filter(c => !c.parent_id)
-                        .map((parent, parentIdx) => (
-                          <>
-                            <button
-                              key={parent.id}
-                              onClick={() => {
-                                onAddToChapter(photo.id, parent.id)
-                                setShowChapterMenu(false)
-                              }}
-                              className="w-full text-left text-xs px-3 py-2 hover:bg-gray-100 text-gray-700 font-medium"
-                            >
-                              {t('story.chapter')} {parentIdx + 1}. {parent.title}
-                            </button>
-                            {chapters
-                              .filter(c => c.parent_id === parent.id)
-                              .map((child, childIdx) => (
-                                <button
-                                  key={child.id}
-                                  onClick={() => {
-                                    onAddToChapter(photo.id, child.id)
-                                    setShowChapterMenu(false)
-                                  }}
-                                  className="w-full text-left text-xs px-3 py-2 hover:bg-gray-100 text-gray-500 pl-6"
-                                >
-                                  ↳ {t('story.chapter')} {parentIdx + 1}.{childIdx + 1}. {child.title}
-                                </button>
-                              ))
-                            }
-                          </>
-                        ))
-                    )}
-                  </div>
-                )}
-              </div>
-              <div className="w-px h-5 bg-white/20" />
-              <button
-                onClick={() => setShowNotePanel(v => !v)}
-                className={`text-xs px-2 py-1 border rounded transition-colors ${
-                  showNotePanel
-                    ? 'border-white/50 text-white'
-                    : 'border-white/20 text-white/60 hover:text-white hover:border-white/50'
-                }`}
-              >
-                📝 {t('note.title')}
-              </button>
+            
+            {/* 챕터 추가 / 정보 표시 영역 */}
+            <div className="relative flex items-center">
+              {inChapter ? (
+                // 🚀 이 부분이 소속 챕터를 보여주는 곳입니다 (현재는 임시로 기존 텍스트 반환)
+                <span className="flex items-center text-xs text-blue-400 px-2 py-1 border border-transparent font-medium">
+                  {getAssignedChapterInfo()}
+                </span>
+              ) : (
+                <button
+                  onClick={() => setShowChapterMenu(v => !v)}
+                  className="flex items-center text-xs px-2 py-1 border border-white/20 text-white/60 hover:text-white hover:border-white/50 rounded transition-colors"
+                >
+                  📖 {t('story.addToChapter')}
+                </button>
+              )}
+              
+              {/* 챕터 메뉴 드롭다운 */}
+              {showChapterMenu && !inChapter && (
+                <div className="absolute bottom-8 left-0 bg-white rounded shadow-lg z-50 min-w-[180px] py-1">
+                  {chapters.length === 0 ? (
+                    <p className="text-xs text-gray-400 px-3 py-2">{t('story.noChapters')}</p>
+                  ) : (
+                    chapters.filter(c => !c.parent_id).map((parent, parentIdx) => (
+                      <div key={parent.id}>
+                        <button
+                          onClick={() => { onAddToChapter(photo.id, parent.id); setShowChapterMenu(false); }}
+                          className="w-full text-left text-xs px-3 py-2 hover:bg-gray-100 text-gray-700 font-medium"
+                        >
+                          {t('story.chapter')} {parentIdx + 1}. {parent.title}
+                        </button>
+                        {chapters.filter(c => c.parent_id === parent.id).map((child, childIdx) => (
+                          <button
+                            key={child.id}
+                            onClick={() => { onAddToChapter(photo.id, child.id); setShowChapterMenu(false); }}
+                            className="w-full text-left text-xs px-3 py-2 hover:bg-gray-100 text-gray-500 pl-6"
+                          >
+                            ↳ {t('story.chapter')} {parentIdx + 1}.{childIdx + 1}. {child.title}
+                          </button>
+                        ))}
+                      </div>
+                    ))
+                  )}
+                </div>
+              )}
+            </div>
+
+            <div className="w-px h-5 bg-white/20" />
+            
+            {/* 노트 버튼 */}
+            <button
+              onClick={() => setShowNotePanel(v => !v)}
+              className={`text-xs px-2 py-1 border rounded transition-colors ${
+                showNotePanel ? 'border-white/50 text-white' : 'border-white/20 text-white/60 hover:text-white hover:border-white/50'
+              }`}
+            >
+              📝 {t('note.title')}
+            </button>
+            
+            {/* EXIF 정보 */}
             {showExif && (photo.camera || photo.focal_length || photo.taken_at) && (
               <>
                 <div className="w-px h-5 bg-white/20" />
                 <span className="text-xs text-white/40">
                   {[
-                    photo.taken_at ? new Date(photo.taken_at).toLocaleDateString(
-                      i18n.language === 'ko' ? 'ko-KR' : 'en-US'
-                    ) : null,
-                    photo.camera,
-                    photo.lens,
-                    photo.focal_length,
-                    photo.aperture,
-                    photo.shutter_speed,
-                    photo.iso,
+                    photo.taken_at ? new Date(photo.taken_at).toLocaleDateString(i18n.language === 'ko' ? 'ko-KR' : 'en-US') : null,
+                    photo.camera, photo.lens, photo.focal_length, photo.aperture, photo.shutter_speed, photo.iso,
                   ].filter(Boolean).join(' · ')}
                 </span>
               </>
             )}
           </div>
+          
+          {/* 캡션 수정 영역 */}
           {editingCaption ? (
             <div className="flex gap-2">
               <input
@@ -305,13 +317,17 @@ function Lightbox({
           )}
         </div>
       </div>
+      
+      {/* 노트 패널 (클릭 시 닫히지 않게 내부에 별도 방어 로직이 있거나 여기서 덮을 필요 없음) */}
       {showNotePanel && (
-        <PhotoNotePanel
-          photoId={photo.id}
-          projectId={projectId}
-          onClose={() => setShowNotePanel(false)}
-          onNoteChange={onNoteChange}
-        />
+        <div onClick={e => e.stopPropagation()}>
+          <PhotoNotePanel
+            photoId={photo.id}
+            projectId={projectId}
+            onClose={() => setShowNotePanel(false)}
+            onNoteChange={onNoteChange}
+          />
+        </div>
       )}
     </div>
   )
@@ -539,6 +555,8 @@ export default function ProjectDetail({
   const [editingCaption, setEditingCaption] = useState<string | null>(null)
   const [captionKo, setCaptionKo] = useState('')
   const [chapterPhotoIds, setChapterPhotoIds] = useState<Set<string>>(new Set())
+  const [photoChapterMap, setPhotoChapterMap] = useState<Map<string, string>>(new Map())
+
   const [notesVersion, setNotesVersion] = useState(0)
   const [lightboxPhoto, setLightboxPhoto] = useState<Photo | null>(null)
   const [chapterMenuPhoto, setChapterMenuPhoto] = useState<string | null>(null)
@@ -584,9 +602,17 @@ export default function ProjectDetail({
     const photoResults = await Promise.all(
       chapters.map(c => axios.get<ChapterPhotoResponse[]>(`${API}/chapters/${c.id}/photos`))
     )
+    
     const ids = new Set<string>()
-    photoResults.forEach(r => r.data.forEach(cp => ids.add(cp.photo_id)))
+    const map = new Map<string, string>()
+
+    photoResults.forEach(r => r.data.forEach(cp => {
+      ids.add(cp.photo_id)
+      map.set(cp.photo_id, cp.chapter_id) // 🚀 추가: photo_id에 해당하는 chapter_id 저장
+    }))
+    
     setChapterPhotoIds(ids)
+    setPhotoChapterMap(map) //
   }
 
   const fetchPhotoNoteIds = async () => {
@@ -1474,6 +1500,7 @@ export default function ProjectDetail({
           showExif={showExif}
           chapters={chapters}
           projectId={numericId!}
+          photoChapterMap={photoChapterMap}
           onNoteChange={() => { setNotesVersion(v => v + 1); fetchPhotoNoteIds() }}
           onAddToChapter={async (photoId, chapterId) => {
             await axios.post(`${API}/chapters/${chapterId}/photos`, { photo_id: photoId })
