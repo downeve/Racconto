@@ -972,6 +972,12 @@ export default function ProjectDetail({
     })
   }
 
+  const getFolderDisplayName = (folder: string) =>
+    folder.split(/[/\\]/).filter(Boolean).pop() ?? folder
+
+  const isLocalSyncFolder = (folder: string) =>
+    folder.startsWith('/') || /^[A-Za-z]:\\/.test(folder)
+
   const canHardDelete = (photo: Photo): boolean => {
     if (photo.source !== 'electron') return true
     if (!isElectron) return false
@@ -1156,7 +1162,13 @@ export default function ProjectDetail({
                       setPhotoSubTab(filterFolder === folder ? 'all' : 'folder');
                     }}
                       className="flex-1 text-left px-2 py-1 text-xs flex items-center justify-between min-w-0">
-                      <span className="flex items-center gap-1 min-w-0"><span className="shrink-0">📁</span><span className="truncate">{folder}</span></span>
+                      <span className="flex items-center gap-1 min-w-0">
+                        <span className="shrink-0">📁</span>
+                        <span className="truncate">{getFolderDisplayName(folder!)}</span>
+                        {isLocalSyncFolder(folder!) && (
+                          <span className={`shrink-0 text-[10px] ${filterFolder === folder ? 'text-gray-300' : 'text-gray-400'}`}>💻</span>
+                        )}
+                      </span>
                       <span className={`shrink-0 ml-2 ${filterFolder === folder ? 'text-gray-300' : 'text-gray-400'}`}>{photos.filter(p => p.folder === folder && !p.deleted_at).length}</span>
                     </button>
                     <button
@@ -1471,7 +1483,13 @@ export default function ProjectDetail({
                             setPhotoSubTab(filterFolder === folder ? 'all' : 'folder');
                           }}
                             className="flex-1 text-left px-2 py-1 text-xs flex items-center justify-between min-w-0">
-                            <span className="flex items-center gap-1 min-w-0"><span className="shrink-0">📁</span><span className="truncate">{folder}</span></span>
+                            <span className="flex items-center gap-1 min-w-0">
+                              <span className="shrink-0">📁</span>
+                              <span className="truncate">{getFolderDisplayName(folder!)}</span>
+                              {isLocalSyncFolder(folder!) && (
+                                <span className={`shrink-0 text-[10px] ${filterFolder === folder ? 'text-gray-300' : 'text-gray-400'}`}>💻</span>
+                              )}
+                            </span>
                             <span className={`shrink-0 ml-2 ${filterFolder === folder ? 'text-gray-300' : 'text-gray-400'}`}>{photos.filter(p => p.folder === folder && !p.deleted_at).length}</span>
                           </button>
                           <button
@@ -1484,7 +1502,7 @@ export default function ProjectDetail({
                     </div>
                     )}
                     {/* 지운 사진 */}
-                    <button 
+                    <button
                       onClick={() => { setPhotoSubTab('trash'); fetchTrash(); }}
                       className={`w-full text-left px-2 py-1.5 text-xs rounded flex items-center justify-between ${photoSubTab === 'trash' ? 'bg-red-600 text-white font-medium shadow-md' : 'hover:bg-red-50 text-gray-700'}`}
                     >
