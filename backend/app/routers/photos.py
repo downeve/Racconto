@@ -460,8 +460,8 @@ def bulk_permanent_delete_photos(
 
     cf_urls = []
     for photo in photos:
-        db.query(models.ChapterPhoto).filter(
-            models.ChapterPhoto.photo_id == photo.id
+        db.query(models.ChapterItem).filter(
+            models.ChapterItem.photo_id == photo.id
         ).delete(synchronize_session=False)
         clear_cover_if_deleted(photo.project_id, photo.image_url, db)  # ← 추가
         if photo.image_url and "imagedelivery.net" in photo.image_url:
@@ -763,8 +763,8 @@ def permanent_delete_photo(
     """영구 삭제 (파일 및 관련 데이터 모두 삭제)"""
     photo = get_owned_photo_or_404(photo_id, current_user.id, db, require_deleted=True)
     
-    # 1. ⭐ [추가] 챕터 매핑 데이터(ChapterPhoto) 먼저 삭제
-    db.query(models.ChapterPhoto).filter(models.ChapterPhoto.photo_id == photo_id).delete(synchronize_session=False)
+    # 1. ⭐ [추가] 챕터 매핑 데이터(ChapterItem) 먼저 삭제
+    db.query(models.ChapterItem).filter(models.ChapterItem.photo_id == photo_id).delete(synchronize_session=False)
     clear_cover_if_deleted(photo.project_id, photo.image_url, db)
 
     # 2. CF 또는 로컬 파일 삭제 (백그라운드)

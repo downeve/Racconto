@@ -8,6 +8,7 @@ from app.routers import projects, photos, portfolio, notes, auth, chapters, sett
 from apscheduler.schedulers.background import BackgroundScheduler
 from datetime import datetime, timedelta
 import os
+import logging
 # ⭕️ 다음과 같이 수정 (app.routers.photos 로 변경)
 from app.routers.photos import delete_from_cloudflare
 
@@ -42,6 +43,13 @@ app.include_router(admin.router)
 
 os.makedirs("app/uploads", exist_ok=True)
 app.mount("/uploads", StaticFiles(directory="app/uploads"), name="uploads")
+
+class SuppressRestoreByFilename404(logging.Filter):
+    def filter(self, record: logging.LogRecord) -> bool:
+        msg = record.getMessage()
+        return not ("POST /photos/restore-by-filename" in msg and "404" in msg)
+
+logging.getLogger("uvicorn.access").addFilter(SuppressRestoreByFilename404())
 
 # 휴지통 자동 삭제 스케줄러
 def auto_delete_trash():
