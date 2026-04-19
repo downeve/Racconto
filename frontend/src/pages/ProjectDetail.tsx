@@ -335,187 +335,176 @@ function Lightbox({
 
 // ── PhotoCard ───
 function PhotoCard({
-  photo, project, editingCaption, captionKo, setCaptionKo, setEditingCaption,
-  onSetCover, onDelete, onSaveCaption, onSetRating, onSetColorLabel,
-  onOpenLightbox, showExif, gridCols, colorLabels, chapterPhotoIds, //onShowChapterMenu,
+  photo, project, onSetCover, onDelete, onSetRating, onSetColorLabel,
+  onOpenLightbox, showExif, gridCols, colorLabels, chapterPhotoIds,
   selectionMode, isSelected, onToggleSelect
 }: {
-  photo: Photo
-  project: Project
-  editingCaption: string | null
-  captionKo: string
-  setCaptionKo: (v: string) => void
-  setEditingCaption: (v: string | null) => void
-  onSetCover: (photo: Photo) => void
-  onDelete: (id: string) => void
-  onSaveCaption: (photo: Photo) => void
-  onSetRating: (photo: Photo, rating: number) => void
-  onSetColorLabel: (photo: Photo, label: string) => void
-  onOpenLightbox: (photo: Photo) => void
-  showExif: boolean
-  gridCols: number
-  colorLabels: { value: string; color: string; label: string }[]
-  chapterPhotoIds: Set<string>
-  // onShowChapterMenu: (photoId: string) => void
-  selectionMode: boolean
-  isSelected: boolean
-  onToggleSelect: (id: string) => void
+  // ... props 타입 선언 동일 ...
+  photo: Photo; project: Project; editingCaption: string | null;
+  captionKo: string; setCaptionKo: (v: string) => void;
+  setEditingCaption: (v: string | null) => void;
+  onSetCover: (photo: Photo) => void; onDelete: (id: string) => void;
+  onSaveCaption: (photo: Photo) => void; onSetRating: (photo: Photo, rating: number) => void;
+  onSetColorLabel: (photo: Photo, label: string) => void;
+  onOpenLightbox: (photo: Photo) => void; showExif: boolean; gridCols: number;
+  colorLabels: { value: string; color: string; label: string }[];
+  chapterPhotoIds: Set<string>;
+  selectionMode: boolean; isSelected: boolean; onToggleSelect: (id: string) => void;
 }) {
   const { t, i18n } = useTranslation()
-
-  const isAlreadyInStory = chapterPhotoIds.has(photo.id);
+  const isAlreadyInStory = chapterPhotoIds.has(photo.id)
 
   return (
-    <div className="rounded overflow-hidden bg-gray-100">
-
-      {/* 🚀 선택되었을 때 파란색 테두리 효과 (ring) 부여 */}
-      <div className={`relative group ${isSelected ? 'ring-4 ring-blue-500' : ''}`}>
+    <div className={`rounded overflow-hidden bg-gray-100 transition-all ${isSelected ? 'ring-4 ring-blue-500 shadow-lg' : ''}`}>
+      <div className="relative group">
+        
+{/* 1. 이미지 영역 */}
         <img
-          src={photo.image_url} alt={photo.caption}
+          src={photo.image_url} alt={photo.caption || 'photo'}
           className={`w-full aspect-[3/2] object-contain transition-all ${
-            selectionMode && isAlreadyInStory
-              ? 'opacity-40 grayscale-[50%] cursor-not-allowed' // 1. 선택모드 + 이미 챕터에 있음
-              : isSelected
-                ? 'opacity-80 scale-[0.98] cursor-pointer'      // 2. 선택된 상태
-                : 'cursor-pointer hover:opacity-90'             // 3. 기본 상태
+            selectionMode && isAlreadyInStory ? 'opacity-30 grayscale cursor-not-allowed' :
+            isSelected ? 'opacity-70 scale-[0.98] cursor-pointer' : 'hover:opacity-95 cursor-pointer'
           }`}
           onClick={() => {
-              if (selectionMode) {
-                if (isAlreadyInStory) return; 
-                onToggleSelect(photo.id);
-              } else {
-                onOpenLightbox(photo);
-              }
+            if (selectionMode) {
+              if (isAlreadyInStory) return; 
+              onToggleSelect(photo.id)
+            } else {
+              onOpenLightbox(photo)
+            }
           }}
         />
 
-        {/* 🚀 선택 모드일 때 보여줄 좌측 상단 체크박스 UI */}
-        {selectionMode && !isAlreadyInStory && (
-          <div 
-            className="absolute top-3 left-3 z-20 cursor-pointer"
-            onClick={(e) => { e.stopPropagation(); onToggleSelect(photo.id); }}
-          >
-            <div className={`w-4 h-4 rounded-full border-1 flex items-center justify-center transition-colors shadow-sm ${
-              isSelected ? 'bg-blue-500 border-blue-500' : 'bg-black/40 border-white/80 hover:bg-black/60'
-            }`}>
-              {isSelected && <span className="text-white text-xs font-bold">✓</span>}
-            </div>
-          </div>
-        )}
-      </div> 
-
-      {/* 기존 코드 유지 */}
-      <div className="relative group">
-      {/*  <img
-          src={photo.image_url} alt={photo.caption}
-          className="w-full aspect-[3/2] object-contain cursor-pointer"
-          onClick={() => onOpenLightbox(photo)}
-        />
-      */}
-
+        {/* 미싱 파일 경고 (항상 표시) */}
         {photo.local_missing && (
-          <div className="absolute top-2 left-2 z-10 bg-yellow-400 text-black text-xs font-bold px-2 py-0.5 rounded-full flex items-center gap-1">
+          <div className="absolute top-2 left-2 z-10 bg-yellow-400 text-black text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1">
             ⚠️ {t('project.noLocalFile')}
           </div>
         )}
 
-        <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity">
-          <div className="absolute inset-0 bg-black/50" onClick={() => onOpenLightbox(photo)} />
-          <div className="absolute bottom-2 right-2 flex gap-1 z-10">
-            <button
-              onClick={e => { e.stopPropagation(); onSetCover(photo) }}
-              className={`${gridCols >= 4 ? 'px-1 py-0.5 text-xs' : 'px-2 py-1 text-xs'} rounded ${project?.cover_image_url === photo.image_url ? 'bg-yellow-400 text-black' : 'bg-white text-black'}`}>
-              {project?.cover_image_url === photo.image_url ? t('photo.isCover') : t('photo.setCover')}
-            </button>
-            {/* 사진 그리드 배열일 때 챕터 버튼 비활성화 */}
-            {/* chapters.length > 0 조건을 지워서 항상 아이콘이 나오게 수정! */}
-            {/*
-            {chapterPhotoIds.has(photo.id) ? (
-              <button
-                className={`${gridCols >= 4 ? 'px-1 py-0.5 text-xs' : 'px-2 py-1 text-xs'} rounded bg-blue-500 text-white opacity-70 cursor-default`}
-                title="이미 챕터에 포함된 사진"
-              >📖</button>
-            ) : (
-            // 사진 그리드 배열일 때는 챕터 추가 버튼 비활성화
-            // {/* onClick={e => { e.stopPropagation(); onShowChapterMenu(photo.id) }}
-              <button
-                className={`${gridCols >= 4 ? 'px-1 py-0.5 text-xs' : 'px-2 py-1 text-xs'} rounded bg-white text-black`}
-                title="챕터에 추가"
-              >📖</button>
-            )}
-            */}
-            <button
-              onClick={e => { e.stopPropagation(); onDelete(photo.id) }}
-              className="w-6 h-6 flex items-center justify-center bg-red-400 text-white rounded-full text-xs font-bold">
-              ✕
-            </button>
+        {/* 선택 모드 체크박스 */}
+        {selectionMode && !isAlreadyInStory && (
+          <div className="absolute top-3 left-3 z-20 cursor-pointer" onClick={(e) => { e.stopPropagation(); onToggleSelect(photo.id); }}>
+            <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center transition-colors shadow-sm ${
+              isSelected ? 'bg-blue-500 border-blue-500' : 'bg-black/40 border-white/80'
+            }`}>
+              {isSelected && <span className="text-white text-sm font-bold">✓</span>}
+            </div>
           </div>
-        </div>
+        )}
+
+        {/* 🚀 마우스 호버 시에만 나타나는 컨트롤 레이어 */}
+        {!selectionMode && (
+          <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none z-10">
+            
+            {/* 배경 가독성을 위한 상하단 그라데이션 */}
+            <div className="absolute inset-x-0 top-0 h-12 bg-gradient-to-b from-black/50 to-transparent" />
+            <div className="absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-black/60 to-transparent" />
+
+            {/* 투명 배경 클릭 시 라이트박스 오픈 (이벤트 전파용) */}
+            <div className="absolute inset-0 pointer-events-auto" onClick={() => onOpenLightbox(photo)} />
+
+            {/* [TOP-RIGHT] 커버 및 삭제 버튼 */}
+            <div className="absolute top-2 right-2 flex gap-1 pointer-events-auto">
+              <button
+                onClick={e => { e.stopPropagation(); onSetCover(photo) }}
+                className={`${gridCols >= 4 ? 'px-1 py-0.5 text-[10px]' : 'px-2 py-1 text-xs'} rounded shadow-md transition-colors ${project?.cover_image_url === photo.image_url ? 'bg-yellow-400 text-black' : 'bg-black/50 hover:bg-black/80 text-white'}`}>
+                {project?.cover_image_url === photo.image_url ? t('photo.isCover') : t('photo.setCover')}
+              </button>
+              <button
+                onClick={e => { e.stopPropagation(); onDelete(photo.id) }}
+                className="w-6 h-6 flex items-center justify-center bg-red-500/70 hover:bg-red-600 text-white rounded shadow-md text-xs font-bold transition-colors">
+                ✕
+              </button>
+            </div>
+
+            {/* [BOTTOM-LEFT] 별점 및 컬러 라벨 (호버 시 표시) */}
+            <div className="absolute bottom-2 left-2 flex flex-col gap-1.5 pointer-events-auto">
+              {/* 별점 */}
+              <div className="flex gap-0.5">
+                {[1, 2, 3, 4, 5].map(star => {
+                  const isActive = photo.rating && photo.rating >= star;
+                  return (
+                    <button 
+                      key={star} 
+                      onClick={(e) => { e.stopPropagation(); onSetRating(photo, star); }}
+                      className={`transition-all duration-150 drop-shadow-md ${gridCols >= 4 ? 'text-[10px]' : 'text-xs'}
+                        ${isActive ? 'text-yellow-400 scale-110' : 'text-white/40 hover:text-yellow-200 hover:scale-125'}
+                      `}
+                    >★</button>
+                  )
+                })}
+              </div>
+
+              {/* 컬러 라벨 */}
+              <div className="flex gap-1.5 items-center">
+                {colorLabels.map(label => {
+                  const isActive = photo.color_label === label.value;
+                  return (
+                    <button 
+                      key={label.value} 
+                      onClick={(e) => { e.stopPropagation(); onSetColorLabel(photo, label.value); }} 
+                      title={label.label}
+                      className={`rounded-full ${label.color} transition-all duration-150 shadow-sm border border-white/10
+                        ${gridCols >= 4 ? 'w-2 h-2' : 'w-2.5 h-2.5'} 
+                        ${isActive ? 'ring-2 ring-offset-1 ring-offset-black/40 ring-white scale-125' : 'opacity-40 hover:opacity-100 hover:scale-125'}
+                      `} 
+                    />
+                  )
+                })}
+              </div>
+            </div>
+          </div>
+        )}
       </div>
 
+      {/* 🚀 캡션 및 EXIF 영역 (하단 평점 영역은 제거됨) */}
       <div className={`bg-white transition-opacity ${selectionMode ? 'opacity-40 pointer-events-none' : ''}`}>
-
-      <div className="px-2 py-2 bg-white flex items-center justify-between">
-        <div className="flex gap-0.5">
-          {[1, 2, 3, 4, 5].map(star => (
-            <button key={star} onClick={() => onSetRating(photo, star)}
-              className={`${gridCols >= 4 ? 'text-xs' : 'text-sm'} ${photo.rating && photo.rating >= star ? 'text-yellow-400' : 'text-gray-300'}`}>★</button>
-          ))}
-        </div>
-        <div className="flex gap-0.5">
-          {colorLabels.map(label => (
-            <button key={label.value} onClick={() => onSetColorLabel(photo, label.value)} title={label.label}
-              className={`rounded-full ${label.color} ${gridCols >= 4 ? 'w-3 h-3' : 'w-4 h-4'} ${photo.color_label === label.value ? 'ring-2 ring-offset-1 ring-gray-400' : 'opacity-50'}`} />
-          ))}
-        </div>
-      </div>
-
-      {editingCaption === photo.id ? (
-        <div className="p-2 bg-white">
-          <input className="w-full border rounded px-2 py-1 text-xs mb-1" placeholder={t('photo.addCaption')}
-            value={captionKo} onChange={e => setCaptionKo(e.target.value)}
-            onKeyDown={e => {
-              if (e.key === 'Enter') { onSaveCaption(photo); setEditingCaption(null) }
-              if (e.key === 'Escape') setEditingCaption(null)
-            }} />
-          <div className="flex gap-1">
-            <button onClick={() => onSaveCaption(photo)} className="bg-black text-white px-2 py-1 text-xs">{t('common.save')}</button>
-            <button onClick={() => setEditingCaption(null)} className="border px-2 py-1 text-xs">{t('common.cancel')}</button>
+        
+        {/* 캡션 수정 영역 임시 제거
+        {editingCaption === photo.id ? (
+          <div className="p-2 border-t border-gray-100">
+            <input className="w-full border rounded px-2 py-1 text-xs mb-1 bg-gray-50 focus:bg-white" placeholder={t('photo.addCaption')}
+              value={captionKo} onChange={e => setCaptionKo(e.target.value)}
+              onKeyDown={e => {
+                if (e.key === 'Enter') { onSaveCaption(photo); setEditingCaption(null) }
+                if (e.key === 'Escape') setEditingCaption(null)
+              }} autoFocus />
+            <div className="flex gap-1">
+              <button onClick={() => onSaveCaption(photo)} className="bg-blue-600 hover:bg-blue-700 text-white px-2 py-1 text-xs rounded">{t('common.save')}</button>
+              <button onClick={() => setEditingCaption(null)} className="bg-gray-100 hover:bg-gray-200 text-gray-700 border px-2 py-1 text-xs rounded">{t('common.cancel')}</button>
+            </div>
           </div>
-        </div>
-      ) : (
-        <div className="p-2 cursor-pointer hover:bg-gray-50"
-          onClick={() => { setEditingCaption(photo.id); setCaptionKo(photo.caption || '') }}>
-          {photo.caption
-            ? <p className="text-xs text-gray-600">{photo.caption}</p>
-            : <p className="text-xs text-gray-300">{t('photo.addCaption')}</p>}
-        </div>
-      )}
-
-      {showExif && (photo.camera || photo.taken_at) && (
-        <div className="px-2 pb-2 bg-white">
-          <div className="border-t pt-1.5 mt-1 space-y-0.5">
-            {photo.taken_at && (
-              <p className="text-xs text-gray-400">
-                {new Date(photo.taken_at).toLocaleDateString(i18n.language === 'ko' ? 'ko-KR' : 'en-US')}
-                {photo.camera && <span className="text-gray-300"> · </span>}
-                {photo.camera && <span>{photo.camera}</span>}
-              </p>
-            )}
-            {!photo.taken_at && photo.camera && (
-              <p className="text-xs text-gray-400">{photo.camera}</p>
-            )}
-            {photo.lens && (
-              <p className="text-xs text-gray-400">{photo.lens}</p>
-            )}
-            {(photo.focal_length || photo.aperture || photo.shutter_speed || photo.iso) && (
-              <p className="text-xs text-gray-400">
-                {[photo.focal_length, photo.aperture, photo.shutter_speed, photo.iso].filter(Boolean).join(' · ')}
-              </p>
-            )}
+        ) : (
+          <div className="p-2 cursor-pointer hover:bg-gray-50 border-t border-gray-100"
+            onClick={() => { setEditingCaption(photo.id); setCaptionKo(photo.caption || '') }}>
+            {photo.caption
+              ? <p className="text-xs text-gray-700 leading-tight">{photo.caption}</p>
+              : <p className="text-xs text-gray-300 italic">{t('photo.addCaption')}</p>}
           </div>
-        </div>
-      )}
+        )}
+        */}
+
+        {/* EXIF 정보 영역 */}
+        {showExif && (photo.camera || photo.taken_at) && (
+          <div className="px-2 pb-2">
+            <div className="border-t border-gray-100 pt-1 mt-1 space-y-0.5">
+              {photo.taken_at && (
+                <p className="text-[10px] text-gray-400 font-mono">
+                  {new Date(photo.taken_at).toLocaleDateString(i18n.language === 'ko' ? 'ko-KR' : 'en-US')}
+                  {photo.camera && <span> · {photo.camera}</span>}
+                </p>
+              )}
+              {!photo.taken_at && photo.camera && <p className="text-[10px] text-gray-400 font-mono">{photo.camera}</p>}
+              {photo.lens && <p className="text-[10px] text-gray-400 font-mono">{photo.lens}</p>}
+              {(photo.focal_length || photo.aperture || photo.shutter_speed || photo.iso) && (
+                <p className="text-[10px] text-gray-400 font-mono">
+                  {[photo.focal_length, photo.aperture, photo.shutter_speed, photo.iso].filter(Boolean).join(' · ')}
+                </p>
+              )}
+            </div>
+          </div>
+        )}
       </div>
     </div>
   )
@@ -1881,7 +1870,6 @@ export default function ProjectDetail({
                       onDelete={handleDeletePhoto} onSaveCaption={handleSaveCaption}
                       onSetRating={handleSetRating} onSetColorLabel={handleSetColorLabel}
                       onOpenLightbox={setLightboxPhoto}
-                      //onShowChapterMenu={setChapterMenuPhoto}
                       showExif={showExif} gridCols={gridCols}
                       colorLabels={colorLabels} chapterPhotoIds={chapterPhotoIds}
                       selectionMode={selectionMode}
