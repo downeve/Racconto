@@ -45,6 +45,7 @@ interface ChapterItem {
   item_type: 'PHOTO' | 'TEXT'
   block_id: string | null        // 추가
   order_in_block: number         // 추가
+  block_type: string        // 추가: 'default' | 'side-left' | 'side-right'
   // PHOTO 전용
   photo_id: string | null
   image_url: string | null
@@ -150,17 +151,22 @@ interface SortableTextBlockProps {
   itemId: string
   chapterId: string
   text_content: string
+  hasPhotoAbove: boolean   // 추가
+  hasPhotoBelow: boolean   // 추가
   onRemove: (chapterId: string, itemId: string) => void
   onEdit: (itemId: string, currentText: string) => void
+  onSideBySide: (itemId: string, position: 'side-left' | 'side-right', direction: 'above' | 'below') => void
 }
 
-function SortableTextBlock({ id, itemId, chapterId, text_content, onRemove, onEdit }: SortableTextBlockProps) {
+function SortableTextBlock({ id, itemId, chapterId, text_content, hasPhotoAbove, hasPhotoBelow, onRemove, onEdit, onSideBySide }: SortableTextBlockProps) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id })
   const style = {
     transform: CSS.Transform.toString(transform),
     transition,
     opacity: isDragging ? 0.5 : 1,
   }
+
+  const { t } = useTranslation()
 
   return (
     <div ref={setNodeRef} style={style} className="col-span-3 group relative bg-stone-50 border border-stone-200 rounded-lg px-5 py-4 my-1">
@@ -181,18 +187,28 @@ function SortableTextBlock({ id, itemId, chapterId, text_content, onRemove, onEd
       </div>
       {/* 액션 버튼 */}
       <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+        {hasPhotoAbove && (
+          <button
+            onClick={() => onSideBySide(itemId, 'side-right', 'above')}
+            className="text-xs px-2 py-0.5 rounded border border-blue-200 text-blue-400 hover:text-blue-600 bg-white"
+            title="위 사진과 나란히 (텍스트 오른쪽)"
+          >↑ 나란히</button>
+        )}
+        {hasPhotoBelow && (
+          <button
+            onClick={() => onSideBySide(itemId, 'side-left', 'below')}
+            className="text-xs px-2 py-0.5 rounded border border-blue-200 text-blue-400 hover:text-blue-600 bg-white"
+            title="아래 사진과 나란히 (텍스트 왼쪽)"
+          >↓ 나란히</button>
+        )}
         <button
           onClick={() => onEdit(itemId, text_content)}
           className="text-xs px-2 py-0.5 rounded border border-gray-300 text-gray-500 hover:text-gray-800 bg-white"
-        >
-          편집
-        </button>
+        >{t('common.edit')}</button>
         <button
           onClick={() => onRemove(chapterId, itemId)}
           className="text-xs px-2 py-0.5 rounded border border-red-200 text-red-400 hover:text-red-600 bg-white"
-        >
-          ×
-        </button>
+        >×</button>
       </div>
       {/* 본문 */}
       <p className="text-sm text-gray-700 leading-relaxed whitespace-pre-wrap pl-4">{text_content}</p>
@@ -268,6 +284,90 @@ function SortablePhotoBlock({
           </div>
         </SortableContext>
       </DndContext>
+    </div>
+  )
+}
+
+interface SortableSideBySideBlockProps {
+  blockId: string
+  chapterId: string
+  items: ChapterItem[]
+  onRemoveItem: (chapterId: string, itemId: string) => void
+  onEditCaption: (photoId: string, caption: string) => void
+  onPhotoClick: (item: ChapterItem) => void
+  onCancelSideBySide: (chapterId: string, textItemId: string) => void
+}
+
+function SortableSideBySideBlock({
+  blockId, chapterId, items, onRemoveItem, onPhotoClick, onCancelSideBySide
+}: SortableSideBySideBlockProps) {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: blockId })
+  const style = { transform: CSS.Transform.toString(transform), transition, opacity: isDragging ? 0.5 : 1 }
+
+  const blockType = items[0]?.block_type || 'side-left'
+  const photoItems = items.filter(i => i.item_type === 'PHOTO')
+  const textItem = items.find(i => i.item_type === 'TEXT')
+
+  const photoCol = (
+    <div className="flex-1 min-w-0">
+      <div className="grid grid-cols-1 gap-2">
+        {photoItems.map(item => (
+          <div key={item.id} className="relative group rounded overflow-hidden aspect-[3/2] shadow-sm">
+            <img
+              src={item.image_url ?? ''}
+              className="absolute inset-0 w-full h-full object-contain cursor-pointer"
+              onClick={() => onPhotoClick(item)}
+            />
+            <button
+              onClick={() => onRemoveItem(chapterId, item.id)}
+              className="absolute top-1 right-1 bg-red-600 text-white rounded-full w-5 h-5 text-xs font-bold opacity-0 group-hover:opacity-100 flex items-center justify-center z-10"
+            >×</button>
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+
+  const textCol = textItem ? (
+    <div className="flex-1 min-w-0 group/text relative bg-stone-50 border border-stone-200 rounded-lg px-4 py-4">
+      <p className="text-sm text-gray-700 leading-relaxed whitespace-pre-wrap">
+        {textItem.text_content}
+      </p>
+      {/* 해제 버튼 */}
+      <button
+        onClick={() => onCancelSideBySide(chapterId, textItem.id)}
+        className="absolute top-2 right-2 text-xs px-2 py-0.5 rounded border border-gray-300 text-gray-400 hover:text-gray-700 bg-white opacity-0 group-hover/text:opacity-100 transition-opacity"
+      >
+        분리
+      </button>
+    </div>
+  ) : null
+
+  return (
+    <div ref={setNodeRef} style={style} className="group/block relative mb-2">
+      {/* 블록 드래그 핸들 */}
+      <div
+        {...attributes}
+        {...listeners}
+        className="absolute -left-5 top-1/2 -translate-y-1/2 cursor-grab opacity-0 group-hover/block:opacity-40 transition-opacity z-10 p-1"
+      >
+        <svg width="12" height="20" viewBox="0 0 12 20" fill="none">
+          <circle cx="3" cy="4" r="1.5" fill="#999"/>
+          <circle cx="9" cy="4" r="1.5" fill="#999"/>
+          <circle cx="3" cy="10" r="1.5" fill="#999"/>
+          <circle cx="9" cy="10" r="1.5" fill="#999"/>
+          <circle cx="3" cy="16" r="1.5" fill="#999"/>
+          <circle cx="9" cy="16" r="1.5" fill="#999"/>
+        </svg>
+      </div>
+
+      <div className="flex gap-3">
+        {blockType === 'side-left' ? (
+          <>{photoCol}{textCol}</>
+        ) : (
+          <>{textCol}{photoCol}</>
+        )}
+      </div>
     </div>
   )
 }
@@ -521,6 +621,38 @@ function ProjectStory({
     fetchChapterPhotos(chapterId)
   }
 
+  const handleSideBySide = async (
+    chapterId: string,
+    textItemId: string,
+    position: 'side-left' | 'side-right',
+    direction: 'above' | 'below'
+  ) => {
+    // 인접한 사진 블록의 block_id 찾기
+    const blocks = groupIntoBlocks(getVisibleChapterItems(chapterId))
+    const textBlockIdx = blocks.findIndex(b =>
+      b.type === 'TEXT' && b.items[0]?.id === textItemId
+    )
+    if (textBlockIdx === -1) return
+
+    const adjacentIdx = direction === 'above' ? textBlockIdx - 1 : textBlockIdx + 1
+    const adjacentBlock = blocks[adjacentIdx]
+    if (!adjacentBlock || adjacentBlock.type !== 'PHOTO') return
+
+    await axios.put(`${API}/chapters/${chapterId}/side-by-side`, {
+      text_item_id: textItemId,
+      photo_block_id: adjacentBlock.blockId,
+      position
+    })
+    fetchChapterPhotos(chapterId)
+  }
+
+  const handleCancelSideBySide = async (chapterId: string, textItemId: string) => {
+    await axios.put(`${API}/chapters/${chapterId}/side-by-side/cancel`, {
+      text_item_id: textItemId
+    })
+    fetchChapterPhotos(chapterId)
+  }
+
   // 블록 간 순서 변경 (외부 DnD)
   const handleBlockDragEnd = (event: DragEndEvent, chapterId: string, blocks: ChapterBlock[]) => {
     const { active, over } = event
@@ -627,21 +759,40 @@ function ProjectStory({
 
     // 연속된 아이템을 블록 단위로 그룹화
     interface ChapterBlock {
-      type: 'PHOTO' | 'TEXT'
+      type: 'PHOTO' | 'TEXT' | 'SIDE'
       blockId: string        // TEXT는 item.id, PHOTO는 block_id
       items: ChapterItem[]   // TEXT는 1개, PHOTO는 N개
       order_num: number      // 블록의 order_num (같은 블록은 동일)
     }
 
+    // 변경 후
     const groupIntoBlocks = (items: ChapterItem[]): ChapterBlock[] => {
       const blocks: ChapterBlock[] = []
       const blockMap = new Map<string, ChapterBlock>()
 
       items.forEach(item => {
-        if (item.item_type === 'TEXT') {
+        const bid = item.block_id || item.id
+        const isSideBySide = item.block_type === 'side-left' || item.block_type === 'side-right'
+
+        if (item.item_type === 'TEXT' && !isSideBySide) {
+          // 독립 텍스트 블록
           blocks.push({ type: 'TEXT', blockId: item.id, items: [item], order_num: item.order_num })
+        } else if (isSideBySide) {
+          // side-by-side: PHOTO든 TEXT든 같은 block_id로 묶음
+          if (blockMap.has(bid)) {
+            blockMap.get(bid)!.items.push(item)
+          } else {
+            const block: ChapterBlock = {
+              type: 'SIDE',
+              blockId: bid,
+              items: [item],
+              order_num: item.order_num
+            }
+            blockMap.set(bid, block)
+            blocks.push(block)
+          }
         } else {
-          const bid = item.block_id || item.id
+          // 일반 PHOTO 블록
           if (blockMap.has(bid)) {
             blockMap.get(bid)!.items.push(item)
             blockMap.get(bid)!.items.sort((a, b) => a.order_in_block - b.order_in_block)
@@ -1047,25 +1198,17 @@ function ProjectStory({
                         >
                           <SortableContext items={blocks.map(b => b.blockId)} strategy={verticalListSortingStrategy}>
                             <div className="space-y-2">
-                              {blocks.map(block =>
-                                block.type === 'TEXT' ? (
-                                  <SortableTextBlock
-                                    key={block.blockId}
-                                    id={block.blockId}
-                                    itemId={block.items[0].id}
-                                    chapterId={chapter.id}
-                                    text_content={block.items[0].text_content || ''}
-                                    onRemove={handleRemoveItem}
-                                    onEdit={(itemId, text) => { setEditingTextItemId(itemId); setTextDraft(text) }}
-                                  />
-                                ) : (
-                                  <SortablePhotoBlock
+                            {blocks.map((block, blockIdx) => {
+                              const prevBlock = blocks[blockIdx - 1]
+                              const nextBlock = blocks[blockIdx + 1]
+
+                              if (block.type === 'SIDE') {
+                                return (
+                                  <SortableSideBySideBlock
                                     key={block.blockId}
                                     blockId={block.blockId}
                                     chapterId={chapter.id}
                                     items={block.items}
-                                    layout={chapter.layout || 'grid'}
-                                    sensors={sensors}
                                     onRemoveItem={handleRemoveItem}
                                     onEditCaption={(photoId, caption) => {
                                       setEditingCaptionPhotoId(photoId)
@@ -1077,10 +1220,53 @@ function ProjectStory({
                                       setCurrentChapterPhotos(flatPhotos)
                                       setSelectedPhotoIndex(globalIndex)
                                     }}
-                                    onInnerDragEnd={handleInnerDragEnd}
+                                    onCancelSideBySide={handleCancelSideBySide}
                                   />
                                 )
-                              )}
+                              }
+
+                              if (block.type === 'TEXT') {
+                                return (
+                                  <SortableTextBlock
+                                    key={block.blockId}
+                                    id={block.blockId}
+                                    itemId={block.items[0].id}
+                                    chapterId={chapter.id}
+                                    text_content={block.items[0].text_content || ''}
+                                    hasPhotoAbove={prevBlock?.type === 'PHOTO'}
+                                    hasPhotoBelow={nextBlock?.type === 'PHOTO'}
+                                    onRemove={handleRemoveItem}
+                                    onEdit={(itemId, text) => { setEditingTextItemId(itemId); setTextDraft(text) }}
+                                    onSideBySide={(itemId, position, direction) =>
+                                      handleSideBySide(chapter.id, itemId, position, direction)
+                                    }
+                                  />
+                                )
+                              }
+
+                              return (
+                                <SortablePhotoBlock
+                                  key={block.blockId}
+                                  blockId={block.blockId}
+                                  chapterId={chapter.id}
+                                  items={block.items}
+                                  layout={chapter.layout || 'grid'}
+                                  sensors={sensors}
+                                  onRemoveItem={handleRemoveItem}
+                                  onEditCaption={(photoId, caption) => {
+                                    setEditingCaptionPhotoId(photoId)
+                                    setCaptionDraft(caption)
+                                  }}
+                                  onPhotoClick={(item) => {
+                                    const flatPhotos = getFlattenedPhotos().filter(i => i.item_type === 'PHOTO')
+                                    const globalIndex = flatPhotos.findIndex(i => i.id === item.id)
+                                    setCurrentChapterPhotos(flatPhotos)
+                                    setSelectedPhotoIndex(globalIndex)
+                                  }}
+                                  onInnerDragEnd={handleInnerDragEnd}
+                                />
+                              )
+                            })}
                             </div>
                           </SortableContext>
                         </DndContext>
@@ -1194,25 +1380,17 @@ function ProjectStory({
                           >
                             <SortableContext items={blocks.map(b => b.blockId)} strategy={verticalListSortingStrategy}>
                               <div className="space-y-2">
-                                {blocks.map(block =>
-                                  block.type === 'TEXT' ? (
-                                    <SortableTextBlock
-                                      key={block.blockId}
-                                      id={block.blockId}
-                                      itemId={block.items[0].id}
-                                      chapterId={subChapter.id}
-                                      text_content={block.items[0].text_content || ''}
-                                      onRemove={handleRemoveItem}
-                                      onEdit={(itemId, text) => { setEditingTextItemId(itemId); setTextDraft(text) }}
-                                    />
-                                  ) : (
-                                    <SortablePhotoBlock
+                              {blocks.map((block, blockIdx) => {
+                                const prevBlock = blocks[blockIdx - 1]
+                                const nextBlock = blocks[blockIdx + 1]
+
+                                if (block.type === 'SIDE') {
+                                  return (
+                                    <SortableSideBySideBlock
                                       key={block.blockId}
                                       blockId={block.blockId}
                                       chapterId={subChapter.id}
                                       items={block.items}
-                                      layout={subChapter.layout || 'grid'}
-                                      sensors={sensors}
                                       onRemoveItem={handleRemoveItem}
                                       onEditCaption={(photoId, caption) => {
                                         setEditingCaptionPhotoId(photoId)
@@ -1224,10 +1402,55 @@ function ProjectStory({
                                         setCurrentChapterPhotos(flatPhotos)
                                         setSelectedPhotoIndex(globalIndex)
                                       }}
-                                      onInnerDragEnd={handleInnerDragEnd}
+                                      onCancelSideBySide={handleCancelSideBySide}
                                     />
                                   )
-                                )}
+                                }
+
+                                if (block.type === 'TEXT') {
+                                  return (
+                                    <SortableTextBlock
+                                      key={block.blockId}
+                                      id={block.blockId}
+                                      itemId={block.items[0].id}
+                                      chapterId={subChapter.id}
+                                      text_content={block.items[0].text_content || ''}
+                                      hasPhotoAbove={prevBlock?.type === 'PHOTO'}
+                                      hasPhotoBelow={nextBlock?.type === 'PHOTO'}
+                                      onRemove={handleRemoveItem}
+                                      onEdit={(itemId, text) => { setEditingTextItemId(itemId); setTextDraft(text) }}
+                                      onSideBySide={(itemId, position, direction) =>
+                                        handleSideBySide(subChapter.id, itemId, position, direction)
+                                      }
+                                    />
+                                  )
+                                }
+
+                                return (
+                                  <SortablePhotoBlock
+                                    key={block.blockId}
+                                    blockId={block.blockId}
+                                    chapterId={chapter.id}
+                                    items={block.items}
+                                    layout={subChapter.layout || 'grid'}
+                                    sensors={sensors}
+                                    onRemoveItem={handleRemoveItem}
+                                    onEditCaption={(photoId, caption) => {
+                                      setEditingCaptionPhotoId(photoId)
+                                      setCaptionDraft(caption)
+                                    }}
+                                    onPhotoClick={(item) => {
+                                      const flatPhotos = getFlattenedPhotos().filter(i => i.item_type === 'PHOTO')
+                                      const globalIndex = flatPhotos.findIndex(i => i.id === item.id)
+                                      setCurrentChapterPhotos(flatPhotos)
+                                      setSelectedPhotoIndex(globalIndex)
+                                    }}
+                                    onInnerDragEnd={handleInnerDragEnd}
+                                  />
+                                )
+                              })}
+
+
                               </div>
                             </SortableContext>
                           </DndContext>
