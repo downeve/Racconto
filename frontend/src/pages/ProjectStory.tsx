@@ -480,7 +480,8 @@ function ProjectStory({
       title: newTitle,
       description: newDesc,
       order_num: chapters.length,
-      parent_id: addingSubChapterTo
+      parent_id: addingSubChapterTo,
+      layout: editLayout
     })
     setNewTitle('')
     setNewDesc('')
@@ -837,19 +838,6 @@ function ProjectStory({
         {/* 챕터 추가 폼 — 사이드바 버튼 클릭 시 표시 */}
         {showAddChapter && !addingSubChapterTo && (
           <div className="bg-white rounded-lg shadow p-4 mb-6">
-            <div className="flex gap-2 mb-2">
-            {(['grid', 'wide', 'single'] as const).map(l => (
-              <button
-                key={l}
-                onClick={() => setEditLayout(l)}
-                className={`px-2 py-1 text-xs rounded border ${
-                  editLayout === l ? 'bg-stone-600 text-white border-stone-600' : 'border-gray-300 text-gray-500'
-                }`}
-              >
-              {l === 'grid' ? '3열' : l === 'wide' ? '2열' : '1열'}
-              </button>
-              ))}
-            </div>
             <input
               className="w-full border rounded px-3 py-2 text-sm mb-2"
               placeholder={t('story.chapterTitle')}
@@ -864,6 +852,19 @@ function ProjectStory({
               value={newDesc}
               onChange={e => setNewDesc(e.target.value)}
             />
+            <div className="flex gap-2 mb-2">
+            {(['grid', 'wide', 'single'] as const).map(l => (
+              <button
+                key={l}
+                onClick={() => setEditLayout(l)}
+                className={`px-2 py-1 text-xs rounded border ${
+                  editLayout === l ? 'bg-stone-600 text-white border-stone-600' : 'border-gray-300 text-gray-500'
+                }`}
+              >
+              {l === 'grid' ? '3열' : l === 'wide' ? '2열' : '1열'}
+              </button>
+              ))}
+            </div>
             <div className="flex gap-2">
               <button
                 onClick={handleAddChapter}
@@ -909,6 +910,20 @@ function ProjectStory({
                           value={editDesc}
                           onChange={e => setEditDesc(e.target.value)}
                         />
+                        <div className="flex gap-2 mb-2">
+                          {(['grid', 'wide', 'single'] as const).map(l => (
+                            <button
+                              key={l}
+                              type="button"
+                              onClick={() => setEditLayout(l)}
+                              className={`px-2 py-1 text-xs rounded border ${
+                                editLayout === l ? 'bg-stone-600 text-white border-stone-600' : 'border-gray-300 text-gray-500'
+                              }`}
+                            >
+                              {l === 'grid' ? '3열' : l === 'wide' ? '2열' : '1열'}
+                            </button>
+                          ))}
+                        </div>
                         <div className="flex gap-2">
                           <button onClick={() => handleUpdateChapter(chapter)} className="bg-stone-600 text-white px-3 py-1 text-xs tracking-wider hover:bg-stone-700 transition-colors rounded">{t('common.save')}</button>
                           <button onClick={() => setEditingChapter(null)} className="border px-3 py-1 text-xs rounded">{t('common.cancel')}</button>
@@ -966,19 +981,6 @@ function ProjectStory({
                   {/* 서브 챕터 추가 폼 */}
                   {addingSubChapterTo === chapter.id && (
                     <div className="ml-8 mt-3 p-4 bg-gray-50 border border-gray-200 rounded-lg shadow-inner">
-                      <div className="flex gap-2 mb-2">
-                        {(['grid', 'wide', 'single'] as const).map(l => (
-                          <button
-                            key={l}
-                            onClick={() => setEditLayout(l)}
-                            className={`px-2 py-1 text-xs rounded border ${
-                              editLayout === l ? 'bg-stone-600 text-white border-stone-600' : 'border-gray-300 text-gray-500'
-                            }`}
-                          >
-                            {l === 'grid' ? '3열' : l === 'wide' ? '2열' : '1열'}
-                          </button>
-                        ))}
-                      </div>
                       <p className="text-xs text-gray-500 mb-2">↳ {chapter.title}{t('story.addSubChapter')}</p>
                       <input
                         className="w-full border rounded px-3 py-2 text-sm mb-2"
@@ -993,6 +995,19 @@ function ProjectStory({
                         value={newDesc}
                         onChange={e => setNewDesc(e.target.value)}
                       />
+                      <div className="flex gap-2 mb-2">
+                      {(['grid', 'wide', 'single'] as const).map(l => (
+                        <button
+                          key={l}
+                          onClick={() => setEditLayout(l)}
+                          className={`px-2 py-1 text-xs rounded border ${
+                            editLayout === l ? 'bg-stone-600 text-white border-stone-600' : 'border-gray-300 text-gray-500'
+                          }`}
+                        >
+                        {l === 'grid' ? '3열' : l === 'wide' ? '2열' : '1열'}
+                        </button>
+                        ))}
+                      </div>
                       <div className="flex gap-2">
                         <button onClick={handleAddChapter} className="bg-stone-600 text-white px-3 py-1 text-xs tracking-wider hover:bg-stone-700 transition-colors rounded">
                           {t('common.add')}
@@ -1096,6 +1111,20 @@ function ProjectStory({
                             value={editDesc}
                             onChange={e => setEditDesc(e.target.value)}
                           />
+                          <div className="flex gap-2 mb-2">
+                            {(['grid', 'wide', 'single'] as const).map(l => (
+                              <button
+                                key={l}
+                                type="button"
+                                onClick={() => setEditLayout(l)}
+                                className={`px-2 py-1 text-xs rounded border ${
+                                  editLayout === l ? 'bg-stone-600 text-white border-stone-600' : 'border-gray-300 text-gray-500'
+                                }`}
+                              >
+                                {l === 'grid' ? '3열' : l === 'wide' ? '2열' : '1열'}
+                              </button>
+                            ))}
+                          </div>
                           <div className="flex gap-2">
                             <button onClick={() => handleUpdateChapter(subChapter)} className="bg-stone-600 text-white px-3 py-1 text-xs tracking-wider hover:bg-stone-700 transition-colors rounded">{t('common.save')}</button>
                             <button onClick={() => setEditingChapter(null)} className="border px-3 py-1 text-xs rounded">{t('common.cancel')}</button>

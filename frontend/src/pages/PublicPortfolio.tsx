@@ -26,6 +26,7 @@ interface Chapter {
   id: string
   title: string
   description: string | null
+  layout: 'grid' | 'wide' | 'single'  // 추가
   items: ChapterItem[]
   sub_chapters: Chapter[]
 }
@@ -142,20 +143,29 @@ export default function PublicPortfolio() {
   const subText = darkMode ? 'text-gray-400' : 'text-gray-500'
 
   // 챕터 아이템 렌더링 함수 (PublicPortfolio 컴포넌트 내부에 추가)
-  const renderChapterItems = (items: ChapterItem[], allLightboxItems: { photo: Photo; title: string }[]) => {
+  const renderChapterItems = (
+    items: ChapterItem[],
+    allLightboxItems: { photo: Photo; title: string }[],
+    layout: 'grid' | 'wide' | 'single' = 'grid'
+  ) => {
+    const gridClass = layout === 'single'
+      ? 'grid-cols-1'
+      : layout === 'wide'
+        ? 'grid-cols-1 md:grid-cols-2'
+        : 'grid-cols-2 md:grid-cols-3'
     const result: React.ReactNode[] = []
     let photoBuffer: ChapterItem[] = []
 
     const flushPhotos = () => {
-      if (photoBuffer.length === 0) return
-      result.push(
-        <div key={`photos-${photoBuffer[0].id}`} className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-4">
+        if (photoBuffer.length === 0) return
+        result.push(
+          <div key={`photos-${photoBuffer[0].id}`} className={`grid ${gridClass} gap-4 mb-4`}>
           {photoBuffer.map(photo => (
             <img
               key={photo.id}
               src={photo.image_url}
               loading="lazy"
-              className="w-full aspect-[3/2] object-cover rounded cursor-pointer hover:opacity-80 transition-opacity"
+              className="w-full aspect-[3/2] object-contain rounded cursor-pointer hover:opacity-80 transition-opacity"
               onClick={() => openLightbox(photo as unknown as Photo, allLightboxItems)}
             />
           ))}
@@ -323,14 +333,14 @@ export default function PublicPortfolio() {
                         <p className={`text-sm ${subText} mt-1`}>{chapter.description}</p>
                       )}
                     </div>
-                        {renderChapterItems(chapter.items || [], getAllChapterItems(selectedProject))}
+                        {renderChapterItems(chapter.items || [], getAllChapterItems(selectedProject), chapter.layout)}
                     {chapter.sub_chapters?.map((sub, subIdx) => (
                       <div key={sub.id} className="ml-4 md:ml-8 mb-8">
                         <div className="mb-3 border-l-4 border-blue-400 pl-4">
                           <p className={`text-xs ${subText} mb-1`}>{t('story.chapter')} {idx + 1}.{subIdx + 1}</p>
                           <h4 className="text-base font-semibold">{sub.title}</h4>
                         </div>
-                        {renderChapterItems(sub.items || [], getAllChapterItems(selectedProject))}
+                        {renderChapterItems(sub.items || [], getAllChapterItems(selectedProject), sub.layout)}
                       </div>
                     ))}
                   </div>
