@@ -18,6 +18,7 @@ interface ChapterItem {
   id?: string
   image_url?: string
   caption?: string
+  block_layout?: 'grid' | 'wide' | 'single'
   // TEXT 전용
   text_content?: string
   block_id?: string
@@ -28,7 +29,6 @@ interface Chapter {
   id: string
   title: string
   description: string | null
-  layout: 'grid' | 'wide' | 'single'  // 추가
   items: ChapterItem[]
   sub_chapters: Chapter[]
 }
@@ -143,59 +143,139 @@ export default function PublicPortfolio() {
   const bg = darkMode ? 'bg-[#1A1A1A] text-white' : 'bg-[#F5F0EB] text-gray-900'
   const subText = darkMode ? 'text-gray-400' : 'text-gray-500'
 
-  // 챕터 아이템 렌더링 함수 (PublicPortfolio 컴포넌트 내부에 추가)
   const renderChapterItems = (
     items: ChapterItem[],
     allLightboxItems: { photo: Photo; title: string }[],
-    layout: 'grid' | 'wide' | 'single' = 'grid'
   ) => {
     const result: React.ReactNode[] = []
-    let photoBuffer: ChapterItem[] = []
-    let bufferKey = 0
-    const renderedSideBlocks = new Set<string>()
+    const renderedBlocks = new Set<string>()
 
-    // side-by-side 그룹 미리 추출
-    const sideBySideMap = new Map<string, {
+    // block_id 기준으로 블록 그룹 미리 구성
+    const blockMap = new Map<string, {
+      layout: 'grid' | 'wide' | 'single'
+      type: 'PHOTO' | 'SIDE'
       photos: ChapterItem[]
       text: ChapterItem | null
       blockType: string
     }>()
+
     items.forEach(item => {
-      if ((item.block_type === 'side-left' || item.block_type === 'side-right') && item.block_id) {
-        if (!sideBySideMap.has(item.block_id)) {
-          sideBySideMap.set(item.block_id, { photos: [], text: null, blockType: item.block_type })
+      const bid = item.block_id
+      if (!bid) return
+
+      const isSide = item.block_type === 'side-left' || item.block_type === 'side-right'
+
+      if (isSide) {
+        if (!blockMap.has(bid)) {
+          blockMap.set(bid, { layout: 'grid', type: 'SIDE', photos: [], text: null, blockType: item.block_type || 'side-left' })
         }
-        const group = sideBySideMap.get(item.block_id)!
-        if (item.item_type === 'PHOTO') group.photos.push(item)
-        else group.text = item
+        const group = blockMap.get(bid)!
+        if (item.item_type === 'PHOTO') {
+          group.photos.push(item)
+        } else {
+          group.text = item
+        }
+      } else if (item.item_type === 'PHOTO') {
+        if (!blockMap.has(bid)) {
+          blockMap.set(bid, {
+            layout: item.block_layout || 'grid',
+            type: 'PHOTO',
+            photos: [],
+            text: null,
+            blockType: 'default'
+          })
+        }
+        blockMap.get(bid)!.photos.push(item)
       }
     })
 
-    const flushPhotos = () => {
-      if (photoBuffer.length === 0) return
-      const buffer = [...photoBuffer]
-      const key = `photos-${bufferKey++}`
+    // 아이템 순서대로 순회하며 블록 첫 등장 시점에 렌더
+    items.forEach((item, i) => {
+      const bid = item.block_id
 
-      if (layout === 'single') {
+      // 독립 텍스트 블록 (block_type === 'default' or undefined)
+      if (item.item_type === 'TEXT' && item.block_type !== 'side-left' && item.block_type !== 'side-right') {
         result.push(
-          <div key={key} className="mb-4 space-y-3">
-            {buffer.map(photo => (
+          <div key={`text-${i}`} className="my-10 max-w-xl">
+            <p
+              className={`text-base leading-[1.9] whitespace-pre-wrap ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}
+              style={{ fontFamily: "'Georgia', serif" }}
+            >
+              {item.text_content}
+            </p>
+          </div>
+        )
+        return
+      }
+
+      if (!bid || renderedBlocks.has(bid)) return
+      renderedBlocks.add(bid)
+
+      const group = blockMap.get(bid)
+      if (!group) return
+
+      // Side-by-side 블록
+      if (group.type === 'SIDE') {
+        const photoCol = (
+          <div className="flex-1 min-w-0 space-y-2">
+            {group.photos.map(photo => (
               <img
                 key={photo.id}
                 src={photo.image_url}
                 loading="lazy"
-                className="w-full rounded cursor-pointer hover:opacity-90 transition-opacity"
+                className="w-full rounded cursor-pointer hover:opacity-90 transition-opacity block"
                 onClick={() => openLightbox(photo as unknown as Photo, allLightboxItems)}
               />
             ))}
           </div>
         )
-      } else {
+        const textCol = group.text ? (
+          <div className="flex-1 min-w-0 flex items-center">
+            <p
+              className={`text-base leading-[1.9] whitespace-pre-wrap ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}
+              style={{ fontFamily: "'Georgia', serif" }}
+            >
+              {group.text.text_content}
+            </p>
+          </div>
+        ) : null
         result.push(
-          <div key={key} className="mb-4"
-            style={{ columnCount: layout === 'wide' ? 2 : 3, columnGap: '0.75rem' }}
+          <div key={`side-${bid}`} className="flex gap-6 my-6 items-center">
+            {group.blockType === 'side-left' ? <>{photoCol}{textCol}</> : <>{textCol}{photoCol}</>}
+          </div>
+        )
+        return
+      }
+
+      // 일반 사진 블록 — block_layout에 따라 렌더
+      const layout = group.layout
+      const photos = group.photos
+
+      if (layout === 'single') {
+        result.push(
+          <div key={`block-${bid}`} className="mb-8 space-y-4">
+            {photos.map(photo => (
+              <div key={photo.id} className="break-inside-avoid">
+                <img
+                  src={photo.image_url}
+                  loading="lazy"
+                  className="w-full rounded cursor-pointer hover:opacity-90 transition-opacity"
+                  onClick={() => openLightbox(photo as unknown as Photo, allLightboxItems)}
+                />
+                {photo.caption && (
+                  <p className={`text-xs mt-1.5 leading-relaxed ${subText}`}>{photo.caption}</p>
+                )}
+              </div>
+            ))}
+          </div>
+        )
+      } else {
+        const cols = layout === 'wide' ? 2 : 3
+        result.push(
+          <div key={`block-${bid}`} className="mb-6"
+            style={{ columnCount: cols, columnGap: '0.75rem' }}
           >
-            {buffer.map(photo => (
+            {photos.map(photo => (
               <div key={photo.id} className="mb-3 break-inside-avoid">
                 <img
                   src={photo.image_url}
@@ -211,68 +291,8 @@ export default function PublicPortfolio() {
           </div>
         )
       }
-      photoBuffer = []
-    }
-
-    // 순서대로 처리 — side-by-side는 첫 등장 시점에 렌더링
-    items.forEach((item, i) => {
-      const isSide = item.block_type === 'side-left' || item.block_type === 'side-right'
-
-      if (isSide && item.block_id) {
-        if (!renderedSideBlocks.has(item.block_id)) {
-          flushPhotos()
-          const group = sideBySideMap.get(item.block_id)!
-          const photoCol = (
-            <div className="flex-1 min-w-0 space-y-2">
-              {group.photos.map(photo => (
-                <img
-                  key={photo.id}
-                  src={photo.image_url}
-                  loading="lazy"
-                  className="w-full rounded cursor-pointer hover:opacity-90 transition-opacity block"
-                  onClick={() => openLightbox(photo as unknown as Photo, allLightboxItems)}
-                />
-              ))}
-            </div>
-          )
-          const textCol = group.text ? (
-            <div className="flex-1 min-w-0 flex items-center">
-              <p
-                className={`text-base leading-[1.9] whitespace-pre-wrap ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}
-                style={{ fontFamily: "'Georgia', serif" }}
-              >
-                {group.text.text_content}
-              </p>
-            </div>
-          ) : null
-
-          result.push(
-            <div key={`side-${item.block_id}`} className="flex gap-6 my-6 items-center text-center italic">
-              여기는 어디지?{group.blockType === 'side-left' ? <>{photoCol}{textCol}</> : <>{textCol}{photoCol}</>}
-            </div>
-          )
-          renderedSideBlocks.add(item.block_id)
-        }
-        return
-      }
-
-      if (item.item_type === 'PHOTO') {
-        photoBuffer.push(item)
-      } else {
-        flushPhotos()
-        result.push(
-          <div key={`text-${i}`} className="my-10 max-w-xl">
-            <p
-              className={`text-base leading-[1.9] whitespace-pre-wrap ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}
-              style={{ fontFamily: "'Georgia', serif" }}
-            >
-              {item.text_content}
-            </p>
-          </div>
-        )
-      }
     })
-    flushPhotos()
+
     return result
   }
 
@@ -446,7 +466,7 @@ export default function PublicPortfolio() {
                     )}
                     <div className={`mt-6 h-px w-12 ${darkMode ? 'bg-white/30' : 'bg-gray-400'}`} />
                   </div>
-                    {renderChapterItems(chapter.items || [], getAllChapterItems(selectedProject), chapter.layout)}
+                    {renderChapterItems(chapter.items || [], getAllChapterItems(selectedProject))}
                     {chapter.sub_chapters?.map((sub, subIdx) => (
                       <div key={sub.id} className="mt-16">
                         <div className={`h-px mb-10 w-1/3 ${darkMode ? 'bg-white/10' : 'bg-gray-200'}`} />
@@ -471,7 +491,7 @@ export default function PublicPortfolio() {
                             </p>
                           )}
                         </div>
-                        {renderChapterItems(sub.items || [], getAllChapterItems(selectedProject), sub.layout)}
+                        {renderChapterItems(sub.items || [], getAllChapterItems(selectedProject))}
                       </div>
                     ))}
                   </div>

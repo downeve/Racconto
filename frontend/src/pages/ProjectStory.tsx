@@ -35,7 +35,6 @@ interface Chapter {
   description: string | null
   order_num: number
   parent_id: string | null
-  layout: 'grid' | 'wide' | 'single'  // 추가
 }
 
 interface ChapterItem {
@@ -43,9 +42,10 @@ interface ChapterItem {
   chapter_id: string
   order_num: number
   item_type: 'PHOTO' | 'TEXT'
-  block_id: string | null        // 추가
-  order_in_block: number         // 추가
-  block_type: string        // 추가: 'default' | 'side-left' | 'side-right'
+  block_id: string | null
+  order_in_block: number
+  block_type: string        // 'default' | 'side-left' | 'side-right'
+  block_layout: 'grid' | 'wide' | 'single'  // 블록 단위 레이아웃
   // PHOTO 전용
   photo_id: string | null
   image_url: string | null
@@ -220,17 +220,17 @@ interface SortablePhotoBlockProps {
   blockId: string
   chapterId: string
   items: ChapterItem[]
-  layout: 'grid' | 'wide' | 'single'
   sensors: ReturnType<typeof useSensors>
   onRemoveItem: (chapterId: string, itemId: string) => void
   onEditCaption: (photoId: string, caption: string) => void
   onPhotoClick: (item: ChapterItem) => void
   onInnerDragEnd: (event: DragEndEvent, blockId: string, chapterId: string) => void
+  onLayoutChange: (blockId: string, layout: 'grid' | 'wide' | 'single') => void
 }
 
 function SortablePhotoBlock({
   blockId, chapterId, items, sensors,
-  onRemoveItem, onEditCaption, onPhotoClick, onInnerDragEnd
+  onRemoveItem, onEditCaption, onPhotoClick, onInnerDragEnd, onLayoutChange
 }: SortablePhotoBlockProps) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: blockId })
   const style = {
@@ -239,8 +239,14 @@ function SortablePhotoBlock({
     opacity: isDragging ? 0.5 : 1,
   }
 
-  // 편집 화면은 항상 3열
-  const gridClass = 'grid-cols-3'
+  // 편집 화면은 항상 3열 compact — 실제 레이아웃은 block_layout이 공개 화면에서 적용됨
+  const blockLayout = items[0]?.block_layout || 'grid'
+
+  const layoutLabels: Record<string, string> = {
+    grid: '3열',
+    wide: '2열',
+    single: '전체',
+  }
 
   return (
     <div ref={setNodeRef} style={style} className="group/block relative mb-2">
@@ -260,14 +266,32 @@ function SortablePhotoBlock({
         </svg>
       </div>
 
-      {/* 내부 사진 DnD */}
+      {/* 블록 레이아웃 툴바 — hover 시 블록 우상단에 표시 */}
+      <div className="absolute -top-6 right-0 opacity-0 group-hover/block:opacity-100 transition-opacity z-20 flex items-center gap-1 bg-white border border-gray-200 rounded shadow-sm px-1.5 py-0.5">
+        <span className="text-[10px] text-gray-400 mr-1">포트폴리오</span>
+        {(['grid', 'wide', 'single'] as const).map(l => (
+          <button
+            key={l}
+            onClick={() => onLayoutChange(blockId, l)}
+            className={`text-[10px] px-1.5 py-0.5 rounded transition-colors ${
+              blockLayout === l
+                ? 'bg-stone-700 text-white'
+                : 'text-gray-500 hover:bg-gray-100'
+            }`}
+          >
+            {layoutLabels[l]}
+          </button>
+        ))}
+      </div>
+
+      {/* 내부 사진 DnD — 편집 화면은 항상 3열 */}
       <DndContext
         sensors={sensors}
         collisionDetection={closestCenter}
         onDragEnd={(e) => onInnerDragEnd(e, blockId, chapterId)}
       >
         <SortableContext items={items.map(i => i.id)} strategy={rectSortingStrategy}>
-          <div className={`grid ${gridClass} gap-2`}>
+          <div className="grid grid-cols-3 gap-2">
             {items.map(item => (
               <SortablePhotoChapter
                 key={item.id}
@@ -395,7 +419,6 @@ function ProjectStory({
   const [showAddChapter, setShowAddChapter] = useState(false)
   const [addingSubChapterTo, setAddingSubChapterTo] = useState<string | null>(null)
   const [editingChapter, setEditingChapter] = useState<string | null>(null)
-  const [editLayout, setEditLayout] = useState<'grid' | 'wide' | 'single'>('grid')
   const [addingTextChapterId, setAddingTextChapterId] = useState<string | null>(null)
   const [editTitle, setEditTitle] = useState('')
   const [editDesc, setEditDesc] = useState('')
@@ -582,13 +605,11 @@ function ProjectStory({
       description: newDesc,
       order_num: chapters.length,
       parent_id: addingSubChapterTo,
-      layout: editLayout
     })
     setNewTitle('')
     setNewDesc('')
     setShowAddChapter(false)
     setAddingSubChapterTo(null)
-    setEditLayout('grid')
     fetchChapters(true)
   }
 
@@ -599,7 +620,6 @@ function ProjectStory({
       order_num: chapter.order_num,
       parent_id: chapter.parent_id,
       project_id: chapter.project_id,
-      layout: editLayout
     })
     setEditingChapter(null)
     fetchChapters(true)
@@ -651,6 +671,24 @@ function ProjectStory({
       text_item_id: textItemId
     })
     fetchChapterPhotos(chapterId)
+  }
+
+  const handleBlockLayoutChange = async (
+    chapterId: string,
+    blockId: string,
+    layout: 'grid' | 'wide' | 'single'
+  ) => {
+    // 낙관적 업데이트 — 서버 응답 전에 UI 즉시 반영
+    setChapterPhotos(prev => {
+      const next = { ...prev }
+      next[chapterId] = (prev[chapterId] || []).map(item =>
+        item.block_id === blockId ? { ...item, block_layout: layout } : item
+      )
+      return next
+    })
+    await axios.put(`${API}/chapters/${chapterId}/blocks/${blockId}/layout`, {
+      block_layout: layout
+    })
   }
 
   // 블록 간 순서 변경 (외부 DnD)
@@ -1005,19 +1043,6 @@ function ProjectStory({
               value={newDesc}
               onChange={e => setNewDesc(e.target.value)}
             />
-            <div className="flex gap-2 mb-2">
-            {(['grid', 'wide', 'single'] as const).map(l => (
-              <button
-                key={l}
-                onClick={() => setEditLayout(l)}
-                className={`px-2 py-1 text-xs rounded border ${
-                  editLayout === l ? 'bg-stone-600 text-white border-stone-600' : 'border-gray-300 text-gray-500'
-                }`}
-              >
-              {l === 'grid' ? '3열' : l === 'wide' ? '2열' : '1열'}
-              </button>
-              ))}
-            </div>
             <div className="flex gap-2">
               <button
                 onClick={handleAddChapter}
@@ -1026,7 +1051,7 @@ function ProjectStory({
                 {t('common.add')}
               </button>
               <button
-                onClick={() => { setShowAddChapter(false); setAddingSubChapterTo(null); setNewTitle(''); setNewDesc(''); setEditLayout('grid') }}
+                onClick={() => { setShowAddChapter(false); setAddingSubChapterTo(null); setNewTitle(''); setNewDesc('') }}
                 className="border px-3 py-1 text-sm hover:bg-gray-50 rounded"
               >
                 {t('common.cancel')}
@@ -1063,20 +1088,6 @@ function ProjectStory({
                           value={editDesc}
                           onChange={e => setEditDesc(e.target.value)}
                         />
-                        <div className="flex gap-2 mb-2">
-                          {(['grid', 'wide', 'single'] as const).map(l => (
-                            <button
-                              key={l}
-                              type="button"
-                              onClick={() => setEditLayout(l)}
-                              className={`px-2 py-1 text-xs rounded border ${
-                                editLayout === l ? 'bg-stone-600 text-white border-stone-600' : 'border-gray-300 text-gray-500'
-                              }`}
-                            >
-                              {l === 'grid' ? '3열' : l === 'wide' ? '2열' : '1열'}
-                            </button>
-                          ))}
-                        </div>
                         <div className="flex gap-2">
                           <button onClick={() => handleUpdateChapter(chapter)} className="bg-stone-600 text-white px-3 py-1 text-xs tracking-wider hover:bg-stone-700 transition-colors rounded">{t('common.save')}</button>
                           <button onClick={() => setEditingChapter(null)} className="border px-3 py-1 text-xs rounded">{t('common.cancel')}</button>
@@ -1087,9 +1098,6 @@ function ProjectStory({
                         <div>
                           <span className="text-xs text-gray-500 mr-2">{t('story.chapter')} {idx + 1}</span>
                           <span className="font-semibold">{chapter.title}</span>
-                          <span className={`text-xs px-2 py-0.5 rounded-full ml-2 bg-stone-200 text-stone-500`}>
-                            {t('portfolio.column')}{chapter.layout === 'single' ? (t('portfolio.columnSingle')) : chapter.layout === 'wide' ? (t('portfolio.columnWide')) : (t('portfolio.columnGrid'))}
-                          </span>
                           {chapter.description && <p className="text-sm text-gray-500 mt-1">{chapter.description}</p>}
                         </div>
                         <div className="flex gap-2 shrink-0">
@@ -1123,7 +1131,7 @@ function ProjectStory({
                               setEditingChapter(chapter.id)
                               setEditTitle(chapter.title)
                               setEditDesc(chapter.description || '')
-                              setEditLayout(chapter.layout || 'grid') }}
+                            }}
                             className="text-xs text-gray-400 hover:text-black"
                           >
                             {t('common.edit')}
@@ -1151,19 +1159,6 @@ function ProjectStory({
                         value={newDesc}
                         onChange={e => setNewDesc(e.target.value)}
                       />
-                      <div className="flex gap-2 mb-2">
-                      {(['grid', 'wide', 'single'] as const).map(l => (
-                        <button
-                          key={l}
-                          onClick={() => setEditLayout(l)}
-                          className={`px-2 py-1 text-xs rounded border ${
-                            editLayout === l ? 'bg-stone-600 text-white border-stone-600' : 'border-gray-300 text-gray-500'
-                          }`}
-                        >
-                        {l === 'grid' ? '3열' : l === 'wide' ? '2열' : '1열'}
-                        </button>
-                        ))}
-                      </div>
                       <div className="flex gap-2">
                         <button onClick={handleAddChapter} className="bg-stone-600 text-white px-3 py-1 text-xs tracking-wider hover:bg-stone-700 transition-colors rounded">
                           {t('common.add')}
@@ -1172,7 +1167,6 @@ function ProjectStory({
                           onClick={() => {
                             setShowAddChapter(false)
                             setAddingSubChapterTo(null)
-                            setEditLayout('grid')
                           }} 
                           className="border px-3 py-1 text-xs hover:bg-gray-50 rounded"
                         >
@@ -1250,7 +1244,6 @@ function ProjectStory({
                                   blockId={block.blockId}
                                   chapterId={chapter.id}
                                   items={block.items}
-                                  layout={chapter.layout || 'grid'}
                                   sensors={sensors}
                                   onRemoveItem={handleRemoveItem}
                                   onEditCaption={(photoId, caption) => {
@@ -1264,6 +1257,9 @@ function ProjectStory({
                                     setSelectedPhotoIndex(globalIndex)
                                   }}
                                   onInnerDragEnd={handleInnerDragEnd}
+                                  onLayoutChange={(blockId, layout) =>
+                                    handleBlockLayoutChange(chapter.id, blockId, layout)
+                                  }
                                 />
                               )
                             })}
@@ -1303,20 +1299,6 @@ function ProjectStory({
                             value={editDesc}
                             onChange={e => setEditDesc(e.target.value)}
                           />
-                          <div className="flex gap-2 mb-2">
-                            {(['grid', 'wide', 'single'] as const).map(l => (
-                              <button
-                                key={l}
-                                type="button"
-                                onClick={() => setEditLayout(l)}
-                                className={`px-2 py-1 text-xs rounded border ${
-                                  editLayout === l ? 'bg-stone-600 text-white border-stone-600' : 'border-gray-300 text-gray-500'
-                                }`}
-                              >
-                                {l === 'grid' ? '3열' : l === 'wide' ? '2열' : '1열'}
-                              </button>
-                            ))}
-                          </div>
                           <div className="flex gap-2">
                             <button onClick={() => handleUpdateChapter(subChapter)} className="bg-stone-600 text-white px-3 py-1 text-xs tracking-wider hover:bg-stone-700 transition-colors rounded">{t('common.save')}</button>
                             <button onClick={() => setEditingChapter(null)} className="border px-3 py-1 text-xs rounded">{t('common.cancel')}</button>
@@ -1327,9 +1309,6 @@ function ProjectStory({
                           <div>
                             <span className="text-xs text-gray-400 mr-2">{t('story.chapter')} {idx + 1}.{subIdx + 1}</span>
                             <span className="font-semibold">{subChapter.title}</span>
-                            <span className={`text-xs px-2 py-0.5 rounded-full ml-2 bg-stone-200 text-stone-500`}>
-                              (t('portofolio.column')){subChapter.layout === 'single' ? (t('portofolio.columnSingle')) : subChapter.layout === 'wide' ? (t('portofolio.columnWid')) : (t('portofolio.columnGrid'))}
-                            </span>
                             {subChapter.description && <p className="text-sm text-gray-400 mt-1">{subChapter.description}</p>}
                           </div>
                           <div className="flex gap-2 shrink-0">
@@ -1353,7 +1332,7 @@ function ProjectStory({
                                 setEditingChapter(subChapter.id)
                                 setEditTitle(subChapter.title)
                                 setEditDesc(subChapter.description || '')
-                                setEditLayout(subChapter.layout || 'grid') }}
+                              }}
                               className="text-xs text-gray-400 hover:text-black"
                             >
                               {t('common.edit')}
@@ -1430,9 +1409,8 @@ function ProjectStory({
                                   <SortablePhotoBlock
                                     key={block.blockId}
                                     blockId={block.blockId}
-                                    chapterId={chapter.id}
+                                    chapterId={subChapter.id}
                                     items={block.items}
-                                    layout={subChapter.layout || 'grid'}
                                     sensors={sensors}
                                     onRemoveItem={handleRemoveItem}
                                     onEditCaption={(photoId, caption) => {
@@ -1446,6 +1424,9 @@ function ProjectStory({
                                       setSelectedPhotoIndex(globalIndex)
                                     }}
                                     onInnerDragEnd={handleInnerDragEnd}
+                                    onLayoutChange={(blockId, layout) =>
+                                      handleBlockLayoutChange(subChapter.id, blockId, layout)
+                                    }
                                   />
                                 )
                               })}

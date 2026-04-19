@@ -19,14 +19,12 @@ class ChapterCreate(BaseModel):
     description: Optional[str] = None
     order_num: Optional[int] = 0
     parent_id: Optional[str] = None
-    layout: Optional[str] = 'grid'
 
 class ChapterUpdate(BaseModel):
     title: str
     description: Optional[str] = None
     order_num: Optional[int] = 0
     parent_id: Optional[str] = None
-    layout: Optional[str] = 'grid'
 
 class ChapterReorder(BaseModel):
     chapter_ids: List[str]
@@ -40,7 +38,6 @@ class ChapterResponse(BaseModel):
     parent_id: Optional[str]
     created_at: datetime
     updated_at: datetime
-    layout: str
 
     class Config:
         from_attributes = True
@@ -74,6 +71,7 @@ class ChapterItemResponse(BaseModel):
     order_num: int
     item_type: str  # 'PHOTO' | 'TEXT'
     block_type: str = 'default'
+    block_layout: str = 'grid'  # 블록 단위 레이아웃
     # PHOTO 전용
     photo_id: Optional[str] = None
     image_url: Optional[str] = None
@@ -123,7 +121,6 @@ def get_next_order_num(chapter_id: str, db: Session) -> int:
 
 def build_item_response(item: models.ChapterItem) -> dict:
     """ChapterItem ORM 객체를 응답 딕셔너리로 변환."""
-    # 변경 후
     base = {
         "id": item.id,
         "chapter_id": item.chapter_id,
@@ -132,6 +129,7 @@ def build_item_response(item: models.ChapterItem) -> dict:
         "block_type": item.block_type,
         "block_id": item.block_id,
         "order_in_block": item.order_in_block,
+        "block_layout": item.block_layout,
         "photo_id": None,
         "image_url": None,
         "caption": None,
@@ -324,7 +322,6 @@ def add_photo_to_chapter(
 
     order = body.order_num if body.order_num is not None else get_next_order_num(chapter_id, db)
 
-    # 변경 후
     new_id = str(uuid.uuid4())
     # block_id 미지정 시 자신의 id를 block_id로 사용 (단독 블록)
     block_id = body.block_id if body.block_id else new_id
@@ -336,7 +333,8 @@ def add_photo_to_chapter(
         photo_id=body.photo_id,
         order_num=order,
         block_id=block_id,
-        order_in_block=body.order_in_block or 0
+        order_in_block=body.order_in_block or 0,
+        block_layout='grid'  # 단건 추가 기본값
     )
     db.add(db_item)
     db.commit()
@@ -560,8 +558,8 @@ def bulk_add_photos_to_chapter(
     next_order = get_next_order_num(chapter_id, db)
     added = 0
 
-    # 변경 후 — bulk로 추가된 사진들은 같은 block_id 공유
-    block_id = str(uuid.uuid4())  # 이 bulk 요청 전체가 하나의 블록
+    # bulk로 추가된 사진들은 같은 block_id 공유
+    block_id = str(uuid.uuid4())
     order_in_block = 0
 
     for photo_id in body.photo_ids:
@@ -574,7 +572,8 @@ def bulk_add_photos_to_chapter(
             photo_id=photo_id,
             order_num=next_order,
             block_id=block_id,
-            order_in_block=order_in_block
+            order_in_block=order_in_block,
+            block_layout='grid'  # bulk 추가 기본값
         ))
         order_in_block += 1
         added += 1
@@ -602,6 +601,33 @@ def reorder_block_photos(
         ).update({"order_in_block": index}, synchronize_session=False)
     db.commit()
     return {"message": "블록 내 순서가 변경되었습니다."}
+
+
+class ChapterBlockLayoutUpdate(BaseModel):
+    block_layout: Literal['grid', 'wide', 'single']
+
+
+@router.put("/{chapter_id}/blocks/{block_id}/layout")
+def update_block_layout(
+    chapter_id: str,
+    block_id: str,
+    body: ChapterBlockLayoutUpdate,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user)
+):
+    """블록 단위 레이아웃 변경 — 같은 block_id를 공유하는 모든 아이템에 일괄 적용."""
+    get_owned_chapter_or_404(chapter_id, current_user.id, db)
+
+    updated = db.query(models.ChapterItem).filter(
+        models.ChapterItem.chapter_id == chapter_id,
+        models.ChapterItem.block_id == block_id
+    ).update({"block_layout": body.block_layout}, synchronize_session=False)
+
+    if updated == 0:
+        raise HTTPException(status_code=404, detail="BLOCK_NOT_FOUND")
+
+    db.commit()
+    return {"message": "블록 레이아웃이 변경되었습니다.", "block_layout": body.block_layout}
 
 
 # ── 하위 호환 엔드포인트 ────────────────────────────────────

@@ -45,7 +45,6 @@ def _build_chapter_photos(
     # 변경 후
     for cp in chapter_photos_map.get(chapter_id, []):
         if cp.item_type == 'TEXT':
-            # 변경 후
             result.append({
                 "item_type": "TEXT",
                 "text_content": cp.text_content,
@@ -55,14 +54,14 @@ def _build_chapter_photos(
             continue
         photo = photos_map.get(cp.photo_id)
         if photo:
-            # 변경 후
             result.append({
                 "item_type": "PHOTO",
                 "id": photo.id,
                 "image_url": photo.image_url,
                 "caption": photo.caption,
                 "block_id": cp.block_id,
-                "block_type": cp.block_type
+                "block_type": cp.block_type,
+                "block_layout": cp.block_layout
             })
             chapter_photo_ids.add(photo.id)
     return result
@@ -95,8 +94,6 @@ def _build_project_result(project, db: Session) -> dict:
                     "title": sub_chapter.title,
                     "description": sub_chapter.description,
                     "items": sub_photos,
-                    # 챕터 dict에 layout 추가 (3곳 모두)
-                    "layout": sub_chapter.layout
                 })
             parent_photos = _build_chapter_photos(
                 top_chapter.id, chapter_photos_map, photos_map, chapter_photo_ids
@@ -107,8 +104,6 @@ def _build_project_result(project, db: Session) -> dict:
                 "description": top_chapter.description,
                 "items": parent_photos,
                 "sub_chapters": sub_chapter_list,
-                # 챕터 dict에 layout 추가 (3곳 모두)
-                "layout": top_chapter.layout   # 또는 sub_chapter.layout
             })
         else:
             top_photos = _build_chapter_photos(
@@ -119,8 +114,6 @@ def _build_project_result(project, db: Session) -> dict:
                 "title": top_chapter.title,
                 "description": top_chapter.description,
                 "items": top_photos,
-                # 챕터 dict에 layout 추가 (3곳 모두)
-                "layout": top_chapter.layout,   # 또는 sub_chapter.layout
                 "sub_chapters": []
             })
 

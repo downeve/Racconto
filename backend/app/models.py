@@ -116,7 +116,6 @@ class Chapter(Base):
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     # ↓ chapter_photos → chapter_items 로 relationship 이름 변경
     items = relationship("ChapterItem", back_populates="chapter", cascade="all, delete-orphan")
-    layout = Column(String, nullable=False, default='grid', server_default='grid')
 
 
 # ── ChapterPhoto → ChapterItem ─────────────────────────────
@@ -148,6 +147,8 @@ class ChapterItem(Base):
 
     block_id = Column(String, nullable=True)          # 같은 블록의 PHOTO끼리 공유
     order_in_block = Column(Integer, default=0, nullable=False)  # 블록 내 사진 순서
+    block_layout = Column(String, nullable=False, default='grid', server_default='grid')
+    # 블록 단위 레이아웃: 'grid'(3열) | 'wide'(2열) | 'single'(전체 너비)
 
 
 class Setting(Base):
