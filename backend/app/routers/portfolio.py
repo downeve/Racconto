@@ -19,9 +19,10 @@ def _preload_project_data(project_id: str, db: Session) -> tuple[dict, dict]:
 
     chapter_photos_map: dict = {}
     if chapter_ids:
-        cps = db.query(models.ChapterPhoto).filter(
-            models.ChapterPhoto.chapter_id.in_(chapter_ids)
-        ).order_by(models.ChapterPhoto.order_num).all()
+        # 변경 후
+        cps = db.query(models.ChapterItem).filter(
+            models.ChapterItem.chapter_id.in_(chapter_ids)
+        ).order_by(models.ChapterItem.order_num).all()
         for cp in cps:
             chapter_photos_map.setdefault(cp.chapter_id, []).append(cp)
 
@@ -41,10 +42,18 @@ def _build_chapter_photos(
     chapter_photo_ids: set
 ) -> list:
     result = []
+    # 변경 후
     for cp in chapter_photos_map.get(chapter_id, []):
+        if cp.item_type == 'TEXT':
+            result.append({
+                "item_type": "TEXT",
+                "text_content": cp.text_content
+            })
+            continue
         photo = photos_map.get(cp.photo_id)
         if photo:
             result.append({
+                "item_type": "PHOTO",
                 "id": photo.id,
                 "image_url": photo.image_url,
                 "caption": photo.caption
@@ -79,7 +88,7 @@ def _build_project_result(project, db: Session) -> dict:
                     "id": sub_chapter.id,
                     "title": sub_chapter.title,
                     "description": sub_chapter.description,
-                    "photos": sub_photos
+                    "items": sub_photos
                 })
             parent_photos = _build_chapter_photos(
                 top_chapter.id, chapter_photos_map, photos_map, chapter_photo_ids
@@ -88,7 +97,7 @@ def _build_project_result(project, db: Session) -> dict:
                 "id": top_chapter.id,
                 "title": top_chapter.title,
                 "description": top_chapter.description,
-                "photos": parent_photos,
+                "items": parent_photos,
                 "sub_chapters": sub_chapter_list
             })
         else:
@@ -99,7 +108,7 @@ def _build_project_result(project, db: Session) -> dict:
                 "id": top_chapter.id,
                 "title": top_chapter.title,
                 "description": top_chapter.description,
-                "photos": top_photos,
+                "items": top_photos,
                 "sub_chapters": []
             })
 
@@ -115,7 +124,7 @@ def _build_project_result(project, db: Session) -> dict:
         "description": project.description,
         "cover_image_url": project.cover_image_url,
         "location": project.location,
-        "photos": [{"id": p.id, "image_url": p.image_url, "caption": p.caption} for p in all_photos],
+        "items": [{"id": p.id, "image_url": p.image_url, "caption": p.caption} for p in all_photos],
         "chapters": chapter_list,
         "extra_photos": extra_photos
     }

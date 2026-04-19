@@ -9,14 +9,24 @@ const API = import.meta.env.VITE_API_URL
 interface Photo {
   id: string
   image_url: string
-  caption: string | null
+  caption?: string | null
+}
+
+interface ChapterItem {
+  item_type: 'PHOTO' | 'TEXT'
+  // PHOTO 전용
+  id?: string
+  image_url?: string
+  caption?: string
+  // TEXT 전용
+  text_content?: string
 }
 
 interface Chapter {
   id: string
   title: string
   description: string | null
-  photos: Photo[]
+  items: ChapterItem[]
   sub_chapters: Chapter[]
 }
 
@@ -91,10 +101,14 @@ export default function PublicPortfolio() {
     const items: { photo: Photo; title: string }[] = []
     project.chapters?.forEach((ch, idx) => {
       const chTitle = `Chapter ${idx + 1}: ${ch.title}`
-      ch.photos?.forEach(p => items.push({ photo: p, title: chTitle }))
+      ch.items?.filter(i => i.item_type === 'PHOTO').forEach(i => {
+        items.push({ photo: i as Photo, title: chTitle })
+      })
       ch.sub_chapters?.forEach((sub, subIdx) => {
         const subTitle = `Chapter ${idx + 1}.${subIdx + 1}: ${sub.title}`
-        sub.photos?.forEach(p => items.push({ photo: p, title: subTitle }))
+        sub.items?.filter(i => i.item_type === 'PHOTO').forEach(i => {
+        items.push({ photo: i as Photo, title: subTitle })
+      })
       })
     })
     return items
@@ -126,6 +140,45 @@ export default function PublicPortfolio() {
   const bg = darkMode ? 'bg-[#1A1A1A] text-white' : 'bg-[#F5F0EB] text-gray-900'
   const cardBg = darkMode ? 'bg-[#2A2A2A]' : 'bg-white'
   const subText = darkMode ? 'text-gray-400' : 'text-gray-500'
+
+  // 챕터 아이템 렌더링 함수 (PublicPortfolio 컴포넌트 내부에 추가)
+  const renderChapterItems = (items: ChapterItem[], allLightboxItems: { photo: Photo; title: string }[]) => {
+    const result: React.ReactNode[] = []
+    let photoBuffer: ChapterItem[] = []
+
+    const flushPhotos = () => {
+      if (photoBuffer.length === 0) return
+      result.push(
+        <div key={`photos-${photoBuffer[0].id}`} className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-4">
+          {photoBuffer.map(photo => (
+            <img
+              key={photo.id}
+              src={photo.image_url}
+              loading="lazy"
+              className="w-full aspect-[3/2] object-cover rounded cursor-pointer hover:opacity-80 transition-opacity"
+              onClick={() => openLightbox(photo as unknown as Photo, allLightboxItems)}
+            />
+          ))}
+        </div>
+      )
+      photoBuffer = []
+    }
+
+    items.forEach((item, i) => {
+      if (item.item_type === 'PHOTO') {
+        photoBuffer.push(item)
+      } else {
+        flushPhotos()
+        result.push(
+          <p key={`text-${i}`} className={`text-sm leading-relaxed whitespace-pre-wrap my-6 max-w-prose ${subText}`}>
+            {item.text_content}
+          </p>
+        )
+      }
+    })
+    flushPhotos()
+    return result
+  }
 
   // 케이스 1: 먼저 사용자가 포트폴리오 설정을 안 했을 때 (@setup) 인지 확인합니다.
   if (username === '@setup' || !username) {
@@ -270,32 +323,14 @@ export default function PublicPortfolio() {
                         <p className={`text-sm ${subText} mt-1`}>{chapter.description}</p>
                       )}
                     </div>
-                    {chapter.photos && chapter.photos.length > 0 && (
-                      <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-8">
-                        {chapter.photos.map(photo => (
-                          <img key={photo.id} src={photo.image_url}
-                            loading="lazy"
-                            className="w-full aspect-[3/2] object-cover rounded cursor-pointer hover:opacity-80 transition-opacity"
-                            onClick={() => openLightbox(photo, getAllChapterItems(selectedProject))}
-                          />
-                        ))}
-                      </div>
-                    )}
+                        {renderChapterItems(chapter.items || [], getAllChapterItems(selectedProject))}
                     {chapter.sub_chapters?.map((sub, subIdx) => (
                       <div key={sub.id} className="ml-4 md:ml-8 mb-8">
                         <div className="mb-3 border-l-4 border-blue-400 pl-4">
                           <p className={`text-xs ${subText} mb-1`}>{t('story.chapter')} {idx + 1}.{subIdx + 1}</p>
                           <h4 className="text-base font-semibold">{sub.title}</h4>
                         </div>
-                        <div className="grid grid-cols-3 md:grid-cols-4 gap-3 pl-4">
-                          {sub.photos.map(photo => (
-                            <img key={photo.id} src={photo.image_url}
-                              loading="lazy"
-                              className="w-full aspect-[3/2] object-cover rounded cursor-pointer hover:opacity-80 transition-opacity"
-                              onClick={() => openLightbox(photo, getAllChapterItems(selectedProject))}
-                            />
-                          ))}
-                        </div>
+                        {renderChapterItems(sub.items || [], getAllChapterItems(selectedProject))}
                       </div>
                     ))}
                   </div>

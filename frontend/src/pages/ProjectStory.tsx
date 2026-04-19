@@ -279,12 +279,12 @@ function ProjectStory({
     });
   };
 
-  const fetchChapters = async () => {
+  const fetchChapters = async (notifyParent = false) => {
     try {
       const res = await axios.get(`${API}/chapters/?project_id=${projectId}`)
       setChapters(res.data)
-      onChapterChange?.(res.data.length)
       await Promise.all(res.data.map((chapter: Chapter) => fetchChapterPhotos(chapter.id)))
+      if (notifyParent) onChapterChange?.(res.data.length)
     } catch (err) {
       console.error(err)
     }
@@ -418,8 +418,8 @@ function ProjectStory({
     setNewTitle('')
     setNewDesc('')
     setShowAddChapter(false)
-    setAddingSubChapterTo(null) 
-    fetchChapters()
+    setAddingSubChapterTo(null)
+    fetchChapters(true)
   }
 
   const handleUpdateChapter = async (chapter: Chapter) => {
@@ -431,7 +431,7 @@ function ProjectStory({
       project_id: chapter.project_id
     })
     setEditingChapter(null)
-    fetchChapters()
+    fetchChapters(true)
   }
 
   const handleDeleteChapter = async (chapterId: string) => {
@@ -440,7 +440,7 @@ function ProjectStory({
       onConfirm: async () => {
         setConfirmModal(null)
         await axios.delete(`${API}/chapters/${chapterId}`)
-        fetchChapters()
+        fetchChapters(true)
       }
     })
   }
@@ -473,7 +473,7 @@ function ProjectStory({
       try {
         const chapterIds = newSiblings.map(c => c.id)
         await axios.put(`${API}/chapters/reorder`, { chapter_ids: chapterIds })
-        fetchChapters()
+        fetchChapters(true)
       } catch (error) {
         // 다국어 적용: 콘솔 에러 및 alert 메시지
         console.error(t('story.error.ReorderFailedLog'), error)

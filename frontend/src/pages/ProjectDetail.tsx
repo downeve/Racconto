@@ -592,6 +592,7 @@ export default function ProjectDetail({
   }
 
   const fetchChapterPhotoIds = async () => {
+    console.trace('fetchChapterPhotoIds called')
     if (!numericId) return
     const res = await axios.get(`${API}/chapters/?project_id=${numericId}`)
     const chapters: ChapterResponse[] = res.data
