@@ -3,6 +3,7 @@ import { useParams, Link, useNavigate } from 'react-router-dom'
 import axios from 'axios'
 import { useTranslation } from 'react-i18next'
 import { useAuth } from '../context/AuthContext'
+import PortfolioChapterItems, { PORTFOLIO_WIDTH, type PortfolioPhoto } from '../components/PortfolioChapterItems'
 
 const API = import.meta.env.VITE_API_URL
 
@@ -14,14 +15,12 @@ interface Photo {
 
 interface ChapterItem {
   item_type: 'PHOTO' | 'TEXT'
-  // PHOTO 전용
   id?: string
   image_url?: string
-  caption?: string
+  caption?: string | null
   block_layout?: 'grid' | 'wide' | 'single'
-  // TEXT 전용
-  text_content?: string
-  block_id?: string
+  text_content?: string | null
+  block_id?: string | null
   block_type?: string
 }
 
@@ -54,7 +53,7 @@ export default function PublicPortfolio() {
   // [새로운 코드]
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null)
   const [lightboxItems, setLightboxItems] = useState<{ photo: Photo; title: string }[]>([])
-  
+
   // 상태 밑에, 현재 선택된 아이템을 쉽게 쓰기 위해 변수 하나 추가
   const activeLightboxItem = lightboxIndex !== null ? lightboxItems[lightboxIndex] : null
 
@@ -142,159 +141,6 @@ export default function PublicPortfolio() {
 
   const bg = darkMode ? 'bg-[#1A1A1A] text-white' : 'bg-[#F5F0EB] text-gray-900'
   const subText = darkMode ? 'text-gray-400' : 'text-gray-500'
-
-  const renderChapterItems = (
-    items: ChapterItem[],
-    allLightboxItems: { photo: Photo; title: string }[],
-  ) => {
-    const result: React.ReactNode[] = []
-    const renderedBlocks = new Set<string>()
-
-    // block_id 기준으로 블록 그룹 미리 구성
-    const blockMap = new Map<string, {
-      layout: 'grid' | 'wide' | 'single'
-      type: 'PHOTO' | 'SIDE'
-      photos: ChapterItem[]
-      text: ChapterItem | null
-      blockType: string
-    }>()
-
-    items.forEach(item => {
-      const bid = item.block_id
-      if (!bid) return
-
-      const isSide = item.block_type === 'side-left' || item.block_type === 'side-right'
-
-      if (isSide) {
-        if (!blockMap.has(bid)) {
-          blockMap.set(bid, { layout: 'grid', type: 'SIDE', photos: [], text: null, blockType: item.block_type || 'side-left' })
-        }
-        const group = blockMap.get(bid)!
-        if (item.item_type === 'PHOTO') {
-          group.photos.push(item)
-        } else {
-          group.text = item
-        }
-      } else if (item.item_type === 'PHOTO') {
-        if (!blockMap.has(bid)) {
-          blockMap.set(bid, {
-            layout: item.block_layout || 'grid',
-            type: 'PHOTO',
-            photos: [],
-            text: null,
-            blockType: 'default'
-          })
-        }
-        blockMap.get(bid)!.photos.push(item)
-      }
-    })
-
-    // 아이템 순서대로 순회하며 블록 첫 등장 시점에 렌더
-    items.forEach((item, i) => {
-      const bid = item.block_id
-
-      // 독립 텍스트 블록 (block_type === 'default' or undefined)
-      if (item.item_type === 'TEXT' && item.block_type !== 'side-left' && item.block_type !== 'side-right') {
-        result.push(
-          <div key={`text-${i}`} className="my-10 max-w-xl">
-            <p
-              className={`text-base leading-[1.9] whitespace-pre-wrap ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}
-              style={{ fontFamily: "'Georgia', serif" }}
-            >
-              {item.text_content}
-            </p>
-          </div>
-        )
-        return
-      }
-
-      if (!bid || renderedBlocks.has(bid)) return
-      renderedBlocks.add(bid)
-
-      const group = blockMap.get(bid)
-      if (!group) return
-
-      // Side-by-side 블록
-      if (group.type === 'SIDE') {
-        const photoCol = (
-          <div className="flex-1 min-w-0 space-y-2">
-            {group.photos.map(photo => (
-              <img
-                key={photo.id}
-                src={photo.image_url}
-                loading="lazy"
-                className="w-full rounded cursor-pointer hover:opacity-90 transition-opacity block"
-                onClick={() => openLightbox(photo as unknown as Photo, allLightboxItems)}
-              />
-            ))}
-          </div>
-        )
-        const textCol = group.text ? (
-          <div className="flex-1 min-w-0 flex items-center">
-            <p
-              className={`text-base leading-[1.9] whitespace-pre-wrap ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}
-              style={{ fontFamily: "'Georgia', serif" }}
-            >
-              {group.text.text_content}
-            </p>
-          </div>
-        ) : null
-        result.push(
-          <div key={`side-${bid}`} className="flex gap-6 my-6 items-center">
-            {group.blockType === 'side-left' ? <>{photoCol}{textCol}</> : <>{textCol}{photoCol}</>}
-          </div>
-        )
-        return
-      }
-
-      // 일반 사진 블록 — block_layout에 따라 렌더
-      const layout = group.layout
-      const photos = group.photos
-
-      if (layout === 'single') {
-        result.push(
-          <div key={`block-${bid}`} className="mb-8 space-y-4">
-            {photos.map(photo => (
-              <div key={photo.id} className="break-inside-avoid">
-                <img
-                  src={photo.image_url}
-                  loading="lazy"
-                  className="w-full rounded cursor-pointer hover:opacity-90 transition-opacity"
-                  onClick={() => openLightbox(photo as unknown as Photo, allLightboxItems)}
-                />
-                {photo.caption && (
-                  <p className={`text-xs mt-1.5 leading-relaxed ${subText}`}>{photo.caption}</p>
-                )}
-              </div>
-            ))}
-          </div>
-        )
-      } else {
-        const cols = layout === 'wide' ? 2 : 3
-        result.push(
-          <div key={`block-${bid}`} className="mb-6"
-            style={{ columnCount: cols, columnGap: '0.75rem' }}
-          >
-            {photos.map(photo => (
-              <div key={photo.id} className="mb-3 break-inside-avoid">
-                <img
-                  src={photo.image_url}
-                  loading="lazy"
-                  className="w-full object-contain rounded cursor-pointer hover:opacity-90 transition-opacity block"
-                  onClick={() => openLightbox(photo as unknown as Photo, allLightboxItems)}
-                />
-                {photo.caption && (
-                  <p className={`text-xs mt-1 leading-relaxed ${subText}`}>{photo.caption}</p>
-                )}
-              </div>
-            ))}
-          </div>
-        )
-      }
-    })
-
-    return result
-  }
 
   // 케이스 1: 먼저 사용자가 포트폴리오 설정을 안 했을 때 (@setup) 인지 확인합니다.
   if (username === '@setup' || !username) {
@@ -466,7 +312,12 @@ export default function PublicPortfolio() {
                     )}
                     <div className={`mt-6 h-px w-12 ${darkMode ? 'bg-white/30' : 'bg-gray-400'}`} />
                   </div>
-                    {renderChapterItems(chapter.items || [], getAllChapterItems(selectedProject))}
+                    <PortfolioChapterItems
+                      items={chapter.items || []}
+                      allLightboxItems={getAllChapterItems(selectedProject) as { photo: PortfolioPhoto; title: string }[]}
+                      darkMode={darkMode}
+                      onLightbox={(photo, items) => openLightbox(photo as unknown as Photo, items as { photo: Photo; title: string }[])}
+                    />
                     {chapter.sub_chapters?.map((sub, subIdx) => (
                       <div key={sub.id} className="mt-16">
                         <div className={`h-px mb-10 w-1/3 ${darkMode ? 'bg-white/10' : 'bg-gray-200'}`} />
@@ -491,7 +342,12 @@ export default function PublicPortfolio() {
                             </p>
                           )}
                         </div>
-                        {renderChapterItems(sub.items || [], getAllChapterItems(selectedProject))}
+                        <PortfolioChapterItems
+                          items={sub.items || []}
+                          allLightboxItems={getAllChapterItems(selectedProject) as { photo: PortfolioPhoto; title: string }[]}
+                          darkMode={darkMode}
+                          onLightbox={(photo, items) => openLightbox(photo as unknown as Photo, items as { photo: Photo; title: string }[])}
+                        />
                       </div>
                     ))}
                   </div>

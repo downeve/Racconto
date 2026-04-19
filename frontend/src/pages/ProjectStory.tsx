@@ -4,6 +4,13 @@ import { useTranslation } from 'react-i18next'
 import PhotoNotePanel from '../components/PhotoNotePanel'
 import { useElectronSidebar } from '../context/ElectronSidebarContext'
 import ConfirmModal from '../components/ConfirmModal'
+import PortfolioChapterItems, { type PortfolioChapterItem } from '../components/PortfolioChapterItems'
+import {
+  SortablePhotoBlock,
+  SortableTextBlock,
+  SortableSideBySideBlock,
+  type ChapterItem as StoryChapterItem,
+} from '../components/StoryBlocks'
 
 import {
   DndContext,
@@ -14,18 +21,15 @@ import {
   useSensors,
   DragOverlay
 } from '@dnd-kit/core';
-import type { DragEndEvent } from '@dnd-kit/core'; 
+import type { DragEndEvent } from '@dnd-kit/core';
 
 import {
   arrayMove,
   SortableContext,
   sortableKeyboardCoordinates,
-  rectSortingStrategy,
   verticalListSortingStrategy,
-  useSortable
 } from '@dnd-kit/sortable';
 
-import { CSS } from '@dnd-kit/utilities';
 
 const API = import.meta.env.VITE_API_URL
 
@@ -38,363 +42,14 @@ interface Chapter {
   parent_id: string | null
 }
 
-interface ChapterItem {
-  id: string
-  chapter_id: string
-  order_num: number
-  item_type: 'PHOTO' | 'TEXT'
-  block_id: string | null
-  order_in_block: number
-  block_type: string        // 'default' | 'side-left' | 'side-right'
-  block_layout: 'grid' | 'wide' | 'single'  // 블록 단위 레이아웃
-  // PHOTO 전용
-  photo_id: string | null
-  image_url: string | null
-  caption: string | null
-  // TEXT 전용
-  text_content: string | null
-}
+// StoryBlocks의 ChapterItem을 재export해서 파일 내에서 사용
+type ChapterItem = StoryChapterItem
 
 interface Photo {
   id: string
   image_url: string
   caption: string | null
   folder: string | null
-}
-
-// 개별 사진 드래그 컴포넌트
-interface SortablePhotoChapterProps {
-  id: string; 
-  imageUrl: string | null;
-  photoId: string | null;
-  chapterId: string;
-  caption: string | null; // 👇 [추가] 캡션 데이터
-  onRemove: (chapterId: string, itemId: string) => void;
-  onClick: () => void;
-  onEditCaption: (photoId: string, currentCaption: string) => void; // 👇 [추가] 캡션 편집 이벤트
-}
-
-function SortablePhotoChapter({ id, imageUrl, photoId, chapterId, caption, onRemove, onClick, onEditCaption }: SortablePhotoChapterProps) {
-  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id });
-
-  const style = {
-    transform: CSS.Transform.toString(transform),
-    transition,
-    zIndex: isDragging ? 10 : 'auto',
-    opacity: isDragging ? 0.5 : 1,
-  };
-
-  return (
-    // 👇 [수정] 최상위를 flex-col로 변경하여 이미지는 고정하고 텍스트만 아래로 늘어나게 설정 (제안 B)
-    <div ref={setNodeRef} style={style} className="flex flex-col w-full h-full">
-      
-      {/* 1. 이미지 컨테이너 (3:2 비율 유지) */}
-      <div className="relative group rounded overflow-hidden aspect-[3/2] shadow-sm">
-        <img
-          src={imageUrl ?? ''}
-          alt={caption || ''}
-          className="absolute inset-0 w-full h-full object-contain cursor-pointer"
-          onClick={onClick}
-        />
-
-        <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity z-10 pointer-events-none" />
-
-        {/* 2. 드래그 핸들 */}
-        <div
-          {...attributes}
-          {...listeners}
-          className="absolute top-1.5 left-1.5 p-1.5 rounded cursor-grab opacity-0 group-hover:opacity-100 transition-opacity z-20"
-        >
-          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M6 3C6 3.55228 5.55228 4 5 4C4.44772 4 4 3.55228 4 3C4 2.44772 4.44772 2 5 2C5.55228 2 6 2.44772 6 3Z" fill="white"/>
-            <path d="M6 8C6 8.55228 5.55228 9 5 9C4.44772 9 4 8.55228 4 8C4 7.44772 4.44772 7 5 7C5.55228 7 6 7.44772 6 8Z" fill="white"/>
-            <path d="M6 13C6 13.5523 5.55228 14 5 14C4.44772 14 4 13.5523 4 13C4 12.4477 4.44772 12 5 12C5.55228 12 6 12.4477 6 13Z" fill="white"/>
-            <path d="M12 3C12 3.55228 11.5523 4 11 4C10.4477 4 10 3.55228 10 3C10 2.44772 10.4477 2 11 2C11.5523 2 12 2.44772 12 3Z" fill="white"/>
-            <path d="M12 8C12 8.55228 11.5523 9 11 9C10.4477 9 10 8.55228 10 8C10 7.44772 10.4477 7 11 7C11.5523 7 12 7.44772 12 8Z" fill="white"/>
-            <path d="M12 13C12 13.5523 11.5523 14 11 14C10.4477 14 10 13.5523 10 13C10 12.4477 10.4477 12 11 12C11.5523 12 12 12.4477 12 13Z" fill="white"/>
-          </svg>
-        </div>
-
-        {/* 3. 삭제 버튼 */}
-        <button
-          onClick={(e) => { e.stopPropagation(); onRemove(chapterId, id); }}
-          className="absolute top-1 right-1 bg-red-600 text-white rounded-full w-5 h-5 text-xs font-bold opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity z-20"
-        >
-          ×
-        </button>
-
-        {/* 👇 [추가] 4. 캡션 편집(물방울) 버튼 */}
-        <button
-          onClick={(e) => { e.stopPropagation(); onEditCaption(photoId ?? '', caption || ''); }}
-          className="absolute bottom-2 right-2 p-2 bg-black/60 hover:bg-black/80 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity z-20"
-          title="Edit/Add Comment"
-        >
-          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
-          </svg>
-        </button>
-      </div>
-
-      {/* 👇 [추가] 5. 이미지 하단 캡션 노출 영역 (ProjectDetail과 연동) */}
-      {caption && (
-        <div className="mt-2 px-1 pb-2">
-          <p className="text-xs text-gray-500 line-clamp-2 leading-relaxed whitespace-pre-wrap">
-            {caption}
-          </p>
-        </div>
-      )}
-    </div>
-  );
-}
-
-interface SortableTextBlockProps {
-  id: string
-  itemId: string
-  chapterId: string
-  text_content: string
-  hasPhotoAbove: boolean   // 추가
-  hasPhotoBelow: boolean   // 추가
-  onRemove: (chapterId: string, itemId: string) => void
-  onEdit: (itemId: string, currentText: string) => void
-  onSideBySide: (itemId: string, position: 'side-left' | 'side-right', direction: 'above' | 'below') => void
-}
-
-function SortableTextBlock({ id, itemId, chapterId, text_content, hasPhotoAbove, hasPhotoBelow, onRemove, onEdit, onSideBySide }: SortableTextBlockProps) {
-  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id })
-  const style = {
-    transform: CSS.Transform.toString(transform),
-    transition,
-    opacity: isDragging ? 0.5 : 1,
-  }
-
-  const { t } = useTranslation()
-
-  return (
-    <div ref={setNodeRef} style={style} className="col-span-3 group relative bg-stone-50 border border-stone-200 rounded-lg px-5 py-4 my-1">
-      {/* 드래그 핸들 */}
-      <div
-        {...attributes}
-        {...listeners}
-        className="absolute top-3 left-3 cursor-grab opacity-0 group-hover:opacity-40 transition-opacity"
-      >
-        <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
-          <path d="M6 3C6 3.55228 5.55228 4 5 4C4.44772 4 4 3.55228 4 3C4 2.44772 4.44772 2 5 2C5.55228 2 6 2.44772 6 3Z" fill="#999"/>
-          <path d="M6 8C6 8.55228 5.55228 9 5 9C4.44772 9 4 8.55228 4 8C4 7.44772 4.44772 7 5 7C5.55228 7 6 7.44772 6 8Z" fill="#999"/>
-          <path d="M6 13C6 13.5523 5.55228 14 5 14C4.44772 14 4 13.5523 4 13C4 12.4477 4.44772 12 5 12C5.55228 12 6 12.4477 6 13Z" fill="#999"/>
-          <path d="M12 3C12 3.55228 11.5523 4 11 4C10.4477 4 10 3.55228 10 3C10 2.44772 10.4477 2 11 2C11.5523 2 12 2.44772 12 3Z" fill="#999"/>
-          <path d="M12 8C12 8.55228 11.5523 9 11 9C10.4477 9 10 8.55228 10 8C10 7.44772 10.4477 7 11 7C11.5523 7 12 7.44772 12 8Z" fill="#999"/>
-          <path d="M12 13C12 13.5523 11.5523 14 11 14C10.4477 14 10 13.5523 10 13C10 12.4477 10.4477 12 11 12C11.5523 12 12 12.4477 12 13Z" fill="#999"/>
-        </svg>
-      </div>
-      {/* 액션 버튼 */}
-      <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-        {hasPhotoAbove && (
-          <button
-            onClick={() => onSideBySide(itemId, 'side-right', 'above')}
-            className="text-xs px-2 py-0.5 rounded border border-blue-200 text-blue-400 hover:text-blue-600 bg-white"
-            title="위 사진과 나란히 (텍스트 오른쪽)"
-          >↑ 나란히</button>
-        )}
-        {hasPhotoBelow && (
-          <button
-            onClick={() => onSideBySide(itemId, 'side-left', 'below')}
-            className="text-xs px-2 py-0.5 rounded border border-blue-200 text-blue-400 hover:text-blue-600 bg-white"
-            title="아래 사진과 나란히 (텍스트 왼쪽)"
-          >↓ 나란히</button>
-        )}
-        <button
-          onClick={() => onEdit(itemId, text_content)}
-          className="text-xs px-2 py-0.5 rounded border border-gray-300 text-gray-500 hover:text-gray-800 bg-white"
-        >{t('common.edit')}</button>
-        <button
-          onClick={() => onRemove(chapterId, itemId)}
-          className="text-xs px-2 py-0.5 rounded border border-red-200 text-red-400 hover:text-red-600 bg-white"
-        >×</button>
-      </div>
-      {/* 본문 */}
-      <p className="text-sm text-gray-700 leading-relaxed whitespace-pre-wrap pl-4">{text_content}</p>
-    </div>
-  )
-}
-
-interface SortablePhotoBlockProps {
-  blockId: string
-  chapterId: string
-  items: ChapterItem[]
-  sensors: ReturnType<typeof useSensors>
-  onRemoveItem: (chapterId: string, itemId: string) => void
-  onEditCaption: (photoId: string, caption: string) => void
-  onPhotoClick: (item: ChapterItem) => void
-  onInnerDragEnd: (event: DragEndEvent, blockId: string, chapterId: string) => void
-  onLayoutChange: (blockId: string, layout: 'grid' | 'wide' | 'single') => void
-}
-
-function SortablePhotoBlock({
-  blockId, chapterId, items, sensors,
-  onRemoveItem, onEditCaption, onPhotoClick, onInnerDragEnd, onLayoutChange
-}: SortablePhotoBlockProps) {
-  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: blockId })
-  const style = {
-    transform: CSS.Transform.toString(transform),
-    transition,
-    opacity: isDragging ? 0.5 : 1,
-  }
-
-  // 편집 화면은 항상 3열 compact — 실제 레이아웃은 block_layout이 공개 화면에서 적용됨
-  const blockLayout = items[0]?.block_layout || 'grid'
-
-  const layoutLabels: Record<string, string> = {
-    grid: '3열',
-    wide: '2열',
-    single: '전체',
-  }
-
-  return (
-    <div ref={setNodeRef} style={style} className="group/block relative mb-2 bg-stone-50 border border-stone-200 rounded-lg p-3">
-      {/* 블록 드래그 핸들 */}
-      <div
-        {...attributes}
-        {...listeners}
-        className="absolute -left-5 top-1/2 -translate-y-1/2 cursor-grab opacity-0 group-hover/block:opacity-40 transition-opacity z-10 p-1"
-      >
-        <svg width="12" height="20" viewBox="0 0 12 20" fill="none">
-          <circle cx="3" cy="4" r="1.5" fill="#999"/>
-          <circle cx="9" cy="4" r="1.5" fill="#999"/>
-          <circle cx="3" cy="10" r="1.5" fill="#999"/>
-          <circle cx="9" cy="10" r="1.5" fill="#999"/>
-          <circle cx="3" cy="16" r="1.5" fill="#999"/>
-          <circle cx="9" cy="16" r="1.5" fill="#999"/>
-        </svg>
-      </div>
-
-      {/* 블록 레이아웃 툴바 — 블록 내부 우상단, hover 시 표시 */}
-      <div className="absolute top-2 right-2 opacity-0 group-hover/block:opacity-100 transition-opacity z-20 flex items-center gap-1 bg-white border border-gray-200 rounded shadow-sm px-1.5 py-0.5">
-        <span className="text-[10px] text-gray-400 mr-1">포트폴리오</span>
-        {(['grid', 'wide', 'single'] as const).map(l => (
-          <button
-            key={l}
-            onClick={() => onLayoutChange(blockId, l)}
-            className={`text-[10px] px-1.5 py-0.5 rounded transition-colors ${
-              blockLayout === l
-                ? 'bg-stone-700 text-white'
-                : 'text-gray-500 hover:bg-gray-100'
-            }`}
-          >
-            {layoutLabels[l]}
-          </button>
-        ))}
-      </div>
-
-      {/* 내부 사진 DnD — 편집 화면은 항상 3열 */}
-      <DndContext
-        sensors={sensors}
-        collisionDetection={closestCenter}
-        onDragEnd={(e) => onInnerDragEnd(e, blockId, chapterId)}
-      >
-        <SortableContext items={items.map(i => i.id)} strategy={rectSortingStrategy}>
-          <div className="grid grid-cols-3 gap-2">
-            {items.map(item => (
-              <SortablePhotoChapter
-                key={item.id}
-                id={item.id}
-                imageUrl={item.image_url}
-                photoId={item.photo_id}
-                chapterId={chapterId}
-                caption={item.caption}
-                onRemove={onRemoveItem}
-                onClick={() => onPhotoClick(item)}
-                onEditCaption={onEditCaption}
-              />
-            ))}
-          </div>
-        </SortableContext>
-      </DndContext>
-    </div>
-  )
-}
-
-interface SortableSideBySideBlockProps {
-  blockId: string
-  chapterId: string
-  items: ChapterItem[]
-  onRemoveItem: (chapterId: string, itemId: string) => void
-  onEditCaption: (photoId: string, caption: string) => void
-  onPhotoClick: (item: ChapterItem) => void
-  onCancelSideBySide: (chapterId: string, textItemId: string) => void
-}
-
-function SortableSideBySideBlock({
-  blockId, chapterId, items, onRemoveItem, onPhotoClick, onCancelSideBySide
-}: SortableSideBySideBlockProps) {
-  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: blockId })
-  const style = { transform: CSS.Transform.toString(transform), transition, opacity: isDragging ? 0.5 : 1 }
-
-  const blockType = items[0]?.block_type || 'side-left'
-  const photoItems = items.filter(i => i.item_type === 'PHOTO')
-  const textItem = items.find(i => i.item_type === 'TEXT')
-
-  const photoCol = (
-    <div className="flex-1 min-w-0">
-      <div className="grid grid-cols-1 gap-2">
-        {photoItems.map(item => (
-          <div key={item.id} className="relative group rounded overflow-hidden aspect-[3/2] shadow-sm">
-            <img
-              src={item.image_url ?? ''}
-              className="absolute inset-0 w-full h-full object-contain cursor-pointer"
-              onClick={() => onPhotoClick(item)}
-            />
-            <button
-              onClick={() => onRemoveItem(chapterId, item.id)}
-              className="absolute top-1 right-1 bg-red-600 text-white rounded-full w-5 h-5 text-xs font-bold opacity-0 group-hover:opacity-100 flex items-center justify-center z-10"
-            >×</button>
-          </div>
-        ))}
-      </div>
-    </div>
-  )
-
-  const textCol = textItem ? (
-    <div className="flex-1 min-w-0 group/text relative bg-stone-50 border border-stone-200 rounded-lg px-4 py-4">
-      <p className="text-sm text-gray-700 leading-relaxed whitespace-pre-wrap">
-        {textItem.text_content}
-      </p>
-      {/* 해제 버튼 */}
-      <button
-        onClick={() => onCancelSideBySide(chapterId, textItem.id)}
-        className="absolute top-2 right-2 text-xs px-2 py-0.5 rounded border border-gray-300 text-gray-400 hover:text-gray-700 bg-white opacity-0 group-hover/text:opacity-100 transition-opacity"
-      >
-        분리
-      </button>
-    </div>
-  ) : null
-
-  return (
-    <div ref={setNodeRef} style={style} className="group/block relative mb-2">
-      {/* 블록 드래그 핸들 */}
-      <div
-        {...attributes}
-        {...listeners}
-        className="absolute -left-5 top-1/2 -translate-y-1/2 cursor-grab opacity-0 group-hover/block:opacity-40 transition-opacity z-10 p-1"
-      >
-        <svg width="12" height="20" viewBox="0 0 12 20" fill="none">
-          <circle cx="3" cy="4" r="1.5" fill="#999"/>
-          <circle cx="9" cy="4" r="1.5" fill="#999"/>
-          <circle cx="3" cy="10" r="1.5" fill="#999"/>
-          <circle cx="9" cy="10" r="1.5" fill="#999"/>
-          <circle cx="3" cy="16" r="1.5" fill="#999"/>
-          <circle cx="9" cy="16" r="1.5" fill="#999"/>
-        </svg>
-      </div>
-
-      <div className="flex gap-3">
-        {blockType === 'side-left' ? (
-          <>{photoCol}{textCol}</>
-        ) : (
-          <>{textCol}{photoCol}</>
-        )}
-      </div>
-    </div>
-  )
 }
 
 function ProjectStory({
@@ -736,9 +391,12 @@ function ProjectStory({
     const { active, over } = event
     if (!over || active.id === over.id) return
 
-    // API에 보낼 새 순서를 state 업데이트 전에 미리 계산 (stale closure 방지)
+    // state 업데이트 전에 미리 계산 (stale closure 방지)
     const currentItems = chapterPhotos[chapterId] || []
-    const blockItems = currentItems.filter(i => i.block_id === blockId)
+    const blockItems = currentItems
+      .filter(i => i.block_id === blockId)
+      .sort((a, b) => a.order_in_block - b.order_in_block)  // 현재 순서 기준으로 정렬
+
     const oldIndex = blockItems.findIndex(i => i.id === active.id)
     const newIndex = blockItems.findIndex(i => i.id === over.id)
     if (oldIndex === -1 || newIndex === -1) return
@@ -746,21 +404,23 @@ function ProjectStory({
     const newBlockItems = arrayMove(blockItems, oldIndex, newIndex)
     const newItemIds = newBlockItems.map(i => i.id)
 
-    // 낙관적 업데이트 — order_in_block 갱신 후 배열 순서도 동기화
+    // 낙관적 업데이트 — 배열 순서 자체를 newBlockItems 기준으로 재구성
     setChapterPhotos(prev => {
       const items = prev[chapterId] || []
-      // order_in_block 값만 갱신, 배열 순서는 newBlockItems 기준으로 재구성
-      const blockItemIds = new Set(newBlockItems.map(i => i.id))
-      const nonBlockItems = items.filter(i => !blockItemIds.has(i.id))
-      const updatedBlockItems = newBlockItems.map((i, idx) => ({ ...i, order_in_block: idx }))
-      // 기존 배열에서 이 블록 아이템들의 첫 위치를 찾아 거기에 삽입
-      const firstBlockIdx = items.findIndex(i => blockItemIds.has(i.id))
+      const blockItemIdSet = new Set(newBlockItems.map(i => i.id))
+      const nonBlockItems = items.filter(i => !blockItemIdSet.has(i.id))
+      const updatedBlockItems = newBlockItems.map((item, idx) => ({
+        ...item,
+        order_in_block: idx
+      }))
+      // 블록 아이템이 원래 있던 첫 번째 위치에 삽입
+      const firstIdx = items.findIndex(i => blockItemIdSet.has(i.id))
       const result = [...nonBlockItems]
-      result.splice(firstBlockIdx, 0, ...updatedBlockItems)
+      result.splice(firstIdx === -1 ? result.length : firstIdx, 0, ...updatedBlockItems)
       return { ...prev, [chapterId]: result }
     })
 
-    // 미리 계산한 값으로 API 호출 (stale closure 없음)
+    // 미리 계산한 값으로 API 호출
     axios.put(`${API}/chapters/${chapterId}/blocks/${blockId}/reorder`, {
       block_id: blockId,
       item_ids: newItemIds
@@ -889,117 +549,6 @@ function ProjectStory({
         return `Chapter ${mainIndex + 1}. ${chapter.title}`;
       }
     };
-
-  // ── 포트폴리오 미리보기 렌더 헬퍼 ─────────────────────────
-  const renderPreviewItems = (items: ChapterItem[], darkMode: boolean): React.ReactNode[] => {
-    const result: React.ReactNode[] = []
-    const renderedBlocks = new Set<string>()
-
-    const textColor = darkMode ? 'text-gray-300' : 'text-gray-700'
-    const captionColor = darkMode ? 'text-gray-500' : 'text-gray-500'
-
-    const blockMap = new Map<string, {
-      layout: 'grid' | 'wide' | 'single'
-      type: 'PHOTO' | 'SIDE'
-      photos: ChapterItem[]
-      text: ChapterItem | null
-      blockType: string
-    }>()
-
-    items.forEach(item => {
-      const bid = item.block_id
-      if (!bid) return
-      const isSide = item.block_type === 'side-left' || item.block_type === 'side-right'
-
-      if (isSide) {
-        if (!blockMap.has(bid)) {
-          blockMap.set(bid, { layout: 'grid', type: 'SIDE', photos: [], text: null, blockType: item.block_type || 'side-left' })
-        }
-        const g = blockMap.get(bid)!
-        if (item.item_type === 'PHOTO') g.photos.push(item)
-        else g.text = item
-      } else if (item.item_type === 'PHOTO') {
-        if (!blockMap.has(bid)) {
-          blockMap.set(bid, { layout: item.block_layout || 'grid', type: 'PHOTO', photos: [], text: null, blockType: 'default' })
-        }
-        blockMap.get(bid)!.photos.push(item)
-      }
-    })
-
-    items.forEach((item, i) => {
-      const bid = item.block_id
-
-      if (item.item_type === 'TEXT' && item.block_type !== 'side-left' && item.block_type !== 'side-right') {
-        result.push(
-          <div key={`text-${i}`} className="my-10 max-w-xl">
-            <p className={`text-base leading-[1.9] whitespace-pre-wrap ${textColor}`} style={{ fontFamily: "'Georgia', serif" }}>
-              {item.text_content}
-            </p>
-          </div>
-        )
-        return
-      }
-
-      if (!bid || renderedBlocks.has(bid)) return
-      renderedBlocks.add(bid)
-      const group = blockMap.get(bid)
-      if (!group) return
-
-      if (group.type === 'SIDE') {
-        const photoCol = (
-          <div className="flex-1 min-w-0 space-y-2">
-            {group.photos.map(p => (
-              <img key={p.id} src={p.image_url ?? ''} className="w-full rounded block" />
-            ))}
-          </div>
-        )
-        const textCol = group.text ? (
-          <div className="flex-1 min-w-0 flex items-center">
-            <p className={`text-base leading-[1.9] whitespace-pre-wrap ${textColor}`} style={{ fontFamily: "'Georgia', serif" }}>
-              {group.text.text_content}
-            </p>
-          </div>
-        ) : null
-        result.push(
-          <div key={`side-${bid}`} className="flex gap-6 my-6 items-center">
-            {group.blockType === 'side-left' ? <>{photoCol}{textCol}</> : <>{textCol}{photoCol}</>}
-          </div>
-        )
-        return
-      }
-
-      const layout = group.layout
-      const photos = group.photos
-
-      if (layout === 'single') {
-        result.push(
-          <div key={`block-${bid}`} className="mb-8 space-y-4">
-            {photos.map(p => (
-              <div key={p.id}>
-                <img src={p.image_url ?? ''} className="w-full rounded" />
-                {p.caption && <p className={`text-xs mt-1.5 leading-relaxed ${captionColor}`}>{p.caption}</p>}
-              </div>
-            ))}
-          </div>
-        )
-      } else {
-        const cols = layout === 'wide' ? 2 : 3
-        result.push(
-          <div key={`block-${bid}`} className="mb-6" style={{ columnCount: cols, columnGap: '0.75rem' }}>
-            {photos.map(p => (
-              <div key={p.id} className="mb-3 break-inside-avoid">
-                <img src={p.image_url ?? ''} className="w-full object-contain rounded block" />
-                {p.caption && <p className={`text-xs mt-1 leading-relaxed ${captionColor}`}>{p.caption}</p>}
-              </div>
-            ))}
-          </div>
-        )
-      }
-    })
-
-    return result
-  }
-
 
   useEffect(() => {
     if (!isElectron) return
@@ -1411,7 +960,6 @@ function ProjectStory({
                             })}
                             </div>
                           </SortableContext>
-
                           {/* DragOverlay — 드래그 중인 블록의 고스트 렌더 */}
                           <DragOverlay>
                             {activeBlockId ? (
@@ -1608,28 +1156,27 @@ function ProjectStory({
                                 )
                               })}
                               </div>
-                            </SortableContext>
-
-                            {/* DragOverlay — 드래그 중인 블록의 고스트 렌더 */}
-                            <DragOverlay>
-                              {activeBlockId ? (
-                                <div className="bg-stone-50 border border-stone-300 rounded-lg p-3 opacity-90 shadow-xl">
-                                  <div className="grid grid-cols-3 gap-2">
-                                    {activeBlockItems.filter(i => i.item_type === 'PHOTO').map(item => (
-                                      <div key={item.id} className="aspect-[3/2] rounded overflow-hidden bg-gray-100">
-                                        <img src={item.image_url ?? ''} className="w-full h-full object-contain" />
-                                      </div>
-                                    ))}
-                                    {activeBlockItems[0]?.item_type === 'TEXT' && (
-                                      <div className="col-span-3 bg-stone-50 border border-stone-200 rounded-lg px-5 py-4">
-                                        <p className="text-sm text-gray-700 line-clamp-3">{activeBlockItems[0].text_content}</p>
-                                      </div>
-                                    )}
-                                  </div>
+                          </SortableContext>
+                          {/* DragOverlay — 드래그 중인 블록의 고스트 렌더 */}
+                          <DragOverlay>
+                            {activeBlockId ? (
+                              <div className="bg-stone-50 border border-stone-300 rounded-lg p-3 opacity-90 shadow-xl">
+                                <div className="grid grid-cols-3 gap-2">
+                                  {activeBlockItems.filter(i => i.item_type === 'PHOTO').map(item => (
+                                    <div key={item.id} className="aspect-[3/2] rounded overflow-hidden bg-gray-100">
+                                      <img src={item.image_url ?? ''} className="w-full h-full object-contain" />
+                                    </div>
+                                  ))}
+                                  {activeBlockItems[0]?.item_type === 'TEXT' && (
+                                    <div className="col-span-3 bg-stone-50 border border-stone-200 rounded-lg px-5 py-4">
+                                      <p className="text-sm text-gray-700 line-clamp-3">{activeBlockItems[0].text_content}</p>
+                                    </div>
+                                  )}
                                 </div>
-                              ) : null}
-                            </DragOverlay>
-                          </DndContext>
+                              </div>
+                            ) : null}
+                          </DragOverlay>
+                        </DndContext>
                         )
                       })()}
                       <button
@@ -1745,7 +1292,7 @@ function ProjectStory({
           <div className={`fixed inset-0 z-[90] ${bg} overflow-y-auto transition-colors duration-300`}>
             {/* 헤더 */}
             <div className={`sticky top-0 z-10 backdrop-blur-sm border-b ${headerBg}`}>
-              <div className="max-w-3xl mx-auto px-6 h-12 flex items-center justify-between">
+              <div className="max-w-4xl mx-auto px-6 h-12 flex items-center justify-between">
                 <span className={`text-xs tracking-widest uppercase ${subText}`}>Portfolio Preview</span>
                 <div className="flex items-center gap-3">
                   {/* 다크/라이트 토글 */}
@@ -1764,7 +1311,7 @@ function ProjectStory({
             </div>
 
             {/* 본문 */}
-            <div className="max-w-3xl mx-auto px-6 py-12">
+            <div className="max-w-4xl mx-auto px-6 py-12">
               {chapters.length === 0 ? (
                 <p className={`text-center py-20 ${subText}`}>{t('story.noChapter')}</p>
               ) : (
@@ -1794,7 +1341,10 @@ function ProjectStory({
                           <div className={`mt-6 h-px w-12 ${accent}`} />
                         </div>
 
-                        {renderPreviewItems(items, dm)}
+                        <PortfolioChapterItems
+                          items={items as PortfolioChapterItem[]}
+                          darkMode={dm}
+                        />
 
                         {/* 서브챕터 */}
                         {subChapters.map((sub, subIdx) => (
@@ -1815,7 +1365,10 @@ function ProjectStory({
                                 </p>
                               )}
                             </div>
-                            {renderPreviewItems(getVisibleChapterItems(sub.id), dm)}
+                            <PortfolioChapterItems
+                              items={getVisibleChapterItems(sub.id) as PortfolioChapterItem[]}
+                              darkMode={dm}
+                            />
                           </div>
                         ))}
                       </div>
