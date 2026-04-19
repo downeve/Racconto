@@ -213,7 +213,7 @@ interface SortablePhotoBlockProps {
 }
 
 function SortablePhotoBlock({
-  blockId, chapterId, items, layout, sensors,
+  blockId, chapterId, items, sensors,
   onRemoveItem, onEditCaption, onPhotoClick, onInnerDragEnd
 }: SortablePhotoBlockProps) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: blockId })
@@ -223,7 +223,8 @@ function SortablePhotoBlock({
     opacity: isDragging ? 0.5 : 1,
   }
 
-  const gridClass = layout === 'single' ? 'grid-cols-1' : layout === 'wide' ? 'grid-cols-2' : 'grid-cols-3'
+  // 편집 화면은 항상 3열
+  const gridClass = 'grid-cols-3'
 
   return (
     <div ref={setNodeRef} style={style} className="group/block relative mb-2">
@@ -487,6 +488,7 @@ function ProjectStory({
     setNewDesc('')
     setShowAddChapter(false)
     setAddingSubChapterTo(null)
+    setEditLayout('grid')
     fetchChapters(true)
   }
 
@@ -873,7 +875,7 @@ function ProjectStory({
                 {t('common.add')}
               </button>
               <button
-                onClick={() => { setShowAddChapter(false); setAddingSubChapterTo(null); setNewTitle(''); setNewDesc('') }}
+                onClick={() => { setShowAddChapter(false); setAddingSubChapterTo(null); setNewTitle(''); setNewDesc(''); setEditLayout('grid') }}
                 className="border px-3 py-1 text-sm hover:bg-gray-50 rounded"
               >
                 {t('common.cancel')}
@@ -934,6 +936,9 @@ function ProjectStory({
                         <div>
                           <span className="text-xs text-gray-500 mr-2">{t('story.chapter')} {idx + 1}</span>
                           <span className="font-semibold">{chapter.title}</span>
+                          <span className={`text-xs px-2 py-0.5 rounded-full ml-2 bg-stone-200 text-stone-500`}>
+                            {t('portfolio.column')}{chapter.layout === 'single' ? (t('portfolio.columnSingle')) : chapter.layout === 'wide' ? (t('portfolio.columnWide')) : (t('portfolio.columnGrid'))}
+                          </span>
                           {chapter.description && <p className="text-sm text-gray-500 mt-1">{chapter.description}</p>}
                         </div>
                         <div className="flex gap-2 shrink-0">
@@ -1016,6 +1021,7 @@ function ProjectStory({
                           onClick={() => {
                             setShowAddChapter(false)
                             setAddingSubChapterTo(null)
+                            setEditLayout('grid')
                           }} 
                           className="border px-3 py-1 text-xs hover:bg-gray-50 rounded"
                         >
@@ -1135,6 +1141,9 @@ function ProjectStory({
                           <div>
                             <span className="text-xs text-gray-400 mr-2">{t('story.chapter')} {idx + 1}.{subIdx + 1}</span>
                             <span className="font-semibold">{subChapter.title}</span>
+                            <span className={`text-xs px-2 py-0.5 rounded-full ml-2 bg-stone-200 text-stone-500`}>
+                              (t('portofolio.column')){subChapter.layout === 'single' ? (t('portofolio.columnSingle')) : subChapter.layout === 'wide' ? (t('portofolio.columnWid')) : (t('portofolio.columnGrid'))}
+                            </span>
                             {subChapter.description && <p className="text-sm text-gray-400 mt-1">{subChapter.description}</p>}
                           </div>
                           <div className="flex gap-2 shrink-0">
@@ -1228,7 +1237,7 @@ function ProjectStory({
                         onClick={() => handleAddTextBlock(subChapter.id)}
                         className="mt-2 text-xs text-gray-400 hover:text-gray-600 border border-dashed border-gray-300 hover:border-gray-400 rounded px-3 py-1.5 w-full transition-colors"
                       >
-                        + 텍스트 블록 추가
+                        {t('story.addTextBlock')}
                       </button>
                     </div>
                   </div>

@@ -223,6 +223,7 @@
     "chapterTitle": "챕터 제목을 입력하세요 (필수)",
     "chapterDescription": "챕터 내용을 입력하세요",
     "addPhoto": "+ 사진 추가",
+    "addTextBlock": "+ 텍스트 블록 추가",
     "selectPhotos": "챕터에 추가할 사진을 클릭하세요.",
     "selectionMode": "사진 선택 모드",
     "finishSelection": "사진 선택 완료",
@@ -275,7 +276,11 @@
     "noPublicProjects": "공개된 프로젝트가 없어요",
     "startMessage": "나만의 포트폴리오를 만드세요.",
     "startMessage2": "아직 포트폴리오 주소를 설정하지 않았습니다. 설정에서 사용자 이름을 등록하세요.",
-    "noUser": "의 포트폴리오를 찾을 수 없습니다."
+    "noUser": "의 포트폴리오를 찾을 수 없습니다.",
+    "column": "포트폴리오 이미지 배열: ",
+    "columnSingle": "1열",
+    "columnWide": "2열",
+    "columnGrid": "3열"
   },
   "delivery": {
     "title": "납품",

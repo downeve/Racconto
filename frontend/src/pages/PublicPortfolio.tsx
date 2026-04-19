@@ -139,7 +139,6 @@ export default function PublicPortfolio() {
   }, [lightboxIndex, lightboxItems])
 
   const bg = darkMode ? 'bg-[#1A1A1A] text-white' : 'bg-[#F5F0EB] text-gray-900'
-  const cardBg = darkMode ? 'bg-[#2A2A2A]' : 'bg-white'
   const subText = darkMode ? 'text-gray-400' : 'text-gray-500'
 
   // 챕터 아이템 렌더링 함수 (PublicPortfolio 컴포넌트 내부에 추가)
@@ -148,29 +147,63 @@ export default function PublicPortfolio() {
     allLightboxItems: { photo: Photo; title: string }[],
     layout: 'grid' | 'wide' | 'single' = 'grid'
   ) => {
-    const gridClass = layout === 'single'
-      ? 'grid-cols-1'
-      : layout === 'wide'
-        ? 'grid-cols-1 md:grid-cols-2'
-        : 'grid-cols-2 md:grid-cols-3'
     const result: React.ReactNode[] = []
     let photoBuffer: ChapterItem[] = []
+    let bufferKey = 0
 
     const flushPhotos = () => {
-        if (photoBuffer.length === 0) return
+      if (photoBuffer.length === 0) return
+      const buffer = [...photoBuffer]
+      const key = `photos-${bufferKey++}`
+
+      if (layout === 'single') {
+        // 1열: 사진 세로 나열, 원본 비율 유지
         result.push(
-          <div key={`photos-${photoBuffer[0].id}`} className={`grid ${gridClass} gap-4 mb-4`}>
-          {photoBuffer.map(photo => (
-            <img
-              key={photo.id}
-              src={photo.image_url}
-              loading="lazy"
-              className="w-full aspect-[3/2] object-contain rounded cursor-pointer hover:opacity-80 transition-opacity"
-              onClick={() => openLightbox(photo as unknown as Photo, allLightboxItems)}
-            />
-          ))}
-        </div>
-      )
+          <div key={key} className="mb-4 space-y-3">
+            {buffer.map(photo => (
+              <img
+                key={photo.id}
+                src={photo.image_url}
+                loading="lazy"
+                className="w-full rounded cursor-pointer hover:opacity-90 transition-opacity"
+                onClick={() => openLightbox(photo as unknown as Photo, allLightboxItems)}
+              />
+            ))}
+          </div>
+        )
+      } else {
+        // 2열/3열: Masonry (CSS columns)
+        const colCount = layout === 'wide' ? 2 : 3
+        result.push(
+          <div
+            key={key}
+            className="mb-4"
+            style={{
+              columnCount: colCount,
+              columnGap: '0.75rem',
+            }}
+          >
+            {buffer.map(photo => (
+              <div
+                key={photo.id}
+                className="mb-3 break-inside-avoid"
+              >
+                <img
+                  src={photo.image_url}
+                  loading="lazy"
+                  className="w-full rounded cursor-pointer hover:opacity-90 transition-opacity block"
+                  onClick={() => openLightbox(photo as unknown as Photo, allLightboxItems)}
+                />
+                {photo.caption && (
+                  <p className={`text-xs mt-1 leading-relaxed ${subText}`}>
+                    {photo.caption}
+                  </p>
+                )}
+              </div>
+            ))}
+          </div>
+        )
+      }
       photoBuffer = []
     }
 
@@ -180,9 +213,14 @@ export default function PublicPortfolio() {
       } else {
         flushPhotos()
         result.push(
-          <p key={`text-${i}`} className={`text-sm leading-relaxed whitespace-pre-wrap my-6 max-w-prose ${subText}`}>
-            {item.text_content}
-          </p>
+          <div key={`text-${i}`} className="my-10 max-w-xl">
+            <p
+              className={`text-base leading-[1.9] whitespace-pre-wrap ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}
+              style={{ fontFamily: "'Georgia', serif" }}
+            >
+              {item.text_content}
+            </p>
+          </div>
         )
       }
     })
@@ -214,7 +252,7 @@ export default function PublicPortfolio() {
       <div className={`fixed inset-0 z-[100] flex flex-col ${darkMode ? 'bg-stone-900 text-white' : 'bg-[#F7F4F0] text-stone-900'}`}>
         {/* 단순화된 헤더 (로고만 표시) */}
         <nav className="w-full bg-[#F7F4F0] border-b border-stone-200 text-stone-900 shrink-0">
-          <div className="max-w-7xl mx-auto px-6 h-14 flex items-center justify-between">
+          <div className="max-w-4xl mx-auto px-6 h-14 flex items-center justify-between">
             <Link 
               to="/" 
               className="text-xl font-bold tracking-widest" 
@@ -240,7 +278,7 @@ export default function PublicPortfolio() {
         <nav className={`fixed top-0 left-0 right-0 z-[60] border-b backdrop-blur-md transition-colors duration-300 ${
           darkMode ? 'bg-[#1A1A1A]/90 border-white/10' : 'bg-[#F5F0EB]/90 border-gray-200'
         }`}>
-          <div className="max-w-7xl mx-auto px-6 h-14 flex items-center justify-between">
+          <div className="max-w-4xl mx-auto px-6 h-14 flex items-center justify-between">
             {/* Navbar.tsx와 동일한 텍스트 크기(text-xl)와 자간(0.15em) 적용 */}
             <Link 
               to="/" 
@@ -259,7 +297,7 @@ export default function PublicPortfolio() {
         </nav>
       )}
 
-      <div className="max-w-7xl mx-auto p-6">
+      <div className="max-w-4xl mx-auto px-6 py-8">
 
         <div className="flex items-center justify-between mb-8">
           <div className="flex items-center gap-4">
@@ -284,22 +322,24 @@ export default function PublicPortfolio() {
         </div>
 
         {!selectedProject && (
-          <div className="grid gap-12" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))' }}>
+          <div className="grid gap-8" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))' }}>
             {projects.map(project => (
-              <div
-                key={project.id}
-                className={`${cardBg} rounded-lg overflow-hidden cursor-pointer hover:opacity-80 transition-opacity`}
-                onClick={() => openProject(project)}
-              >
-                {project.cover_image_url ? (
-                  <img src={project.cover_image_url} alt={project.title} className="w-full h-48 object-cover" />
-                ) : (
-                  <div className={`w-full h-48 flex items-center justify-center ${darkMode ? 'bg-gray-700' : 'bg-gray-200'}`}>
-                    <span className={`text-sm ${subText}`}>No Cover</span>
-                  </div>
-                )}
-                <div className="p-4">
-                  <h3 className="font-semibold text-sm mb-1">{project.title}</h3>
+              <div key={project.id} className="cursor-pointer group" onClick={() => openProject(project)}>
+                <div className="overflow-hidden rounded-sm">
+                  {project.cover_image_url ? (
+                    <img src={project.cover_image_url} alt={project.title}
+                      className="w-full h-56 object-cover group-hover:scale-[1.02] transition-transform duration-500" />
+                  ) : (
+                    <div className={`w-full h-56 flex items-center justify-center ${darkMode ? 'bg-gray-800' : 'bg-gray-100'}`}>
+                      <span className={`text-sm ${subText}`}>No Cover</span>
+                    </div>
+                  )}
+                </div>
+                <div className="pt-3">
+                  <h3 className="font-semibold text-sm tracking-wide"
+                    style={{ fontFamily: "'Georgia', serif" }}>
+                    {project.title}
+                  </h3>
                 </div>
               </div>
             ))}
@@ -313,32 +353,75 @@ export default function PublicPortfolio() {
 
         {selectedProject && (
           <div>
-            <div className="mb-8">
+            <div className="mb-6 max-w-2xl">
               {selectedProject.location && (
-                <p className={`text-sm ${subText} mb-2`}>📍 {selectedProject.location}</p>
+                <p className={`text-xs tracking-widest uppercase mb-4 ${subText}`}>
+                  📍 {selectedProject.location}
+                </p>
               )}
               {selectedProject.description && (
-                <p className={`text-sm ${subText}`}>{selectedProject.description}</p>
+                <p className={`text-base leading-relaxed ${subText}`}
+                  style={{ fontFamily: "'Georgia', serif" }}>
+                  {selectedProject.description}
+                </p>
               )}
             </div>
 
             {selectedProject.chapters.length > 0 ? (
-              <div className="space-y-12">
-                {selectedProject.chapters.map((chapter, idx) => (
-                  <div key={chapter.id}>
-                    <div className="mb-4">
-                      <p className={`text-xs ${subText} mb-1`}>{t('story.chapter')} {idx + 1}</p>
-                      <h3 className="text-lg font-semibold">{chapter.title}</h3>
-                      {chapter.description && (
-                        <p className={`text-sm ${subText} mt-1`}>{chapter.description}</p>
-                      )}
+            // 변경 후
+            <div className="space-y-0">
+              {selectedProject.chapters.map((chapter, idx) => (
+                <div key={chapter.id} className="pt-20">
+                  {/* 챕터 구분선 — 첫 챕터 제외 */}
+                  {idx > 0 && (
+                    <div className={`h-px mb-20 ${darkMode ? 'bg-white/10' : 'bg-gray-200'}`} />
+                  )}
+                  <div className="mb-10">
+                    <div className="flex items-baseline gap-2 mb-2">
+                    <p className={`text-xs tracking-widest uppercase mb-3 ${subText}`}>
+                      {idx + 1 < 10 ? `0${idx + 1}` : idx + 1}
+                    </p>
+                    <h3
+                      className="text-2xl font-bold mb-4 tracking-tight"
+                      style={{ fontFamily: "'Georgia', serif" }}
+                    >
+                      {chapter.title}
+                    </h3>
                     </div>
-                        {renderChapterItems(chapter.items || [], getAllChapterItems(selectedProject), chapter.layout)}
+                    {chapter.description && (
+                      <p
+                        className={`text-base leading-relaxed max-w-xl ${subText}`}
+                        style={{ fontFamily: "'Georgia', serif" }}
+                      >
+                        {chapter.description}
+                      </p>
+                    )}
+                    <div className={`mt-6 h-px w-12 ${darkMode ? 'bg-white/30' : 'bg-gray-400'}`} />
+                  </div>
+                    {renderChapterItems(chapter.items || [], getAllChapterItems(selectedProject), chapter.layout)}
                     {chapter.sub_chapters?.map((sub, subIdx) => (
-                      <div key={sub.id} className="ml-4 md:ml-8 mb-8">
-                        <div className="mb-3 border-l-4 border-blue-400 pl-4">
-                          <p className={`text-xs ${subText} mb-1`}>{t('story.chapter')} {idx + 1}.{subIdx + 1}</p>
-                          <h4 className="text-base font-semibold">{sub.title}</h4>
+                      <div key={sub.id} className="mt-16">
+                        <div className={`h-px mb-10 w-1/3 ${darkMode ? 'bg-white/10' : 'bg-gray-200'}`} />
+                        <div className="mb-8">
+                          <div className="flex items-baseline gap-2 mb-2">
+                          <p className={`text-xs tracking-widest uppercase mb-2 ${subText}`}>
+                            {idx + 1}.{subIdx + 1}
+                          </p>
+                          <h4
+                            className="text-xl font-semibold"
+                            style={{ fontFamily: "'Georgia', serif" }}
+                          >
+                            {sub.title}
+                          </h4>
+                          </div>
+                          {sub.description && (
+                            <p
+                              className={`text-sm leading-relaxed mt-2 max-w-xl ${subText}`}
+                              style={{ fontFamily: "'Georgia', serif" }}
+                            >
+                              {sub.description}
+                            </p>
+                          )}
                         </div>
                         {renderChapterItems(sub.items || [], getAllChapterItems(selectedProject), sub.layout)}
                       </div>
@@ -377,30 +460,36 @@ export default function PublicPortfolio() {
             >‹</button>
           )}
 
-          <div className="max-w-5xl max-h-screen p-12 flex flex-col items-center" onClick={e => e.stopPropagation()}>
+          <div 
+            className="max-w-4xl max-h-screen p-12 flex flex-col items-center" 
+            onClick={e => e.stopPropagation()}
+          >
             <img
-              src={activeLightboxItem.photo.image_url} alt={activeLightboxItem.photo.caption || ''}
-              className="max-w-full max-h-[80vh] object-contain"
+              src={activeLightboxItem.photo.image_url} 
+              alt={activeLightboxItem.photo.caption || ''}
+              className="w-auto h-[60vh] md:h-[80vh] object-contain"
             />
             
-            {/* 텍스트 영역: 중앙 배치 유지하되 안쪽 텍스트는 왼쪽 정렬(text-start) */}
-            <div className="text-start mt-4 w-full">
+            {/* 텍스트 영역 */}
+            <div className="mt-3 w-full text-center">
+              {/* Light Box의 챕터 및  캡션 정보 삭제
               <p className="mb-1.5 leading-relaxed flex items-center flex-wrap">
-                {/* 1. 챕터 정보 (조금 작고 흐리게) */}
+                {/* 1. 챕터 정보 (조금 작고 흐리게)
                 {activeLightboxItem.title && (
                   <span className={`${darkMode ? 'text-gray-400' : 'text-gray-500'} text-xs mr-3 shrink-0`}>
                     {activeLightboxItem.title}
                   </span>
                 )}
                 
-                {/* 2. 사진 캡션 (기본 크기와 색상) */}
+                {/* 2. 사진 캡션 (기본 크기와 색상)
                 {activeLightboxItem.photo.caption && (
                   <span className={`text-sm ${darkMode ? 'text-white' : 'text-gray-900'}`}>
                     {activeLightboxItem.photo.caption}
                   </span>
                 )}
               </p>
-              
+               */}
+
               {/* 3. 사진 인덱스 (1 / 6) */}
               <p className={`${darkMode ? 'text-gray-500' : 'text-gray-400'} text-xs`}>
                 {lightboxIndex + 1} / {lightboxItems.length}
