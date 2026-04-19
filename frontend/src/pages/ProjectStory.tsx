@@ -12,7 +12,6 @@ import {
   PointerSensor,
   useSensor,
   useSensors,
-  DragOverlay,
 } from '@dnd-kit/core';
 import type { DragEndEvent } from '@dnd-kit/core'; 
 
@@ -21,6 +20,7 @@ import {
   SortableContext,
   sortableKeyboardCoordinates,
   rectSortingStrategy,
+  verticalListSortingStrategy,
   useSortable
 } from '@dnd-kit/sortable';
 
@@ -35,6 +35,7 @@ interface Chapter {
   description: string | null
   order_num: number
   parent_id: string | null
+  layout: 'grid' | 'wide' | 'single'  // 추가
 }
 
 interface ChapterItem {
@@ -42,6 +43,8 @@ interface ChapterItem {
   chapter_id: string
   order_num: number
   item_type: 'PHOTO' | 'TEXT'
+  block_id: string | null        // 추가
+  order_in_block: number         // 추가
   // PHOTO 전용
   photo_id: string | null
   image_url: string | null
@@ -197,6 +200,77 @@ function SortableTextBlock({ id, itemId, chapterId, text_content, onRemove, onEd
   )
 }
 
+interface SortablePhotoBlockProps {
+  blockId: string
+  chapterId: string
+  items: ChapterItem[]
+  layout: 'grid' | 'wide' | 'single'
+  sensors: ReturnType<typeof useSensors>
+  onRemoveItem: (chapterId: string, itemId: string) => void
+  onEditCaption: (photoId: string, caption: string) => void
+  onPhotoClick: (item: ChapterItem) => void
+  onInnerDragEnd: (event: DragEndEvent, blockId: string, chapterId: string) => void
+}
+
+function SortablePhotoBlock({
+  blockId, chapterId, items, layout, sensors,
+  onRemoveItem, onEditCaption, onPhotoClick, onInnerDragEnd
+}: SortablePhotoBlockProps) {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: blockId })
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+  }
+
+  const gridClass = layout === 'single' ? 'grid-cols-1' : layout === 'wide' ? 'grid-cols-2' : 'grid-cols-3'
+
+  return (
+    <div ref={setNodeRef} style={style} className="group/block relative mb-2">
+      {/* 블록 드래그 핸들 */}
+      <div
+        {...attributes}
+        {...listeners}
+        className="absolute -left-5 top-1/2 -translate-y-1/2 cursor-grab opacity-0 group-hover/block:opacity-40 transition-opacity z-10 p-1"
+      >
+        <svg width="12" height="20" viewBox="0 0 12 20" fill="none">
+          <circle cx="3" cy="4" r="1.5" fill="#999"/>
+          <circle cx="9" cy="4" r="1.5" fill="#999"/>
+          <circle cx="3" cy="10" r="1.5" fill="#999"/>
+          <circle cx="9" cy="10" r="1.5" fill="#999"/>
+          <circle cx="3" cy="16" r="1.5" fill="#999"/>
+          <circle cx="9" cy="16" r="1.5" fill="#999"/>
+        </svg>
+      </div>
+
+      {/* 내부 사진 DnD */}
+      <DndContext
+        sensors={sensors}
+        collisionDetection={closestCenter}
+        onDragEnd={(e) => onInnerDragEnd(e, blockId, chapterId)}
+      >
+        <SortableContext items={items.map(i => i.id)} strategy={rectSortingStrategy}>
+          <div className={`grid ${gridClass} gap-2`}>
+            {items.map(item => (
+              <SortablePhotoChapter
+                key={item.id}
+                id={item.id}
+                imageUrl={item.image_url}
+                photoId={item.photo_id}
+                chapterId={chapterId}
+                caption={item.caption}
+                onRemove={onRemoveItem}
+                onClick={() => onPhotoClick(item)}
+                onEditCaption={onEditCaption}
+              />
+            ))}
+          </div>
+        </SortableContext>
+      </DndContext>
+    </div>
+  )
+}
+
 function ProjectStory({
   projectId,
   activeTab,
@@ -220,9 +294,10 @@ function ProjectStory({
   const [showAddChapter, setShowAddChapter] = useState(false)
   const [addingSubChapterTo, setAddingSubChapterTo] = useState<string | null>(null)
   const [editingChapter, setEditingChapter] = useState<string | null>(null)
+  const [editLayout, setEditLayout] = useState<'grid' | 'wide' | 'single'>('grid')
+  const [addingTextChapterId, setAddingTextChapterId] = useState<string | null>(null)
   const [editTitle, setEditTitle] = useState('')
   const [editDesc, setEditDesc] = useState('')
-  const [activePhotoUrl, setActivePhotoUrl] = useState<string | null>(null)
   const [confirmModal, setConfirmModal] = useState<{ message: string; onConfirm: () => void } | null>(null)
 
   // 기존 상태들 아래에 추가
@@ -257,27 +332,6 @@ function ProjectStory({
     useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
     useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
   );
-
-  // 순서 변경 핸들러
-  const handleDragEnd = (event: DragEndEvent, chapterId: string) => {
-    const { active, over } = event;
-    if (!over || active.id === over.id) return;
-
-    setChapterPhotos(prev => {
-      const photos = prev[chapterId] || [];
-      const oldIndex = photos.findIndex(p => p.id === active.id);
-      const newIndex = photos.findIndex(p => p.id === over.id);
-      if (oldIndex === -1 || newIndex === -1) return prev; 
-      
-      const newPhotos = arrayMove(photos, oldIndex, newIndex);
-      
-      axios.put(`${API}/chapters/${chapterId}/items/reorder`, {
-        item_ids: newPhotos.map(item => item.id)
-      }).catch(err => console.error("챕터 아이템 순서 업데이트 실패:", err))
-
-      return { ...prev, [chapterId]: newPhotos };
-    });
-  };
 
   const fetchChapters = async (notifyParent = false) => {
     try {
@@ -350,26 +404,39 @@ function ProjectStory({
     }
   };
 
-  const handleAddTextBlock = async (chapterId: string) => {
-    await axios.post(`${API}/chapters/${chapterId}/texts`, {
-      text_content: '텍스트를 입력하세요.'
-    })
-    fetchChapterPhotos(chapterId)
+  // 변경 후 — API 호출 없이 모달만 열고, 저장 시 생성
+  const handleAddTextBlock = (chapterId: string) => {
+    setAddingTextChapterId(chapterId)
+    setTextDraft('')
+    setEditingTextItemId('new')  // 'new' = 신규 생성 플래그
   }
 
   const handleSaveTextBlock = async () => {
-    if (!editingTextItemId || !textDraft.trim()) return
-    // editingTextItemId 로 chapter_id 를 역추적
-    const chapterId = Object.keys(chapterPhotos).find(cid =>
-      chapterPhotos[cid].some(item => item.id === editingTextItemId)
-    )
-    if (!chapterId) return
-    await axios.put(`${API}/chapters/${chapterId}/texts/${editingTextItemId}`, {
-      text_content: textDraft
-    })
+    if (!textDraft.trim()) return
+
+    if (editingTextItemId === 'new') {
+      // 신규 생성
+      if (!addingTextChapterId) return
+      await axios.post(`${API}/chapters/${addingTextChapterId}/texts`, {
+        text_content: textDraft
+      })
+      fetchChapterPhotos(addingTextChapterId)
+      setAddingTextChapterId(null)
+    } else {
+      // 기존 수정
+      if (!editingTextItemId) return
+      const chapterId = Object.keys(chapterPhotos).find(cid =>
+        chapterPhotos[cid].some(item => item.id === editingTextItemId)
+      )
+      if (!chapterId) return
+      await axios.put(`${API}/chapters/${chapterId}/texts/${editingTextItemId}`, {
+        text_content: textDraft
+      })
+      fetchChapterPhotos(chapterId)
+    }
+
     setEditingTextItemId(null)
     setTextDraft('')
-    fetchChapterPhotos(chapterId)
   }
 
   // 라이트박스 키보드 네비게이션
@@ -428,7 +495,8 @@ function ProjectStory({
       description: editDesc,
       order_num: chapter.order_num,
       parent_id: chapter.parent_id,
-      project_id: chapter.project_id
+      project_id: chapter.project_id,
+      layout: editLayout
     })
     setEditingChapter(null)
     fetchChapters(true)
@@ -448,6 +516,71 @@ function ProjectStory({
   const handleRemoveItem = async (chapterId: string, itemId: string) => {
     await axios.delete(`${API}/chapters/${chapterId}/items/${itemId}`)
     fetchChapterPhotos(chapterId)
+  }
+
+  // 블록 간 순서 변경 (외부 DnD)
+  const handleBlockDragEnd = (event: DragEndEvent, chapterId: string, blocks: ChapterBlock[]) => {
+    const { active, over } = event
+    if (!over || active.id === over.id) return
+
+    const oldIndex = blocks.findIndex(b => b.blockId === active.id)
+    const newIndex = blocks.findIndex(b => b.blockId === over.id)
+    if (oldIndex === -1 || newIndex === -1) return
+
+    const newBlocks = arrayMove(blocks, oldIndex, newIndex)
+
+    // 새 order_num 계산: 블록 인덱스 * 10 (여유 공간)
+    const allItemIds: string[] = []
+    newBlocks.forEach(block => {
+      block.items.forEach(item => allItemIds.push(item.id))
+    })
+
+    setChapterPhotos(prev => {
+      const items = prev[chapterId] || []
+      const newItems = [...items].sort((a, b) => {
+        const aIdx = allItemIds.indexOf(a.id)
+        const bIdx = allItemIds.indexOf(b.id)
+        return aIdx - bIdx
+      })
+      return { ...prev, [chapterId]: newItems }
+    })
+
+    axios.put(`${API}/chapters/${chapterId}/items/reorder`, {
+      item_ids: allItemIds
+    }).catch(err => console.error('블록 순서 업데이트 실패:', err))
+  }
+
+  // 블록 내 사진 순서 변경 (내부 DnD)
+  const handleInnerDragEnd = (event: DragEndEvent, blockId: string, chapterId: string) => {
+    const { active, over } = event
+    if (!over || active.id === over.id) return
+
+    setChapterPhotos(prev => {
+      const items = prev[chapterId] || []
+      const blockItems = items.filter(i => i.block_id === blockId)
+      const oldIndex = blockItems.findIndex(i => i.id === active.id)
+      const newIndex = blockItems.findIndex(i => i.id === over.id)
+      if (oldIndex === -1 || newIndex === -1) return prev
+
+      const newBlockItems = arrayMove(blockItems, oldIndex, newIndex)
+      const newItems = items.map(i => {
+        const newBlockIdx = newBlockItems.findIndex(b => b.id === i.id)
+        if (newBlockIdx !== -1) return { ...i, order_in_block: newBlockIdx }
+        return i
+      })
+      return { ...prev, [chapterId]: newItems }
+    })
+
+    axios.put(`${API}/chapters/${chapterId}/blocks/${blockId}/reorder`, {
+      block_id: blockId,
+      item_ids: (() => {
+        const items = chapterPhotos[chapterId] || []
+        const blockItems = items.filter(i => i.block_id === blockId)
+        const oldIndex = blockItems.findIndex(i => i.id === active.id)
+        const newIndex = blockItems.findIndex(i => i.id === over.id)
+        return arrayMove(blockItems, oldIndex, newIndex).map(i => i.id)
+      })()
+    }).catch(err => console.error('블록 내 순서 업데이트 실패:', err))
   }
 
   const handleMoveChapter = async (chapterId: string, direction: 'up' | 'down') => {
@@ -488,6 +621,36 @@ function ProjectStory({
         item.item_type === 'TEXT' || (item.photo_id != null && allPhotoIds.has(item.photo_id))
       );
     };
+
+    // 연속된 아이템을 블록 단위로 그룹화
+    interface ChapterBlock {
+      type: 'PHOTO' | 'TEXT'
+      blockId: string        // TEXT는 item.id, PHOTO는 block_id
+      items: ChapterItem[]   // TEXT는 1개, PHOTO는 N개
+      order_num: number      // 블록의 order_num (같은 블록은 동일)
+    }
+
+    const groupIntoBlocks = (items: ChapterItem[]): ChapterBlock[] => {
+      const blocks: ChapterBlock[] = []
+      const blockMap = new Map<string, ChapterBlock>()
+
+      items.forEach(item => {
+        if (item.item_type === 'TEXT') {
+          blocks.push({ type: 'TEXT', blockId: item.id, items: [item], order_num: item.order_num })
+        } else {
+          const bid = item.block_id || item.id
+          if (blockMap.has(bid)) {
+            blockMap.get(bid)!.items.push(item)
+            blockMap.get(bid)!.items.sort((a, b) => a.order_in_block - b.order_in_block)
+          } else {
+            const block: ChapterBlock = { type: 'PHOTO', blockId: bid, items: [item], order_num: item.order_num }
+            blockMap.set(bid, block)
+            blocks.push(block)
+          }
+        }
+      })
+      return blocks
+    }
 
     // 1. 화면에 보이는 순서대로 모든 사진을 연결하는 함수 (수정됨)
     const getFlattenedPhotos = () => {
@@ -674,6 +837,19 @@ function ProjectStory({
         {/* 챕터 추가 폼 — 사이드바 버튼 클릭 시 표시 */}
         {showAddChapter && !addingSubChapterTo && (
           <div className="bg-white rounded-lg shadow p-4 mb-6">
+            <div className="flex gap-2 mb-2">
+            {(['grid', 'wide', 'single'] as const).map(l => (
+              <button
+                key={l}
+                onClick={() => setEditLayout(l)}
+                className={`px-2 py-1 text-xs rounded border ${
+                  editLayout === l ? 'bg-stone-600 text-white border-stone-600' : 'border-gray-300 text-gray-500'
+                }`}
+              >
+              {l === 'grid' ? '3열' : l === 'wide' ? '2열' : '1열'}
+              </button>
+              ))}
+            </div>
             <input
               className="w-full border rounded px-3 py-2 text-sm mb-2"
               placeholder={t('story.chapterTitle')}
@@ -772,7 +948,11 @@ function ProjectStory({
                             ↓
                           </button>
                           <button
-                            onClick={() => { setEditingChapter(chapter.id); setEditTitle(chapter.title); setEditDesc(chapter.description || '') }}
+                            onClick={() => { 
+                              setEditingChapter(chapter.id)
+                              setEditTitle(chapter.title)
+                              setEditDesc(chapter.description || '')
+                              setEditLayout(chapter.layout || 'grid') }}
                             className="text-xs text-gray-400 hover:text-black"
                           >
                             {t('common.edit')}
@@ -786,6 +966,19 @@ function ProjectStory({
                   {/* 서브 챕터 추가 폼 */}
                   {addingSubChapterTo === chapter.id && (
                     <div className="ml-8 mt-3 p-4 bg-gray-50 border border-gray-200 rounded-lg shadow-inner">
+                      <div className="flex gap-2 mb-2">
+                        {(['grid', 'wide', 'single'] as const).map(l => (
+                          <button
+                            key={l}
+                            onClick={() => setEditLayout(l)}
+                            className={`px-2 py-1 text-xs rounded border ${
+                              editLayout === l ? 'bg-stone-600 text-white border-stone-600' : 'border-gray-300 text-gray-500'
+                            }`}
+                          >
+                            {l === 'grid' ? '3열' : l === 'wide' ? '2열' : '1열'}
+                          </button>
+                        ))}
+                      </div>
                       <p className="text-xs text-gray-500 mb-2">↳ {chapter.title}{t('story.addSubChapter')}</p>
                       <input
                         className="w-full border rounded px-3 py-2 text-sm mb-2"
@@ -817,63 +1010,61 @@ function ProjectStory({
                     </div>
                   )}
 
-                  {/* 챕터 사진 */}
+                  {/* 챕터 사진/텍스트 블록 영역 */}
                   <div className="p-4">
-                    {getVisibleChapterItems(chapter.id).length === 0 && (
-                      <p className="text-sm text-gray-400 py-2">{t('story.addPhotoGuide')}</p>
-                    )}                    
-                    <DndContext sensors={sensors} collisionDetection={closestCenter}
-                      onDragStart={(e) => {
-                        const photo = (chapterPhotos[chapter.id] || []).find(p => p.id === e.active.id)
-                        setActivePhotoUrl(photo?.image_url || null)
-                      }}
-                      onDragEnd={(e) => { handleDragEnd(e, chapter.id); setActivePhotoUrl(null) }}
-                      onDragCancel={() => setActivePhotoUrl(null)}>
-                      <SortableContext items={getVisibleChapterItems(chapter.id).map(p => p.id)} strategy={rectSortingStrategy}>
-                        <div className="grid grid-cols-3 gap-2 mb-3">
-                          {getVisibleChapterItems(chapter.id).map(item => (
-                            item.item_type === 'TEXT' ? (
-                              <SortableTextBlock
-                                key={item.id}
-                                id={item.id}
-                                itemId={item.id}
-                                chapterId={chapter.id}
-                                text_content={item.text_content || ''}
-                                onRemove={handleRemoveItem}
-                                onEdit={(itemId, text) => { setEditingTextItemId(itemId); setTextDraft(text) }}
-                              />
-                            ) : (
-                              <SortablePhotoChapter
-                                key={item.id}
-                                id={item.id}
-                                imageUrl={item.image_url ?? ''}
-                                photoId={item.photo_id ?? ''}
-                                chapterId={chapter.id}
-                                caption={item.caption}
-                                onRemove={handleRemoveItem}
-                                onClick={() => {
-                                  const flatPhotos = getFlattenedPhotos().filter(i => i.item_type === 'PHOTO')
-                                  const globalIndex = flatPhotos.findIndex(i => i.id === item.id)
-                                  setCurrentChapterPhotos(flatPhotos)
-                                  setSelectedPhotoIndex(globalIndex)
-                                }}
-                                onEditCaption={(photoId, caption) => {
-                                  setEditingCaptionPhotoId(photoId)
-                                  setCaptionDraft(caption)
-                                }}
-                              />
-                            )
-                          ))}
-                        </div>
-                      </SortableContext>
-                      <DragOverlay>
-                        {activePhotoUrl && (
-                          <div className="aspect-[3/2] rounded overflow-hidden shadow-2xl opacity-90 rotate-2 scale-105">
-                            <img src={activePhotoUrl} className="absolute inset-0 w-full h-full object-contain bg-gray-900" />
-                          </div>
-                        )}
-                      </DragOverlay>
-                    </DndContext>
+                    {(() => {
+                      const items = getVisibleChapterItems(chapter.id)
+                      const blocks = groupIntoBlocks(items)
+                      if (blocks.length === 0) return (
+                        <p className="text-sm text-gray-400 py-2">{t('story.addPhotoGuide')}</p>
+                      )
+                      return (
+                        <DndContext
+                          sensors={sensors}
+                          collisionDetection={closestCenter}
+                          onDragEnd={(e) => handleBlockDragEnd(e, chapter.id, blocks)}
+                        >
+                          <SortableContext items={blocks.map(b => b.blockId)} strategy={verticalListSortingStrategy}>
+                            <div className="space-y-2">
+                              {blocks.map(block =>
+                                block.type === 'TEXT' ? (
+                                  <SortableTextBlock
+                                    key={block.blockId}
+                                    id={block.blockId}
+                                    itemId={block.items[0].id}
+                                    chapterId={chapter.id}
+                                    text_content={block.items[0].text_content || ''}
+                                    onRemove={handleRemoveItem}
+                                    onEdit={(itemId, text) => { setEditingTextItemId(itemId); setTextDraft(text) }}
+                                  />
+                                ) : (
+                                  <SortablePhotoBlock
+                                    key={block.blockId}
+                                    blockId={block.blockId}
+                                    chapterId={chapter.id}
+                                    items={block.items}
+                                    layout={chapter.layout || 'grid'}
+                                    sensors={sensors}
+                                    onRemoveItem={handleRemoveItem}
+                                    onEditCaption={(photoId, caption) => {
+                                      setEditingCaptionPhotoId(photoId)
+                                      setCaptionDraft(caption)
+                                    }}
+                                    onPhotoClick={(item) => {
+                                      const flatPhotos = getFlattenedPhotos().filter(i => i.item_type === 'PHOTO')
+                                      const globalIndex = flatPhotos.findIndex(i => i.id === item.id)
+                                      setCurrentChapterPhotos(flatPhotos)
+                                      setSelectedPhotoIndex(globalIndex)
+                                    }}
+                                    onInnerDragEnd={handleInnerDragEnd}
+                                  />
+                                )
+                              )}
+                            </div>
+                          </SortableContext>
+                        </DndContext>
+                      )
+                    })()}
                     <button
                       onClick={() => handleAddTextBlock(chapter.id)}
                       className="mt-2 text-xs text-gray-400 hover:text-gray-600 border border-dashed border-gray-300 hover:border-gray-400 rounded px-3 py-1.5 w-full transition-colors"
@@ -934,7 +1125,11 @@ function ProjectStory({
                             </button>
 
                             <button
-                              onClick={() => { setEditingChapter(subChapter.id); setEditTitle(subChapter.title); setEditDesc(subChapter.description || '') }}
+                              onClick={() => { 
+                                setEditingChapter(subChapter.id)
+                                setEditTitle(subChapter.title)
+                                setEditDesc(subChapter.description || '')
+                                setEditLayout(subChapter.layout || 'grid') }}
                               className="text-xs text-gray-400 hover:text-black"
                             >
                               {t('common.edit')}
@@ -945,62 +1140,61 @@ function ProjectStory({
                       )}
                     </div>
 
-                    {/* 서브챕터 사진 */}                   
+                    {/* 서브 챕터 사진/텍스트 블록 영역 */}
                     <div className="p-4">
-                      {getVisibleChapterItems(subChapter.id).length === 0 && (
-                        <p className="text-sm text-gray-400 py-2">{t('story.addPhotoGuide')}</p>
-                      )}
-                      <DndContext sensors={sensors} collisionDetection={closestCenter}
-                        onDragStart={(e) => {
-                          const photo = (chapterPhotos[subChapter.id] || []).find(p => p.id === e.active.id)
-                          setActivePhotoUrl(photo?.image_url || null)
-                        }}
-                        onDragEnd={(e) => { handleDragEnd(e, subChapter.id); setActivePhotoUrl(null) }}
-                        onDragCancel={() => setActivePhotoUrl(null)}>
-                        <SortableContext items={getVisibleChapterItems(subChapter.id).map(p => p.id)} strategy={rectSortingStrategy}>
-                          <div className="grid grid-cols-3 gap-2 mb-3">
-                            {getVisibleChapterItems(subChapter.id).map(item => (
-                              item.item_type === 'TEXT' ? (
-                                <SortableTextBlock
-                                  key={item.id}
-                                  id={item.id}
-                                  itemId={item.id}
-                                  chapterId={subChapter.id}
-                                  text_content={item.text_content || ''}
-                                  onRemove={handleRemoveItem}
-                                  onEdit={(itemId, text) => { setEditingTextItemId(itemId); setTextDraft(text) }}
-                                />
-                              ) : (
-                                <SortablePhotoChapter
-                                  key={item.id}
-                                  id={item.id}
-                                  imageUrl={item.image_url ?? ''}
-                                  photoId={item.photo_id ?? ''}
-                                  chapterId={subChapter.id}
-                                  caption={item.caption}
-                                  onRemove={handleRemoveItem}
-                                  onClick={() => {
-                                    const flatPhotos = getFlattenedPhotos().filter(i => i.item_type === 'PHOTO')
-                                    const globalIndex = flatPhotos.findIndex(i => i.id === item.id)
-                                    setCurrentChapterPhotos(flatPhotos)
-                                    setSelectedPhotoIndex(globalIndex)
-                                  }}
-                                  onEditCaption={(photoId, caption) => {
-                                    setEditingCaptionPhotoId(photoId)
-                                    setCaptionDraft(caption)
-                                  }}
-                                />
-                              )
-                            ))}                          </div>
-                        </SortableContext>
-                        <DragOverlay>
-                          {activePhotoUrl && (
-                            <div className="aspect-[3/2] rounded overflow-hidden shadow-2xl opacity-90 rotate-2 scale-105">
-                              <img src={activePhotoUrl} className="absolute inset-0 w-full h-full object-contain bg-gray-900" />
-                            </div>
-                          )}
-                        </DragOverlay>
-                      </DndContext>
+                      {(() => {
+                        const items = getVisibleChapterItems(subChapter.id)
+                        const blocks = groupIntoBlocks(items)
+                        if (blocks.length === 0) return (
+                          <p className="text-sm text-gray-400 py-2">{t('story.addPhotoGuide')}</p>
+                        )
+                        return (
+                          <DndContext
+                            sensors={sensors}
+                            collisionDetection={closestCenter}
+                            onDragEnd={(e) => handleBlockDragEnd(e, subChapter.id, blocks)}
+                          >
+                            <SortableContext items={blocks.map(b => b.blockId)} strategy={verticalListSortingStrategy}>
+                              <div className="space-y-2">
+                                {blocks.map(block =>
+                                  block.type === 'TEXT' ? (
+                                    <SortableTextBlock
+                                      key={block.blockId}
+                                      id={block.blockId}
+                                      itemId={block.items[0].id}
+                                      chapterId={subChapter.id}
+                                      text_content={block.items[0].text_content || ''}
+                                      onRemove={handleRemoveItem}
+                                      onEdit={(itemId, text) => { setEditingTextItemId(itemId); setTextDraft(text) }}
+                                    />
+                                  ) : (
+                                    <SortablePhotoBlock
+                                      key={block.blockId}
+                                      blockId={block.blockId}
+                                      chapterId={subChapter.id}
+                                      items={block.items}
+                                      layout={subChapter.layout || 'grid'}
+                                      sensors={sensors}
+                                      onRemoveItem={handleRemoveItem}
+                                      onEditCaption={(photoId, caption) => {
+                                        setEditingCaptionPhotoId(photoId)
+                                        setCaptionDraft(caption)
+                                      }}
+                                      onPhotoClick={(item) => {
+                                        const flatPhotos = getFlattenedPhotos().filter(i => i.item_type === 'PHOTO')
+                                        const globalIndex = flatPhotos.findIndex(i => i.id === item.id)
+                                        setCurrentChapterPhotos(flatPhotos)
+                                        setSelectedPhotoIndex(globalIndex)
+                                      }}
+                                      onInnerDragEnd={handleInnerDragEnd}
+                                    />
+                                  )
+                                )}
+                              </div>
+                            </SortableContext>
+                          </DndContext>
+                        )
+                      })()}
                       <button
                         onClick={() => handleAddTextBlock(subChapter.id)}
                         className="mt-2 text-xs text-gray-400 hover:text-gray-600 border border-dashed border-gray-300 hover:border-gray-400 rounded px-3 py-1.5 w-full transition-colors"
