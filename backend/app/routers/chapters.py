@@ -72,7 +72,8 @@ class ChapterItemResponse(BaseModel):
     id: str
     chapter_id: str
     order_num: int
-    item_type: str          # 'PHOTO' | 'TEXT'
+    item_type: str  # 'PHOTO' | 'TEXT'
+    block_type: str = 'default'
     # PHOTO 전용
     photo_id: Optional[str] = None
     image_url: Optional[str] = None
@@ -128,6 +129,7 @@ def build_item_response(item: models.ChapterItem) -> dict:
         "chapter_id": item.chapter_id,
         "order_num": item.order_num,
         "item_type": item.item_type,
+        "block_type": item.block_type,
         "block_id": item.block_id,
         "order_in_block": item.order_in_block,
         "photo_id": None,
@@ -447,6 +449,87 @@ def reorder_chapter_items(
 
     db.commit()
     return {"message": "순서가 성공적으로 변경되었습니다."}
+
+class ChapterItemSideBySide(BaseModel):
+    text_item_id: str
+    photo_block_id: str          # 붙일 사진 블록의 block_id
+    position: str                # 'side-left' | 'side-right'
+
+@router.put("/{chapter_id}/side-by-side")
+def set_side_by_side(
+    chapter_id: str,
+    body: ChapterItemSideBySide,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user)
+):
+    get_owned_chapter_or_404(chapter_id, current_user.id, db)
+
+    # 텍스트 아이템 확인
+    text_item = db.query(models.ChapterItem).filter(
+        models.ChapterItem.id == body.text_item_id,
+        models.ChapterItem.chapter_id == chapter_id,
+        models.ChapterItem.item_type == "TEXT"
+    ).first()
+    if not text_item:
+        raise HTTPException(status_code=404, detail="TEXT_ITEM_NOT_FOUND")
+
+    # 사진 블록 아이템들 확인
+    photo_items = db.query(models.ChapterItem).filter(
+        models.ChapterItem.block_id == body.photo_block_id,
+        models.ChapterItem.chapter_id == chapter_id,
+        models.ChapterItem.item_type == "PHOTO"
+    ).all()
+    if not photo_items:
+        raise HTTPException(status_code=404, detail="PHOTO_BLOCK_NOT_FOUND")
+
+    # 텍스트 아이템에 block_id와 block_type 설정
+    text_item.block_id = body.photo_block_id
+    text_item.block_type = body.position  # 'side-left' | 'side-right'
+
+    # 사진 아이템들도 block_type 동기화
+    for photo_item in photo_items:
+        photo_item.block_type = body.position
+
+    db.commit()
+    return {"message": "나란히 배치가 설정되었습니다."}
+
+
+@router.put("/{chapter_id}/side-by-side/cancel")
+def cancel_side_by_side(
+    chapter_id: str,
+    body: dict,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user)
+):
+    """Side-by-Side 해제 — 텍스트를 독립 블록으로 분리"""
+    get_owned_chapter_or_404(chapter_id, current_user.id, db)
+
+    text_item_id = body.get("text_item_id")
+    text_item = db.query(models.ChapterItem).filter(
+        models.ChapterItem.id == text_item_id,
+        models.ChapterItem.chapter_id == chapter_id,
+        models.ChapterItem.item_type == "TEXT"
+    ).first()
+    if not text_item:
+        raise HTTPException(status_code=404, detail="TEXT_ITEM_NOT_FOUND")
+
+    old_block_id = text_item.block_id
+
+    # 텍스트를 독립 블록으로 분리
+    text_item.block_id = text_item.id
+    text_item.block_type = 'default'
+
+    # 사진 블록도 default로 복구
+    if old_block_id:
+        photo_items = db.query(models.ChapterItem).filter(
+            models.ChapterItem.block_id == old_block_id,
+            models.ChapterItem.item_type == "PHOTO"
+        ).all()
+        for photo_item in photo_items:
+            photo_item.block_type = 'default'
+
+    db.commit()
+    return {"message": "나란히 배치가 해제되었습니다."}
 
 
 # 12. 사진 일괄 추가 (bulk)

@@ -45,18 +45,24 @@ def _build_chapter_photos(
     # 변경 후
     for cp in chapter_photos_map.get(chapter_id, []):
         if cp.item_type == 'TEXT':
+            # 변경 후
             result.append({
                 "item_type": "TEXT",
-                "text_content": cp.text_content
+                "text_content": cp.text_content,
+                "block_id": cp.block_id,
+                "block_type": cp.block_type
             })
             continue
         photo = photos_map.get(cp.photo_id)
         if photo:
+            # 변경 후
             result.append({
                 "item_type": "PHOTO",
                 "id": photo.id,
                 "image_url": photo.image_url,
-                "caption": photo.caption
+                "caption": photo.caption,
+                "block_id": cp.block_id,
+                "block_type": cp.block_type
             })
             chapter_photo_ids.add(photo.id)
     return result

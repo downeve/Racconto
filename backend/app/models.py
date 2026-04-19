@@ -140,6 +140,9 @@ class ChapterItem(Base):
     # TEXT 전용 필드 (PHOTO 일 때는 NULL)
     text_content = Column(Text, nullable=True)
 
+    block_type = Column(String, nullable=False, default='default', server_default='default')
+    # 'default' | 'side-left' | 'side-right'
+
     chapter = relationship("Chapter", back_populates="items")
     photo = relationship("Photo")
 
