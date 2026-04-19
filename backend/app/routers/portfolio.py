@@ -88,7 +88,9 @@ def _build_project_result(project, db: Session) -> dict:
                     "id": sub_chapter.id,
                     "title": sub_chapter.title,
                     "description": sub_chapter.description,
-                    "items": sub_photos
+                    "items": sub_photos,
+                    # 챕터 dict에 layout 추가 (3곳 모두)
+                    "layout": sub_chapter.layout
                 })
             parent_photos = _build_chapter_photos(
                 top_chapter.id, chapter_photos_map, photos_map, chapter_photo_ids
@@ -98,7 +100,9 @@ def _build_project_result(project, db: Session) -> dict:
                 "title": top_chapter.title,
                 "description": top_chapter.description,
                 "items": parent_photos,
-                "sub_chapters": sub_chapter_list
+                "sub_chapters": sub_chapter_list,
+                # 챕터 dict에 layout 추가 (3곳 모두)
+                "layout": top_chapter.layout   # 또는 sub_chapter.layout
             })
         else:
             top_photos = _build_chapter_photos(
@@ -109,6 +113,8 @@ def _build_project_result(project, db: Session) -> dict:
                 "title": top_chapter.title,
                 "description": top_chapter.description,
                 "items": top_photos,
+                # 챕터 dict에 layout 추가 (3곳 모두)
+                "layout": top_chapter.layout,   # 또는 sub_chapter.layout
                 "sub_chapters": []
             })
 
@@ -124,7 +130,7 @@ def _build_project_result(project, db: Session) -> dict:
         "description": project.description,
         "cover_image_url": project.cover_image_url,
         "location": project.location,
-        "items": [{"id": p.id, "image_url": p.image_url, "caption": p.caption} for p in all_photos],
+        "photos": [{"id": p.id, "image_url": p.image_url, "caption": p.caption} for p in all_photos],
         "chapters": chapter_list,
         "extra_photos": extra_photos
     }

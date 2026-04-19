@@ -19,12 +19,14 @@ class ChapterCreate(BaseModel):
     description: Optional[str] = None
     order_num: Optional[int] = 0
     parent_id: Optional[str] = None
+    layout: Optional[str] = 'grid'
 
 class ChapterUpdate(BaseModel):
     title: str
     description: Optional[str] = None
     order_num: Optional[int] = 0
     parent_id: Optional[str] = None
+    layout: Optional[str] = 'grid'
 
 class ChapterReorder(BaseModel):
     chapter_ids: List[str]
@@ -38,6 +40,7 @@ class ChapterResponse(BaseModel):
     parent_id: Optional[str]
     created_at: datetime
     updated_at: datetime
+    layout: str
 
     class Config:
         from_attributes = True
@@ -49,6 +52,7 @@ class ChapterItemPhotoAdd(BaseModel):
     """사진 아이템 추가"""
     photo_id: str
     order_num: Optional[int] = None  # None 이면 맨 끝에 자동 배치
+    block_id: Optional[str] = None  # None이면 새 블록 자동 생성
 
 class ChapterItemTextAdd(BaseModel):
     """텍스트 블록 아이템 추가"""
@@ -75,10 +79,16 @@ class ChapterItemResponse(BaseModel):
     caption: Optional[str] = None
     # TEXT 전용
     text_content: Optional[str] = None
+    block_id: Optional[str] = None
+    order_in_block: int = 0
 
     class Config:
         from_attributes = True
 
+class ChapterItemBlockReorder(BaseModel):
+    """블록 내 사진 순서 변경"""
+    block_id: str
+    item_ids: List[str]  # 블록 내 item id 배열 (새 순서)
 
 # ── 헬퍼 함수 ───────────────────────────────────────────────
 
@@ -112,11 +122,14 @@ def get_next_order_num(chapter_id: str, db: Session) -> int:
 
 def build_item_response(item: models.ChapterItem) -> dict:
     """ChapterItem ORM 객체를 응답 딕셔너리로 변환."""
+    # 변경 후
     base = {
         "id": item.id,
         "chapter_id": item.chapter_id,
         "order_num": item.order_num,
         "item_type": item.item_type,
+        "block_id": item.block_id,
+        "order_in_block": item.order_in_block,
         "photo_id": None,
         "image_url": None,
         "caption": None,
@@ -309,12 +322,19 @@ def add_photo_to_chapter(
 
     order = body.order_num if body.order_num is not None else get_next_order_num(chapter_id, db)
 
+    # 변경 후
+    new_id = str(uuid.uuid4())
+    # block_id 미지정 시 자신의 id를 block_id로 사용 (단독 블록)
+    block_id = body.block_id if body.block_id else new_id
+
     db_item = models.ChapterItem(
-        id=str(uuid.uuid4()),
+        id=new_id,
         chapter_id=chapter_id,
         item_type="PHOTO",
         photo_id=body.photo_id,
-        order_num=order
+        order_num=order,
+        block_id=block_id,
+        order_in_block=body.order_in_block or 0
     )
     db.add(db_item)
     db.commit()
@@ -457,21 +477,48 @@ def bulk_add_photos_to_chapter(
     next_order = get_next_order_num(chapter_id, db)
     added = 0
 
+    # 변경 후 — bulk로 추가된 사진들은 같은 block_id 공유
+    block_id = str(uuid.uuid4())  # 이 bulk 요청 전체가 하나의 블록
+    order_in_block = 0
+
     for photo_id in body.photo_ids:
         if photo_id in existing_ids:
-            continue  # 중복 스킵
+            continue
         db.add(models.ChapterItem(
             id=str(uuid.uuid4()),
             chapter_id=chapter_id,
             item_type="PHOTO",
             photo_id=photo_id,
-            order_num=next_order
+            order_num=next_order,
+            block_id=block_id,
+            order_in_block=order_in_block
         ))
-        next_order += 1
+        order_in_block += 1
         added += 1
+    # next_order는 블록 하나이므로 1만 증가
+    next_order += 1
 
     db.commit()
     return {"message": f"{added}장이 추가되었습니다.", "added": added, "skipped": len(body.photo_ids) - added}
+
+
+@router.put("/{chapter_id}/blocks/{block_id}/reorder")
+def reorder_block_photos(
+    chapter_id: str,
+    block_id: str,
+    body: ChapterItemBlockReorder,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user)
+):
+    get_owned_chapter_or_404(chapter_id, current_user.id, db)
+
+    for index, item_id in enumerate(body.item_ids):
+        db.query(models.ChapterItem).filter(
+            models.ChapterItem.id == item_id,
+            models.ChapterItem.block_id == block_id
+        ).update({"order_in_block": index}, synchronize_session=False)
+    db.commit()
+    return {"message": "블록 내 순서가 변경되었습니다."}
 
 
 # ── 하위 호환 엔드포인트 ────────────────────────────────────
