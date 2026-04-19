@@ -217,6 +217,7 @@
   },
   "story": {
     "title": "Story",
+    "preview": "Preview",
     "chapter": "Chapter",
     "chapters": "Chapters",
     "addChapter": "+ Add Chapter",

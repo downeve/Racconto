@@ -215,6 +215,7 @@
   },
   "story": {
     "title": "스토리",
+    "preview": "미리보기",
     "chapter": "챕터",
     "chapters": "챕터 목록",
     "addChapter": "+ 챕터 추가",

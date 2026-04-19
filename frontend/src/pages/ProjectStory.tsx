@@ -12,6 +12,7 @@ import {
   PointerSensor,
   useSensor,
   useSensors,
+  DragOverlay
 } from '@dnd-kit/core';
 import type { DragEndEvent } from '@dnd-kit/core'; 
 
@@ -249,7 +250,7 @@ function SortablePhotoBlock({
   }
 
   return (
-    <div ref={setNodeRef} style={style} className="group/block relative mb-2">
+    <div ref={setNodeRef} style={style} className="group/block relative mb-2 bg-stone-50 border border-stone-200 rounded-lg p-3">
       {/* 블록 드래그 핸들 */}
       <div
         {...attributes}
@@ -266,8 +267,8 @@ function SortablePhotoBlock({
         </svg>
       </div>
 
-      {/* 블록 레이아웃 툴바 — hover 시 블록 우상단에 표시 */}
-      <div className="absolute -top-6 right-0 opacity-0 group-hover/block:opacity-100 transition-opacity z-20 flex items-center gap-1 bg-white border border-gray-200 rounded shadow-sm px-1.5 py-0.5">
+      {/* 블록 레이아웃 툴바 — 블록 내부 우상단, hover 시 표시 */}
+      <div className="absolute top-2 right-2 opacity-0 group-hover/block:opacity-100 transition-opacity z-20 flex items-center gap-1 bg-white border border-gray-200 rounded shadow-sm px-1.5 py-0.5">
         <span className="text-[10px] text-gray-400 mr-1">포트폴리오</span>
         {(['grid', 'wide', 'single'] as const).map(l => (
           <button
@@ -437,6 +438,13 @@ function ProjectStory({
   // 캡션(코멘트) 편집 상태
   const [editingCaptionPhotoId, setEditingCaptionPhotoId] = useState<string | null>(null);
   const [captionDraft, setCaptionDraft] = useState('');
+
+  // 포트폴리오 미리보기
+  const [showPreview, setShowPreview] = useState(false)
+  const [previewDarkMode, setPreviewDarkMode] = useState(false)
+
+  const [activeBlockId, setActiveBlockId] = useState<string | null>(null)
+  const [activeBlockItems, setActiveBlockItems] = useState<ChapterItem[]>([])
 
   const chapterRefs = useRef<Record<string, HTMLDivElement | null>>({})
 
@@ -728,31 +736,34 @@ function ProjectStory({
     const { active, over } = event
     if (!over || active.id === over.id) return
 
+    // API에 보낼 새 순서를 state 업데이트 전에 미리 계산 (stale closure 방지)
+    const currentItems = chapterPhotos[chapterId] || []
+    const blockItems = currentItems.filter(i => i.block_id === blockId)
+    const oldIndex = blockItems.findIndex(i => i.id === active.id)
+    const newIndex = blockItems.findIndex(i => i.id === over.id)
+    if (oldIndex === -1 || newIndex === -1) return
+
+    const newBlockItems = arrayMove(blockItems, oldIndex, newIndex)
+    const newItemIds = newBlockItems.map(i => i.id)
+
+    // 낙관적 업데이트 — order_in_block 갱신 후 배열 순서도 동기화
     setChapterPhotos(prev => {
       const items = prev[chapterId] || []
-      const blockItems = items.filter(i => i.block_id === blockId)
-      const oldIndex = blockItems.findIndex(i => i.id === active.id)
-      const newIndex = blockItems.findIndex(i => i.id === over.id)
-      if (oldIndex === -1 || newIndex === -1) return prev
-
-      const newBlockItems = arrayMove(blockItems, oldIndex, newIndex)
-      const newItems = items.map(i => {
-        const newBlockIdx = newBlockItems.findIndex(b => b.id === i.id)
-        if (newBlockIdx !== -1) return { ...i, order_in_block: newBlockIdx }
-        return i
-      })
-      return { ...prev, [chapterId]: newItems }
+      // order_in_block 값만 갱신, 배열 순서는 newBlockItems 기준으로 재구성
+      const blockItemIds = new Set(newBlockItems.map(i => i.id))
+      const nonBlockItems = items.filter(i => !blockItemIds.has(i.id))
+      const updatedBlockItems = newBlockItems.map((i, idx) => ({ ...i, order_in_block: idx }))
+      // 기존 배열에서 이 블록 아이템들의 첫 위치를 찾아 거기에 삽입
+      const firstBlockIdx = items.findIndex(i => blockItemIds.has(i.id))
+      const result = [...nonBlockItems]
+      result.splice(firstBlockIdx, 0, ...updatedBlockItems)
+      return { ...prev, [chapterId]: result }
     })
 
+    // 미리 계산한 값으로 API 호출 (stale closure 없음)
     axios.put(`${API}/chapters/${chapterId}/blocks/${blockId}/reorder`, {
       block_id: blockId,
-      item_ids: (() => {
-        const items = chapterPhotos[chapterId] || []
-        const blockItems = items.filter(i => i.block_id === blockId)
-        const oldIndex = blockItems.findIndex(i => i.id === active.id)
-        const newIndex = blockItems.findIndex(i => i.id === over.id)
-        return arrayMove(blockItems, oldIndex, newIndex).map(i => i.id)
-      })()
+      item_ids: newItemIds
     }).catch(err => console.error('블록 내 순서 업데이트 실패:', err))
   }
 
@@ -879,6 +890,116 @@ function ProjectStory({
       }
     };
 
+  // ── 포트폴리오 미리보기 렌더 헬퍼 ─────────────────────────
+  const renderPreviewItems = (items: ChapterItem[], darkMode: boolean): React.ReactNode[] => {
+    const result: React.ReactNode[] = []
+    const renderedBlocks = new Set<string>()
+
+    const textColor = darkMode ? 'text-gray-300' : 'text-gray-700'
+    const captionColor = darkMode ? 'text-gray-500' : 'text-gray-500'
+
+    const blockMap = new Map<string, {
+      layout: 'grid' | 'wide' | 'single'
+      type: 'PHOTO' | 'SIDE'
+      photos: ChapterItem[]
+      text: ChapterItem | null
+      blockType: string
+    }>()
+
+    items.forEach(item => {
+      const bid = item.block_id
+      if (!bid) return
+      const isSide = item.block_type === 'side-left' || item.block_type === 'side-right'
+
+      if (isSide) {
+        if (!blockMap.has(bid)) {
+          blockMap.set(bid, { layout: 'grid', type: 'SIDE', photos: [], text: null, blockType: item.block_type || 'side-left' })
+        }
+        const g = blockMap.get(bid)!
+        if (item.item_type === 'PHOTO') g.photos.push(item)
+        else g.text = item
+      } else if (item.item_type === 'PHOTO') {
+        if (!blockMap.has(bid)) {
+          blockMap.set(bid, { layout: item.block_layout || 'grid', type: 'PHOTO', photos: [], text: null, blockType: 'default' })
+        }
+        blockMap.get(bid)!.photos.push(item)
+      }
+    })
+
+    items.forEach((item, i) => {
+      const bid = item.block_id
+
+      if (item.item_type === 'TEXT' && item.block_type !== 'side-left' && item.block_type !== 'side-right') {
+        result.push(
+          <div key={`text-${i}`} className="my-10 max-w-xl">
+            <p className={`text-base leading-[1.9] whitespace-pre-wrap ${textColor}`} style={{ fontFamily: "'Georgia', serif" }}>
+              {item.text_content}
+            </p>
+          </div>
+        )
+        return
+      }
+
+      if (!bid || renderedBlocks.has(bid)) return
+      renderedBlocks.add(bid)
+      const group = blockMap.get(bid)
+      if (!group) return
+
+      if (group.type === 'SIDE') {
+        const photoCol = (
+          <div className="flex-1 min-w-0 space-y-2">
+            {group.photos.map(p => (
+              <img key={p.id} src={p.image_url ?? ''} className="w-full rounded block" />
+            ))}
+          </div>
+        )
+        const textCol = group.text ? (
+          <div className="flex-1 min-w-0 flex items-center">
+            <p className={`text-base leading-[1.9] whitespace-pre-wrap ${textColor}`} style={{ fontFamily: "'Georgia', serif" }}>
+              {group.text.text_content}
+            </p>
+          </div>
+        ) : null
+        result.push(
+          <div key={`side-${bid}`} className="flex gap-6 my-6 items-center">
+            {group.blockType === 'side-left' ? <>{photoCol}{textCol}</> : <>{textCol}{photoCol}</>}
+          </div>
+        )
+        return
+      }
+
+      const layout = group.layout
+      const photos = group.photos
+
+      if (layout === 'single') {
+        result.push(
+          <div key={`block-${bid}`} className="mb-8 space-y-4">
+            {photos.map(p => (
+              <div key={p.id}>
+                <img src={p.image_url ?? ''} className="w-full rounded" />
+                {p.caption && <p className={`text-xs mt-1.5 leading-relaxed ${captionColor}`}>{p.caption}</p>}
+              </div>
+            ))}
+          </div>
+        )
+      } else {
+        const cols = layout === 'wide' ? 2 : 3
+        result.push(
+          <div key={`block-${bid}`} className="mb-6" style={{ columnCount: cols, columnGap: '0.75rem' }}>
+            {photos.map(p => (
+              <div key={p.id} className="mb-3 break-inside-avoid">
+                <img src={p.image_url ?? ''} className="w-full object-contain rounded block" />
+                {p.caption && <p className={`text-xs mt-1 leading-relaxed ${captionColor}`}>{p.caption}</p>}
+              </div>
+            ))}
+          </div>
+        )
+      }
+    })
+
+    return result
+  }
+
 
   useEffect(() => {
     if (!isElectron) return
@@ -888,9 +1009,15 @@ function ProjectStory({
         <p className="text-xs font-semibold text-gray-500 mb-3">{t('story.chapters')}</p>
         <button
           onClick={() => { setShowAddChapter(true); setAddingSubChapterTo(null) }}
-          className="w-full mb-3 text-xs bg-stone-600 text-white px-2 py-1.5 rounded hover:bg-stone-700 tracking-wider"
+          className="w-full mb-2 text-xs bg-stone-600 text-white px-2 py-1.5 rounded hover:bg-stone-700 tracking-wider"
         >
           {t('story.addChapter')}
+        </button>
+        <button
+          onClick={() => setShowPreview(true)}
+          className="w-full mb-3 text-xs border border-stone-400 text-stone-600 px-2 py-1.5 rounded hover:bg-stone-50 transition-colors tracking-wider"
+        >
+          👁 {t('story.preview')}
         </button>
         <div className="space-y-1">
           {chapters.filter(c => !c.parent_id).map((chapter, idx) => {
@@ -954,9 +1081,17 @@ function ProjectStory({
           {/* 챕터 추가 버튼 */}
           <button
             onClick={() => { setShowAddChapter(true); setAddingSubChapterTo(null) }}
-            className="w-full mb-3 text-xs bg-stone-600 text-white px-2 py-1.5 rounded hover:bg-stone-700 transition-colors tracking-wider"
+            className="w-full mb-2 text-xs bg-stone-600 text-white px-2 py-1.5 rounded hover:bg-stone-700 transition-colors tracking-wider"
           >
             {t('story.addChapter')}
+          </button>
+
+          {/* 미리보기 버튼 */}
+          <button
+            onClick={() => setShowPreview(true)}
+            className="w-full mb-3 text-xs border border-stone-400 text-stone-600 px-2 py-1.5 rounded hover:bg-stone-50 transition-colors tracking-wider"
+          >
+            👁 {t('story.preview')}
           </button>
 
           {/* 챕터 네비게이션 목록 */}
@@ -1188,7 +1323,18 @@ function ProjectStory({
                         <DndContext
                           sensors={sensors}
                           collisionDetection={closestCenter}
-                          onDragEnd={(e) => handleBlockDragEnd(e, chapter.id, blocks)}
+                          onDragStart={(e) => {
+                            const draggedBlock = blocks.find(b => b.blockId === e.active.id)
+                            if (draggedBlock) {
+                              setActiveBlockId(String(e.active.id))
+                              setActiveBlockItems(draggedBlock.items)
+                            }
+                          }}
+                          onDragEnd={(e) => {
+                            setActiveBlockId(null)
+                            setActiveBlockItems([])
+                            handleBlockDragEnd(e, chapter.id, blocks)  // 서브챕터면 subChapter.id
+                          }}
                         >
                           <SortableContext items={blocks.map(b => b.blockId)} strategy={verticalListSortingStrategy}>
                             <div className="space-y-2">
@@ -1265,6 +1411,26 @@ function ProjectStory({
                             })}
                             </div>
                           </SortableContext>
+
+                          {/* DragOverlay — 드래그 중인 블록의 고스트 렌더 */}
+                          <DragOverlay>
+                            {activeBlockId ? (
+                              <div className="bg-stone-50 border border-stone-300 rounded-lg p-3 opacity-90 shadow-xl">
+                                <div className="grid grid-cols-3 gap-2">
+                                  {activeBlockItems.filter(i => i.item_type === 'PHOTO').map(item => (
+                                    <div key={item.id} className="aspect-[3/2] rounded overflow-hidden bg-gray-100">
+                                      <img src={item.image_url ?? ''} className="w-full h-full object-contain" />
+                                    </div>
+                                  ))}
+                                  {activeBlockItems[0]?.item_type === 'TEXT' && (
+                                    <div className="col-span-3 bg-stone-50 border border-stone-200 rounded-lg px-5 py-4">
+                                      <p className="text-sm text-gray-700 line-clamp-3">{activeBlockItems[0].text_content}</p>
+                                    </div>
+                                  )}
+                                </div>
+                              </div>
+                            ) : null}
+                          </DragOverlay>
                         </DndContext>
                       )
                     })()}
@@ -1355,7 +1521,18 @@ function ProjectStory({
                           <DndContext
                             sensors={sensors}
                             collisionDetection={closestCenter}
-                            onDragEnd={(e) => handleBlockDragEnd(e, subChapter.id, blocks)}
+                            onDragStart={(e) => {
+                              const draggedBlock = blocks.find(b => b.blockId === e.active.id)
+                              if (draggedBlock) {
+                                setActiveBlockId(String(e.active.id))
+                                setActiveBlockItems(draggedBlock.items)
+                              }
+                            }}
+                            onDragEnd={(e) => {
+                              setActiveBlockId(null)
+                              setActiveBlockItems([])
+                              handleBlockDragEnd(e, subChapter.id, blocks)
+                            }}
                           >
                             <SortableContext items={blocks.map(b => b.blockId)} strategy={verticalListSortingStrategy}>
                               <div className="space-y-2">
@@ -1430,10 +1607,28 @@ function ProjectStory({
                                   />
                                 )
                               })}
-
-
                               </div>
                             </SortableContext>
+
+                            {/* DragOverlay — 드래그 중인 블록의 고스트 렌더 */}
+                            <DragOverlay>
+                              {activeBlockId ? (
+                                <div className="bg-stone-50 border border-stone-300 rounded-lg p-3 opacity-90 shadow-xl">
+                                  <div className="grid grid-cols-3 gap-2">
+                                    {activeBlockItems.filter(i => i.item_type === 'PHOTO').map(item => (
+                                      <div key={item.id} className="aspect-[3/2] rounded overflow-hidden bg-gray-100">
+                                        <img src={item.image_url ?? ''} className="w-full h-full object-contain" />
+                                      </div>
+                                    ))}
+                                    {activeBlockItems[0]?.item_type === 'TEXT' && (
+                                      <div className="col-span-3 bg-stone-50 border border-stone-200 rounded-lg px-5 py-4">
+                                        <p className="text-sm text-gray-700 line-clamp-3">{activeBlockItems[0].text_content}</p>
+                                      </div>
+                                    )}
+                                  </div>
+                                </div>
+                              ) : null}
+                            </DragOverlay>
                           </DndContext>
                         )
                       })()}
@@ -1531,6 +1726,107 @@ function ProjectStory({
           )}
         </div>
       )}
+
+      {/* ── 포트폴리오 미리보기 오버레이 ─────────────────────── */}
+      {showPreview && (() => {
+        const dm = previewDarkMode
+        const bg = dm ? 'bg-[#1A1A1A] text-white' : 'bg-[#F5F0EB] text-gray-900'
+        const headerBg = dm ? 'bg-[#1A1A1A]/90 border-white/10' : 'bg-[#F5F0EB]/90 border-gray-200'
+        const subText = dm ? 'text-gray-400' : 'text-gray-500'
+        const divider = dm ? 'bg-white/10' : 'bg-gray-200'
+        const accent = dm ? 'bg-white/30' : 'bg-gray-400'
+        const titleColor = dm ? 'text-white' : 'text-gray-900'
+        const closeColor = dm ? 'text-gray-400 hover:text-white' : 'text-gray-400 hover:text-gray-700'
+        const toggleClass = dm
+          ? 'border-gray-600 text-gray-400 hover:text-white'
+          : 'border-gray-300 text-gray-500 hover:text-gray-900'
+
+        return (
+          <div className={`fixed inset-0 z-[90] ${bg} overflow-y-auto transition-colors duration-300`}>
+            {/* 헤더 */}
+            <div className={`sticky top-0 z-10 backdrop-blur-sm border-b ${headerBg}`}>
+              <div className="max-w-3xl mx-auto px-6 h-12 flex items-center justify-between">
+                <span className={`text-xs tracking-widest uppercase ${subText}`}>Portfolio Preview</span>
+                <div className="flex items-center gap-3">
+                  {/* 다크/라이트 토글 */}
+                  <button
+                    onClick={() => setPreviewDarkMode(v => !v)}
+                    className={`text-xs px-3 py-1 rounded-full border transition-colors ${toggleClass}`}
+                  >
+                    {dm ? '☀️ ' + t('settings.themeBeige') : '🌙 ' + t('settings.themeDark')}
+                  </button>
+                  <button
+                    onClick={() => setShowPreview(false)}
+                    className={`text-xl p-2 transition-colors ${closeColor}`}
+                  >✕</button>
+                </div>
+              </div>
+            </div>
+
+            {/* 본문 */}
+            <div className="max-w-3xl mx-auto px-6 py-12">
+              {chapters.length === 0 ? (
+                <p className={`text-center py-20 ${subText}`}>{t('story.noChapter')}</p>
+              ) : (
+                <div className="space-y-0">
+                  {chapters.filter(c => !c.parent_id).map((chapter, idx) => {
+                    const subChapters = chapters.filter(c => c.parent_id === chapter.id)
+                    const items = getVisibleChapterItems(chapter.id)
+                    return (
+                      <div key={chapter.id} className="pt-20">
+                        {idx > 0 && <div className={`h-px mb-20 ${divider}`} />}
+
+                        {/* 챕터 헤더 */}
+                        <div className="mb-10">
+                          <div className="flex items-baseline gap-2 mb-2">
+                            <p className={`text-xs tracking-widest uppercase ${subText}`}>
+                              {idx + 1 < 10 ? `0${idx + 1}` : idx + 1}
+                            </p>
+                            <h3 className={`text-2xl font-bold tracking-tight ${titleColor}`} style={{ fontFamily: "'Georgia', serif" }}>
+                              {chapter.title}
+                            </h3>
+                          </div>
+                          {chapter.description && (
+                            <p className={`text-base leading-relaxed max-w-xl mt-2 ${subText}`} style={{ fontFamily: "'Georgia', serif" }}>
+                              {chapter.description}
+                            </p>
+                          )}
+                          <div className={`mt-6 h-px w-12 ${accent}`} />
+                        </div>
+
+                        {renderPreviewItems(items, dm)}
+
+                        {/* 서브챕터 */}
+                        {subChapters.map((sub, subIdx) => (
+                          <div key={sub.id} className="mt-16">
+                            <div className={`h-px mb-10 w-1/3 ${divider}`} />
+                            <div className="mb-8">
+                              <div className="flex items-baseline gap-2 mb-2">
+                                <p className={`text-xs tracking-widest uppercase ${subText}`}>
+                                  {idx + 1}.{subIdx + 1}
+                                </p>
+                                <h4 className={`text-xl font-semibold ${titleColor}`} style={{ fontFamily: "'Georgia', serif" }}>
+                                  {sub.title}
+                                </h4>
+                              </div>
+                              {sub.description && (
+                                <p className={`text-sm leading-relaxed mt-2 max-w-xl ${subText}`} style={{ fontFamily: "'Georgia', serif" }}>
+                                  {sub.description}
+                                </p>
+                              )}
+                            </div>
+                            {renderPreviewItems(getVisibleChapterItems(sub.id), dm)}
+                          </div>
+                        ))}
+                      </div>
+                    )
+                  })}
+                </div>
+              )}
+            </div>
+          </div>
+        )
+      })()}
 
       {/* 캡션 편집 모달 창 (DeliveryPage 스타일 적용) */}
       {editingCaptionPhotoId && (

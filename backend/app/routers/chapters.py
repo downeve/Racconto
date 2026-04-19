@@ -294,9 +294,10 @@ def get_chapter_items(
 ):
     get_owned_chapter_or_404(chapter_id, current_user.id, db)
 
+    # 변경 후
     items = db.query(models.ChapterItem).filter(
         models.ChapterItem.chapter_id == chapter_id
-    ).order_by(models.ChapterItem.order_num).all()
+    ).order_by(models.ChapterItem.order_num, models.ChapterItem.order_in_block).all()
 
     return [build_item_response(item) for item in items]
 
