@@ -152,6 +152,24 @@ export default function PublicPortfolio() {
     const result: React.ReactNode[] = []
     let photoBuffer: ChapterItem[] = []
     let bufferKey = 0
+    const renderedSideBlocks = new Set<string>()
+
+    // side-by-side 그룹 미리 추출
+    const sideBySideMap = new Map<string, {
+      photos: ChapterItem[]
+      text: ChapterItem | null
+      blockType: string
+    }>()
+    items.forEach(item => {
+      if ((item.block_type === 'side-left' || item.block_type === 'side-right') && item.block_id) {
+        if (!sideBySideMap.has(item.block_id)) {
+          sideBySideMap.set(item.block_id, { photos: [], text: null, blockType: item.block_type })
+        }
+        const group = sideBySideMap.get(item.block_id)!
+        if (item.item_type === 'PHOTO') group.photos.push(item)
+        else group.text = item
+      }
+    })
 
     const flushPhotos = () => {
       if (photoBuffer.length === 0) return
@@ -159,7 +177,6 @@ export default function PublicPortfolio() {
       const key = `photos-${bufferKey++}`
 
       if (layout === 'single') {
-        // 1열: 사진 세로 나열, 원본 비율 유지
         result.push(
           <div key={key} className="mb-4 space-y-3">
             {buffer.map(photo => (
@@ -174,32 +191,20 @@ export default function PublicPortfolio() {
           </div>
         )
       } else {
-        // 2열/3열: Masonry (CSS columns)
-        const colCount = layout === 'wide' ? 2 : 3
         result.push(
-          <div
-            key={key}
-            className="mb-4"
-            style={{
-              columnCount: colCount,
-              columnGap: '0.75rem',
-            }}
+          <div key={key} className="mb-4"
+            style={{ columnCount: layout === 'wide' ? 2 : 3, columnGap: '0.75rem' }}
           >
             {buffer.map(photo => (
-              <div
-                key={photo.id}
-                className="mb-3 break-inside-avoid"
-              >
+              <div key={photo.id} className="mb-3 break-inside-avoid">
                 <img
                   src={photo.image_url}
                   loading="lazy"
-                  className="w-full rounded cursor-pointer hover:opacity-90 transition-opacity block"
+                  className="w-full object-contain rounded cursor-pointer hover:opacity-90 transition-opacity block"
                   onClick={() => openLightbox(photo as unknown as Photo, allLightboxItems)}
                 />
                 {photo.caption && (
-                  <p className={`text-xs mt-1 leading-relaxed ${subText}`}>
-                    {photo.caption}
-                  </p>
+                  <p className={`text-xs mt-1 leading-relaxed ${subText}`}>{photo.caption}</p>
                 )}
               </div>
             ))}
@@ -209,94 +214,48 @@ export default function PublicPortfolio() {
       photoBuffer = []
     }
 
+    // 순서대로 처리 — side-by-side는 첫 등장 시점에 렌더링
     items.forEach((item, i) => {
-      if (item.item_type === 'PHOTO') {
-        // side-by-side 소속 사진은 버퍼에 넣지 않고 별도 처리
-        if (item.block_type === 'side-left' || item.block_type === 'side-right') return
-        photoBuffer.push(item)
-      } else {
-        // side-by-side 텍스트는 별도 처리
-        if (item.block_type === 'side-left' || item.block_type === 'side-right') return
-        flushPhotos()
-        result.push(
-          <div key={`text-${i}`} className="my-10 max-w-xl">
-            <p
-              className={`text-base leading-[1.9] whitespace-pre-wrap ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}
-              style={{ fontFamily: "'Georgia', serif" }}
-            >
-              {item.text_content}
-            </p>
-          </div>
-        )
-      }
-    })
+      const isSide = item.block_type === 'side-left' || item.block_type === 'side-right'
 
-    // side-by-side 블록 그룹화
-    const sideBySideMap = new Map<string, { photos: ChapterItem[], text: ChapterItem | null, blockType: string }>()
-    items.forEach(item => {
-      if ((item.block_type === 'side-left' || item.block_type === 'side-right') && item.block_id) {
-        if (!sideBySideMap.has(item.block_id)) {
-          sideBySideMap.set(item.block_id, { photos: [], text: null, blockType: item.block_type })
-        }
-        const group = sideBySideMap.get(item.block_id)!
-        if (item.item_type === 'PHOTO') group.photos.push(item)
-        else group.text = item
-      }
-    })
-
-    // side-by-side 렌더링 함수
-    const renderSideBySide = (blockId: string) => {
-      const group = sideBySideMap.get(blockId)
-      if (!group) return null
-
-      const photoCol = (
-        <div className="flex-1 min-w-0 space-y-2">
-          {group.photos.map(photo => (
-            <img
-              key={photo.id}
-              src={photo.image_url}
-              loading="lazy"
-              className="w-full rounded cursor-pointer hover:opacity-90 transition-opacity block"
-              onClick={() => openLightbox(photo as unknown as Photo, allLightboxItems)}
-            />
-          ))}
-        </div>
-      )
-
-      const textCol = group.text ? (
-        <div className="flex-1 min-w-0 flex items-center">
-          <p
-            className={`text-base leading-[1.9] whitespace-pre-wrap ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}
-            style={{ fontFamily: "'Georgia', serif" }}
-          >
-            {group.text.text_content}
-          </p>
-        </div>
-      ) : null
-
-      return (
-        <div key={`side-${blockId}`} className="flex gap-6 my-6 items-start">
-          {group.blockType === 'side-left' ? (
-            <>{photoCol}{textCol}</>
-          ) : (
-            <>{textCol}{photoCol}</>
-          )}
-        </div>
-      )
-    }
-
-    const renderedSideBlocks = new Set<string>()
-
-    items.forEach((item, i) => {
-      if (item.block_type === 'side-left' || item.block_type === 'side-right') {
-        if (item.block_id && !renderedSideBlocks.has(item.block_id)) {
+      if (isSide && item.block_id) {
+        if (!renderedSideBlocks.has(item.block_id)) {
           flushPhotos()
-          const rendered = renderSideBySide(item.block_id)
-          if (rendered) result.push(rendered)
+          const group = sideBySideMap.get(item.block_id)!
+          const photoCol = (
+            <div className="flex-1 min-w-0 space-y-2">
+              {group.photos.map(photo => (
+                <img
+                  key={photo.id}
+                  src={photo.image_url}
+                  loading="lazy"
+                  className="w-full rounded cursor-pointer hover:opacity-90 transition-opacity block"
+                  onClick={() => openLightbox(photo as unknown as Photo, allLightboxItems)}
+                />
+              ))}
+            </div>
+          )
+          const textCol = group.text ? (
+            <div className="flex-1 min-w-0 flex items-center">
+              <p
+                className={`text-base leading-[1.9] whitespace-pre-wrap ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}
+                style={{ fontFamily: "'Georgia', serif" }}
+              >
+                {group.text.text_content}
+              </p>
+            </div>
+          ) : null
+
+          result.push(
+            <div key={`side-${item.block_id}`} className="flex gap-6 my-6 items-center text-center italic">
+              여기는 어디지?{group.blockType === 'side-left' ? <>{photoCol}{textCol}</> : <>{textCol}{photoCol}</>}
+            </div>
+          )
           renderedSideBlocks.add(item.block_id)
         }
         return
       }
+
       if (item.item_type === 'PHOTO') {
         photoBuffer.push(item)
       } else {
@@ -313,7 +272,6 @@ export default function PublicPortfolio() {
         )
       }
     })
-
     flushPhotos()
     return result
   }
