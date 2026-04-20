@@ -300,7 +300,26 @@ function ProjectStory({
   }
 
   const handleRemoveItem = async (chapterId: string, itemId: string) => {
+    // 삭제할 아이템 정보 미리 확인
+    const item = (chapterPhotos[chapterId] || []).find(i => i.id === itemId)
+    const blockId = item?.block_id
+
     await axios.delete(`${API}/chapters/${chapterId}/items/${itemId}`)
+
+    // 삭제 후 같은 블록에 PHOTO가 하나도 없으면 텍스트 side-by-side 자동 해제
+    if (blockId) {
+      const remaining = (chapterPhotos[chapterId] || [])
+        .filter(i => i.id !== itemId && i.block_id === blockId && i.item_type === 'PHOTO')
+      if (remaining.length === 0) {
+        const textItem = (chapterPhotos[chapterId] || [])
+          .find(i => i.block_id === blockId && i.item_type === 'TEXT')
+        if (textItem) {
+          await handleCancelSideBySide(chapterId, textItem.id)
+          return  // handleCancelSideBySide 안에서 fetchChapterPhotos 호출
+        }
+      }
+    }
+
     fetchChapterPhotos(chapterId)
   }
 
@@ -899,6 +918,7 @@ function ProjectStory({
                                     chapterId={chapter.id}
                                     items={block.items}
                                     onRemoveItem={handleRemoveItem}
+                                    onEdit={(itemId, text) => { setEditingTextItemId(itemId); setTextDraft(text) }}
                                     onEditCaption={(photoId, caption) => {
                                       setEditingCaptionPhotoId(photoId)
                                       setCaptionDraft(caption)
@@ -1096,6 +1116,7 @@ function ProjectStory({
                                       chapterId={subChapter.id}
                                       items={block.items}
                                       onRemoveItem={handleRemoveItem}
+                                      onEdit={(itemId, text) => { setEditingTextItemId(itemId); setTextDraft(text) }}
                                       onEditCaption={(photoId, caption) => {
                                         setEditingCaptionPhotoId(photoId)
                                         setCaptionDraft(caption)

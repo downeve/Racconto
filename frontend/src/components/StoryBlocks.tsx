@@ -274,10 +274,11 @@ export interface SortableSideBySideBlockProps {
   onEditCaption: (photoId: string, caption: string) => void
   onPhotoClick: (item: ChapterItem) => void
   onCancelSideBySide: (chapterId: string, textItemId: string) => void
+  onEdit: (itemId: string, currentText: string) => void
 }
 
 export function SortableSideBySideBlock({
-  blockId, chapterId, items, onRemoveItem, onPhotoClick, onCancelSideBySide
+  blockId, chapterId, items, onRemoveItem, onPhotoClick, onCancelSideBySide, onEdit
 }: SortableSideBySideBlockProps) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: blockId })
   const style = { transform: CSS.Transform.toString(transform), transition, opacity: isDragging ? 0.5 : 1 }
@@ -313,6 +314,12 @@ export function SortableSideBySideBlock({
       <p className="text-sm text-gray-700 leading-relaxed whitespace-pre-wrap">
         {textItem.text_content}
       </p>
+      <button
+        onClick={() => onEdit(textItem.id, textItem.text_content || '')}
+        className="absolute top-2 right-[52px] text-xs px-2 py-0.5 rounded border border-gray-300 text-gray-400 hover:text-gray-700 bg-white opacity-0 group-hover/text:opacity-100 transition-opacity"
+      >
+        {t('common.edit')}
+      </button>
       <button
         onClick={() => onCancelSideBySide(chapterId, textItem.id)}
         className="absolute top-2 right-2 text-xs px-2 py-0.5 rounded border border-gray-300 text-gray-400 hover:text-gray-700 bg-white opacity-0 group-hover/text:opacity-100 transition-opacity"
