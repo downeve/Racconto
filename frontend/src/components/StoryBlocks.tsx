@@ -49,16 +49,14 @@ function DragHandleDots({ size = 12, color = '#999' }: { size?: number; color?: 
 export interface SortablePhotoChapterProps {
   id: string
   imageUrl: string | null
-  photoId: string | null
   chapterId: string
   caption: string | null
   onRemove: (chapterId: string, itemId: string) => void
   onClick: () => void
-  onEditCaption: (photoId: string, currentCaption: string) => void
 }
 
 export function SortablePhotoChapter({
-  id, imageUrl, photoId, chapterId, caption, onRemove, onClick, onEditCaption
+  id, imageUrl, chapterId, caption, onRemove, onClick
 }: SortablePhotoChapterProps) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id })
 
@@ -101,17 +99,6 @@ export function SortablePhotoChapter({
           onClick={(e) => { e.stopPropagation(); onRemove(chapterId, id) }}
           className="absolute top-1 right-1 bg-red-600 text-white rounded-full w-5 h-5 text-xs font-bold opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity z-20"
         >×</button>
-
-        {/* 캡션 편집 버튼 */}
-        <button
-          onClick={(e) => { e.stopPropagation(); onEditCaption(photoId ?? '', caption || '') }}
-          className="absolute bottom-2 right-2 p-2 bg-black/60 hover:bg-black/80 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity z-20"
-          title="Edit/Add Comment"
-        >
-          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
-          </svg>
-        </button>
       </div>
 
       {caption && (
@@ -192,7 +179,6 @@ export interface SortablePhotoBlockProps {
   items: ChapterItem[]
   sensors: ReturnType<typeof useSensors>
   onRemoveItem: (chapterId: string, itemId: string) => void
-  onEditCaption: (photoId: string, caption: string) => void
   onPhotoClick: (item: ChapterItem) => void
   onInnerDragEnd: (event: DragEndEvent, blockId: string, chapterId: string) => void
   onLayoutChange: (blockId: string, layout: 'grid' | 'wide' | 'single') => void
@@ -200,7 +186,7 @@ export interface SortablePhotoBlockProps {
 
 export function SortablePhotoBlock({
   blockId, chapterId, items, sensors,
-  onRemoveItem, onEditCaption, onPhotoClick, onInnerDragEnd, onLayoutChange
+  onRemoveItem, onPhotoClick, onInnerDragEnd, onLayoutChange
 }: SortablePhotoBlockProps) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: blockId })
   const style = { transform: CSS.Transform.toString(transform), transition, opacity: isDragging ? 0.5 : 1 }
@@ -249,12 +235,10 @@ export function SortablePhotoBlock({
                 key={item.id}
                 id={item.id}
                 imageUrl={item.image_url}
-                photoId={item.photo_id}
                 chapterId={chapterId}
                 caption={item.caption}
                 onRemove={onRemoveItem}
                 onClick={() => onPhotoClick(item)}
-                onEditCaption={onEditCaption}
               />
             ))}
           </div>
@@ -271,7 +255,6 @@ export interface SortableSideBySideBlockProps {
   chapterId: string
   items: ChapterItem[]
   onRemoveItem: (chapterId: string, itemId: string) => void
-  onEditCaption: (photoId: string, caption: string) => void
   onPhotoClick: (item: ChapterItem) => void
   onCancelSideBySide: (chapterId: string, textItemId: string) => void
   onEdit: (itemId: string, currentText: string) => void

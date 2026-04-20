@@ -58,7 +58,6 @@ function ProjectStory({
   allPhotos,
   chapterPhotoCount,
   onChapterChange,
-  onPhotoUpdate
 }: {
   projectId: string,
   activeTab: string,
@@ -89,10 +88,6 @@ function ProjectStory({
   // 라이트박스 상태
   const [selectedPhotoIndex, setSelectedPhotoIndex] = useState<number | null>(null);
   const [currentChapterPhotos, setCurrentChapterPhotos] = useState<ChapterItem[]>([]);
-
-  // 캡션(코멘트) 편집 상태
-  const [editingCaptionPhotoId, setEditingCaptionPhotoId] = useState<string | null>(null);
-  const [captionDraft, setCaptionDraft] = useState('');
 
   // 포트폴리오 미리보기
   const [showPreview, setShowPreview] = useState(false)
@@ -135,61 +130,6 @@ function ProjectStory({
     const res = await axios.get(`${API}/chapters/${chapterId}/items`)
     setChapterPhotos(prev => ({ ...prev, [chapterId]: res.data }))
   }
-
-  // 캡션 저장 로직 (PUT 방식으로 변경) + 낙관적 업데이트 적용 (딜레이 0초)
-  const handleSaveCaption = async () => {
-    if (!editingCaptionPhotoId) return;
-
-    const targetId = editingCaptionPhotoId;
-    const newCaption = captionDraft;
-
-    // 1. 전체 사진 목록(allPhotos)에서 현재 수정 중인 원본 사진 데이터를 찾습니다.
-    const originalPhoto = allPhotos.find(p => p.id === targetId);
-    
-    // ✅ 다국어 적용: 에러 메시지
-    if (!originalPhoto) {
-      alert(t('photo.error.OriginalNotFound'));
-      return;
-    }
-
-    // 🔥 [Optimistic Update 1] 서버 응답 대기 없이 화면에 즉시 반영되도록 상태 업데이트
-    setChapterPhotos(prev => {
-      const next = { ...prev };
-      for (const [chId, photos] of Object.entries(next)) {
-        next[chId] = photos.map(p => 
-          p.photo_id === targetId ? { ...p, caption: newCaption } : p
-        );
-      }
-      return next;
-    });
-
-    // 🔥 [Optimistic Update 2] 부모(ProjectDetail)의 전체 사진 배열도 즉시 업데이트!
-    // (이전에 안내해 드린 대로 onPhotoUpdate가 인자를 받도록 수정된 상태여야 합니다)
-    if (onPhotoUpdate) {
-      onPhotoUpdate(targetId, newCaption); 
-    }
-
-    // 입력창 즉시 닫기
-    setEditingCaptionPhotoId(null);
-    setCaptionDraft('');
-
-    try {
-      // 2. patch 대신 put을 사용하고, 기존 사진 데이터에 caption만 새것으로 교체하여 서버에 전체를 보냅니다.
-      // 화면은 이미 바뀌었으므로 여기서 발생하는 네트워크 딜레이는 사용자가 느끼지 못합니다.
-      await axios.put(`${API}/photos/${targetId}`, { 
-        ...originalPhoto, 
-        caption: newCaption 
-      });
-      
-    } catch (error) {
-      // ✅ 다국어 적용: 콘솔 에러 로그 및 사용자 알림(alert)
-      console.error(t('photo.error.SaveCaptionFailed'), error);
-      alert(t('photo.error.SaveFailedAlert'));
-      
-      // (선택) 에러가 났을 때만 부모의 전체 데이터를 다시 불러와 원래대로 복구시킬 수 있습니다.
-      // onPhotoUpdate(); // 인자 없이 호출하면 기존처럼 fetchPhotos()를 하도록 짤 수도 있습니다.
-    }
-  };
 
   // 변경 후 — API 호출 없이 모달만 열고, 저장 시 생성
   const handleAddTextBlock = (chapterId: string) => {
@@ -300,14 +240,13 @@ function ProjectStory({
   }
 
   const handleRemoveItem = async (chapterId: string, itemId: string) => {
-    // 삭제할 아이템 정보 미리 확인
     const item = (chapterPhotos[chapterId] || []).find(i => i.id === itemId)
     const blockId = item?.block_id
 
     await axios.delete(`${API}/chapters/${chapterId}/items/${itemId}`)
 
-    // 삭제 후 같은 블록에 PHOTO가 하나도 없으면 텍스트 side-by-side 자동 해제
-    if (blockId) {
+    // PHOTO 아이템 삭제 시에만 side-by-side 자동 해제 체크
+    if (blockId && item?.item_type === 'PHOTO') {
       const remaining = (chapterPhotos[chapterId] || [])
         .filter(i => i.id !== itemId && i.block_id === blockId && i.item_type === 'PHOTO')
       if (remaining.length === 0) {
@@ -315,7 +254,7 @@ function ProjectStory({
           .find(i => i.block_id === blockId && i.item_type === 'TEXT')
         if (textItem) {
           await handleCancelSideBySide(chapterId, textItem.id)
-          return  // handleCancelSideBySide 안에서 fetchChapterPhotos 호출
+          return
         }
       }
     }
@@ -919,10 +858,6 @@ function ProjectStory({
                                     items={block.items}
                                     onRemoveItem={handleRemoveItem}
                                     onEdit={(itemId, text) => { setEditingTextItemId(itemId); setTextDraft(text) }}
-                                    onEditCaption={(photoId, caption) => {
-                                      setEditingCaptionPhotoId(photoId)
-                                      setCaptionDraft(caption)
-                                    }}
                                     onPhotoClick={(item) => {
                                       const flatPhotos = getFlattenedPhotos().filter(i => i.item_type === 'PHOTO')
                                       const globalIndex = flatPhotos.findIndex(i => i.id === item.id)
@@ -961,10 +896,6 @@ function ProjectStory({
                                   items={block.items}
                                   sensors={sensors}
                                   onRemoveItem={handleRemoveItem}
-                                  onEditCaption={(photoId, caption) => {
-                                    setEditingCaptionPhotoId(photoId)
-                                    setCaptionDraft(caption)
-                                  }}
                                   onPhotoClick={(item) => {
                                     const flatPhotos = getFlattenedPhotos().filter(i => i.item_type === 'PHOTO')
                                     const globalIndex = flatPhotos.findIndex(i => i.id === item.id)
@@ -1117,10 +1048,6 @@ function ProjectStory({
                                       items={block.items}
                                       onRemoveItem={handleRemoveItem}
                                       onEdit={(itemId, text) => { setEditingTextItemId(itemId); setTextDraft(text) }}
-                                      onEditCaption={(photoId, caption) => {
-                                        setEditingCaptionPhotoId(photoId)
-                                        setCaptionDraft(caption)
-                                      }}
                                       onPhotoClick={(item) => {
                                         const flatPhotos = getFlattenedPhotos().filter(i => i.item_type === 'PHOTO')
                                         const globalIndex = flatPhotos.findIndex(i => i.id === item.id)
@@ -1159,10 +1086,6 @@ function ProjectStory({
                                     items={block.items}
                                     sensors={sensors}
                                     onRemoveItem={handleRemoveItem}
-                                    onEditCaption={(photoId, caption) => {
-                                      setEditingCaptionPhotoId(photoId)
-                                      setCaptionDraft(caption)
-                                    }}
                                     onPhotoClick={(item) => {
                                       const flatPhotos = getFlattenedPhotos().filter(i => i.item_type === 'PHOTO')
                                       const globalIndex = flatPhotos.findIndex(i => i.id === item.id)
@@ -1401,42 +1324,6 @@ function ProjectStory({
           </div>
         )
       })()}
-
-      {/* 캡션 편집 모달 창 (DeliveryPage 스타일 적용) */}
-      {editingCaptionPhotoId && (
-        <div
-          className="fixed inset-0 bg-black/60 z-[100] flex items-center justify-center p-4 backdrop-blur-sm"
-          onClick={() => setEditingCaptionPhotoId(null)}
-        >
-          <div
-            className="w-full max-w-sm bg-white rounded-2xl p-6 shadow-2xl"
-            onClick={e => e.stopPropagation()}
-          >
-            <h3 className="text-base font-semibold mb-3 text-gray-900">{t('photo.addCaption')}</h3>
-            <textarea
-              className="w-full h-28 px-3 py-2 text-sm rounded-lg border border-gray-300 bg-white text-gray-900 resize-none focus:outline-none focus:ring-2 focus:ring-gray-900"
-              placeholder={t('photo.addCaptionDesc')}
-              value={captionDraft}
-              onChange={e => setCaptionDraft(e.target.value)}
-              autoFocus
-            />
-            <div className="flex gap-2 justify-end mt-4">
-              <button
-                onClick={() => setEditingCaptionPhotoId(null)}
-                className="px-4 py-2 text-sm rounded-lg border border-gray-300 text-gray-600 hover:bg-gray-50 font-medium"
-              >
-                {t('common.cancel')}
-              </button>
-              <button
-                onClick={handleSaveCaption}
-                className="px-4 py-2 text-sm rounded-lg bg-gray-900 hover:bg-gray-700 text-white font-medium shadow-sm"
-              >
-                {t('common.save')}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
 
       {editingTextItemId && (
       <div

@@ -1494,11 +1494,6 @@ export default function ProjectDetail({
           allPhotos={photos.filter(p => !p.deleted_at)}
           chapterPhotoCount={chapterPhotoVersion}
           onChapterChange={() => fetchChapterPhotoIds()}
-          onPhotoUpdate={(photoId, newCaption) => {
-            setPhotos(prev => prev.map(p =>
-              p.id === photoId ? { ...p, caption: newCaption } : p
-            ))
-          }}
         />
       </div>
 
