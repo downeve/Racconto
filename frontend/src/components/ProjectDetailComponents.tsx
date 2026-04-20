@@ -16,13 +16,6 @@ export interface Project {
   cover_image_url: string
 }
 
-export interface ChapterResponse {
-  id: string
-  title: string
-  parent_id: string | null
-  order_num: number
-}
-
 export interface ChapterPhotoResponse {
   photo_id: string
   chapter_id: string

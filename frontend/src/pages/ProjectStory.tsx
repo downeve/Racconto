@@ -122,10 +122,10 @@ function ProjectStory({
 
   const fetchChapters = async (notifyParent = false) => {
     try {
-      const res = await axios.get(`${API}/chapters/?project_id=${projectId}`)
-      setChapters(res.data)
-      await Promise.all(res.data.map((chapter: Chapter) => fetchChapterPhotos(chapter.id)))
-      if (notifyParent) onChapterChange?.(res.data.length)
+      const res = await axios.get(`${API}/chapters/all-items?project_id=${projectId}`)
+      setChapters(res.data.chapters)
+      setChapterPhotos(res.data.items_by_chapter)
+      if (notifyParent) onChapterChange?.(res.data.chapters.length)
     } catch (err) {
       console.error(err)
     }

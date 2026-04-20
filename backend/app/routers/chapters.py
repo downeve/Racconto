@@ -201,6 +201,71 @@ def create_chapter(
     db.refresh(db_chapter)
     return db_chapter
 
+@router.get("/all-photo-ids")
+def get_all_chapter_photo_ids(
+    project_id: str,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user)
+):
+    get_owned_project_or_403(project_id, current_user.id, db)
+
+    chapters = db.query(models.Chapter).filter(
+        models.Chapter.project_id == project_id
+    ).order_by(models.Chapter.order_num).all()
+
+    chapter_ids = [c.id for c in chapters]
+
+    items = db.query(models.ChapterItem).filter(
+        models.ChapterItem.chapter_id.in_(chapter_ids),
+        models.ChapterItem.item_type == "PHOTO",
+        models.ChapterItem.photo_id != None
+    ).all() if chapter_ids else []
+
+    return {
+        "chapters": [
+            {"id": c.id, "title": c.title, "parent_id": c.parent_id, "order_num": c.order_num}
+            for c in chapters
+        ],
+        "photo_ids": [
+            {"photo_id": i.photo_id, "chapter_id": i.chapter_id}
+            for i in items
+        ]
+    }
+
+@router.get("/all-items")
+def get_all_chapter_items(
+    project_id: str,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user)
+):
+    get_owned_project_or_403(project_id, current_user.id, db)
+
+    chapters = db.query(models.Chapter).filter(
+        models.Chapter.project_id == project_id
+    ).order_by(models.Chapter.order_num).all()
+
+    chapter_ids = [c.id for c in chapters]
+
+    items = db.query(models.ChapterItem).filter(
+        models.ChapterItem.chapter_id.in_(chapter_ids)
+    ).order_by(
+        models.ChapterItem.order_num,
+        models.ChapterItem.order_in_block
+    ).all() if chapter_ids else []
+
+    # chapter_id별로 그룹화
+    items_by_chapter: dict = {}
+    for item in items:
+        items_by_chapter.setdefault(item.chapter_id, []).append(build_item_response(item))
+
+    return {
+        "chapters": [
+            {"id": c.id, "project_id": c.project_id, "title": c.title,
+             "description": c.description, "order_num": c.order_num, "parent_id": c.parent_id}
+            for c in chapters
+        ],
+        "items_by_chapter": items_by_chapter
+    }
 
 # 3. 챕터 일괄 순서 변경 (/{chapter_id} 라우트보다 위에 있어야 함)
 @router.put("/reorder")

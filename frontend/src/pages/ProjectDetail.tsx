@@ -12,7 +12,7 @@ import { useElectronSidebar } from '../context/ElectronSidebarContext'
 import ConfirmModal from '../components/ConfirmModal'
 import ToastNotification from '../components/ToastNotification'
 import { Lightbox, PhotoCard } from '../components/ProjectDetailComponents'
-import type { Photo, Project, ChapterResponse, ChapterPhotoResponse, NoteResponse } from '../components/ProjectDetailComponents'
+import type { Photo, Project, ChapterPhotoResponse, NoteResponse } from '../components/ProjectDetailComponents'
 
 const API = import.meta.env.VITE_API_URL
 const DELIVERY_ENABLED = import.meta.env.VITE_ENABLE_DELIVERY === 'true'
@@ -85,27 +85,17 @@ export default function ProjectDetail({
   }
 
   const fetchChapterPhotoIds = async () => {
-    console.trace('fetchChapterPhotoIds called')
     if (!numericId) return
-    const res = await axios.get(`${API}/chapters/?project_id=${numericId}`)
-    const chapters: ChapterResponse[] = res.data
-    setChapters(
-      chapters
-        .sort((a, b) => a.order_num - b.order_num)
-        .map(c => ({ id: c.id, title: c.title, parent_id: c.parent_id, order_num: c.order_num }))
-    )
-    const photoResults = await Promise.all(
-      chapters.map(c => axios.get<ChapterPhotoResponse[]>(`${API}/chapters/${c.id}/photos`))
-    )
-    
+    const res = await axios.get(`${API}/chapters/all-photo-ids?project_id=${numericId}`)
+    setChapters(res.data.chapters)
     const ids = new Set<string>()
     const map = new Map<string, string>()
-
-    photoResults.forEach(r => r.data.forEach(cp => {
-      ids.add(cp.photo_id)
-      map.set(cp.photo_id, cp.chapter_id) // 🚀 추가: photo_id에 해당하는 chapter_id 저장
-    }))
-    
+    res.data.photo_ids.forEach((cp: ChapterPhotoResponse) => {
+      if (cp.photo_id) {
+        ids.add(cp.photo_id)
+        map.set(cp.photo_id, cp.chapter_id)
+      }
+    })
     setChapterPhotoIds(ids)
     setPhotoChapterMap(map)
     setChapterPhotoVersion(v => v + 1)
