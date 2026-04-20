@@ -232,8 +232,11 @@ export function Lightbox({
                 </button>
               )}
 
-              {showChapterMenu && !inChapter && (
-                <div className="absolute bottom-8 left-0 bg-white rounded shadow-lg z-50 min-w-[180px] py-1">
+                {showChapterMenu && !inChapter && (
+                  <div
+                    className="absolute bottom-8 left-0 bg-white rounded shadow-lg z-50 min-w-[180px] py-1"
+                    onClick={e => e.stopPropagation()}
+                  >
                   {chapters.length === 0 ? (
                     <p className="text-xs text-gray-400 px-3 py-2">{t('story.noChapters')}</p>
                   ) : (

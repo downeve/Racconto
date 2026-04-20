@@ -50,6 +50,7 @@ class ChapterItemPhotoAdd(BaseModel):
     photo_id: str
     order_num: Optional[int] = None  # None 이면 맨 끝에 자동 배치
     block_id: Optional[str] = None  # None이면 새 블록 자동 생성
+    order_in_block: Optional[int] = 0
 
 class ChapterItemTextAdd(BaseModel):
     """텍스트 블록 아이템 추가"""

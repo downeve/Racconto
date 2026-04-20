@@ -687,10 +687,11 @@ export default function ProjectDetail({
     })
   }
 
+  // 변경
   const handleAddToChapter = async (photoId: string, chapterId: string) => {
-  try {
+    try {
       await axios.post(`${API}/chapters/${chapterId}/photos`, { photo_id: photoId })
-      fetchChapterPhotoIds()
+      await fetchChapterPhotoIds()   // ← await 추가
     } catch {
       // 이미 추가됨
     }
