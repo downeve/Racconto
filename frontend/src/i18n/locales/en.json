@@ -227,6 +227,10 @@
     "chapterDescription": "Input description",
     "addPhoto": "Add Photos",
     "addTextBlock": "+ Add Text Block",
+    "editTextBlock": "Edit Text Block",
+    "attachLeft": "↑ Attach left",
+    "attachRight": "↓ Attach right",
+    "detach": "Detach",
     "selectPhotos": "Click image to add.",
     "selectionMode": "Photo Selection Mode",
     "finishSelection": "Finish Selection",
@@ -282,10 +286,10 @@
     "startMessage": "Make your own portfolios.",
     "startMessage2": "Pleae make your own portfolio address in setting.",
     "noUser": "'s portfolio does not exist.",
-    "column": "Image grid set in portfolio: ",
-    "columnSingle": "Single (1 column)",
-    "columnWide": "Wide (2 columns)",
-    "columnGrid": "Grid (3 columns)"
+    "column": "Image column(s) in Portfolio: ",
+    "columnSingle": "1",
+    "columnWide": "2",
+    "columnGrid": "3"
   },
   "delivery": {
     "title": "Delivery",

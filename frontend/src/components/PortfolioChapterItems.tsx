@@ -167,7 +167,7 @@ export default function PortfolioChapterItems({
       )
       const textCol = group.text ? (
         <div
-          className={`min-w-0 flex items-center italic w-full ${group.blockType === 'side-left' ? 'text-left' : 'text-right'}`}
+          className={`min-w-0 flex items-center italic w-full ${group.blockType === 'side-left' ? 'text-right' : 'text-left'}`}
           style={{ flex: '2' }}
         >
           <p
@@ -181,7 +181,7 @@ export default function PortfolioChapterItems({
 
       result.push(
         <div key={`side-${bid}`} className="flex my-6 items-center" style={{ gap: '24px', maxWidth: '100%' }}>
-          {group.blockType === 'side-left' ? <>{photoCol}{textCol}</> : <>{textCol}{photoCol}</>}
+          {group.blockType === 'side-right' ? <>{photoCol}{textCol}</> : <>{textCol}{photoCol}</>}
         </div>
       )
       return

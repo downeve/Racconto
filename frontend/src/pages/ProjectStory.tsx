@@ -1426,7 +1426,7 @@ function ProjectStory({
           className="w-full max-w-lg bg-white rounded-2xl p-6 shadow-2xl"
           onClick={e => e.stopPropagation()}
         >
-          <h3 className="text-base font-semibold mb-3 text-gray-900">텍스트 블록 편집</h3>
+          <h3 className="text-base font-semibold mb-3 text-gray-900">{t("story.editTextBlock")}</h3>
           <textarea
             className="w-full h-40 px-3 py-2 text-sm rounded-lg border border-gray-300 bg-white text-gray-900 resize-none focus:outline-none focus:ring-2 focus:ring-gray-900"
             value={textDraft}

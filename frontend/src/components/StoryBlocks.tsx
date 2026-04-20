@@ -157,17 +157,17 @@ export function SortableTextBlock({
       <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
         {hasPhotoAbove && (
           <button
-            onClick={() => onSideBySide(itemId, 'side-right', 'above')}
+            onClick={() => onSideBySide(itemId, 'side-left', 'above')}
             className="text-xs px-2 py-0.5 rounded border border-blue-200 text-blue-400 hover:text-blue-600 bg-white"
-            title="위 사진과 나란히 (텍스트 오른쪽)"
-          >↑ 나란히</button>
+            title="위 사진과 나란히 (텍스트 왼쪽)"
+          >{t('story.attachLeft')}</button>
         )}
         {hasPhotoBelow && (
           <button
-            onClick={() => onSideBySide(itemId, 'side-left', 'below')}
+            onClick={() => onSideBySide(itemId, 'side-right', 'below')}
             className="text-xs px-2 py-0.5 rounded border border-blue-200 text-blue-400 hover:text-blue-600 bg-white"
-            title="아래 사진과 나란히 (텍스트 왼쪽)"
-          >↓ 나란히</button>
+            title="아래 사진과 나란히 (텍스트 오른쪽)"
+          >{t('story.attachRight')}</button>
         )}
         <button
           onClick={() => onEdit(itemId, text_content)}
@@ -205,8 +205,10 @@ export function SortablePhotoBlock({
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: blockId })
   const style = { transform: CSS.Transform.toString(transform), transition, opacity: isDragging ? 0.5 : 1 }
 
+  const { t } = useTranslation()
+
   const blockLayout = items[0]?.block_layout || 'grid'
-  const layoutLabels: Record<string, string> = { grid: '3열', wide: '2열', single: '전체' }
+  const layoutLabels: Record<string, string> = { grid: t('portfolio.columnGrid'), wide: t('portfolio.columnWide'), single: t('portfolio.columnSingle') }
 
   return (
     <div ref={setNodeRef} style={style} className="group/block relative mb-2 bg-stone-50 border border-stone-200 rounded-lg p-3">
@@ -219,8 +221,8 @@ export function SortablePhotoBlock({
       </div>
 
       {/* 레이아웃 툴바 */}
-      <div className="absolute top-2 right-2 opacity-0 group-hover/block:opacity-100 transition-opacity z-20 flex items-center gap-1 bg-white border border-gray-200 rounded shadow-sm px-1.5 py-0.5">
-        <span className="text-[10px] text-gray-400 mr-1">포트폴리오</span>
+      <div className="absolute top-2 left-2 opacity-0 group-hover/block:opacity-100 transition-opacity z-20 flex items-center gap-1 bg-white border border-gray-200 rounded shadow-sm px-1.5 py-0.5">
+        <span className="text-[10px] text-gray-400 mr-1">{t('portfolio.column')}</span>
         {(['grid', 'wide', 'single'] as const).map(l => (
           <button
             key={l}
@@ -284,6 +286,8 @@ export function SortableSideBySideBlock({
   const photoItems = items.filter(i => i.item_type === 'PHOTO')
   const textItem = items.find(i => i.item_type === 'TEXT')
 
+  const { t } = useTranslation()
+
   const photoCol = (
     <div className="flex-1 min-w-0">
       <div className="grid grid-cols-1 gap-2">
@@ -313,7 +317,7 @@ export function SortableSideBySideBlock({
         onClick={() => onCancelSideBySide(chapterId, textItem.id)}
         className="absolute top-2 right-2 text-xs px-2 py-0.5 rounded border border-gray-300 text-gray-400 hover:text-gray-700 bg-white opacity-0 group-hover/text:opacity-100 transition-opacity"
       >
-        분리
+        {t('story.detach')}
       </button>
     </div>
   ) : null
@@ -329,7 +333,7 @@ export function SortableSideBySideBlock({
       </div>
 
       <div className="flex gap-3">
-        {blockType === 'side-left' ? <>{photoCol}{textCol}</> : <>{textCol}{photoCol}</>}
+        {blockType === 'side-right' ? <>{photoCol}{textCol}</> : <>{textCol}{photoCol}</>}
       </div>
     </div>
   )
