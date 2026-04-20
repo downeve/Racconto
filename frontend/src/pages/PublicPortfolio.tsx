@@ -3,7 +3,7 @@ import { useParams, Link, useNavigate } from 'react-router-dom'
 import axios from 'axios'
 import { useTranslation } from 'react-i18next'
 import { useAuth } from '../context/AuthContext'
-import PortfolioChapterItems, { PORTFOLIO_WIDTH, type PortfolioPhoto } from '../components/PortfolioChapterItems'
+import PortfolioChapterItems, { type PortfolioPhoto } from '../components/PortfolioChapterItems'
 
 const API = import.meta.env.VITE_API_URL
 
