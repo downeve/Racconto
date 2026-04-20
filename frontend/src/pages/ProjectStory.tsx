@@ -173,12 +173,12 @@ function ProjectStory({
 
       const lastIndex = currentChapterPhotos.length - 1;
 
-      if (e.key === 'ArrowRight') {
+      if (      (e.key === 'ArrowRight' || e.key === 'd' || e.key === 'D')) {
         if (selectedPhotoIndex < lastIndex) {
           setSelectedPhotoIndex(prev => prev! + 1);
           setShowNotePanel(false)
         }
-      } else if (e.key === 'ArrowLeft') {
+      } else if ((e.key === 'ArrowLeft' || e.key === 'a' || e.key === 'A')) {
         if (selectedPhotoIndex > 0) {
           setSelectedPhotoIndex(prev => prev! - 1);
           setShowNotePanel(false)

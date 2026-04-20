@@ -100,8 +100,8 @@ export function Lightbox({
       const tag = (e.target as HTMLElement).tagName
       if (tag === 'INPUT' || tag === 'TEXTAREA') return
       if (e.key === 'Escape') onClose()
-      if (e.key === 'ArrowRight' && idx < photos.length - 1) onNavigate(photos[idx + 1])
-      if (e.key === 'ArrowLeft' && idx > 0) onNavigate(photos[idx - 1])
+      if ((e.key === 'ArrowRight' || e.key === 'd' || e.key === 'D') && idx < photos.length - 1) onNavigate(photos[idx + 1])
+      if ((e.key === 'ArrowLeft' || e.key === 'a' || e.key === 'A') && idx > 0) onNavigate(photos[idx - 1])
     }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
@@ -128,23 +128,136 @@ export function Lightbox({
   return (
     <div className="fixed inset-0 bg-black/90 z-50 flex flex-col" onClick={onClose}>
 
-      {/* 상단 바 */}
+      {/* 상단 바 (왼쪽/중앙/오른쪽 3분할 구조) */}
       <div
-        className="flex items-center justify-between px-6 py-3 shrink-0"
+        className="flex items-center justify-between px-6 pt-3 pb-0 shrink-0 relative"
         style={{ paddingTop: window.racconto ? '2rem' : undefined }}
         onClick={e => e.stopPropagation()}
       >
-        <span className="text-white/50 text-sm">{idx + 1} / {photos.length}</span>
-        {photo.local_missing && (
-          <span className="text-yellow-400 text-xs font-bold px-2 py-0.5 bg-yellow-400/20 rounded-full">
-            ⚠️ {t('project.noLocalFile')}
-          </span>
-        )}
-        <button onClick={onClose} className="text-white/70 hover:text-white text-2xl p-3">✕</button>
+        {/* 1. 왼쪽: 인덱스 및 경고 (flex-1로 남는 공간 차지) */}
+        <div className="flex-1 flex items-center gap-3 justify-start min-w-0">
+          <span className="text-white/50 text-sm whitespace-nowrap">{idx + 1} / {photos.length}</span>
+          {photo.local_missing && (
+            <span className="text-yellow-400 text-xs font-bold px-2 py-0.5 bg-yellow-400/20 rounded-full whitespace-nowrap">
+              ⚠️ {t('project.noLocalFile')}
+            </span>
+          )}
+        </div>
+
+        {/* 2. 중앙: 컨트롤 버튼들 (shrink-0으로 자기 크기 유지) */}
+        <div className="flex items-center justify-center gap-4 flex-wrap shrink-0 px-3">
+          
+          {/* 별점 */}
+          <div className="flex gap-1" onMouseLeave={() => setHoverRating(null)}>
+            {[1, 2, 3, 4, 5].map(star => {
+              const isHoveringThis = hoverRating?.id === photo.id
+              const isHoveredStar = isHoveringThis && hoverRating!.star >= star
+              const isRatedStar = photo.rating && photo.rating >= star
+              let colorClass = 'text-white/20'
+              if (isHoveredStar) colorClass = 'text-yellow-300'
+              else if (!isHoveringThis && isRatedStar) colorClass = 'text-yellow-400'
+              return (
+                <button
+                  key={star}
+                  onMouseEnter={() => setHoverRating({ id: photo.id, star })}
+                  onClick={() => onSetRating(photo, star)}
+                  className={`text-xl transition-colors ${colorClass}`}
+                >★</button>
+              )
+            })}
+          </div>
+
+          <div className="w-px h-3 bg-white/20" />
+
+          {/* 컬러 라벨 */}
+          <div className="flex gap-1.5">
+            {colorLabels.map(label => (
+              <button
+                key={label.value}
+                onClick={() => onSetColorLabel(photo, label.value)}
+                title={label.label}
+                className={`w-5 h-5 rounded-full ${label.color} transition-all ${
+                  photo.color_label === label.value
+                    ? 'ring-2 ring-offset-2 ring-offset-black ring-white scale-110'
+                    : 'opacity-40 hover:opacity-80'
+                }`}
+              />
+            ))}
+          </div>
+
+          <div className="w-px h-3 bg-white/20" />
+
+          {/* 챕터 추가 / 정보 표시 */}
+          <div className="relative flex items-center">
+            {inChapter ? (
+              <span className="flex items-center text-xs text-blue-400 px-2 py-1 border border-transparent font-medium">
+                {getAssignedChapterInfo()}
+              </span>
+            ) : (
+              <button
+                onClick={() => setShowChapterMenu(v => !v)}
+                className="flex items-center text-xs px-2 py-1 border border-white/20 text-white/60 hover:text-white hover:border-white/50 rounded transition-colors"
+              >
+                📖 {t('story.addToChapter')}
+              </button>
+            )}
+
+            {/* 드롭다운 위치 수정: top-full mt-2 로 아래로 열리게 설정 */}
+            {showChapterMenu && !inChapter && (
+              <div
+                className="absolute top-full mt-2 left-0 bg-white rounded shadow-lg z-50 min-w-[180px] py-1"
+                onClick={e => e.stopPropagation()}
+              >
+                {chapters.length === 0 ? (
+                  <p className="text-xs text-gray-400 px-3 py-2">{t('story.noChapters')}</p>
+                ) : (
+                  chapters.filter(c => !c.parent_id).map((parent, parentIdx) => (
+                    <div key={parent.id}>
+                      <button
+                        onClick={() => { onAddToChapter(photo.id, parent.id); setShowChapterMenu(false) }}
+                        className="w-full text-left text-xs px-3 py-2 hover:bg-gray-100 text-gray-700 font-medium"
+                      >
+                        {t('story.chapter')} {parentIdx + 1}. {parent.title}
+                      </button>
+                      {chapters.filter(c => c.parent_id === parent.id).map((child, childIdx) => (
+                        <button
+                          key={child.id}
+                          onClick={() => { onAddToChapter(photo.id, child.id); setShowChapterMenu(false) }}
+                          className="w-full text-left text-xs px-3 py-2 hover:bg-gray-100 text-gray-500 pl-6"
+                        >
+                          ↳ {t('story.chapter')} {parentIdx + 1}.{childIdx + 1}. {child.title}
+                        </button>
+                      ))}
+                    </div>
+                  ))
+                )}
+              </div>
+            )}
+          </div>
+
+          <div className="w-px h-3 bg-white/20" />
+
+          {/* 노트 버튼 */}
+          <button
+            onClick={() => setShowNotePanel(v => !v)}
+            className={`text-xs px-2 py-1 border rounded transition-colors ${
+              showNotePanel
+                ? 'border-white/50 text-white'
+                : 'border-white/20 text-white/60 hover:text-white hover:border-white/50'
+            }`}
+          >
+            📝 {t('note.title')}
+          </button>
+        </div>
+
+        {/* 3. 오른쪽: 닫기 버튼 (flex-1로 남는 공간 차지하며 우측 정렬) */}
+        <div className="flex-1 flex justify-end">
+          <button onClick={onClose} className="text-white/70 hover:text-white text-2xl p-3">✕</button>
+        </div>
       </div>
 
       {/* 중앙 이미지 */}
-      <div className="flex-1 flex items-center justify-center relative min-h-0">
+      <div className="flex-1 flex items-center justify-center mt-0 relative min-h-0">
         {idx > 0 && (
           <button
             className="absolute left-4 z-10 text-white/70 hover:text-white text-5xl select-none p-4"
@@ -166,115 +279,12 @@ export function Lightbox({
       </div>
 
       {/* 하단 정보 바 */}
-      <div className="shrink-0 bg-black/80 border-t border-white/10 px-6 py-4" onClick={e => e.stopPropagation()}>
+      <div className="shrink-0 bg-black/30 border-t border-white/10 px-6 py-4" onClick={e => e.stopPropagation()}>
         <div className="max-w-[calc(100%-8rem)] mx-auto space-y-3">
-          <div className="flex items-center gap-4 flex-wrap">
-
-            {/* 별점 */}
-            <div className="flex gap-1" onMouseLeave={() => setHoverRating(null)}>
-              {[1, 2, 3, 4, 5].map(star => {
-                const isHoveringThis = hoverRating?.id === photo.id
-                const isHoveredStar = isHoveringThis && hoverRating!.star >= star
-                const isRatedStar = photo.rating && photo.rating >= star
-                let colorClass = 'text-white/20'
-                if (isHoveredStar) colorClass = 'text-yellow-300'
-                else if (!isHoveringThis && isRatedStar) colorClass = 'text-yellow-400'
-                return (
-                  <button
-                    key={star}
-                    onMouseEnter={() => setHoverRating({ id: photo.id, star })}
-                    onClick={() => onSetRating(photo, star)}
-                    className={`text-xl transition-colors ${colorClass}`}
-                  >★</button>
-                )
-              })}
-            </div>
-
-            <div className="w-px h-5 bg-white/20" />
-
-            {/* 컬러 라벨 */}
-            <div className="flex gap-1.5">
-              {colorLabels.map(label => (
-                <button
-                  key={label.value}
-                  onClick={() => onSetColorLabel(photo, label.value)}
-                  title={label.label}
-                  className={`w-5 h-5 rounded-full ${label.color} transition-all ${
-                    photo.color_label === label.value
-                      ? 'ring-2 ring-offset-2 ring-offset-black ring-white scale-110'
-                      : 'opacity-40 hover:opacity-80'
-                  }`}
-                />
-              ))}
-            </div>
-
-            <div className="w-px h-5 bg-white/20" />
-
-            {/* 챕터 추가 / 정보 표시 */}
-            <div className="relative flex items-center">
-              {inChapter ? (
-                <span className="flex items-center text-xs text-blue-400 px-2 py-1 border border-transparent font-medium">
-                  {getAssignedChapterInfo()}
-                </span>
-              ) : (
-                <button
-                  onClick={() => setShowChapterMenu(v => !v)}
-                  className="flex items-center text-xs px-2 py-1 border border-white/20 text-white/60 hover:text-white hover:border-white/50 rounded transition-colors"
-                >
-                  📖 {t('story.addToChapter')}
-                </button>
-              )}
-
-                {showChapterMenu && !inChapter && (
-                  <div
-                    className="absolute bottom-8 left-0 bg-white rounded shadow-lg z-50 min-w-[180px] py-1"
-                    onClick={e => e.stopPropagation()}
-                  >
-                  {chapters.length === 0 ? (
-                    <p className="text-xs text-gray-400 px-3 py-2">{t('story.noChapters')}</p>
-                  ) : (
-                    chapters.filter(c => !c.parent_id).map((parent, parentIdx) => (
-                      <div key={parent.id}>
-                        <button
-                          onClick={() => { onAddToChapter(photo.id, parent.id); setShowChapterMenu(false) }}
-                          className="w-full text-left text-xs px-3 py-2 hover:bg-gray-100 text-gray-700 font-medium"
-                        >
-                          {t('story.chapter')} {parentIdx + 1}. {parent.title}
-                        </button>
-                        {chapters.filter(c => c.parent_id === parent.id).map((child, childIdx) => (
-                          <button
-                            key={child.id}
-                            onClick={() => { onAddToChapter(photo.id, child.id); setShowChapterMenu(false) }}
-                            className="w-full text-left text-xs px-3 py-2 hover:bg-gray-100 text-gray-500 pl-6"
-                          >
-                            ↳ {t('story.chapter')} {parentIdx + 1}.{childIdx + 1}. {child.title}
-                          </button>
-                        ))}
-                      </div>
-                    ))
-                  )}
-                </div>
-              )}
-            </div>
-
-            <div className="w-px h-5 bg-white/20" />
-
-            {/* 노트 버튼 */}
-            <button
-              onClick={() => setShowNotePanel(v => !v)}
-              className={`text-xs px-2 py-1 border rounded transition-colors ${
-                showNotePanel
-                  ? 'border-white/50 text-white'
-                  : 'border-white/20 text-white/60 hover:text-white hover:border-white/50'
-              }`}
-            >
-              📝 {t('note.title')}
-            </button>
-
+          <div className="flex items-center justify-center gap-4 flex-wrap">
             {/* EXIF */}
             {showExif && (photo.camera || photo.focal_length || photo.taken_at) && (
               <>
-                <div className="w-px h-5 bg-white/20" />
                 <span className="text-xs text-white/40">
                   {[
                     photo.taken_at
