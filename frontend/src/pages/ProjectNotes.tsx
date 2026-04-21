@@ -331,7 +331,7 @@ function ProjectNotes({
     )}
 
       {/* 사이드바 */}
-      <div className={`${isElectron ? 'hidden' : ''} w-48 shrink-0 sticky top-4 self-start`}>
+      <div className={`${isElectron ? 'hidden' : ''} w-48 shrink-0 sticky top-24 self-start`}>
         <div className="bg-white rounded-lg shadow p-4 max-h-[calc(100vh-8rem)] overflow-y-auto">
           <p className="text-xs font-semibold text-gray-500 mb-3">{t('note.filter')}</p>
 

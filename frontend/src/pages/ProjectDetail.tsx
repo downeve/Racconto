@@ -1086,7 +1086,7 @@ export default function ProjectDetail({
         <div className="flex gap-6 items-start">
           
           {/* 👈 좌측 사이드바 (필터 & 라이브러리 통합) */}
-          <div className={`${isElectron ? 'hidden' : ''} ${showFilter ? 'w-48' : 'w-6'} shrink-0 transition-all duration-200`}>
+          <div className={`${isElectron ? 'hidden' : ''} ${showFilter ? 'w-48' : 'w-6'} sticky top-24 shrink-0 transition-all duration-200`}>
             <button onClick={() => setShowFilter(!showFilter)}
               className="mb-2 text-gray-400 hover:text-black text-xs flex items-center gap-1">
               {showFilter ? '◀ ' + t('filter.filter') : '▶'}
