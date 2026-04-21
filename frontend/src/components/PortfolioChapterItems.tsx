@@ -133,7 +133,7 @@ export default function PortfolioChapterItems({
     // 독립 텍스트 블록
     if (item.item_type === 'TEXT' && item.block_type !== 'side-left' && item.block_type !== 'side-right') {
       result.push(
-        <div key={`text-${i}`} className="my-10 max-w-xl">
+        <div key={`text-${i}`} className="my-8 text-center italic">
           <p
             className={`text-base leading-[1.9] whitespace-pre-wrap ${textColor}`}
             style={{ fontFamily: "'Georgia', serif" }}
@@ -180,7 +180,7 @@ export default function PortfolioChapterItems({
       ) : null
 
       result.push(
-        <div key={`side-${bid}`} className="flex my-6 items-center" style={{ gap: '24px', maxWidth: '100%' }}>
+        <div key={`side-${bid}`} className="flex my-6 items-center" style={{ gap: '28px', maxWidth: '100%' }}>
           {group.blockType === 'side-right' ? <>{photoCol}{textCol}</> : <>{textCol}{photoCol}</>}
         </div>
       )
