@@ -10,7 +10,6 @@ import {
   SortableTextBlock,
   SortableSideBySideBlock,
   type ChapterItem as StoryChapterItem,
-  type DragStartEvent,
 } from '../components/StoryBlocks'
 
 import {
@@ -570,8 +569,6 @@ function ProjectStory({
         const items = chapterPhotos[chapterId]
         const activeItem = items.find(i => i.id === activeId)
         if (!activeItem) return
-
-        const overId = String(over.id)
 
         let computedFinalItems: ChapterItem[] = []
 
