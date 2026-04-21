@@ -385,40 +385,14 @@ export default function PublicPortfolio() {
           )}
 
           <div 
-            className="max-w-4xl max-h-screen p-12 flex flex-col items-center" 
+            className="w-full h-full p-4 flex flex-col items-center" 
             onClick={e => e.stopPropagation()}
           >
             <img
               src={activeLightboxItem.photo.image_url} 
               alt={activeLightboxItem.photo.caption || ''}
-              className="w-auto h-[60vh] md:h-[80vh] object-contain"
+              className="h-full w-auto object-contain"
             />
-            
-            {/* 텍스트 영역 */}
-            <div className="mt-3 w-full text-center">
-              {/* Light Box의 챕터 및  캡션 정보 삭제
-              <p className="mb-1.5 leading-relaxed flex items-center flex-wrap">
-                {/* 1. 챕터 정보 (조금 작고 흐리게)
-                {activeLightboxItem.title && (
-                  <span className={`${darkMode ? 'text-gray-400' : 'text-gray-500'} text-xs mr-3 shrink-0`}>
-                    {activeLightboxItem.title}
-                  </span>
-                )}
-                
-                {/* 2. 사진 캡션 (기본 크기와 색상)
-                {activeLightboxItem.photo.caption && (
-                  <span className={`text-sm ${darkMode ? 'text-white' : 'text-gray-900'}`}>
-                    {activeLightboxItem.photo.caption}
-                  </span>
-                )}
-              </p>
-               */}
-
-              {/* 3. 사진 인덱스 (1 / 6) */}
-              <p className={`${darkMode ? 'text-gray-500' : 'text-gray-400'} text-xs`}>
-                {lightboxIndex + 1} / {lightboxItems.length}
-              </p>
-            </div>
           </div>
 
           {/* 마지막 사진이 아닐 때만 오른쪽 화살표 표시 */}
