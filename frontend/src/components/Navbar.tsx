@@ -79,7 +79,7 @@ export default function Navbar({ onLogout }: NavbarProps) {
       style={{ WebkitAppRegion: 'drag' } as React.CSSProperties}
     >
       <div
-        className="max-w-8xl mx-auto h-14 flex items-center justify-between"
+        className="max-w-7xl mx-auto h-14 flex items-center justify-between"
         style={{ paddingLeft: isElectron ? '5rem' : '1.5rem', paddingRight: '1.5rem' }}
       >
         <Link
