@@ -61,9 +61,9 @@ class ChapterItemTextUpdate(BaseModel):
     """텍스트 블록 내용 수정"""
     text_content: str
 
-class ChapterItemReorder(BaseModel):
-    """챕터 내 아이템 일괄 순서 변경"""
-    item_ids: List[str]
+#class ChapterItemReorder(BaseModel):
+#    """챕터 내 아이템 일괄 순서 변경"""
+#    item_ids: List[str]
 
 class ChapterItemResponse(BaseModel):
     """아이템 목록 조회 응답 — 사진/텍스트 통합"""
@@ -89,6 +89,26 @@ class ChapterItemBlockReorder(BaseModel):
     """블록 내 사진 순서 변경"""
     block_id: str
     item_ids: List[str]  # 블록 내 item id 배열 (새 순서)
+
+class ChapterItemSyncState(BaseModel):
+    id: str
+    block_id: str
+    order_in_block: int
+    order_num: int
+
+class ChapterItemBulkSync(BaseModel):
+    items: List[ChapterItemSyncState]
+
+from typing import List, Optional
+
+class ChapterItemUpdate(BaseModel):
+    id: str
+    order_num: int
+    order_in_block: int
+    block_id: Optional[str] = None
+
+class ChapterItemReorder(BaseModel):
+    items: List[ChapterItemUpdate] # item_ids(단순 문자열 리스트) 대신 객체 리스트로 변경
 
 # ── 헬퍼 함수 ───────────────────────────────────────────────
 
@@ -496,24 +516,23 @@ def reorder_chapter_items(
 ):
     get_owned_chapter_or_404(chapter_id, current_user.id, db)
 
-    if not body.item_ids:
+    if not body.items:
         return {"message": "변경할 아이템이 없습니다."}
 
-    # 소유권 검증: 전달된 item_ids 가 모두 해당 챕터 소속인지 확인
-    owned_count = db.query(models.ChapterItem).filter(
-        models.ChapterItem.id.in_(body.item_ids),
-        models.ChapterItem.chapter_id == chapter_id
-    ).count()
-    if owned_count != len(body.item_ids):
-        raise HTTPException(status_code=403, detail="FORBIDDEN")
-
-    for index, item_id in enumerate(body.item_ids):
+    # 업데이트 루프
+    for item_data in body.items:
         db.query(models.ChapterItem).filter(
-            models.ChapterItem.id == item_id
-        ).update({"order_num": index}, synchronize_session=False)
+            models.ChapterItem.id == item_data.id,
+            models.ChapterItem.chapter_id == chapter_id # 보안을 위해 챕터 아이디 확인 추가
+        ).update({
+            "order_num": item_data.order_num,
+            "order_in_block": item_data.order_in_block,
+            "block_id": item_data.block_id
+        }, synchronize_session=False)
 
     db.commit()
-    return {"message": "순서가 성공적으로 변경되었습니다."}
+    return {"message": "순서와 블록 정보가 성공적으로 반영되었습니다."}
+
 
 class ChapterItemSideBySide(BaseModel):
     text_item_id: str
@@ -649,6 +668,115 @@ def bulk_add_photos_to_chapter(
 
     db.commit()
     return {"message": f"{added}장이 추가되었습니다.", "added": added, "skipped": len(body.photo_ids) - added}
+
+
+class ChapterItemMoveToBlock(BaseModel):
+    item_id: str
+    target_block_id: str
+
+@router.put("/{chapter_id}/items/move-to-block")
+def move_item_to_block(
+    chapter_id: str,
+    body: ChapterItemMoveToBlock,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user)
+):
+    """블록 간 사진 이동 — block_id 변경 + 빈 블록 정리"""
+    get_owned_chapter_or_404(chapter_id, current_user.id, db)
+
+    item = db.query(models.ChapterItem).filter(
+        models.ChapterItem.id == body.item_id,
+        models.ChapterItem.chapter_id == chapter_id,
+        models.ChapterItem.item_type == "PHOTO"
+    ).first()
+    if not item:
+        raise HTTPException(status_code=404, detail="ITEM_NOT_FOUND")
+
+    old_block_id = item.block_id
+
+    # 목적지 블록의 마지막 order_in_block 계산 + layout 상속
+    target_items = db.query(models.ChapterItem).filter(
+        models.ChapterItem.block_id == body.target_block_id,
+        models.ChapterItem.chapter_id == chapter_id,
+        models.ChapterItem.item_type == "PHOTO"
+    ).order_by(models.ChapterItem.order_in_block).all()
+
+    target_layout = target_items[0].block_layout if target_items else 'grid'
+
+    item.block_id = body.target_block_id
+    item.order_in_block = len(target_items)
+    item.block_layout = target_layout
+
+    # 원래 블록에 PHOTO가 남아있는지 확인
+    remaining = db.query(models.ChapterItem).filter(
+        models.ChapterItem.block_id == old_block_id,
+        models.ChapterItem.chapter_id == chapter_id,
+        models.ChapterItem.item_type == "PHOTO",
+        models.ChapterItem.id != body.item_id
+    ).all()
+
+    # 원래 블록이 비면 side-by-side 텍스트 자동 해제
+    if len(remaining) == 0 and old_block_id:
+        text_item = db.query(models.ChapterItem).filter(
+            models.ChapterItem.block_id == old_block_id,
+            models.ChapterItem.chapter_id == chapter_id,
+            models.ChapterItem.item_type == "TEXT"
+        ).first()
+        if text_item:
+            text_item.block_id = text_item.id
+            text_item.block_type = 'default'
+
+    db.commit()
+    return {"message": "이동되었습니다."}
+
+@router.put("/{chapter_id}/items/bulk-sync")
+def bulk_sync_chapter_items(
+    chapter_id: str,
+    body: ChapterItemBulkSync,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user)
+):
+    """드래그 앤 드롭 후 출발지/도착지 블록의 변경된 순서와 소속을 통째로 DB에 동기화합니다."""
+    get_owned_chapter_or_404(chapter_id, current_user.id, db)
+
+    checked_source_blocks = set()
+
+    # 1. 전달받은 아이템들의 상태 일괄 업데이트
+    for item_data in body.items:
+        item = db.query(models.ChapterItem).filter(
+            models.ChapterItem.id == item_data.id,
+            models.ChapterItem.chapter_id == chapter_id
+        ).first()
+
+        if item:
+            # 블록을 이동한 경우, 원래 있던 블록을 기억해둠 (나중에 빈 블록 검사 용도)
+            if item.block_id and item.block_id != item_data.block_id:
+                checked_source_blocks.add(item.block_id)
+            
+            item.block_id = item_data.block_id
+            item.order_in_block = item_data.order_in_block
+            item.order_num = item_data.order_num
+
+    db.commit()
+
+    # 2. 기존 로직 복원: 사진이 다 빠져나가서 빈 블록이 된 곳의 텍스트를 자동 분리
+    for old_block_id in checked_source_blocks:
+        remaining_photos = db.query(models.ChapterItem).filter(
+            models.ChapterItem.block_id == old_block_id,
+            models.ChapterItem.item_type == "PHOTO"
+        ).count()
+
+        if remaining_photos == 0:
+            text_item = db.query(models.ChapterItem).filter(
+                models.ChapterItem.block_id == old_block_id,
+                models.ChapterItem.item_type == "TEXT"
+            ).first()
+            if text_item:
+                text_item.block_id = text_item.id
+                text_item.block_type = 'default'
+
+    db.commit()
+    return {"message": "드래그 앤 드롭 순서가 완벽하게 동기화되었습니다."}
 
 
 @router.put("/{chapter_id}/blocks/{block_id}/reorder")

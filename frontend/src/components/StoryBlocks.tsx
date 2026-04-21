@@ -1,10 +1,12 @@
 import { useTranslation } from 'react-i18next'
 import {
   DndContext,
-  closestCenter,
+  closestCorners,
   useSensors,
+  useDroppable,
 } from '@dnd-kit/core'
-import type { DragEndEvent } from '@dnd-kit/core'
+import type { DragEndEvent, DragStartEvent } from '@dnd-kit/core'
+export type { DragStartEvent }
 import {
   SortableContext,
   rectSortingStrategy,
@@ -71,8 +73,8 @@ export function SortablePhotoChapter({
     <div ref={setNodeRef} style={style} className="flex flex-col w-full h-full">
       <div className="relative group rounded overflow-hidden aspect-[3/2] shadow-sm">
         <img
-          src={imageUrl ?? ''}
-          alt={caption || ''}
+          src={imageUrl || undefined}
+          alt={caption || undefined}
           className="absolute inset-0 w-full h-full object-contain cursor-pointer"
           onClick={onClick}
         />
@@ -182,22 +184,75 @@ export interface SortablePhotoBlockProps {
   onPhotoClick: (item: ChapterItem) => void
   onInnerDragEnd: (event: DragEndEvent, blockId: string, chapterId: string) => void
   onLayoutChange: (blockId: string, layout: 'grid' | 'wide' | 'single') => void
+  draggingItemId: string | null
+  draggingItemBlockId: string | null
+}
+
+// ── SortablePhotoBlock ──────────────────────────────────────
+
+export interface SortablePhotoBlockProps {
+  blockId: string
+  chapterId: string
+  items: ChapterItem[]
+  sensors: ReturnType<typeof useSensors>
+  onRemoveItem: (chapterId: string, itemId: string) => void
+  onPhotoClick: (item: ChapterItem) => void
+  onInnerDragEnd: (event: DragEndEvent, blockId: string, chapterId: string) => void
+  onLayoutChange: (blockId: string, layout: 'grid' | 'wide' | 'single') => void
+  draggingItemId: string | null
+  draggingItemBlockId: string | null
+}
+
+// ── SortablePhotoBlock ──────────────────────────────────────
+
+export interface SortablePhotoBlockProps {
+  blockId: string
+  chapterId: string
+  items: ChapterItem[]
+  sensors: ReturnType<typeof useSensors>
+  onRemoveItem: (chapterId: string, itemId: string) => void
+  onPhotoClick: (item: ChapterItem) => void
+  onInnerDragEnd: (event: DragEndEvent, blockId: string, chapterId: string) => void
+  onLayoutChange: (blockId: string, layout: 'grid' | 'wide' | 'single') => void
+  draggingItemId: string | null
+  draggingItemBlockId: string | null
 }
 
 export function SortablePhotoBlock({
   blockId, chapterId, items, sensors,
-  onRemoveItem, onPhotoClick, onInnerDragEnd, onLayoutChange
+  onRemoveItem, onPhotoClick, onInnerDragEnd, onLayoutChange,
+  draggingItemId, draggingItemBlockId
 }: SortablePhotoBlockProps) {
-  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: blockId })
+  const { attributes, listeners, setNodeRef: setSortableRef, transform, transition, isDragging } = useSortable({ id: blockId })
   const style = { transform: CSS.Transform.toString(transform), transition, opacity: isDragging ? 0.5 : 1 }
 
   const { t } = useTranslation()
+
+  // 다른 블록에서 드래그 중일 때만 드롭존 활성화
+  const isExternalDrag = draggingItemId !== null && draggingItemBlockId !== blockId
+  const { setNodeRef: setDropRef, isOver } = useDroppable({
+    id: `drop-${blockId}`,
+    disabled: !isExternalDrag,
+  })
+
+  const setRef = (node: HTMLDivElement | null) => {
+    setSortableRef(node)
+    setDropRef(node)
+  }
 
   const blockLayout = items[0]?.block_layout || 'grid'
   const layoutLabels: Record<string, string> = { grid: t('portfolio.columnGrid'), wide: t('portfolio.columnWide'), single: t('portfolio.columnSingle') }
 
   return (
-    <div ref={setNodeRef} style={style} className="group/block relative mb-2 bg-stone-50 border border-stone-200 rounded-lg p-3">
+    <div
+      ref={setRef}
+      style={style}
+      className={`group/block relative mb-2 rounded-lg p-3 border transition-colors ${
+        isOver && isExternalDrag
+          ? 'bg-blue-50 border-blue-300'
+          : 'bg-stone-50 border-stone-200'
+      }`}
+    >
       <div
         {...attributes}
         {...listeners}
@@ -222,10 +277,9 @@ export function SortablePhotoBlock({
         ))}
       </div>
 
-      {/* 내부 사진 DnD — 편집 화면은 항상 3열 */}
       <DndContext
         sensors={sensors}
-        collisionDetection={closestCenter}
+        collisionDetection={closestCorners}
         onDragEnd={(e) => onInnerDragEnd(e, blockId, chapterId)}
       >
         <SortableContext items={items.map(i => i.id)} strategy={rectSortingStrategy}>

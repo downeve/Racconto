@@ -10,6 +10,7 @@ import {
   SortableTextBlock,
   SortableSideBySideBlock,
   type ChapterItem as StoryChapterItem,
+  type DragStartEvent,
 } from '../components/StoryBlocks'
 
 import {
@@ -96,6 +97,13 @@ function ProjectStory({
   const [activeBlockId, setActiveBlockId] = useState<string | null>(null)
   const [activeBlockItems, setActiveBlockItems] = useState<ChapterItem[]>([])
 
+  // 블록 간 사진 이동 드래그 state
+  const [draggingItemId, setDraggingItemId] = useState<string | null>(null)
+  const [draggingItemBlockId, setDraggingItemBlockId] = useState<string | null>(null)
+  // onDragEnd stale closure 방지용 ref
+  const draggingItemIdRef = useRef<string | null>(null)
+  const draggingItemBlockIdRef = useRef<string | null>(null)
+
   const chapterRefs = useRef<Record<string, HTMLDivElement | null>>({})
 
   const scrollToChapter = (chapterId: string) => {
@@ -166,19 +174,19 @@ function ProjectStory({
     setTextDraft('')
   }
 
-  // 라이트박스 키보드 네비게이션
+  // 키보드 네비게이션 (라이트박스, 노트 패널, 미리보기)
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (selectedPhotoIndex === null || !currentChapterPhotos.length) return;
 
       const lastIndex = currentChapterPhotos.length - 1;
 
-      if (      (e.key === 'ArrowRight' || e.key === 'd' || e.key === 'D')) {
+      if (e.key === 'ArrowRight' || e.key === 'd' || e.key === 'D') {
         if (selectedPhotoIndex < lastIndex) {
           setSelectedPhotoIndex(prev => prev! + 1);
           setShowNotePanel(false)
         }
-      } else if ((e.key === 'ArrowLeft' || e.key === 'a' || e.key === 'A')) {
+      } else if (e.key === 'ArrowLeft' || e.key === 'a' || e.key === 'A') {
         if (selectedPhotoIndex > 0) {
           setSelectedPhotoIndex(prev => prev! - 1);
           setShowNotePanel(false)
@@ -186,6 +194,7 @@ function ProjectStory({
       } else if (e.key === 'Escape') {
         setSelectedPhotoIndex(null); 
         setShowNotePanel(false)
+        setShowPreview(false);
       }
     };
 
@@ -314,35 +323,63 @@ function ProjectStory({
 
   // 블록 간 순서 변경 (외부 DnD)
   const handleBlockDragEnd = (event: DragEndEvent, chapterId: string, blocks: ChapterBlock[]) => {
-    const { active, over } = event
-    if (!over || active.id === over.id) return
+    const { active, over } = event;
+    if (!over || active.id === over.id) return;
 
-    const oldIndex = blocks.findIndex(b => b.blockId === active.id)
-    const newIndex = blocks.findIndex(b => b.blockId === over.id)
-    if (oldIndex === -1 || newIndex === -1) return
+    const findBlockIndex = (dndId: string) => {
+      return blocks.findIndex(b => {
+        // blockId로 직접 비교 (SortableContext에 등록된 id와 동일)
+        if (b.blockId === dndId) return true;
+        // 사진 위에 drop된 경우, 그 사진을 포함한 블록 찾기
+        if (b.items.some(item => item.id === dndId)) return true;
+        return false;
+      });
+    };
 
-    const newBlocks = arrayMove(blocks, oldIndex, newIndex)
+    // 기존 로직 다 지우고 이 두 줄로 끝!
+    const oldIndex = findBlockIndex(String(active.id));
+    const newIndex = findBlockIndex(String(over.id));
 
-    // 새 order_num 계산: 블록 인덱스 * 10 (여유 공간)
-    const allItemIds: string[] = []
-    newBlocks.forEach(block => {
-      block.items.forEach(item => allItemIds.push(item.id))
-    })
+    if (oldIndex === -1 || newIndex === -1) return;
 
+    const newBlocks = arrayMove(blocks, oldIndex, newIndex);
+    
+    // 🌟 주석으로만 있던 '블록 인덱스 * 10' 로직을 실제로 구현하여 완벽한 동기화 데이터 생성
+    const itemsToSync: any[] = [];
+    newBlocks.forEach((block, blockIndex) => {
+      const blockOrderNum = blockIndex * 10; // 블록 단위 여유 공간 확보
+      block.items.forEach((item, itemIndex) => {
+        itemsToSync.push({
+          id: item.id,
+          block_id: block.blockId,
+          order_in_block: itemIndex,
+          order_num: blockOrderNum // 같은 블록의 아이템은 똑같은 order_num을 가지게 됨!
+        });
+      });
+    });
+
+    // 낙관적 업데이트 (서버의 정렬 기준인 order_num -> order_in_block 순서와 똑같이 정렬)
     setChapterPhotos(prev => {
-      const items = prev[chapterId] || []
-      const newItems = [...items].sort((a, b) => {
-        const aIdx = allItemIds.indexOf(a.id)
-        const bIdx = allItemIds.indexOf(b.id)
-        return aIdx - bIdx
-      })
-      return { ...prev, [chapterId]: newItems }
-    })
+      const items = prev[chapterId] || [];
+      const newItems = items.map(item => {
+        const syncData = itemsToSync.find(i => i.id === item.id);
+        if (syncData) {
+          return { ...item, order_num: syncData.order_num, order_in_block: syncData.order_in_block, block_id: syncData.block_id };
+        }
+        return item;
+      }).sort((a, b) => {
+        if (a.order_num !== b.order_num) return a.order_num - b.order_num;
+        return a.order_in_block - b.order_in_block;
+      });
+      
+      return { ...prev, [chapterId]: newItems };
+    });
 
-    axios.put(`${API}/chapters/${chapterId}/items/reorder`, {
-      item_ids: allItemIds
-    }).catch(err => console.error('블록 순서 업데이트 실패:', err))
-  }
+    // 🌟 기존의 reorder API 대신, 앞서 만든 완벽한 bulk-sync API로 통일!
+    axios.put(`${API}/chapters/${chapterId}/items/bulk-sync`, {
+      items: itemsToSync
+    }).catch(err => console.error('블록 순서 업데이트 실패:', err));
+  };
 
   // 블록 내 사진 순서 변경 (내부 DnD)
   const handleInnerDragEnd = (event: DragEndEvent, blockId: string, chapterId: string) => {
@@ -384,6 +421,303 @@ function ProjectStory({
       item_ids: newItemIds
     }).catch(err => console.error('블록 내 순서 업데이트 실패:', err))
   }
+
+  // 블록 간 사진 이동
+  const handleCrossBlockDragEnd = async (
+    chapterId: string,
+    itemId: string,
+    sourceBlockId: string,
+    targetBlockId: string
+  ) => {
+    const items = chapterPhotos[chapterId] || []
+    const targetItems = items.filter(i => i.block_id === targetBlockId && i.item_type === 'PHOTO')
+    const targetLayout = targetItems[0]?.block_layout || 'grid'
+    const sourceRemaining = items.filter(i =>
+      i.block_id === sourceBlockId && i.item_type === 'PHOTO' && i.id !== itemId
+    )
+
+    // 낙관적 업데이트
+    setChapterPhotos(prev => {
+      const all = prev[chapterId] || []
+      const updated = all.map(i => {
+        if (i.id === itemId) {
+          return { ...i, block_id: targetBlockId, order_in_block: targetItems.length, block_layout: targetLayout }
+        }
+        // 원래 블록 order_in_block 재정렬
+        const srcIdx = sourceRemaining.findIndex(s => s.id === i.id)
+        if (srcIdx !== -1) return { ...i, order_in_block: srcIdx }
+        return i
+      })
+      // 원래 블록이 비면 side-by-side 텍스트도 독립 처리
+      if (sourceRemaining.length === 0) {
+        return {
+          ...prev,
+          [chapterId]: updated.map(i => {
+            if (i.block_id === sourceBlockId && i.item_type === 'TEXT') {
+              return { ...i, block_id: crypto.randomUUID(), block_type: 'default' }
+            }
+            return i
+          })
+        }
+      }
+      return { ...prev, [chapterId]: updated }
+    })
+
+    await axios.put(`${API}/chapters/${chapterId}/items/move-to-block`, {
+      item_id: itemId,
+      target_block_id: targetBlockId,
+    }).catch(err => console.error('블록 간 이동 실패:', err))
+
+    fetchChapterPhotos(chapterId)
+  }
+
+  //챕터 블록 <DndContext /> 헬퍼 함수
+  const renderChapterBlocks = (targetChapterId: string) => {
+  const items = getVisibleChapterItems(targetChapterId)
+  const blocks = groupIntoBlocks(items)
+  if (blocks.length === 0) return (
+    <p className="text-sm text-gray-400 py-2">{t('story.addPhotoGuide')}</p>
+  )
+  return (
+    <DndContext
+      sensors={sensors}
+      collisionDetection={closestCenter}
+      onDragStart={(e) => {
+        const allItems = Object.values(chapterPhotos).flat()
+        const activeItem = allItems.find(i => i.id === e.active.id)
+        const isItem = activeItem && activeItem.item_type === 'PHOTO'
+        if (isItem) {
+          setDraggingItemId(String(e.active.id))
+          draggingItemIdRef.current = String(e.active.id)
+          if (activeItem.block_id) {
+            setDraggingItemBlockId(activeItem.block_id)
+            draggingItemBlockIdRef.current = activeItem.block_id
+          }
+        } else {
+          setActiveBlockId(String(e.active.id))
+          const draggedBlock = blocks.find(b => b.blockId === e.active.id)
+          if (draggedBlock) setActiveBlockItems(draggedBlock.items)
+        }
+      }}
+      onDragOver={(e) => {
+        const { active, over } = e
+        if (!over || active.id === over.id) return
+        if (!draggingItemIdRef.current) return
+
+        const activeId = String(active.id)
+        const overId = String(over.id)
+
+        setChapterPhotos((prev) => {
+          const chapterId = Object.keys(prev).find(cid => prev[cid].some(i => i.id === activeId))
+          if (!chapterId) return prev
+
+          const items = prev[chapterId]
+          const activeIndex = items.findIndex(i => i.id === activeId)
+          if (activeIndex === -1) return prev
+
+          const activeItem = items[activeIndex]
+
+          if (overId.startsWith('drop-')) {
+            const targetBlockId = overId.replace('drop-', '')
+            if (activeItem.block_id === targetBlockId) return prev
+            const newItems = [...items]
+            newItems[activeIndex] = { ...activeItem, block_id: targetBlockId }
+            return { ...prev, [chapterId]: newItems }
+          }
+
+          const overIndex = items.findIndex(i => i.id === overId)
+          if (overIndex === -1) return prev
+          const overItem = items[overIndex]
+
+          if (overItem.item_type === 'TEXT') return prev
+          if (activeItem.block_id === overItem.block_id) return prev
+
+          const newItems = [...items]
+          newItems[activeIndex] = { ...activeItem, block_id: overItem.block_id }
+          return { ...prev, [chapterId]: newItems }
+        })
+      }}
+      onDragEnd={async (e) => {
+        const { active, over } = e
+        const itemId = draggingItemIdRef.current
+
+        setActiveBlockId(null)
+        setActiveBlockItems([])
+        setDraggingItemId(null)
+        setDraggingItemBlockId(null)
+        draggingItemIdRef.current = null
+        draggingItemBlockIdRef.current = null
+
+        if (!itemId) {
+          if (over) handleBlockDragEnd(e, targetChapterId, blocks)
+          return
+        }
+        if (!over) {
+          fetchChapterPhotos(targetChapterId)
+          return
+        }
+
+        const activeId = String(active.id)
+        const chapterId = Object.keys(chapterPhotos).find(cid =>
+          chapterPhotos[cid].some(i => i.id === activeId)
+        )
+        if (!chapterId) return
+
+        const items = chapterPhotos[chapterId]
+        const activeItem = items.find(i => i.id === activeId)
+        if (!activeItem) return
+
+        const overId = String(over.id)
+
+        let computedFinalItems: ChapterItem[] = []
+
+        setChapterPhotos(prev => {
+          const items = prev[chapterId]
+          const activeIndex = items.findIndex(i => i.id === activeId)
+          if (activeIndex === -1) return prev
+
+          const activeItem = items[activeIndex]
+          const targetBlockId = activeItem.block_id
+
+          let lastTargetIndex = -1
+          items.forEach((item, idx) => {
+            if (item.block_id === targetBlockId && item.id !== activeId) {
+              lastTargetIndex = idx
+            }
+          })
+
+          const insertIndex = lastTargetIndex === -1 ? activeIndex : lastTargetIndex
+          const newItems = arrayMove(items, activeIndex, insertIndex)
+
+          const blockCounter: Record<string, number> = {}
+          const finalItems = newItems.map(item => {
+            if (item.item_type !== 'PHOTO' || !item.block_id) return item
+            const bid = item.block_id
+            blockCounter[bid] = (blockCounter[bid] ?? 0)
+            const order = blockCounter[bid]++
+            return { ...item, order_in_block: order }
+          })
+
+          computedFinalItems = finalItems
+          return { ...prev, [chapterId]: finalItems }
+        })
+
+        const itemsToSync = computedFinalItems.map((item, index) => ({
+          id: item.id,
+          block_id: item.block_id,
+          order_num: (index + 1) * 10,
+          order_in_block: item.item_type === 'PHOTO'
+            ? computedFinalItems.filter(i => i.block_id === item.block_id).indexOf(item)
+            : 0
+        }))
+
+        try {
+          await axios.put(`${API}/chapters/${chapterId}/items/bulk-sync`, {
+            items: itemsToSync
+          })
+        } catch (err) {
+          console.error('동기화 실패:', err)
+        }
+      }}
+    >
+      <SortableContext items={blocks.map(b => b.blockId)} strategy={verticalListSortingStrategy}>
+        <div className="space-y-2">
+          {blocks.map((block, blockIdx) => {
+            const prevBlock = blocks[blockIdx - 1]
+            const nextBlock = blocks[blockIdx + 1]
+
+            if (block.type === 'SIDE') return (
+              <SortableSideBySideBlock
+                key={block.blockId}
+                blockId={block.blockId}
+                chapterId={targetChapterId}
+                items={block.items}
+                onRemoveItem={handleRemoveItem}
+                onEdit={(itemId, text) => { setEditingTextItemId(itemId); setTextDraft(text) }}
+                onPhotoClick={(item) => {
+                  const flatPhotos = getFlattenedPhotos().filter(i => i.item_type === 'PHOTO')
+                  setCurrentChapterPhotos(flatPhotos)
+                  setSelectedPhotoIndex(flatPhotos.findIndex(i => i.id === item.id))
+                }}
+                onCancelSideBySide={handleCancelSideBySide}
+              />
+            )
+
+            if (block.type === 'TEXT') return (
+              <SortableTextBlock
+                key={block.blockId}
+                id={block.blockId}
+                itemId={block.items[0].id}
+                chapterId={targetChapterId}
+                text_content={block.items[0].text_content || ''}
+                hasPhotoAbove={prevBlock?.type === 'PHOTO'}
+                hasPhotoBelow={nextBlock?.type === 'PHOTO'}
+                onRemove={handleRemoveItem}
+                onEdit={(itemId, text) => { setEditingTextItemId(itemId); setTextDraft(text) }}
+                onSideBySide={(itemId, position, direction) =>
+                  handleSideBySide(targetChapterId, itemId, position, direction)
+                }
+              />
+            )
+
+            return (
+              <SortablePhotoBlock
+                key={block.blockId}
+                blockId={block.blockId}
+                chapterId={targetChapterId}
+                items={block.items}
+                sensors={sensors}
+                onRemoveItem={handleRemoveItem}
+                onPhotoClick={(item) => {
+                  const flatPhotos = getFlattenedPhotos().filter(i => i.item_type === 'PHOTO')
+                  setCurrentChapterPhotos(flatPhotos)
+                  setSelectedPhotoIndex(flatPhotos.findIndex(i => i.id === item.id))
+                }}
+                onInnerDragEnd={handleInnerDragEnd}
+                onLayoutChange={(_, layout) =>
+                  handleBlockLayoutChange(targetChapterId, block.blockId, layout)
+                }
+                draggingItemId={draggingItemId}
+                draggingItemBlockId={draggingItemBlockId}
+              />
+            )
+          })}
+        </div>
+      </SortableContext>
+      <DragOverlay dropAnimation={{ duration: 250, easing: 'cubic-bezier(0.18, 0.67, 0.6, 1.22)' }}>
+        {activeBlockId && !draggingItemId ? (
+          <div className="bg-stone-50 border border-stone-300 rounded-lg p-3 opacity-90 shadow-xl">
+            <div className="grid grid-cols-3 gap-2">
+              {activeBlockItems.map(item => (
+                <div key={item.id} className={item.item_type === 'PHOTO' ? "aspect-[3/2] rounded overflow-hidden bg-gray-100" : "col-span-3 bg-stone-50 border border-stone-200 rounded-lg px-5 py-4"}>
+                  {item.item_type === 'PHOTO' ? (
+                    item.image_url ? <img src={item.image_url} className="w-full h-full object-contain" alt="" /> : <div className="w-full h-full bg-gray-200" />
+                  ) : (
+                    <p className="text-sm text-gray-700 line-clamp-3">{item.text_content}</p>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        ) : null}
+        {draggingItemId ? (() => {
+          const draggedItem = Object.values(chapterPhotos).flat().find(i => i.id === draggingItemId)
+          if (!draggedItem) return null
+          if (draggedItem.item_type === 'TEXT') return (
+            <div className="w-180 bg-stone-50 border border-stone-200 rounded-lg px-5 py-4 shadow-xl rotate-1 scale-105 opacity-95">
+              <p className="text-sm text-gray-700 line-clamp-3">{draggedItem.text_content}</p>
+            </div>
+          )
+          return (
+            <div className="aspect-[3/2] w-60 rounded-lg overflow-hidden shadow-2xl rotate-3 scale-105 bg-gray-100 opacity-60 cursor-grabbing">
+              {draggedItem.image_url && <img src={draggedItem.image_url} className="w-full h-full object-contain" />}
+            </div>
+          )
+        })() : null}
+      </DragOverlay>
+    </DndContext>
+  )
+}
 
   const handleMoveChapter = async (chapterId: string, direction: 'up' | 'down') => {
       const currentChapter = chapters.find(c => c.id === chapterId)
@@ -820,124 +1154,11 @@ function ProjectStory({
 
                   {/* 챕터 사진/텍스트 블록 영역 */}
                   <div className="p-4">
-                    {(() => {
-                      const items = getVisibleChapterItems(chapter.id)
-                      const blocks = groupIntoBlocks(items)
-                      if (blocks.length === 0) return (
-                        <p className="text-sm text-gray-400 py-2">{t('story.addPhotoGuide')}</p>
-                      )
-                      return (
-                        <DndContext
-                          sensors={sensors}
-                          collisionDetection={closestCenter}
-                          onDragStart={(e) => {
-                            const draggedBlock = blocks.find(b => b.blockId === e.active.id)
-                            if (draggedBlock) {
-                              setActiveBlockId(String(e.active.id))
-                              setActiveBlockItems(draggedBlock.items)
-                            }
-                          }}
-                          onDragEnd={(e) => {
-                            setActiveBlockId(null)
-                            setActiveBlockItems([])
-                            handleBlockDragEnd(e, chapter.id, blocks)  // 서브챕터면 subChapter.id
-                          }}
-                        >
-                          <SortableContext items={blocks.map(b => b.blockId)} strategy={verticalListSortingStrategy}>
-                            <div className="space-y-2">
-                            {blocks.map((block, blockIdx) => {
-                              const prevBlock = blocks[blockIdx - 1]
-                              const nextBlock = blocks[blockIdx + 1]
-
-                              if (block.type === 'SIDE') {
-                                return (
-                                  <SortableSideBySideBlock
-                                    key={block.blockId}
-                                    blockId={block.blockId}
-                                    chapterId={chapter.id}
-                                    items={block.items}
-                                    onRemoveItem={handleRemoveItem}
-                                    onEdit={(itemId, text) => { setEditingTextItemId(itemId); setTextDraft(text) }}
-                                    onPhotoClick={(item) => {
-                                      const flatPhotos = getFlattenedPhotos().filter(i => i.item_type === 'PHOTO')
-                                      const globalIndex = flatPhotos.findIndex(i => i.id === item.id)
-                                      setCurrentChapterPhotos(flatPhotos)
-                                      setSelectedPhotoIndex(globalIndex)
-                                    }}
-                                    onCancelSideBySide={handleCancelSideBySide}
-                                  />
-                                )
-                              }
-
-                              if (block.type === 'TEXT') {
-                                return (
-                                  <SortableTextBlock
-                                    key={block.blockId}
-                                    id={block.blockId}
-                                    itemId={block.items[0].id}
-                                    chapterId={chapter.id}
-                                    text_content={block.items[0].text_content || ''}
-                                    hasPhotoAbove={prevBlock?.type === 'PHOTO'}
-                                    hasPhotoBelow={nextBlock?.type === 'PHOTO'}
-                                    onRemove={handleRemoveItem}
-                                    onEdit={(itemId, text) => { setEditingTextItemId(itemId); setTextDraft(text) }}
-                                    onSideBySide={(itemId, position, direction) =>
-                                      handleSideBySide(chapter.id, itemId, position, direction)
-                                    }
-                                  />
-                                )
-                              }
-
-                              return (
-                                <SortablePhotoBlock
-                                  key={block.blockId}
-                                  blockId={block.blockId}
-                                  chapterId={chapter.id}
-                                  items={block.items}
-                                  sensors={sensors}
-                                  onRemoveItem={handleRemoveItem}
-                                  onPhotoClick={(item) => {
-                                    const flatPhotos = getFlattenedPhotos().filter(i => i.item_type === 'PHOTO')
-                                    const globalIndex = flatPhotos.findIndex(i => i.id === item.id)
-                                    setCurrentChapterPhotos(flatPhotos)
-                                    setSelectedPhotoIndex(globalIndex)
-                                  }}
-                                  onInnerDragEnd={handleInnerDragEnd}
-                                  onLayoutChange={(blockId, layout) =>
-                                    handleBlockLayoutChange(chapter.id, blockId, layout)
-                                  }
-                                />
-                              )
-                            })}
-                            </div>
-                          </SortableContext>
-                          {/* DragOverlay — 드래그 중인 블록의 고스트 렌더 */}
-                          <DragOverlay>
-                            {activeBlockId ? (
-                              <div className="bg-stone-50 border border-stone-300 rounded-lg p-3 opacity-90 shadow-xl">
-                                <div className="grid grid-cols-3 gap-2">
-                                  {activeBlockItems.filter(i => i.item_type === 'PHOTO').map(item => (
-                                    <div key={item.id} className="aspect-[3/2] rounded overflow-hidden bg-gray-100">
-                                      <img src={item.image_url ?? ''} className="w-full h-full object-contain" />
-                                    </div>
-                                  ))}
-                                  {activeBlockItems[0]?.item_type === 'TEXT' && (
-                                    <div className="col-span-3 bg-stone-50 border border-stone-200 rounded-lg px-5 py-4">
-                                      <p className="text-sm text-gray-700 line-clamp-3">{activeBlockItems[0].text_content}</p>
-                                    </div>
-                                  )}
-                                </div>
-                              </div>
-                            ) : null}
-                          </DragOverlay>
-                        </DndContext>
-                      )
-                    })()}
-                    <button
-                      onClick={() => handleAddTextBlock(chapter.id)}
-                      className="mt-2 text-xs text-gray-400 hover:text-gray-600 border border-dashed border-gray-300 hover:border-gray-400 rounded px-3 py-1.5 w-full transition-colors"
-                    >
-                      + 텍스트 블록 추가
+                    {renderChapterBlocks(chapter.id)}
+                    <button onClick={() => handleAddTextBlock(chapter.id)}
+                        className="mt-2 text-xs text-gray-400 hover:text-gray-600 border border-dashed border-gray-300 hover:border-gray-400 rounded px-3 py-1.5 w-full transition-colors"
+                      >
+                        {t('story.addTextBlock')}
                     </button>
                   </div>
                 </div>
@@ -1009,128 +1230,15 @@ function ProjectStory({
                     </div>
 
                     {/* 서브 챕터 사진/텍스트 블록 영역 */}
-                    <div className="p-4">
-                      {(() => {
-                        const items = getVisibleChapterItems(subChapter.id)
-                        const blocks = groupIntoBlocks(items)
-                        if (blocks.length === 0) return (
-                          <p className="text-sm text-gray-400 py-2">{t('story.addPhotoGuide')}</p>
-                        )
-                        return (
-                          <DndContext
-                            sensors={sensors}
-                            collisionDetection={closestCenter}
-                            onDragStart={(e) => {
-                              const draggedBlock = blocks.find(b => b.blockId === e.active.id)
-                              if (draggedBlock) {
-                                setActiveBlockId(String(e.active.id))
-                                setActiveBlockItems(draggedBlock.items)
-                              }
-                            }}
-                            onDragEnd={(e) => {
-                              setActiveBlockId(null)
-                              setActiveBlockItems([])
-                              handleBlockDragEnd(e, subChapter.id, blocks)
-                            }}
-                          >
-                            <SortableContext items={blocks.map(b => b.blockId)} strategy={verticalListSortingStrategy}>
-                              <div className="space-y-2">
-                              {blocks.map((block, blockIdx) => {
-                                const prevBlock = blocks[blockIdx - 1]
-                                const nextBlock = blocks[blockIdx + 1]
-
-                                if (block.type === 'SIDE') {
-                                  return (
-                                    <SortableSideBySideBlock
-                                      key={block.blockId}
-                                      blockId={block.blockId}
-                                      chapterId={subChapter.id}
-                                      items={block.items}
-                                      onRemoveItem={handleRemoveItem}
-                                      onEdit={(itemId, text) => { setEditingTextItemId(itemId); setTextDraft(text) }}
-                                      onPhotoClick={(item) => {
-                                        const flatPhotos = getFlattenedPhotos().filter(i => i.item_type === 'PHOTO')
-                                        const globalIndex = flatPhotos.findIndex(i => i.id === item.id)
-                                        setCurrentChapterPhotos(flatPhotos)
-                                        setSelectedPhotoIndex(globalIndex)
-                                      }}
-                                      onCancelSideBySide={handleCancelSideBySide}
-                                    />
-                                  )
-                                }
-
-                                if (block.type === 'TEXT') {
-                                  return (
-                                    <SortableTextBlock
-                                      key={block.blockId}
-                                      id={block.blockId}
-                                      itemId={block.items[0].id}
-                                      chapterId={subChapter.id}
-                                      text_content={block.items[0].text_content || ''}
-                                      hasPhotoAbove={prevBlock?.type === 'PHOTO'}
-                                      hasPhotoBelow={nextBlock?.type === 'PHOTO'}
-                                      onRemove={handleRemoveItem}
-                                      onEdit={(itemId, text) => { setEditingTextItemId(itemId); setTextDraft(text) }}
-                                      onSideBySide={(itemId, position, direction) =>
-                                        handleSideBySide(subChapter.id, itemId, position, direction)
-                                      }
-                                    />
-                                  )
-                                }
-
-                                return (
-                                  <SortablePhotoBlock
-                                    key={block.blockId}
-                                    blockId={block.blockId}
-                                    chapterId={subChapter.id}
-                                    items={block.items}
-                                    sensors={sensors}
-                                    onRemoveItem={handleRemoveItem}
-                                    onPhotoClick={(item) => {
-                                      const flatPhotos = getFlattenedPhotos().filter(i => i.item_type === 'PHOTO')
-                                      const globalIndex = flatPhotos.findIndex(i => i.id === item.id)
-                                      setCurrentChapterPhotos(flatPhotos)
-                                      setSelectedPhotoIndex(globalIndex)
-                                    }}
-                                    onInnerDragEnd={handleInnerDragEnd}
-                                    onLayoutChange={(blockId, layout) =>
-                                      handleBlockLayoutChange(subChapter.id, blockId, layout)
-                                    }
-                                  />
-                                )
-                              })}
-                              </div>
-                          </SortableContext>
-                          {/* DragOverlay — 드래그 중인 블록의 고스트 렌더 */}
-                          <DragOverlay>
-                            {activeBlockId ? (
-                              <div className="bg-stone-50 border border-stone-300 rounded-lg p-3 opacity-90 shadow-xl">
-                                <div className="grid grid-cols-3 gap-2">
-                                  {activeBlockItems.filter(i => i.item_type === 'PHOTO').map(item => (
-                                    <div key={item.id} className="aspect-[3/2] rounded overflow-hidden bg-gray-100">
-                                      <img src={item.image_url ?? ''} className="w-full h-full object-contain" />
-                                    </div>
-                                  ))}
-                                  {activeBlockItems[0]?.item_type === 'TEXT' && (
-                                    <div className="col-span-3 bg-stone-50 border border-stone-200 rounded-lg px-5 py-4">
-                                      <p className="text-sm text-gray-700 line-clamp-3">{activeBlockItems[0].text_content}</p>
-                                    </div>
-                                  )}
-                                </div>
-                              </div>
-                            ) : null}
-                          </DragOverlay>
-                        </DndContext>
-                        )
-                      })()}
-                      <button
-                        onClick={() => handleAddTextBlock(subChapter.id)}
+                  <div className="p-4">
+                    {renderChapterBlocks(subChapter.id)}
+                    <button onClick={() => handleAddTextBlock(subChapter.id)}
                         className="mt-2 text-xs text-gray-400 hover:text-gray-600 border border-dashed border-gray-300 hover:border-gray-400 rounded px-3 py-1.5 w-full transition-colors"
                       >
                         {t('story.addTextBlock')}
-                      </button>
-                    </div>
+                    </button>
                   </div>
+                </div>
                 ))}
               </div>
             ) 
@@ -1184,8 +1292,8 @@ function ProjectStory({
               >‹</button>
             )}
             <img
-              src={currentChapterPhotos[selectedPhotoIndex].image_url ?? ''}
-              alt={currentChapterPhotos[selectedPhotoIndex].caption || ''}
+              src={currentChapterPhotos[selectedPhotoIndex].image_url || undefined}
+              alt={currentChapterPhotos[selectedPhotoIndex].caption || undefined}
               className="max-w-[calc(100%-8rem)] max-h-full object-contain"
               onClick={e => e.stopPropagation()}
             />
