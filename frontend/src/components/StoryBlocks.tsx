@@ -1,4 +1,5 @@
 import { useTranslation } from 'react-i18next'
+import { useState } from 'react'
 import {
   DndContext,
   closestCorners,
@@ -46,6 +47,13 @@ function DragHandleDots({ size = 12, color = '#999' }: { size?: number; color?: 
   )
 }
 
+// ── 타입 추가 ──────────────────────────────────────────────
+export interface OtherBlock {
+  blockId: string
+  firstImageUrl: string | null
+  count: number
+}
+
 // ── SortablePhotoChapter ────────────────────────────────────
 
 export interface SortablePhotoChapterProps {
@@ -55,12 +63,18 @@ export interface SortablePhotoChapterProps {
   caption: string | null
   onRemove: (chapterId: string, itemId: string) => void
   onClick: () => void
+  otherBlocks: OtherBlock[]                                          // 추가
+  onMoveToBlock: (itemId: string, targetBlockId: string) => void    // 추가
 }
 
 export function SortablePhotoChapter({
-  id, imageUrl, chapterId, caption, onRemove, onClick
+  id, imageUrl, chapterId, caption, onRemove, onClick, otherBlocks, onMoveToBlock
 }: SortablePhotoChapterProps) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id })
+  const [showMoveMenu, setShowMoveMenu] = useState(false)           // 추가
+  // useState import 필요
+
+  const { t } = useTranslation()
 
   const style = {
     transform: CSS.Transform.toString(transform),
@@ -101,13 +115,59 @@ export function SortablePhotoChapter({
           onClick={(e) => { e.stopPropagation(); onRemove(chapterId, id) }}
           className="absolute top-1 right-1 bg-red-600 text-white rounded-full w-5 h-5 text-xs font-bold opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity z-20"
         >×</button>
-      </div>
 
-      {caption && (
-        <div className="mt-2 px-1 pb-2">
-          <p className="text-xs text-gray-500 line-clamp-2 leading-relaxed whitespace-pre-wrap">{caption}</p>
-        </div>
-      )}
+        {/* 블록 이동 버튼 — 다른 블록이 있을 때만 표시 */}
+        {otherBlocks.length > 0 && (
+          <div className="absolute bottom-1 right-1 z-20">
+            <button
+              onClick={(e) => { e.stopPropagation(); setShowMoveMenu(v => !v) }}
+              className="opacity-0 group-hover:opacity-100 transition-opacity bg-black/60 hover:bg-black/80 text-white rounded px-1.5 py-0.5 text-[10px] leading-tight"
+              title="다른 블록으로 이동"
+            >
+              {t('story.toOtherBlock')}
+            </button>
+
+            {showMoveMenu && (
+              <>
+                {/* 바깥 클릭 시 닫기 */}
+                <div
+                  className="fixed inset-0 z-30"
+                  onClick={() => setShowMoveMenu(false)}
+                />
+                <div className="absolute bottom-6 right-0 z-40 bg-white border border-gray-200 rounded-lg shadow-xl p-1 min-w-[120px]">
+                  <p className="text-xs text-gray-400 text-center mb-1 px-1">{t('story.toOtherBlockTitle')}</p>
+                  <div className="grid grid-cols-2 gap-1">
+                    {otherBlocks.map((block) => (
+                      <button
+                        key={block.blockId}
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          onMoveToBlock(id, block.blockId)
+                          setShowMoveMenu(false)
+                        }}
+                        className="flex items-center gap-2 hover:bg-gray-50 rounded px-1 py-1 text-left"
+                      >
+                        {/* 썸네일 */}
+                        <div className="w-12 h-9 rounded overflow-hidden bg-gray-100 shrink-0">
+                          {block.firstImageUrl
+                            ? <img src={block.firstImageUrl} className="w-full h-full object-cover" />
+                            : <div className="w-full h-full bg-gray-200" />
+                          }
+                        {/*}
+                        <span className="text-[10px] text-gray-600">
+                          블록 {idx + 1} ({block.count}장)
+                        </span>
+                        */}
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </>
+            )}
+          </div>
+        )}
+      </div>
     </div>
   )
 }
@@ -186,42 +246,15 @@ export interface SortablePhotoBlockProps {
   onLayoutChange: (blockId: string, layout: 'grid' | 'wide' | 'single') => void
   draggingItemId: string | null
   draggingItemBlockId: string | null
-}
-
-// ── SortablePhotoBlock ──────────────────────────────────────
-
-export interface SortablePhotoBlockProps {
-  blockId: string
-  chapterId: string
-  items: ChapterItem[]
-  sensors: ReturnType<typeof useSensors>
-  onRemoveItem: (chapterId: string, itemId: string) => void
-  onPhotoClick: (item: ChapterItem) => void
-  onInnerDragEnd: (event: DragEndEvent, blockId: string, chapterId: string) => void
-  onLayoutChange: (blockId: string, layout: 'grid' | 'wide' | 'single') => void
-  draggingItemId: string | null
-  draggingItemBlockId: string | null
-}
-
-// ── SortablePhotoBlock ──────────────────────────────────────
-
-export interface SortablePhotoBlockProps {
-  blockId: string
-  chapterId: string
-  items: ChapterItem[]
-  sensors: ReturnType<typeof useSensors>
-  onRemoveItem: (chapterId: string, itemId: string) => void
-  onPhotoClick: (item: ChapterItem) => void
-  onInnerDragEnd: (event: DragEndEvent, blockId: string, chapterId: string) => void
-  onLayoutChange: (blockId: string, layout: 'grid' | 'wide' | 'single') => void
-  draggingItemId: string | null
-  draggingItemBlockId: string | null
+  otherBlocks: OtherBlock[]                                          // 추가
+  onMoveToBlock: (itemId: string, targetBlockId: string) => void    // 추가
 }
 
 export function SortablePhotoBlock({
   blockId, chapterId, items, sensors,
   onRemoveItem, onPhotoClick, onInnerDragEnd, onLayoutChange,
-  draggingItemId, draggingItemBlockId
+  draggingItemId, draggingItemBlockId,
+  otherBlocks, onMoveToBlock 
 }: SortablePhotoBlockProps) {
   const { attributes, listeners, setNodeRef: setSortableRef, transform, transition, isDragging } = useSortable({ id: blockId })
   const style = { transform: CSS.Transform.toString(transform), transition, opacity: isDragging ? 0.5 : 1 }
@@ -293,6 +326,8 @@ export function SortablePhotoBlock({
                 caption={item.caption}
                 onRemove={onRemoveItem}
                 onClick={() => onPhotoClick(item)}
+                otherBlocks={otherBlocks}       // 추가
+                onMoveToBlock={onMoveToBlock}
               />
             ))}
           </div>

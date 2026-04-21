@@ -229,6 +229,8 @@
     "attachLeft": "↑ 왼쪽에 붙이기",
     "attachRight": "↓ 오른쪽에 붙이기",
     "detach": "분리",
+    "toOtherBlock": "옮기기",
+    "toOtherBlockTitle": "블록 이동",
     "selectPhotos": "챕터에 추가할 사진을 클릭하세요.",
     "selectionMode": "사진 선택 모드",
     "finishSelection": "사진 선택 완료",

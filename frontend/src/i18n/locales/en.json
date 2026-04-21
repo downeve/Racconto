@@ -231,6 +231,8 @@
     "attachLeft": "↑ Attach left",
     "attachRight": "↓ Attach right",
     "detach": "Detach",
+    "toOtherBlock": "Move",
+    "toOtherBlockTitle": "To other block",
     "selectPhotos": "Click image to add.",
     "selectionMode": "Photo Selection Mode",
     "finishSelection": "Finish Selection",

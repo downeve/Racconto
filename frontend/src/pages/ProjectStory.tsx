@@ -478,6 +478,10 @@ function ProjectStory({
   if (blocks.length === 0) return (
     <p className="text-sm text-gray-400 py-2">{t('story.addPhotoGuide')}</p>
   )
+
+  // blocks를 순회하기 전에 각 블록의 otherBlocks 계산
+  const photoBlocks = blocks.filter(b => b.type === 'PHOTO')
+
   return (
     <DndContext
       sensors={sensors}
@@ -621,7 +625,7 @@ function ProjectStory({
       }}
     >
       <SortableContext items={blocks.map(b => b.blockId)} strategy={verticalListSortingStrategy}>
-        <div className="space-y-2">
+        <div className="space-y-2">        
           {blocks.map((block, blockIdx) => {
             const prevBlock = blocks[blockIdx - 1]
             const nextBlock = blocks[blockIdx + 1]
@@ -679,6 +683,16 @@ function ProjectStory({
                 }
                 draggingItemId={draggingItemId}
                 draggingItemBlockId={draggingItemBlockId}
+                otherBlocks={photoBlocks                          // 추가
+                  .filter(b => b.blockId !== block.blockId)
+                  .map(b => ({
+                    blockId: b.blockId,
+                    firstImageUrl: b.items[0]?.image_url ?? null,
+                    count: b.items.length,
+                  }))}
+                onMoveToBlock={(itemId, targetBlockId) =>         // 추가
+                  handleCrossBlockDragEnd(targetChapterId, itemId, block.blockId, targetBlockId)
+                }
               />
             )
           })}
