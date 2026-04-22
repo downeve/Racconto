@@ -189,7 +189,7 @@ export default function PublicPortfolio() {
     <div className={`min-h-screen ${bg} transition-colors duration-300`}>
     {/* [수정된 부분] 로그아웃 상태일 때 보여주는 헤더를 fixed로 띄워 상단 빈 공간을 덮어버립니다. */}
       {!isAuthenticated && (
-        <nav className={`fixed top-0 left-0 right-0 z-[60] border-b backdrop-blur-md transition-colors duration-300 ${
+        <nav className={`fixed top-0 left-0 right-0 z-[30] border-b backdrop-blur-md transition-colors duration-300 ${
           darkMode ? 'bg-[#1A1A1A]/90 border-white/10' : 'bg-[#F5F0EB]/90 border-gray-200'
         }`}>
           <div className="max-w-4xl mx-auto px-6 h-14 flex items-center justify-between">
