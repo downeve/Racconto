@@ -295,7 +295,7 @@ export function SortablePhotoBlock({
       </div>
 
       {/* 레이아웃 툴바 */}
-      <div className="absolute top-2 left-2 opacity-0 group-hover/block:opacity-100 transition-opacity z-20 flex items-center gap-1 bg-white border border-gray-200 rounded shadow-sm px-1.5 py-0.5">
+      <div className="absolute top-2 left-6 opacity-0 group-hover/block:opacity-100 transition-opacity z-20 flex items-center gap-1 bg-white border border-gray-200 rounded shadow-sm px-1.5 py-0.5">
         <span className="text-[10px] text-gray-400 mr-1">{t('portfolio.column')}</span>
         {(['grid', 'wide', 'single'] as const).map(l => (
           <button

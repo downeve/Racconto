@@ -137,7 +137,7 @@ export default function PortfolioChapterItems({
       result.push(
         <div key={`text-${i}`} className="my-8 text-center italic">
           <p
-            className={`text-base leading-[1.9] whitespace-pre-wrap [word-break: keep-all] ${textColor}`}
+            className={`text-base leading-[1.9] whitespace-pre-wrap [word-break:keep-all] ${textColor}`}
             style={{ fontFamily: "'Georgia', serif" }}
           >
             {item.text_content}
@@ -157,7 +157,7 @@ export default function PortfolioChapterItems({
       const sideLayout = group.layout
       const sidePhotos = group.photos
       // side 컬럼 너비 = 전체의 약 3/5 (flex:3 기준)
-      const sideColWidth = effectiveWidth * 3 / 5
+      const sideColWidth = (effectiveWidth - 28) * 3 / 5
 
       let sidePhotoContent: React.ReactNode
       if (sideLayout === 'single') {
@@ -229,7 +229,7 @@ export default function PortfolioChapterItems({
           style={{ flex: '2' }}
         >
           <p
-            className={`text-base leading-[1.9] whitespace-pre-wrap [word-break: keep-all] ${textColor} w-full`}
+            className={`text-base leading-[1.9] whitespace-pre-wrap [word-break:keep-all] ${textColor} w-full`}
             style={{ fontFamily: "'Georgia', serif" }}
           >
             {group.text.text_content}

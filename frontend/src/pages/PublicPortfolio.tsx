@@ -274,9 +274,9 @@ export default function PublicPortfolio() {
                 </p>
               )}
               {selectedProject.description && (
-                <p className={`text-base leading-relaxed ${subText}`}
+                <p className={`text-base leading-relaxed [word-break:keep-all] ${subText}`}
                   style={{ fontFamily: "'Georgia', serif" }}>
-                  {selectedProject.description}
+                  {selectedProject.description} 테스트 여긴 어디?
                 </p>
               )}
             </div>
@@ -304,7 +304,7 @@ export default function PublicPortfolio() {
                     </div>
                     {chapter.description && (
                       <p
-                        className={`text-base leading-relaxed max-w-xl [word-break: keep-all] ${subText}`}
+                        className={`text-base leading-relaxed max-w-xl [word-break:keep-all] ${subText}`}
                         style={{ fontFamily: "'Georgia', serif" }}
                       >
                         {chapter.description}
