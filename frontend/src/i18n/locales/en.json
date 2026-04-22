@@ -104,7 +104,7 @@
     "features": "Features"
   },
   "project": {
-    "newProject": "+ New Project",
+    "newProject": "+ Add New Project",
     "createProject": "Create New Project",
     "projectName": "Project Title (required)",
     "description": "Description",
@@ -113,7 +113,7 @@
     "deleteConfirm": "Are you sure you want to delete this project? (It will be kept in the Trash for 30 days.)",
     "clientOrTitle": "Client / Title",
     "date": "Date (YYYY-MM-DD)",
-    "noProjects": "No projects yet. Add a new project.",
+    "noProjects": "Make the first project and start your own story.",
     "noImage": "No Image",
     "statusInProgress": "In Progress",
     "statusCompleted": "Completed",
@@ -232,7 +232,7 @@
     "attachRight": "↓ Attach right",
     "detach": "Detach",
     "toOtherBlock": "Move",
-    "toOtherBlockTitle": "To other block",
+    "toOtherBlockTitle": "Move to",
     "selectPhotos": "Click image to add.",
     "selectionMode": "Photo Selection Mode",
     "finishSelection": "Finish Selection",
@@ -500,5 +500,16 @@
     "sending": "Sending...",
     "success": "Thank you! 🎉",
     "error": "Failed (Try again)"
+  },
+  "dashboard": {
+    "title1": "Hello,",
+    "title2": "Let's begin your story here!",
+    "projectList": "All projects list →",
+    "projectOngoing": "Ongoing projects",
+    "goToPortfolio": "Go to Portfolio →",
+    "portSharing": "Share your story with others.",
+    "newProject": "Begin your story.",
+    "makeNewProject": "+ Add New Project",
+    "recent": "Recent projects"
   }
 }

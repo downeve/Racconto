@@ -20,7 +20,7 @@ export default function Login() {
     setError('')
     const success = await login(email, password)
     if (success) {
-      navigate('/projects')
+      navigate('/dashboard')
     } else {
       setError((t('api.error.INVALID_CREDENTIALS')))
     }

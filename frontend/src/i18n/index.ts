@@ -14,6 +14,7 @@ i18n
       ko: { translation: ko },
     },
     fallbackLng: 'en', // 기본 언어를 영어로 설정
+    nonExplicitSupportedLngs: true,
     interpolation: {
       escapeValue: false,
     },

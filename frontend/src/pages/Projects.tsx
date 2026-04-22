@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState, useCallback, memo } from 'react'
 import axios from 'axios'
 import ProjectCard from '../components/ProjectCard'
-import { Link } from 'react-router-dom'
+import { Link, useLocation } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import Heading from '../components/Heading'
 import ConfirmModal from '../components/ConfirmModal'
@@ -81,6 +81,7 @@ const SortableProjectCard = memo(function SortableProjectCard({
 })
 
 export default function Projects() {
+  const dashboardOpen = useLocation();
   const [projects, setProjects] = useState<Project[]>([])
   const [showForm, setShowForm] = useState(false)
   const [confirmModal, setConfirmModal] = useState<{ message: string; onConfirm: () => void } | null>(null)
@@ -139,8 +140,13 @@ export default function Projects() {
   }
 
   useEffect(() => {
+    if (dashboardOpen.state?.openForm) {
+      setShowForm(true);
+      // 필요하다면 사용 후 state를 초기화하여 새로고침 시 창이 계속 열려있지 않게 할 수 있습니다.
+      window.history.replaceState({}, document.title);
+    }
     fetchProjects()
-  }, [])
+  }, [dashboardOpen.state])
 
   const handleSubmit = async () => {
     if (!title) return
@@ -193,7 +199,7 @@ export default function Projects() {
       </div>
 
       {showForm && (
-        <div className="bg-white rounded-lg shadow p-6 mb-8">
+        <div className="max-w-3xl bg-white rounded-lg shadow p-6 mb-8">
           <h3 className="font-semibold mb-4">{t('project.createProject')}</h3>
           <div className="grid grid-cols-2 gap-4 mb-4">
             <input className="border rounded px-3 py-2" placeholder={t('project.projectName')} value={title} onChange={e => setTitle(e.target.value)} />
@@ -224,7 +230,7 @@ export default function Projects() {
 
       <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
         <SortableContext items={projects.map(p => p.id)} strategy={rectSortingStrategy}>
-          <div className="grid gap-6" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))' }}>
+          <div className="grid gap-6 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
             {projects.map(project => (
               <SortableProjectCard
                 key={project.id}
@@ -238,8 +244,10 @@ export default function Projects() {
       </DndContext>
 
       {projects.length === 0 && (
-        <div className="text-center py-20 text-gray-400">
-          <p className="text-lg mb-2">{t('project.noProjects')}</p>
+        <div className="text-center py-14" style={{ fontFamily: "'Georgia', 'Times New Roman', serif" }}>
+          <h1 className="text-2xl md:text-3xl font-bold mb-6 italic text-stone-600 leading-tight break-keep">
+          {t('project.noProjects')}
+          </h1>
         </div>
       )}
     </div>

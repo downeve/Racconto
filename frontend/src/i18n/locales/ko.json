@@ -105,7 +105,7 @@
     "features": "기능 소개"
   },
   "project": {
-    "newProject": "+ 프로젝트 추가",
+    "newProject": "+ 새 프로젝트 만들기",
     "createProject": "프로젝트 등록 정보",
     "projectName": "프로젝트 이름 (필수)",
     "description": "상세 내용",
@@ -114,7 +114,7 @@
     "deleteConfirm": "정말 프로젝트를 삭제하시겠습니까? (30일 동안 휴지통에 보관됩니다)",
     "clientOrTitle": "클라이언트 / 제목",
     "date": "촬영일 (YYYY-MM-DD)",
-    "noProjects": "프로젝트가 없습니다. 새 프로젝트를 추가해 보세요.",
+    "noProjects": "첫 번째 프로젝트를 만들고 당신만의 이야기를 시작해보세요.",
     "noImage": "이미지 없음",
     "statusInProgress": "진행 중",
     "statusCompleted": "완성",
@@ -357,7 +357,7 @@
     "passwordMinLength": "비밀번호는 {{minLength}}자 이상이어야 해요",
     "passwordInputAll": "모든 항목을 입력해 주세요.",
     "publicPortfolio": "퍼블릭 포트폴리오 URL",
-    "publicPortfolioDesc": "비로그인 상태에서도 접근 가능한 나만의 포트폴리오 주소입니다.",
+    "publicPortfolioDesc": "로그아웃 상태에서 볼 수 있는 고유 포트폴리오 주소입니다.",
     "usernameAvailable": "사용 가능한 username이에요",
     "usernameTaken": "이미 사용 중인 username이에요",
     "usernameInvalid": "영문, 숫자, -, _ 만 사용할 수 있어요 (3자 이상)",
@@ -437,8 +437,8 @@
     "feature1Desc": "멈춰진 한 순간이 아닌, 흘러가는 시간의 의미를 발견하세요. 프레임을 이어 담은 당신만의 스토리가 펼쳐집니다.",
     "feature2Title": "손쉬운 사진 분류 & 선별",
     "feature2Desc": "별점과 컬러 레이블로 사진을 빠르게 분류하고, 폴더별 필터로 원하는 사진을 바로 찾으세요.",
-    "feature3Title": "퍼블릭 포트폴리오",
-    "feature3Desc": "racconto.app/p/yourname — 당신의 이야기가 곧 포트폴리오입니다. 모두에게 들려주세요.",
+    "feature3Title": "고유 포트폴리오 페이지",
+    "feature3Desc": "racconto.app/p/yourname — 당신이 만든 이야기가 곧 포트폴리오가 됩니다. 모두에게 들려주세요.",
     "feature4Title": "프로젝트 노트",
     "feature4Desc": "아이디어나 컨셉, 리서치 정보를 마크다운으로 기록하고 사진과 연결하세요. 당신이 남긴 기록이 더 매력적인 이야기로 이끌어 줍니다.",
     "feature5Title": "데스크톱 앱으로 더 빠르게",
@@ -458,13 +458,13 @@
       "featureDetailTitle": "사진이 이야기가 되는 순간",
       "featureDetailDesc": "스토리를 구상하고, 당신의 사진에 의미를 부여하세요.",
       "feature1DetailTitle": "프레임 속 순간들을 이으세요",
-      "feature1DetailDesc": "챕터를 만들고, 사진을 이어 내러티브를 완성합니다. 사진을 드래그하여 순서를 바꾸고, 챕터 내용을 상세히 기록합니다.",
-      "feature2DetailTitle": "데스크톱에서 편하게 작업하세요",
-      "feature2DetailDesc": "macOS·Windows 네이티브 앱을 지원합니다. 로컬 폴더를 한번만 연결해 두면 앱을 실행할 때마다 자동으로 새로운 사진을 감지하여 업로드합니다.",
-      "feature3DetailTitle": "아이디어를 남겨 두세요",
-      "feature3DetailDesc": "자유로운 노트 기능을 제공합니다. 촬영 아이디어, 컨셉, 리서치 등등 모든 내용을 한곳에 남기고, 개별 사진과 연동하여 메모를 남길 수 있습니다. 최신 마크다운 형식을 지원합니다.",
-      "feature4DetailTitle": "쉽고 빠르게 사진을 분류하세요",
-      "feature4DetailDesc": "컬러 레이블과 별점으로 사진을 분류하고, EXIF 데이터를 자동으로 읽어 들입니다. 수백 장의 사진을 편리하게 정리하세요.",
+      "feature1DetailDesc": "챕터를 만들고, 사진을 이어 이야기를 짭니다. 사진 불록과 텍스트 블록을 섞고, 자유롭게 배치하며 사진과 글을 조화롭게 잇습니다. 당신의 이야기를 그리기 위한 모든 과정은 직관적인 UI와 드래그 앤 드롭으로 이루어져 있어, 누구나 손쉽게 이야기를 만드는데 집중할 수 있습니다.",
+      "feature2DetailTitle": "웹과 데스크톱 환경을 모두 지원합니다.",
+      "feature2DetailDesc": "Racconto는 웹 작업 환경과 macOS·Windows 네이티브 앱을 지원합니다. PC에서 로컬 폴더를 연결해 두면 앱을 실행할 때마다 자동으로 새로운 사진을 감지하여 업로드하므로, 더욱 편리하게 관리할 수 있습니다.",
+      "feature3DetailTitle": "모든 아이디어를 기록하세요.",
+      "feature3DetailDesc": "Racconto는 자유로운 노트 기능을 지원합니다. 촬영 아이디어, 컨셉, 리서치 등등 모든 아이디어를 한곳에 모아 관리할 수 있습니다. 개별 사진과 연동하여 메모를 남길 수 있고, 최신 마크다운 형식을 지원합니다.",
+      "feature4DetailTitle": "쉽고 빠르게 사진을 분류하세요.",
+      "feature4DetailDesc": "컬러 레이블과 별점을 매겨 사진을 분류하고, EXIF 데이터를 자동으로 읽어 들입니다. 수백 장의 사진을 편리하게 정리하세요.",
       "feature5DetailTitle": "친구에게 이야기를 들려주세요.",
       "feature5DetailDesc": "프로젝트를 공개하고, 포트폴리오 유저네임을 설정하면 당신만의 포트폴리오를 꾸밀 수 있습니다. 고유 URL(/p/유저네임)로 포트폴리오를 공유하세요."
     }
@@ -496,5 +496,16 @@
     "sending": "전송 중...",
     "success": "감사합니다! 🎉",
     "error": "전송 실패 (다시 시도)"
+  },
+  "dashboard": {
+    "title1": "안녕하세요,",
+    "title2": "오늘도 당신의 이야기를 시작해볼까요?",
+    "projectList": "전체 목록 보기 →",
+    "projectOngoing": "진행 중인 프로젝트",
+    "goToPortfolio": "포트폴리오 보기 →",
+    "portSharing": "당신의 이야기를 들려 주세요.",
+    "newProject": "새로운 이야기를 시작하세요.",
+    "makeNewProject": "+ 새 프로젝트 만들기",
+    "recent": "최근 프로젝트"
   }
 }

@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next'
 import { useEffect } from 'react';
 import Navbar from './components/Navbar'
 import Login from './pages/Login'
+import Dashboard from './pages/Dashboard'
 import Projects from './pages/Projects'
 import ProjectDetail from './pages/ProjectDetail'
 import ProjectEdit from './pages/ProjectEdit'
@@ -102,9 +103,10 @@ function AppRoutes() {
         <FeedbackWidget />
         <Routes>
           <Route path="/login" element={<Login />} />
+          <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/register" element={<Register />} />
           <Route path="/verify-email" element={<VerifyEmail />} />
-          <Route path="/" element={isAuthenticated ? <Navigate to="/projects" replace /> : (isMobileDevice ? <MobileLandingPage /> : <LandingPage />)} />
+          <Route path="/" element={isAuthenticated ? <Navigate to="/dashboard" replace /> : (isMobileDevice ? <MobileLandingPage /> : <LandingPage />)} />
           <Route path="/features" element={isMobileDevice ? <MobileFeaturesPage /> : <FeaturesPage />} />
           <Route path="/projects" element={<PrivateRoute><Projects /></PrivateRoute>} />
           <Route path="/projects/:id" element={
