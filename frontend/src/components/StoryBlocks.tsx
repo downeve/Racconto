@@ -356,14 +356,20 @@ export function SortableSideBySideBlock({
   const style = { transform: CSS.Transform.toString(transform), transition, opacity: isDragging ? 0.5 : 1 }
 
   const blockType = items[0]?.block_type || 'side-left'
+  const blockLayout = items.find(i => i.item_type === 'PHOTO')?.block_layout || 'grid'
   const photoItems = items.filter(i => i.item_type === 'PHOTO')
   const textItem = items.find(i => i.item_type === 'TEXT')
 
   const { t } = useTranslation()
 
+  const gridCols =
+    blockLayout === 'single' ? 'grid-cols-1' :
+    blockLayout === 'wide'   ? 'grid-cols-2' :
+                               'grid-cols-3'
+
   const photoCol = (
     <div className="flex-1 min-w-0">
-      <div className="grid grid-cols-1 gap-2">
+      <div className={`grid ${gridCols} gap-2`}>
         {photoItems.map(item => (
           <div key={item.id} className="relative group rounded overflow-hidden aspect-[3/2] shadow-sm">
             <img
