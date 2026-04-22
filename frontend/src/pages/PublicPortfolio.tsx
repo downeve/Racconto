@@ -304,7 +304,7 @@ export default function PublicPortfolio() {
                     </div>
                     {chapter.description && (
                       <p
-                        className={`text-base leading-relaxed max-w-xl ${subText}`}
+                        className={`text-base leading-relaxed max-w-xl [word-break: keep-all] ${subText}`}
                         style={{ fontFamily: "'Georgia', serif" }}
                       >
                         {chapter.description}

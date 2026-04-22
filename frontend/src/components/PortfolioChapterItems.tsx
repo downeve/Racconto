@@ -135,7 +135,7 @@ export default function PortfolioChapterItems({
       result.push(
         <div key={`text-${i}`} className="my-8 text-center italic">
           <p
-            className={`text-base leading-[1.9] whitespace-pre-wrap break-keep ${textColor}`}
+            className={`text-base leading-[1.9] whitespace-pre-wrap [word-break: keep-all] ${textColor}`}
             style={{ fontFamily: "'Georgia', serif" }}
           >
             {item.text_content}
@@ -171,7 +171,7 @@ export default function PortfolioChapterItems({
           style={{ flex: '2' }}
         >
           <p
-            className={`text-base leading-[1.9] whitespace-pre-wrap break-keep ${textColor} w-full`}
+            className={`text-base leading-[1.9] whitespace-pre-wrap [word-break: keep-all] ${textColor} w-full`}
             style={{ fontFamily: "'Georgia', serif" }}
           >
             {group.text.text_content}
