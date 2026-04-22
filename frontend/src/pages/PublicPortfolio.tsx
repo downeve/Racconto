@@ -250,7 +250,7 @@ export default function PublicPortfolio() {
                   )}
                 </div>
                 <div className="pt-3">
-                  <h3 className="font-semibold text-sm tracking-wide"
+                  <h3 className="font-semibold text-sm text-center italic tracking-wide"
                     style={{ fontFamily: "'Georgia', serif" }}>
                     {project.title}
                   </h3>
@@ -267,9 +267,9 @@ export default function PublicPortfolio() {
 
         {selectedProject && (
           <div>
-            <div className="mb-6 max-w-2xl">
+            <div className="mb-10 max-w-2xl">
               {selectedProject.location && (
-                <p className={`text-xs tracking-widest uppercase mb-4 ${subText}`}>
+                <p className={`text-xs tracking-widest uppercase mb-6 ${subText}`}>
                   📍 {selectedProject.location}
                 </p>
               )}
@@ -285,10 +285,10 @@ export default function PublicPortfolio() {
             // 변경 후
             <div className="space-y-0">
               {selectedProject.chapters.map((chapter, idx) => (
-                <div key={chapter.id} className="pt-20">
+                <div key={chapter.id} className="pt-12">
                   {/* 챕터 구분선 — 첫 챕터 제외 */}
                   {idx > 0 && (
-                    <div className={`h-px mb-20 ${darkMode ? 'bg-white/10' : 'bg-gray-200'}`} />
+                    <div className={`h-px mb-12 ${darkMode ? 'bg-white/10' : 'bg-gray-200'}`} />
                   )}
                   <div className="mb-10">
                     <div className="flex items-baseline gap-2 mb-2">
