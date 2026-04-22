@@ -156,8 +156,8 @@ export default function PortfolioChapterItems({
     if (group.type === 'SIDE') {
       const sideLayout = group.layout
       const sidePhotos = group.photos
-      // side 컬럼 너비 = 전체의 약 7/10 (flex:7 기준)
-      const sideColWidth = effectiveWidth * 7 / 10
+      // side 컬럼 너비 = 전체의 약 3/5 (flex:3 기준)
+      const sideColWidth = effectiveWidth * 3 / 5
 
       let sidePhotoContent: React.ReactNode
       if (sideLayout === 'single') {
@@ -219,14 +219,14 @@ export default function PortfolioChapterItems({
       }
 
       const photoCol = (
-        <div className="min-w-0" style={{ flex: '7' }}>
+        <div className="min-w-0" style={{ flex: '3' }}>
           {sidePhotoContent}
         </div>
       )
       const textCol = group.text ? (
         <div
           className={`min-w-0 flex items-center italic w-full ${group.blockType === 'side-left' ? 'text-right' : 'text-left'}`}
-          style={{ flex: '3' }}
+          style={{ flex: '2' }}
         >
           <p
             className={`text-base leading-[1.9] whitespace-pre-wrap [word-break: keep-all] ${textColor} w-full`}
