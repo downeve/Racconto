@@ -187,7 +187,7 @@ export default function PublicPortfolio() {
 
   return (
     <div className={`min-h-screen ${bg} transition-colors duration-300`}>
-    {/* [수정된 부분] 로그아웃 상태일 때 보여주는 헤더를 fixed로 띄워 상단 빈 공간을 덮어버립니다. */}
+    {/* [수정된 부분] 로그아웃 상태일 때 보여주는 헤더를 fixed로 띄워 상단 빈 공간을 덮어버립니다. 라이트박스 띄울 때 헤더 밑으로 숨기기 z-60에서 z-30으로 조정*/}
       {!isAuthenticated && (
         <nav className={`fixed top-0 left-0 right-0 z-[30] border-b backdrop-blur-md transition-colors duration-300 ${
           darkMode ? 'bg-[#1A1A1A]/90 border-white/10' : 'bg-[#F5F0EB]/90 border-gray-200'
