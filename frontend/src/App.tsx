@@ -1,6 +1,7 @@
 import { BrowserRouter, HashRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom'
 import { AuthProvider, useAuth } from './context/AuthContext'
 import { useTranslation } from 'react-i18next'
+import { useEffect } from 'react';
 import Navbar from './components/Navbar'
 import Login from './pages/Login'
 import Projects from './pages/Projects'
@@ -126,6 +127,14 @@ function AppRoutes() {
 
 function App() {
   const Router = window.racconto ? HashRouter : BrowserRouter
+
+  const { i18n } = useTranslation();
+
+  useEffect(() => {
+    // i18n.language 값이 바뀔 때마다 html 태그의 lang 속성을 업데이트
+    document.documentElement.lang = i18n.language;
+  }, [i18n.language]);
+
   return (
     <AuthProvider>
       <ElectronSidebarProvider>
