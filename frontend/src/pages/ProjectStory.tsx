@@ -640,6 +640,9 @@ function ProjectStory({
                   setCurrentChapterPhotos(flatPhotos)
                   setSelectedPhotoIndex(flatPhotos.findIndex(i => i.id === item.id))
                 }}
+                onLayoutChange={(_, layout) =>
+                  handleBlockLayoutChange(targetChapterId, block.blockId, layout)
+                }
                 onCancelSideBySide={handleCancelSideBySide}
               />
             )

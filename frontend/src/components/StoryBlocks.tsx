@@ -295,7 +295,7 @@ export function SortablePhotoBlock({
       </div>
 
       {/* 레이아웃 툴바 */}
-      <div className="absolute top-2 left-6 opacity-0 group-hover/block:opacity-100 transition-opacity z-20 flex items-center gap-1 bg-white border border-gray-200 rounded shadow-sm px-1.5 py-0.5">
+      <div className="absolute -top-1 left-6 opacity-0 group-hover/block:opacity-100 transition-opacity z-20 flex items-center gap-1 bg-white border border-gray-200 rounded shadow-sm px-1.5 py-0.5">
         <span className="text-[10px] text-gray-400 mr-1">{t('portfolio.column')}</span>
         {(['grid', 'wide', 'single'] as const).map(l => (
           <button
@@ -308,6 +308,7 @@ export function SortablePhotoBlock({
             {layoutLabels[l]}
           </button>
         ))}
+         <span className="text-[10px] text-gray-400 mr-1">{t('portfolio.layoutInPort')}</span>
       </div>
 
       <DndContext
@@ -347,10 +348,11 @@ export interface SortableSideBySideBlockProps {
   onPhotoClick: (item: ChapterItem) => void
   onCancelSideBySide: (chapterId: string, textItemId: string) => void
   onEdit: (itemId: string, currentText: string) => void
+  onLayoutChange: (blockId: string, layout: 'grid' | 'wide' | 'single') => void
 }
 
 export function SortableSideBySideBlock({
-  blockId, chapterId, items, onRemoveItem, onPhotoClick, onCancelSideBySide, onEdit
+  blockId, chapterId, items, onRemoveItem, onPhotoClick, onCancelSideBySide, onEdit, onLayoutChange
 }: SortableSideBySideBlockProps) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: blockId })
   const style = { transform: CSS.Transform.toString(transform), transition, opacity: isDragging ? 0.5 : 1 }
@@ -362,14 +364,26 @@ export function SortableSideBySideBlock({
 
   const { t } = useTranslation()
 
-  const gridCols =
-    blockLayout === 'single' ? 'grid-cols-1' :
-    blockLayout === 'wide'   ? 'grid-cols-2' :
-                               'grid-cols-3'
+  const layoutLabels: Record<string, string> = { grid: t('portfolio.columnGrid'), wide: t('portfolio.columnWide'), single: t('portfolio.columnSingle') }
 
   const photoCol = (
-    <div className="flex-1 min-w-0">
-      <div className={`grid ${gridCols} gap-2`}>
+  <div className="flex-1 min-w-0 relative group/photo">  {/* relative 추가 */}
+    <div className="absolute -top-2 left-2 opacity-0 group-hover/photo:opacity-100 transition-opacity z-20 flex items-center gap-1 bg-white border border-gray-200 rounded shadow-sm px-1.5 py-0.5">
+      <span className="text-[10px] text-gray-400 mr-1">{t('portfolio.column')}</span>
+      {(['grid', 'wide', 'single'] as const).map(l => (
+        <button
+          key={l}
+          onClick={() => onLayoutChange(blockId, l)}
+          className={`text-[10px] px-1.5 py-0.5 rounded transition-colors ${
+            blockLayout === l ? 'bg-stone-700 text-white' : 'text-gray-500 hover:bg-gray-100'
+          }`}
+        >
+          {layoutLabels[l]}
+        </button>
+      ))}
+      <span className="text-[10px] text-gray-400 mr-1">{t('portfolio.layoutInPort')}</span>
+    </div>
+      <div className="grid grid-cols-2 gap-2">
         {photoItems.map(item => (
           <div key={item.id} className="relative group rounded overflow-hidden aspect-[3/2] shadow-sm">
             <img

@@ -288,10 +288,11 @@
     "startMessage": "Make your own portfolios.",
     "startMessage2": "Pleae make your own portfolio address in setting.",
     "noUser": "'s portfolio does not exist.",
-    "column": "Image column(s) in Portfolio: ",
+    "column": "Column(s): ",
     "columnSingle": "1",
     "columnWide": "2",
-    "columnGrid": "3"
+    "columnGrid": "3",
+    "layoutInPort": "/ Applied to Portfolio."
   },
   "delivery": {
     "title": "Delivery",

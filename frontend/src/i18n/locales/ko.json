@@ -284,10 +284,11 @@
     "startMessage": "나만의 포트폴리오를 만드세요.",
     "startMessage2": "아직 포트폴리오 주소를 설정하지 않았습니다. 설정에서 사용자 이름을 등록하세요.",
     "noUser": "의 포트폴리오를 찾을 수 없습니다.",
-    "column": "이미지 그리드: ",
+    "column": "배열: ",
     "columnSingle": "1열",
     "columnWide": "2열",
-    "columnGrid": "3열"
+    "columnGrid": "3열",
+    "layoutInPort": "/ 포트폴리오에 적용됩니다."
   },
   "delivery": {
     "title": "납품",
