@@ -79,7 +79,7 @@ export default function Dashboard() {
               <h3 className="text-stone-400 text-xs tracking-widest uppercase mb-2">Portfolio</h3>
               <p className="text-lg mb-2">{t('dashboard.portSharing')}</p>
             </div>
-            <Link to={`/p/${user?.username}`} className="text-white text-sm font-semibold underline underline-offset-4 hover:text-stone-300">
+            <Link to={`/p/${user?.username}`} className="text-white text-sm font-semibold hover:underline underline-offset-4 hover:text-stone-300">
               {t('dashboard.goToPortfolio')}
             </Link>
           </div>
