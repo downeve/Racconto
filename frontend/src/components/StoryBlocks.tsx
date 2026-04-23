@@ -1,5 +1,5 @@
 import { useTranslation } from 'react-i18next'
-import { memo, useState } from 'react'
+import { memo } from 'react'
 import MarkdownRenderer from './MarkdownRenderer'
 import {
   DndContext,
@@ -65,14 +65,13 @@ export interface SortablePhotoChapterProps {
   onRemove: (chapterId: string, itemId: string) => void
   onClick: () => void
   otherBlocks: OtherBlock[]                                          // 추가
-  onMoveToBlock: (itemId: string, targetBlockId: string) => void    // 추가
+  onRequestMove: (itemId: string) => void
 }
 
 export function SortablePhotoChapter({
-  id, imageUrl, chapterId, caption, onRemove, onClick, otherBlocks, onMoveToBlock
+  id, imageUrl, chapterId, caption, onRemove, onClick, onRequestMove
 }: SortablePhotoChapterProps) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id })
-  const [showMoveMenu, setShowMoveMenu] = useState(false)           // 추가
   // useState import 필요
 
   const { t } = useTranslation()
@@ -121,59 +120,12 @@ export function SortablePhotoChapter({
         {(
           <div className="absolute bottom-1 right-1 z-20">
             <button
-              onClick={(e) => { e.stopPropagation(); setShowMoveMenu(v => !v) }}
+              onClick={(e) => { e.stopPropagation(); onRequestMove(id) }}
               className="opacity-0 group-hover:opacity-100 transition-opacity bg-black/60 hover:bg-black/80 text-white rounded px-1.5 py-0.5 text-[10px] leading-tight"
               title="다른 블록으로 이동"
             >
               {t('story.toOtherBlock')}
             </button>
-
-
-            {showMoveMenu && (
-              <>
-                {/* 바깥 클릭 시 닫기 */}
-                <div
-                  className="fixed inset-0 z-30"
-                  onClick={() => setShowMoveMenu(false)}
-                />
-                <div className="absolute bottom-6 right-0 z-40 bg-white border border-gray-200 rounded-lg shadow-xl p-1 min-w-[120px]">
-                  <p className="text-xs text-gray-400 text-center mb-1 px-1">{t('story.toOtherBlockTitle')}</p>
-                  <div className="grid grid-cols-2 gap-1">
-                    {otherBlocks.map((block) => (
-                      <button
-                        key={block.blockId}
-                        onClick={(e) => {
-                          e.stopPropagation()
-                          onMoveToBlock(id, block.blockId)
-                          setShowMoveMenu(false)
-                        }}
-                        className="flex items-center gap-2 hover:bg-gray-50 rounded px-1 py-1 text-left"
-                      >
-                        <div className="w-12 h-9 rounded overflow-hidden bg-gray-100 shrink-0">
-                          {block.firstImageUrl
-                            ? <img src={block.firstImageUrl} className="w-full h-full object-cover" />
-                            : <div className="w-full h-full bg-gray-200" />
-                          }
-                        </div>
-                      </button>
-                    ))}
-                    {/* 새 블록 슬롯 — 항상 마지막에 표시 */}
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation()
-                        onMoveToBlock(id, 'new')
-                        setShowMoveMenu(false)
-                      }}
-                      className="flex items-center justify-center hover:bg-gray-50 rounded px-1 py-1"
-                    >
-                      <div className="w-12 h-9 rounded border-2 border-dashed border-gray-300 bg-white shrink-0 flex items-center justify-center">
-                        <span className="text-gray-400 text-lg leading-none">+</span>
-                      </div>
-                    </button>
-                  </div>
-                </div>
-              </>
-            )}
           </div>
         )}
       </div>
@@ -296,14 +248,14 @@ export interface SortablePhotoBlockProps {
   draggingItemId: string | null
   draggingItemBlockId: string | null
   otherBlocks: OtherBlock[]                                          // 추가
-  onMoveToBlock: (itemId: string, targetBlockId: string) => void    // 추가
+  onRequestMove: (itemId: string, chapterId: string, sourceBlockId: string) => void
 }
 
 export const SortablePhotoBlock = memo(function SortablePhotoBlock({
   blockId, chapterId, items, sensors,
   onRemoveItem, onPhotoClick, onInnerDragEnd, onLayoutChange,
   draggingItemId, draggingItemBlockId,
-  otherBlocks, onMoveToBlock
+  otherBlocks, onRequestMove
 }: SortablePhotoBlockProps) {
   const { attributes, listeners, setNodeRef: setSortableRef, transform, transition, isDragging } = useSortable({ id: blockId })
   const style = { transform: CSS.Transform.toString(transform), transition, opacity: isDragging ? 0.5 : 1 }
@@ -377,7 +329,7 @@ export const SortablePhotoBlock = memo(function SortablePhotoBlock({
                 onRemove={onRemoveItem}
                 onClick={() => onPhotoClick(item)}
                 otherBlocks={otherBlocks}       // 추가
-                onMoveToBlock={onMoveToBlock}
+                onRequestMove={(itemId) => onRequestMove(itemId, chapterId, blockId)}
               />
             ))}
           </div>

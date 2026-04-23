@@ -801,8 +801,8 @@ function ProjectStory({
                       firstImageUrl: b.items[0]?.image_url ?? null,
                       count: b.items.length,
                     }))}
-                  onMoveToBlock={(itemId, targetBlockId) =>         // 추가
-                    handleCrossBlockDragEnd(targetChapterId, itemId, block.blockId, targetBlockId)
+                  onRequestMove={(itemId, chapterId, sourceBlockId) =>   // 추가
+                    setMoveModalItem({ itemId, chapterId, sourceBlockId })
                   }
                 />
               )
@@ -1008,6 +1008,13 @@ function ProjectStory({
     )
   }, [isElectron, activeTab, chapters, t])
 
+
+  const [moveModalItem, setMoveModalItem] = useState<{
+    itemId: string
+    chapterId: string
+    sourceBlockId: string
+  } | null>(null)
+
   return (
     <div className="flex gap-6 relative">
     
@@ -1019,6 +1026,35 @@ function ProjectStory({
         dangerous
       />
     )}
+
+    {moveModalItem && (() => {
+      const blocks = blocksPerChapter[moveModalItem.chapterId] || []
+      const photoBlocks = blocks.filter(b => b.type === 'PHOTO')
+      const otherBlocks = photoBlocks
+        .filter(b => b.blockId !== moveModalItem.sourceBlockId)
+        .map(b => ({
+          blockId: b.blockId,
+          firstImageUrl: b.items[0]?.image_url ?? null,
+          count: b.items.length,
+        }))
+
+      return (
+        <ConfirmModal
+          type="moveBlock"
+          blocks={otherBlocks}
+          onSelect={(targetBlockId) => {
+            handleCrossBlockDragEnd(
+              moveModalItem.chapterId,
+              moveModalItem.itemId,
+              moveModalItem.sourceBlockId,
+              targetBlockId
+            )
+            setMoveModalItem(null)
+          }}
+          onCancel={() => setMoveModalItem(null)}
+        />
+      )
+    })()}
 
       {/* 사이드바 */}
       <div className={`${isElectron ? 'hidden' : ''} w-48 shrink-0 sticky top-24 self-start`}>
