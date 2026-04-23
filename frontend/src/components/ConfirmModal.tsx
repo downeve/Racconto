@@ -42,7 +42,7 @@ export default function ConfirmModal(props: Props) {
                     : <div className="w-full h-full bg-gray-200" />
                   }
                 </div>
-                <span className="text-[10px] text-gray-400">{block.count}장</span>
+                {/*<span className="text-[10px] text-gray-400">{block.count}장</span>*/}
               </button>
             ))}
             {/* 새 블록 슬롯 */}
@@ -53,7 +53,7 @@ export default function ConfirmModal(props: Props) {
               <div className="w-full aspect-[3/2] rounded border-2 border-dashed border-gray-300 bg-white flex items-center justify-center">
                 <span className="text-gray-400 text-2xl leading-none">+</span>
               </div>
-              <span className="text-[10px] text-gray-400">{t('story.newBlock')}</span>
+              {/*<span className="text-[10px] text-gray-400">{t('story.newBlock')}</span>*/}
             </button>
           </div>
         </div>
