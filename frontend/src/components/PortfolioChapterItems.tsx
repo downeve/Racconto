@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import MarkdownRenderer from './MarkdownRenderer'
 
 export const PORTFOLIO_WIDTH = 896  // max-w-4xl. 폭 변경 시 이 값과 className 함께 수정
 export const PORTFOLIO_GAP = 6      // px — 사진 사이 간격
@@ -46,7 +47,6 @@ export default function PortfolioChapterItems({
   const effectiveWidth = containerWidth ?? PORTFOLIO_WIDTH - 48
   const effectiveGap = gap ?? PORTFOLIO_GAP
 
-  const textColor = darkMode ? 'text-gray-300' : 'text-gray-700'
   const captionColor = darkMode ? 'text-gray-500' : 'text-gray-500'
   const subText = captionColor
 
@@ -136,12 +136,7 @@ export default function PortfolioChapterItems({
     if (item.item_type === 'TEXT' && item.block_type !== 'side-left' && item.block_type !== 'side-right') {
       result.push(
         <div key={`text-${i}`} className="my-8 text-center italic">
-          <p
-            className={`text-base leading-[1.9] whitespace-pre-wrap [word-break:keep-all] ${textColor}`}
-            style={{ fontFamily: "'Georgia', serif" }}
-          >
-            {item.text_content}
-          </p>
+          <MarkdownRenderer content={item.text_content || ''} darkMode={darkMode} className="text-base leading-[1.9] [word-break:keep-all]" />
         </div>
       )
       return
@@ -228,12 +223,7 @@ export default function PortfolioChapterItems({
           className={`min-w-0 flex items-center italic w-full ${group.blockType === 'side-left' ? 'text-right' : 'text-left'}`}
           style={{ flex: '2' }}
         >
-          <p
-            className={`text-base leading-[1.9] whitespace-pre-wrap [word-break:keep-all] ${textColor} w-full`}
-            style={{ fontFamily: "'Georgia', serif" }}
-          >
-            {group.text.text_content}
-          </p>
+          <MarkdownRenderer content={group.text.text_content || ''} darkMode={darkMode} className="text-base leading-[1.9] [word-break:keep-all] w-full" />
         </div>
       ) : null
 

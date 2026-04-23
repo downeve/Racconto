@@ -245,6 +245,7 @@
     "addToChapter": "챕터에 추가",
     "noChapters": "생성된 챕터가 없습니다",
     "addPhotoGuide": "사진 탭에서 원하는 이미지를 추가하세요.",
+    "textBlockPlaceholder": "마크다운 문법을 지원합니다. **굵게**, *기울임*, ## 제목",
     "addMultiplePhoto": "선택한 사진을 챕터에 추가하세요",
     "addMultiplePhotoSuccess": "{{ count }} 장을 챕터에 추가하였습니다.",
     "multiplePhotoSelected": "{{ count }}장을 선택함",

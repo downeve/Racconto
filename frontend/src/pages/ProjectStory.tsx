@@ -810,6 +810,7 @@ function ProjectStory({
                     className="w-full h-32 p-3 text-sm rounded-lg border border-stone-100 focus:ring-2 focus:ring-stone-200 focus:outline-none resize-none bg-stone-50/50"
                     value={textDraft}
                     onChange={(e) => setTextDraft(e.target.value)}
+                    placeholder={t('story.textBlockPlaceholder')}
                     autoFocus
                   />
                   <div className="flex gap-2 justify-end">

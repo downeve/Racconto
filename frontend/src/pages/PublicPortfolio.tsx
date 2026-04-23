@@ -276,7 +276,7 @@ export default function PublicPortfolio() {
               {selectedProject.description && (
                 <p className={`text-base leading-relaxed [word-break:keep-all] ${subText}`}
                   style={{ fontFamily: "'Georgia', serif" }}>
-                  {selectedProject.description} 테스트 여긴 어디?
+                  {selectedProject.description}
                 </p>
               )}
             </div>

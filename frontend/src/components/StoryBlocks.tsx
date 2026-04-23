@@ -1,5 +1,6 @@
 import { useTranslation } from 'react-i18next'
 import { memo, useState } from 'react'
+import MarkdownRenderer from './MarkdownRenderer'
 import {
   DndContext,
   closestCorners,
@@ -266,7 +267,7 @@ export const SortableTextBlock = memo(function SortableTextBlock({
             >×</button>
           </div>
 
-          <p className="text-sm text-gray-700 leading-relaxed whitespace-pre-wrap pl-4">{text_content}</p>
+          <MarkdownRenderer content={text_content} className="pl-4" />
         </>
       )}
     </div>
@@ -481,9 +482,7 @@ export const SortableSideBySideBlock = memo(function SortableSideBySideBlock({
       ) : (
         /* 👇 일반 모드: 기존 텍스트 표시 */
         <>
-          <p className="text-sm text-gray-700 leading-relaxed whitespace-pre-wrap">
-            {textItem.text_content}
-          </p>
+          <MarkdownRenderer content={textItem.text_content || ''} />
           <button
             onClick={() => onEdit(textItem.id, textItem.text_content || '')}
             className="absolute top-2 right-[52px] text-xs px-2 py-0.5 rounded border border-gray-300 text-gray-400 hover:text-gray-700 bg-white opacity-0 group-hover/text:opacity-100 transition-opacity"
