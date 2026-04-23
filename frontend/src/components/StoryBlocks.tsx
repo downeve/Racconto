@@ -1,5 +1,5 @@
 import { useTranslation } from 'react-i18next'
-import { useState } from 'react'
+import { memo, useState } from 'react'
 import {
   DndContext,
   closestCorners,
@@ -186,7 +186,7 @@ export interface SortableTextBlockProps {
   onSideBySide: (itemId: string, position: 'side-left' | 'side-right', direction: 'above' | 'below') => void
 }
 
-export function SortableTextBlock({
+export const SortableTextBlock = memo(function SortableTextBlock({
   id, itemId, chapterId, text_content, hasPhotoAbove, hasPhotoBelow, onRemove, onEdit, onSideBySide
 }: SortableTextBlockProps) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id })
@@ -231,7 +231,7 @@ export function SortableTextBlock({
       <p className="text-sm text-gray-700 leading-relaxed whitespace-pre-wrap pl-4">{text_content}</p>
     </div>
   )
-}
+})
 
 // ── SortablePhotoBlock ──────────────────────────────────────
 
@@ -250,11 +250,11 @@ export interface SortablePhotoBlockProps {
   onMoveToBlock: (itemId: string, targetBlockId: string) => void    // 추가
 }
 
-export function SortablePhotoBlock({
+export const SortablePhotoBlock = memo(function SortablePhotoBlock({
   blockId, chapterId, items, sensors,
   onRemoveItem, onPhotoClick, onInnerDragEnd, onLayoutChange,
   draggingItemId, draggingItemBlockId,
-  otherBlocks, onMoveToBlock 
+  otherBlocks, onMoveToBlock
 }: SortablePhotoBlockProps) {
   const { attributes, listeners, setNodeRef: setSortableRef, transform, transition, isDragging } = useSortable({ id: blockId })
   const style = { transform: CSS.Transform.toString(transform), transition, opacity: isDragging ? 0.5 : 1 }
@@ -336,7 +336,7 @@ export function SortablePhotoBlock({
       </DndContext>
     </div>
   )
-}
+})
 
 // ── SortableSideBySideBlock ─────────────────────────────────
 
@@ -351,7 +351,7 @@ export interface SortableSideBySideBlockProps {
   onLayoutChange: (blockId: string, layout: 'grid' | 'wide' | 'single') => void
 }
 
-export function SortableSideBySideBlock({
+export const SortableSideBySideBlock = memo(function SortableSideBySideBlock({
   blockId, chapterId, items, onRemoveItem, onPhotoClick, onCancelSideBySide, onEdit, onLayoutChange
 }: SortableSideBySideBlockProps) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: blockId })
@@ -436,4 +436,4 @@ export function SortableSideBySideBlock({
       </div>
     </div>
   )
-}
+})

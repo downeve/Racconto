@@ -1000,7 +1000,7 @@ export default function ProjectDetail({
             {project.title}
           </Heading>
           {project.location && <p className="text-sm text-gray-500 mb-4">📍 {project.location}</p>}
-          {project.description && <p className="text-gray-700 mb-2">{project.description}</p>}
+          {project.description && <p className="text-gray-700 mb-2 max-w-2xl break-keep">{project.description}</p>}
         </div>
         {project.cover_image_url && (
           <div className="shrink-0 flex flex-col items-center gap-2">

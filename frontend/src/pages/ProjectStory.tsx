@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo, useRef, memo } from 'react'
+import { useEffect, useState, useMemo, useRef, memo, useCallback } from 'react'
 import axios from 'axios'
 import { useTranslation } from 'react-i18next'
 import PhotoNotePanel from '../components/PhotoNotePanel'
@@ -50,6 +50,45 @@ interface Photo {
   image_url: string
   caption: string | null
   folder: string | null
+}
+
+interface ChapterBlock {
+  type: 'PHOTO' | 'TEXT' | 'SIDE'
+  blockId: string
+  items: ChapterItem[]
+  order_num: number
+}
+
+function groupIntoBlocks(items: ChapterItem[]): ChapterBlock[] {
+  const blocks: ChapterBlock[] = []
+  const blockMap = new Map<string, ChapterBlock>()
+
+  items.forEach(item => {
+    const bid = item.block_id || item.id
+    const isSideBySide = item.block_type === 'side-left' || item.block_type === 'side-right'
+
+    if (item.item_type === 'TEXT' && !isSideBySide) {
+      blocks.push({ type: 'TEXT', blockId: item.id, items: [item], order_num: item.order_num })
+    } else if (isSideBySide) {
+      if (blockMap.has(bid)) {
+        blockMap.get(bid)!.items.push(item)
+      } else {
+        const block: ChapterBlock = { type: 'SIDE', blockId: bid, items: [item], order_num: item.order_num }
+        blockMap.set(bid, block)
+        blocks.push(block)
+      }
+    } else {
+      if (blockMap.has(bid)) {
+        blockMap.get(bid)!.items.push(item)
+        blockMap.get(bid)!.items.sort((a, b) => a.order_in_block - b.order_in_block)
+      } else {
+        const block: ChapterBlock = { type: 'PHOTO', blockId: bid, items: [item], order_num: item.order_num }
+        blockMap.set(bid, block)
+        blocks.push(block)
+      }
+    }
+  })
+  return blocks
 }
 
 function ProjectStory({
@@ -116,7 +155,18 @@ function ProjectStory({
 
   // O(N²) 성능 저하를 막기 위한 Set(해시테이블) 캐싱
   const allPhotoIds = useMemo(() => new Set(allPhotos.map(p => p.id)), [allPhotos]);
-  
+
+  const blocksPerChapter = useMemo(() => {
+    const map: Record<string, ChapterBlock[]> = {}
+    Object.keys(chapterPhotos).forEach(chapterId => {
+      const visibleItems = (chapterPhotos[chapterId] || []).filter(item =>
+        item.item_type === 'TEXT' || (item.photo_id != null && allPhotoIds.has(item.photo_id))
+      )
+      map[chapterId] = groupIntoBlocks(visibleItems)
+    })
+    return map
+  }, [chapterPhotos, allPhotoIds])
+
   // 드래그 센서
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
@@ -134,10 +184,10 @@ function ProjectStory({
     }
   }
   
-  const fetchChapterPhotos = async (chapterId: string) => {
+  const fetchChapterPhotos = useCallback(async (chapterId: string) => {
     const res = await axios.get(`${API}/chapters/${chapterId}/items`)
     setChapterPhotos(prev => ({ ...prev, [chapterId]: res.data }))
-  }
+  }, [])
 
   // 변경 후 — API 호출 없이 모달만 열고, 저장 시 생성
   const handleAddTextBlock = (chapterId: string) => {
@@ -248,7 +298,14 @@ function ProjectStory({
     })
   }
 
-  const handleRemoveItem = async (chapterId: string, itemId: string) => {
+  const handleCancelSideBySide = useCallback(async (chapterId: string, textItemId: string) => {
+    await axios.put(`${API}/chapters/${chapterId}/side-by-side/cancel`, {
+      text_item_id: textItemId
+    })
+    fetchChapterPhotos(chapterId)
+  }, [fetchChapterPhotos])
+
+  const handleRemoveItem = useCallback(async (chapterId: string, itemId: string) => {
     const item = (chapterPhotos[chapterId] || []).find(i => i.id === itemId)
     const blockId = item?.block_id
 
@@ -269,16 +326,15 @@ function ProjectStory({
     }
 
     fetchChapterPhotos(chapterId)
-  }
+  }, [chapterPhotos, handleCancelSideBySide, fetchChapterPhotos])
 
-  const handleSideBySide = async (
+  const handleSideBySide = useCallback(async (
     chapterId: string,
     textItemId: string,
     position: 'side-left' | 'side-right',
     direction: 'above' | 'below'
   ) => {
-    // 인접한 사진 블록의 block_id 찾기
-    const blocks = groupIntoBlocks(getVisibleChapterItems(chapterId))
+    const blocks = blocksPerChapter[chapterId] || []
     const textBlockIdx = blocks.findIndex(b =>
       b.type === 'TEXT' && b.items[0]?.id === textItemId
     )
@@ -294,21 +350,13 @@ function ProjectStory({
       position
     })
     fetchChapterPhotos(chapterId)
-  }
+  }, [blocksPerChapter, fetchChapterPhotos])
 
-  const handleCancelSideBySide = async (chapterId: string, textItemId: string) => {
-    await axios.put(`${API}/chapters/${chapterId}/side-by-side/cancel`, {
-      text_item_id: textItemId
-    })
-    fetchChapterPhotos(chapterId)
-  }
-
-  const handleBlockLayoutChange = async (
+  const handleBlockLayoutChange = useCallback(async (
     chapterId: string,
     blockId: string,
     layout: 'grid' | 'wide' | 'single'
   ) => {
-    // 낙관적 업데이트 — 서버 응답 전에 UI 즉시 반영
     setChapterPhotos(prev => {
       const next = { ...prev }
       next[chapterId] = (prev[chapterId] || []).map(item =>
@@ -319,7 +367,7 @@ function ProjectStory({
     await axios.put(`${API}/chapters/${chapterId}/blocks/${blockId}/layout`, {
       block_layout: layout
     })
-  }
+  }, [])
 
   // 블록 간 순서 변경 (외부 DnD)
   const handleBlockDragEnd = (event: DragEndEvent, chapterId: string, blocks: ChapterBlock[]) => {
@@ -382,7 +430,7 @@ function ProjectStory({
   };
 
   // 블록 내 사진 순서 변경 (내부 DnD)
-  const handleInnerDragEnd = (event: DragEndEvent, blockId: string, chapterId: string) => {
+  const handleInnerDragEnd = useCallback((event: DragEndEvent, blockId: string, chapterId: string) => {
     const { active, over } = event
     if (!over || active.id === over.id) return
 
@@ -420,10 +468,10 @@ function ProjectStory({
       block_id: blockId,
       item_ids: newItemIds
     }).catch(err => console.error('블록 내 순서 업데이트 실패:', err))
-  }
+  }, [chapterPhotos])
 
   // 블록 간 사진 이동
-  const handleCrossBlockDragEnd = async (
+  const handleCrossBlockDragEnd = useCallback(async (
     chapterId: string,
     itemId: string,
     sourceBlockId: string,
@@ -469,12 +517,11 @@ function ProjectStory({
     }).catch(err => console.error('블록 간 이동 실패:', err))
 
     fetchChapterPhotos(chapterId)
-  }
+  }, [chapterPhotos, fetchChapterPhotos])
 
   //챕터 블록 <DndContext /> 헬퍼 함수
   const renderChapterBlocks = (targetChapterId: string) => {
-  const items = getVisibleChapterItems(targetChapterId)
-  const blocks = groupIntoBlocks(items)
+  const blocks = blocksPerChapter[targetChapterId] || []
   if (blocks.length === 0) return (
     <p className="text-sm text-gray-400 py-2">{t('story.addPhotoGuide')}</p>
   )
@@ -765,55 +812,6 @@ function ProjectStory({
         item.item_type === 'TEXT' || (item.photo_id != null && allPhotoIds.has(item.photo_id))
       );
     };
-
-    // 연속된 아이템을 블록 단위로 그룹화
-    interface ChapterBlock {
-      type: 'PHOTO' | 'TEXT' | 'SIDE'
-      blockId: string        // TEXT는 item.id, PHOTO는 block_id
-      items: ChapterItem[]   // TEXT는 1개, PHOTO는 N개
-      order_num: number      // 블록의 order_num (같은 블록은 동일)
-    }
-
-    // 변경 후
-    const groupIntoBlocks = (items: ChapterItem[]): ChapterBlock[] => {
-      const blocks: ChapterBlock[] = []
-      const blockMap = new Map<string, ChapterBlock>()
-
-      items.forEach(item => {
-        const bid = item.block_id || item.id
-        const isSideBySide = item.block_type === 'side-left' || item.block_type === 'side-right'
-
-        if (item.item_type === 'TEXT' && !isSideBySide) {
-          // 독립 텍스트 블록
-          blocks.push({ type: 'TEXT', blockId: item.id, items: [item], order_num: item.order_num })
-        } else if (isSideBySide) {
-          // side-by-side: PHOTO든 TEXT든 같은 block_id로 묶음
-          if (blockMap.has(bid)) {
-            blockMap.get(bid)!.items.push(item)
-          } else {
-            const block: ChapterBlock = {
-              type: 'SIDE',
-              blockId: bid,
-              items: [item],
-              order_num: item.order_num
-            }
-            blockMap.set(bid, block)
-            blocks.push(block)
-          }
-        } else {
-          // 일반 PHOTO 블록
-          if (blockMap.has(bid)) {
-            blockMap.get(bid)!.items.push(item)
-            blockMap.get(bid)!.items.sort((a, b) => a.order_in_block - b.order_in_block)
-          } else {
-            const block: ChapterBlock = { type: 'PHOTO', blockId: bid, items: [item], order_num: item.order_num }
-            blockMap.set(bid, block)
-            blocks.push(block)
-          }
-        }
-      })
-      return blocks
-    }
 
     // 1. 화면에 보이는 순서대로 모든 사진을 연결하는 함수 (수정됨)
     const getFlattenedPhotos = () => {
