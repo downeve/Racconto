@@ -163,6 +163,8 @@
     "orderUpload": "업로드",
     "orderTaken": "촬영일",
     "orderName": "파일명",
+    "orderAsc": "↑ 오름차순",
+    "orderDesc": "↓ 내림차순",
     "hasNote": "노트 남긴 사진",
     "deleting": "삭제 중",
     "deleteAll": "전체 삭제",

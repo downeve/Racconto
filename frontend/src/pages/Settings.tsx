@@ -41,6 +41,7 @@ export default function Settings() {
   const [defaultGridCols, setDefaultGridCols] = useState('3')
   const [defaultShowExif, setDefaultShowExif] = useState('true')
   const [defaultSortBy, setDefaultSortBy] = useState('default')
+  const [defaultSortOrder, setDefaultSortOrder] = useState('asc')
 
   const [username, setUsername] = useState('')
   const [usernameStatus, setUsernameStatus] = useState<'idle' | 'checking' | 'available' | 'taken' | 'invalid'>('idle')
@@ -102,6 +103,7 @@ export default function Settings() {
       setDefaultGridCols(res.data['default_grid_cols'] || '3')
       setDefaultShowExif(res.data['default_show_exif'] || 'true')
       setDefaultSortBy(res.data['default_sort_by'] || 'default')
+      setDefaultSortOrder(res.data['default_sort_order'] || 'asc')
       
       // username은 /auth/me에서 별도 로드
       const token = localStorage.getItem('token')
@@ -131,6 +133,7 @@ export default function Settings() {
       default_grid_cols: defaultGridCols,
       default_show_exif: defaultShowExif,
       default_sort_by: defaultSortBy,
+      default_sort_order: defaultSortOrder,
     })
     setSaved(true)
     setTimeout(() => setSaved(false), 2000)
@@ -304,22 +307,43 @@ export default function Settings() {
             </div>
 
             <span className="text-sm text-gray-500">{t('photo.listOrder')}</span>
-            <div className="flex gap-2">
-              {[
-                { value: 'default', label: t('photo.orderUpload') },
-                { value: 'taken_at', label: t('photo.orderTaken') },
-                { value: 'name', label: t('photo.orderName') }
-              ].map(opt => (
-                <button
-                  key={opt.value}
-                  onClick={() => setDefaultSortBy(opt.value)}
-                  className={`px-3 py-1.5 text-xs rounded font-medium ${defaultSortBy === opt.value ? 'bg-black text-white' : 'bg-gray-100 hover:bg-gray-200'}`}
-                >
-                  {opt.label}
-                </button>
-              ))}
-            </div>
+            <div className="flex items-center gap-4">
+              {/* 정렬 기준 */}
+              <div className="flex gap-2">
+                {[
+                  { value: 'default', label: t('photo.orderUpload') },
+                  { value: 'taken_at', label: t('photo.orderTaken') },
+                  { value: 'name', label: t('photo.orderName') }
+                ].map(opt => (
+                  <button
+                    key={opt.value}
+                    onClick={() => setDefaultSortBy(opt.value)}
+                    className={`px-3 py-1.5 text-xs rounded font-medium ${defaultSortBy === opt.value ? 'bg-black text-white' : 'bg-gray-100 hover:bg-gray-200'}`}
+                  >
+                    {opt.label}
+                  </button>
+                ))}
+              </div>
 
+              {/* 구분선 */}
+              <div className="w-px h-4 bg-gray-200" />
+
+              {/* 오름/내림차순 */}
+              <div className="flex gap-2">
+                <button
+                  onClick={() => setDefaultSortOrder('asc')}
+                  className={`px-3 py-1.5 text-xs rounded font-medium ${defaultSortOrder === 'asc' ? 'bg-black text-white' : 'bg-gray-100 hover:bg-gray-200'}`}
+                >
+                  {t('photo.orderAsc')}
+                </button>
+                <button
+                  onClick={() => setDefaultSortOrder('desc')}
+                  className={`px-3 py-1.5 text-xs rounded font-medium ${defaultSortOrder === 'desc' ? 'bg-black text-white' : 'bg-gray-100 hover:bg-gray-200'}`}
+                >
+                  {t('photo.orderDesc')}
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       </div>

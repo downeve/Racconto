@@ -164,6 +164,8 @@
     "orderUpload": "Upload",
     "orderTaken": "Date",
     "orderName": "Name",
+    "orderAsc": "↑ Ascending",
+    "orderDesc": "↓ Descending",
     "hasNote": "With notes",
     "deleting": "Deleting",
     "deleteAll": "Deleted",

@@ -55,7 +55,7 @@ export default function ProjectDetail({
   const [chapterMenuPhoto, setChapterMenuPhoto] = useState<string | null>(null)
   const [chapters, setChapters] = useState<{ id: string; title: string; parent_id?: string | null; order_num?: number }[]>([])
   const [sortBy, setSortBy] = useState<'default' | 'taken_at' | 'name'>('default')
-  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc')
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc') // 초기값은 그대로, 아래 useEffect에서 덮어씀
   const [deletingMissing, setDeletingMissing] = useState(false)
   const [deletingTrash, setDeletingTrash] = useState(false)
   const [isProjectFolderLinked, setIsProjectFolderLinked] = useState(false)
@@ -123,9 +123,14 @@ export default function ProjectDetail({
       setGridCols(parseInt(res.data['default_grid_cols'] || '3'))
       setShowExif(res.data['default_show_exif'] !== 'false')
 
-      // 💡 설정에서 지정한 기본 정렬 기준 불러오기!
+      // 설정에서 지정한 기본 정렬 기준 불러오기!
       if (res.data['default_sort_by']) {
         setSortBy(res.data['default_sort_by'])
+      }
+      
+      // 오름차순, 내림차순 설정 값 불러오기
+      if (res.data['default_sort_order']) {
+        setSortOrder(res.data['default_sort_order'] as 'asc' | 'desc')
       }
 
       setLabelSettings({
