@@ -1431,12 +1431,26 @@ export default function ProjectDetail({
                           <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity bg-black/70 flex flex-col items-center justify-center gap-2 px-4 z-20">
                             <button
                               onClick={async () => {
+                                // 1. 롤백용 백업
+                                const prevPhotos = [...photos]
+                                const prevTrash = [...trashedPhotos]
+
+                                // 2. 낙관적 업데이트 — 휴지통에서 제거 + 사진 목록에 복구
+                                setTrashedPhotos(prev => prev.filter(p => p.id !== photo.id))
+                                setPhotos(prev => [...prev, { ...photo, deleted_at: null }])
+
                                 try {
                                   await axios.post(`${API}/photos/${photo.id}/restore`)
-                                  await fetchTrash()
-                                  await fetchPhotos()
-                                  await fetchChapterPhotoIds()
+
+                                  // 백그라운드 동기화
+                                  Promise.all([
+                                    fetchChapterPhotoIds(),
+                                  ])
                                 } catch (err: any) {
+                                  // 3. 에러 시 롤백
+                                  setPhotos(prevPhotos)
+                                  setTrashedPhotos(prevTrash)
+
                                   const detail = err.response?.data?.detail
                                   const code = typeof detail === 'object' ? detail.code : detail
                                   const limit = typeof detail === 'object' ? detail.limit : undefined
