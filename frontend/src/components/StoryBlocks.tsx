@@ -117,8 +117,8 @@ export function SortablePhotoChapter({
           className="absolute top-1 right-1 bg-red-600 text-white rounded-full w-5 h-5 text-xs font-bold opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity z-20"
         >×</button>
 
-        {/* 블록 이동 버튼 — 다른 블록이 있을 때만 표시 */}
-        {otherBlocks.length > 0 && (
+        {/* 블록 이동 버튼 — 새 블록 슬롯이 있으므로 항상 표시 */}
+        {(
           <div className="absolute bottom-1 right-1 z-20">
             <button
               onClick={(e) => { e.stopPropagation(); setShowMoveMenu(v => !v) }}
@@ -127,6 +127,7 @@ export function SortablePhotoChapter({
             >
               {t('story.toOtherBlock')}
             </button>
+
 
             {showMoveMenu && (
               <>
@@ -148,20 +149,27 @@ export function SortablePhotoChapter({
                         }}
                         className="flex items-center gap-2 hover:bg-gray-50 rounded px-1 py-1 text-left"
                       >
-                        {/* 썸네일 */}
                         <div className="w-12 h-9 rounded overflow-hidden bg-gray-100 shrink-0">
                           {block.firstImageUrl
                             ? <img src={block.firstImageUrl} className="w-full h-full object-cover" />
                             : <div className="w-full h-full bg-gray-200" />
                           }
-                        {/*}
-                        <span className="text-[10px] text-gray-600">
-                          블록 {idx + 1} ({block.count}장)
-                        </span>
-                        */}
                         </div>
                       </button>
                     ))}
+                    {/* 새 블록 슬롯 — 항상 마지막에 표시 */}
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        onMoveToBlock(id, 'new')
+                        setShowMoveMenu(false)
+                      }}
+                      className="flex items-center justify-center hover:bg-gray-50 rounded px-1 py-1"
+                    >
+                      <div className="w-12 h-9 rounded border-2 border-dashed border-gray-300 bg-white shrink-0 flex items-center justify-center">
+                        <span className="text-gray-400 text-lg leading-none">+</span>
+                      </div>
+                    </button>
                   </div>
                 </div>
               </>

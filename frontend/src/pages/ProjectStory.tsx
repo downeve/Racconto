@@ -489,6 +489,46 @@ function ProjectStory({
     sourceBlockId: string,
     targetBlockId: string
   ) => {
+    // 새 블록으로 이동
+    if (targetBlockId === 'new') {
+      const newBlockId = crypto.randomUUID()
+
+      setChapterPhotos(prev => {
+        const all = prev[chapterId] || []
+        const sourceRemaining = all.filter(i =>
+          i.block_id === sourceBlockId && i.item_type === 'PHOTO' && i.id !== itemId
+        )
+        const updated = all.map(i => {
+          if (i.id === itemId) {
+            return { ...i, block_id: newBlockId, order_in_block: 0, block_layout: 'grid' as const }
+          }
+          const srcIdx = sourceRemaining.findIndex(s => s.id === i.id)
+          if (srcIdx !== -1) return { ...i, order_in_block: srcIdx }
+          return i
+        })
+        if (sourceRemaining.length === 0) {
+          return {
+            ...prev,
+            [chapterId]: updated.map(i => {
+              if (i.block_id === sourceBlockId && i.item_type === 'TEXT') {
+                return { ...i, block_id: crypto.randomUUID(), block_type: 'default' }
+              }
+              return i
+            })
+          }
+        }
+        return { ...prev, [chapterId]: updated }
+      })
+
+      await axios.put(`${API}/chapters/${chapterId}/items/move-to-block`, {
+        item_id: itemId,
+        target_block_id: newBlockId,
+      }).catch(err => console.error('새 블록 이동 실패:', err))
+
+      fetchChapterPhotos(chapterId)
+      return
+    }
+
     const items = chapterPhotos[chapterId] || []
     const targetItems = items.filter(i => i.block_id === targetBlockId && i.item_type === 'PHOTO')
     const targetLayout = targetItems[0]?.block_layout || 'grid'
