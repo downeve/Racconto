@@ -21,6 +21,7 @@ export interface PortfolioChapterItem {
   text_content?: string | null
   block_id?: string | null
   block_type?: string
+  order_in_block?: number
 }
 
 // ── PortfolioChapterItems 컴포넌트 ─────────────────────────
@@ -117,13 +118,15 @@ export default function PortfolioChapterItems({
       if (item.item_type === 'PHOTO') {
         if (item.block_layout) g.layout = item.block_layout
         g.photos.push(item)
+        g.photos.sort((a, b) => (a.order_in_block ?? 0) - (b.order_in_block ?? 0))  // 추가
       } else g.text = item
-    } else if (item.item_type === 'PHOTO') {
-      if (!blockMap.has(bid)) {
-        blockMap.set(bid, { layout: item.block_layout || 'grid', type: 'PHOTO', photos: [], text: null, blockType: 'default' })
+      } else if (item.item_type === 'PHOTO') {
+        if (!blockMap.has(bid)) {
+          blockMap.set(bid, { layout: item.block_layout || 'grid', type: 'PHOTO', photos: [], text: null, blockType: 'default' })
+        }
+        blockMap.get(bid)!.photos.push(item)
+        blockMap.get(bid)!.photos.sort((a, b) => (a.order_in_block ?? 0) - (b.order_in_block ?? 0))  // 추가
       }
-      blockMap.get(bid)!.photos.push(item)
-    }
   })
 
   // ── 렌더 ─────────────────────────────────────────────────
