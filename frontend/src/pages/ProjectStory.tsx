@@ -102,6 +102,7 @@ function ProjectStory({
   // onDragEnd stale closure 방지용 ref
   const draggingItemIdRef = useRef<string | null>(null)
   const draggingItemBlockIdRef = useRef<string | null>(null)
+  const currentDragBlockIdRef = useRef<string | null>(null)
 
   const chapterRefs = useRef<Record<string, HTMLDivElement | null>>({})
 
@@ -495,6 +496,7 @@ function ProjectStory({
           if (activeItem.block_id) {
             setDraggingItemBlockId(activeItem.block_id)
             draggingItemBlockIdRef.current = activeItem.block_id
+            currentDragBlockIdRef.current = activeItem.block_id
           }
         } else {
           setActiveBlockId(String(e.active.id))
@@ -510,6 +512,18 @@ function ProjectStory({
         const activeId = String(active.id)
         const overId = String(over.id)
 
+        let newBlockId: string | null = null
+        if (overId.startsWith('drop-')) {
+          newBlockId = overId.replace('drop-', '')
+        } else {
+          const overItem = Object.values(chapterPhotos).flat().find(i => i.id === overId)
+          if (!overItem || overItem.item_type === 'TEXT') return
+          newBlockId = overItem.block_id
+        }
+
+        if (!newBlockId || newBlockId === currentDragBlockIdRef.current) return
+
+        currentDragBlockIdRef.current = newBlockId
         setChapterPhotos((prev) => {
           const chapterId = Object.keys(prev).find(cid => prev[cid].some(i => i.id === activeId))
           if (!chapterId) return prev
@@ -519,24 +533,10 @@ function ProjectStory({
           if (activeIndex === -1) return prev
 
           const activeItem = items[activeIndex]
-
-          if (overId.startsWith('drop-')) {
-            const targetBlockId = overId.replace('drop-', '')
-            if (activeItem.block_id === targetBlockId) return prev
-            const newItems = [...items]
-            newItems[activeIndex] = { ...activeItem, block_id: targetBlockId }
-            return { ...prev, [chapterId]: newItems }
-          }
-
-          const overIndex = items.findIndex(i => i.id === overId)
-          if (overIndex === -1) return prev
-          const overItem = items[overIndex]
-
-          if (overItem.item_type === 'TEXT') return prev
-          if (activeItem.block_id === overItem.block_id) return prev
+          if (activeItem.block_id === newBlockId) return prev
 
           const newItems = [...items]
-          newItems[activeIndex] = { ...activeItem, block_id: overItem.block_id }
+          newItems[activeIndex] = { ...activeItem, block_id: newBlockId! }
           return { ...prev, [chapterId]: newItems }
         })
       }}
@@ -550,6 +550,7 @@ function ProjectStory({
         setDraggingItemBlockId(null)
         draggingItemIdRef.current = null
         draggingItemBlockIdRef.current = null
+        currentDragBlockIdRef.current = null
 
         if (!itemId) {
           if (over) handleBlockDragEnd(e, targetChapterId, blocks)
@@ -570,45 +571,38 @@ function ProjectStory({
         const activeItem = items.find(i => i.id === activeId)
         if (!activeItem) return
 
-        let computedFinalItems: ChapterItem[] = []
+        const activeIndex = items.findIndex(i => i.id === activeId)
+        if (activeIndex === -1) return
 
-        setChapterPhotos(prev => {
-          const items = prev[chapterId]
-          const activeIndex = items.findIndex(i => i.id === activeId)
-          if (activeIndex === -1) return prev
+        const targetBlockId = activeItem.block_id
 
-          const activeItem = items[activeIndex]
-          const targetBlockId = activeItem.block_id
-
-          let lastTargetIndex = -1
-          items.forEach((item, idx) => {
-            if (item.block_id === targetBlockId && item.id !== activeId) {
-              lastTargetIndex = idx
-            }
-          })
-
-          const insertIndex = lastTargetIndex === -1 ? activeIndex : lastTargetIndex
-          const newItems = arrayMove(items, activeIndex, insertIndex)
-
-          const blockCounter: Record<string, number> = {}
-          const finalItems = newItems.map(item => {
-            if (item.item_type !== 'PHOTO' || !item.block_id) return item
-            const bid = item.block_id
-            blockCounter[bid] = (blockCounter[bid] ?? 0)
-            const order = blockCounter[bid]++
-            return { ...item, order_in_block: order }
-          })
-
-          computedFinalItems = finalItems
-          return { ...prev, [chapterId]: finalItems }
+        let lastTargetIndex = -1
+        items.forEach((item, idx) => {
+          if (item.block_id === targetBlockId && item.id !== activeId) {
+            lastTargetIndex = idx
+          }
         })
 
-        const itemsToSync = computedFinalItems.map((item, index) => ({
+        const insertIndex = lastTargetIndex === -1 ? activeIndex : lastTargetIndex
+        const newItems = arrayMove(items, activeIndex, insertIndex)
+
+        const blockCounter: Record<string, number> = {}
+        const finalItems = newItems.map(item => {
+          if (item.item_type !== 'PHOTO' || !item.block_id) return item
+          const bid = item.block_id
+          blockCounter[bid] = (blockCounter[bid] ?? 0)
+          const order = blockCounter[bid]++
+          return { ...item, order_in_block: order }
+        })
+
+        setChapterPhotos(prev => ({ ...prev, [chapterId]: finalItems }))
+
+        const itemsToSync = finalItems.map((item, index) => ({
           id: item.id,
           block_id: item.block_id,
           order_num: (index + 1) * 10,
           order_in_block: item.item_type === 'PHOTO'
-            ? computedFinalItems.filter(i => i.block_id === item.block_id).indexOf(item)
+            ? finalItems.filter(i => i.block_id === item.block_id).indexOf(item)
             : 0
         }))
 

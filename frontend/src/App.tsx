@@ -36,7 +36,7 @@ function AdminRoute({ children }: { children: React.ReactNode }) {
   const { isAuthenticated, isLoading, user } = useAuth()
   if (isLoading) return <div className="min-h-screen bg-[#F7F4F0]" />
   if (!isAuthenticated) return <Navigate to="/" replace />
-  if (!user?.is_admin) return <Navigate to="/projects" replace />
+  if (!user?.is_admin) return <Navigate to="/dashboard" replace />
   return <>{children}</>
 }
 
@@ -103,7 +103,7 @@ function AppRoutes() {
         <FeedbackWidget />
         <Routes>
           <Route path="/login" element={<Login />} />
-          <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/dashboard" element={<PrivateRoute><Dashboard /></PrivateRoute>} />
           <Route path="/register" element={<Register />} />
           <Route path="/verify-email" element={<VerifyEmail />} />
           <Route path="/" element={isAuthenticated ? <Navigate to="/dashboard" replace /> : (isMobileDevice ? <MobileLandingPage /> : <LandingPage />)} />
