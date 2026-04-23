@@ -199,29 +199,41 @@ function ProjectStory({
   const handleSaveTextBlock = async () => {
     if (!textDraft.trim()) return
 
-    if (editingTextItemId === 'new') {
-      // 신규 생성
-      if (!addingTextChapterId) return
-      await axios.post(`${API}/chapters/${addingTextChapterId}/texts`, {
-        text_content: textDraft
-      })
-      fetchChapterPhotos(addingTextChapterId)
-      setAddingTextChapterId(null)
-    } else {
-      // 기존 수정
-      if (!editingTextItemId) return
-      const chapterId = Object.keys(chapterPhotos).find(cid =>
-        chapterPhotos[cid].some(item => item.id === editingTextItemId)
-      )
-      if (!chapterId) return
-      await axios.put(`${API}/chapters/${chapterId}/texts/${editingTextItemId}`, {
-        text_content: textDraft
-      })
-      fetchChapterPhotos(chapterId)
-    }
+    try {
+      if (editingTextItemId === 'new') {
+        // ✅ 신규 생성: 기존 로직 그대로 유지
+        if (!addingTextChapterId) return
+        await axios.post(`${API}/chapters/${addingTextChapterId}/texts`, {
+          text_content: textDraft
+        })
+        // 새로고침
+        fetchChapterPhotos(addingTextChapterId)
+        setAddingTextChapterId(null)
+      } else {
+        // ✅ 기존 수정: 기존 로직 그대로 유지
+        if (!editingTextItemId) return
+        
+        // 해당 아이템이 속한 chapterId 찾기
+        const chapterId = Object.keys(chapterPhotos).find(cid =>
+          chapterPhotos[cid].some(item => item.id === editingTextItemId)
+        )
+        
+        if (!chapterId) return
+        
+        await axios.put(`${API}/chapters/${chapterId}/texts/${editingTextItemId}`, {
+          text_content: textDraft
+        })
+        // 새로고침
+        fetchChapterPhotos(chapterId)
+      }
 
-    setEditingTextItemId(null)
-    setTextDraft('')
+      // 공통 상태 초기화
+      setEditingTextItemId(null)
+      setTextDraft('')
+    } catch (err) {
+      console.error('텍스트 저장 중 에러:', err)
+      alert('저장에 실패했습니다.')
+    }
   }
 
   // 키보드 네비게이션 (라이트박스, 노트 패널, 미리보기)
@@ -685,6 +697,13 @@ function ProjectStory({
                   handleBlockLayoutChange(targetChapterId, block.blockId, layout)
                 }
                 onCancelSideBySide={handleCancelSideBySide}
+
+                /* 👇 StoryBlocks에 추가한 Props 전달 */
+                editingTextItemId={editingTextItemId}
+                textDraft={textDraft}
+                onTextDraftChange={setTextDraft}
+                onSaveText={handleSaveTextBlock}
+                onCancelEdit={() => setEditingTextItemId(null)}
               />
             )
 
@@ -702,6 +721,12 @@ function ProjectStory({
                 onSideBySide={(itemId, position, direction) =>
                   handleSideBySide(targetChapterId, itemId, position, direction)
                 }
+
+                editingTextItemId={editingTextItemId}
+                textDraft={textDraft}
+                onTextDraftChange={setTextDraft}
+                onSaveText={handleSaveTextBlock}
+                onCancelEdit={() => setEditingTextItemId(null)}
               />
             )
 
@@ -738,6 +763,27 @@ function ProjectStory({
             )
           })}
         </div>
+        {/* 🟢 바로 여기에 추가하세요 (807번 줄) */}
+        {editingTextItemId === 'new' && addingTextChapterId === targetChapterId && (
+          <div className="bg-white border-2 border-stone-100 rounded-xl p-5 my-4 shadow-md">
+            <div className="flex flex-col gap-3">
+              <textarea
+                className="w-full h-32 p-3 text-sm rounded-lg border border-stone-100 focus:ring-2 focus:ring-stone-200 focus:outline-none resize-none bg-stone-50/50"
+                value={textDraft}
+                onChange={(e) => setTextDraft(e.target.value)}
+                autoFocus
+              />
+              <div className="flex gap-2 justify-end">
+                <button onClick={() => { setEditingTextItemId(null); setAddingTextChapterId(null); setTextDraft(''); }} className="px-3 py-1.5 text-xs text-stone-500 border rounded-lg">
+                  {t('common.cancel')}
+                </button>
+                <button onClick={handleSaveTextBlock} className="px-4 py-1.5 text-xs bg-stone-900 text-white rounded-lg font-medium">
+                  {t('common.save')}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </SortableContext>
       <DragOverlay dropAnimation={{ duration: 250, easing: 'cubic-bezier(0.18, 0.67, 0.6, 1.22)' }}>
         {activeBlockId && !draggingItemId ? (
@@ -1439,6 +1485,7 @@ function ProjectStory({
         )
       })()}
 
+      {/*
       {editingTextItemId && (
       <div
         className="fixed inset-0 bg-black/60 z-[100] flex items-center justify-center p-4 backdrop-blur-sm"
@@ -1471,7 +1518,7 @@ function ProjectStory({
           </div>
         </div>
       </div>
-    )}
+    )} */}
     </div>
   )
 }

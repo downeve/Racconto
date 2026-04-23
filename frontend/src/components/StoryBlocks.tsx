@@ -183,52 +183,92 @@ export interface SortableTextBlockProps {
   hasPhotoBelow: boolean
   onRemove: (chapterId: string, itemId: string) => void
   onEdit: (itemId: string, currentText: string) => void
+  editingTextItemId?: string | null;
+  textDraft?: string;
+  onTextDraftChange?: (val: string) => void;
+  onSaveText?: () => void;
+  onCancelEdit?: () => void;
   onSideBySide: (itemId: string, position: 'side-left' | 'side-right', direction: 'above' | 'below') => void
 }
 
 export const SortableTextBlock = memo(function SortableTextBlock({
-  id, itemId, chapterId, text_content, hasPhotoAbove, hasPhotoBelow, onRemove, onEdit, onSideBySide
+  id, itemId, chapterId, text_content, hasPhotoAbove, hasPhotoBelow, onRemove, onEdit, 
+  // 인라인 편집창 추가 props
+  editingTextItemId, textDraft, onTextDraftChange, onSaveText, onCancelEdit,
+  onSideBySide
 }: SortableTextBlockProps) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id })
   const style = { transform: CSS.Transform.toString(transform), transition, opacity: isDragging ? 0.5 : 1 }
   const { t } = useTranslation()
 
+  // 현재 이 블록이 편집 중인지 확인
+  const isEditing = editingTextItemId === itemId;
+
   return (
     <div ref={setNodeRef} style={style} className="col-span-3 group relative bg-stone-50 border border-stone-200 rounded-lg px-5 py-4 my-1">
-      <div
-        {...attributes}
-        {...listeners}
-        className="absolute top-3 left-3 cursor-grab opacity-0 group-hover:opacity-40 transition-opacity"
-      >
-        <DragHandleDots />
-      </div>
+      {isEditing ? (
+        /* 👇 편집 모드일 때: 단독 텍스트 인라인 편집창 */
+        <div className="flex flex-col gap-2">
+          <textarea
+            className="w-full h-32 p-3 text-sm rounded-lg border border-stone-100 focus:ring-2 focus:ring-stone-200 focus:outline-none resize-none bg-white"
+            value={textDraft}
+            onChange={(e) => onTextDraftChange?.(e.target.value)}
+            autoFocus
+          />
+          <div className="flex gap-2 justify-end mt-1">
+            <button 
+              onClick={(e) => { e.stopPropagation(); onCancelEdit?.(); }}
+              className="px-3 py-1.5 text-xs text-stone-500 border border-stone-300 rounded bg-white hover:bg-stone-50"
+            >
+              {t('common.cancel')}
+            </button>
+            <button 
+              onClick={(e) => { e.stopPropagation(); onSaveText?.(); }}
+              className="px-3 py-1.5 text-xs bg-stone-900 text-white rounded hover:bg-stone-800 font-medium"
+            >
+              {t('common.save')}
+            </button>
+          </div>
+        </div>
+      ) : (
+        /* 👇 일반 모드: 회원님의 기존 원본 코드 100% 유지 */
+        <>
+          <div
+            {...attributes}
+            {...listeners}
+            className="absolute top-3 left-3 cursor-grab opacity-0 group-hover:opacity-40 transition-opacity"
+          >
+            <DragHandleDots />
+          </div>
 
-      <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-        {hasPhotoAbove && (
-          <button
-            onClick={() => onSideBySide(itemId, 'side-left', 'above')}
-            className="text-xs px-2 py-0.5 rounded border border-blue-200 text-blue-400 hover:text-blue-600 bg-white"
-            title="위 사진과 나란히 (텍스트 왼쪽)"
-          >{t('story.attachLeft')}</button>
-        )}
-        {hasPhotoBelow && (
-          <button
-            onClick={() => onSideBySide(itemId, 'side-right', 'below')}
-            className="text-xs px-2 py-0.5 rounded border border-blue-200 text-blue-400 hover:text-blue-600 bg-white"
-            title="아래 사진과 나란히 (텍스트 오른쪽)"
-          >{t('story.attachRight')}</button>
-        )}
-        <button
-          onClick={() => onEdit(itemId, text_content)}
-          className="text-xs px-2 py-0.5 rounded border border-gray-300 text-gray-500 hover:text-gray-800 bg-white"
-        >{t('common.edit')}</button>
-        <button
-          onClick={() => onRemove(chapterId, itemId)}
-          className="text-xs px-2 py-0.5 rounded border border-red-200 text-red-400 hover:text-red-600 bg-white"
-        >×</button>
-      </div>
+          <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+            {hasPhotoAbove && (
+              <button
+                onClick={() => onSideBySide(itemId, 'side-left', 'above')}
+                className="text-xs px-2 py-0.5 rounded border border-blue-200 text-blue-400 hover:text-blue-600 bg-white"
+                title="위 사진과 나란히 (텍스트 왼쪽)"
+              >{t('story.attachLeft')}</button>
+            )}
+            {hasPhotoBelow && (
+              <button
+                onClick={() => onSideBySide(itemId, 'side-right', 'below')}
+                className="text-xs px-2 py-0.5 rounded border border-blue-200 text-blue-400 hover:text-blue-600 bg-white"
+                title="아래 사진과 나란히 (텍스트 오른쪽)"
+              >{t('story.attachRight')}</button>
+            )}
+            <button
+              onClick={() => onEdit(itemId, text_content)}
+              className="text-xs px-2 py-0.5 rounded border border-gray-300 text-gray-500 hover:text-gray-800 bg-white"
+            >{t('common.edit')}</button>
+            <button
+              onClick={() => onRemove(chapterId, itemId)}
+              className="text-xs px-2 py-0.5 rounded border border-red-200 text-red-400 hover:text-red-600 bg-white"
+            >×</button>
+          </div>
 
-      <p className="text-sm text-gray-700 leading-relaxed whitespace-pre-wrap pl-4">{text_content}</p>
+          <p className="text-sm text-gray-700 leading-relaxed whitespace-pre-wrap pl-4">{text_content}</p>
+        </>
+      )}
     </div>
   )
 })
@@ -347,12 +387,23 @@ export interface SortableSideBySideBlockProps {
   onRemoveItem: (chapterId: string, itemId: string) => void
   onPhotoClick: (item: ChapterItem) => void
   onCancelSideBySide: (chapterId: string, textItemId: string) => void
+
+  // 👇 인라인 편집을 위해 추가
+  editingTextItemId?: string | null;
+  textDraft?: string;
+  onTextDraftChange?: (val: string) => void;
+  onSaveText?: () => void;
+  onCancelEdit?: () => void;
+
   onEdit: (itemId: string, currentText: string) => void
   onLayoutChange: (blockId: string, layout: 'grid' | 'wide' | 'single') => void
 }
 
 export const SortableSideBySideBlock = memo(function SortableSideBySideBlock({
-  blockId, chapterId, items, onRemoveItem, onPhotoClick, onCancelSideBySide, onEdit, onLayoutChange
+  blockId, chapterId, items, onRemoveItem, onPhotoClick, onCancelSideBySide,
+  // 👇 추가된 props 구조분해 할당
+  editingTextItemId,textDraft, onTextDraftChange, onSaveText, onCancelEdit,
+  onEdit, onLayoutChange
 }: SortableSideBySideBlockProps) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: blockId })
   const style = { transform: CSS.Transform.toString(transform), transition, opacity: isDragging ? 0.5 : 1 }
@@ -403,21 +454,50 @@ export const SortableSideBySideBlock = memo(function SortableSideBySideBlock({
 
   const textCol = textItem ? (
     <div className="flex-1 min-w-0 group/text relative bg-stone-50 border border-stone-200 rounded-lg px-4 py-4">
-      <p className="text-sm text-gray-700 leading-relaxed whitespace-pre-wrap">
-        {textItem.text_content}
-      </p>
-      <button
-        onClick={() => onEdit(textItem.id, textItem.text_content || '')}
-        className="absolute top-2 right-[52px] text-xs px-2 py-0.5 rounded border border-gray-300 text-gray-400 hover:text-gray-700 bg-white opacity-0 group-hover/text:opacity-100 transition-opacity"
-      >
-        {t('common.edit')}
-      </button>
-      <button
-        onClick={() => onCancelSideBySide(chapterId, textItem.id)}
-        className="absolute top-2 right-2 text-xs px-2 py-0.5 rounded border border-gray-300 text-gray-400 hover:text-gray-700 bg-white opacity-0 group-hover/text:opacity-100 transition-opacity"
-      >
-        {t('story.detach')}
-      </button>
+      {editingTextItemId === textItem.id ? (
+        /* 👇 편집 모드일 때: 텍스트 영역만 편집창으로 전환 */
+        <div className="flex flex-col gap-2">
+          <textarea
+            className="w-full h-32 p-2 text-sm rounded border border-stone-100 focus:ring-2 focus:ring-stone-200 outline-none resize-none bg-white"
+            value={textDraft}
+            onChange={(e) => onTextDraftChange?.(e.target.value)}
+            autoFocus
+          />
+          <div className="flex gap-2 justify-end">
+            <button 
+              onClick={(e) => { e.stopPropagation(); onCancelEdit?.(); }}
+              className="px-2 py-1 text-[11px] text-stone-500 border border-stone-300 rounded bg-white hover:bg-stone-50"
+            >
+              {t('common.cancel')}
+            </button>
+            <button 
+              onClick={(e) => { e.stopPropagation(); onSaveText?.(); }}
+              className="px-2 py-1 text-[11px] bg-stone-900 text-white rounded hover:bg-stone-800 font-medium"
+            >
+              {t('common.save')}
+            </button>
+          </div>
+        </div>
+      ) : (
+        /* 👇 일반 모드: 기존 텍스트 표시 */
+        <>
+          <p className="text-sm text-gray-700 leading-relaxed whitespace-pre-wrap">
+            {textItem.text_content}
+          </p>
+          <button
+            onClick={() => onEdit(textItem.id, textItem.text_content || '')}
+            className="absolute top-2 right-[52px] text-xs px-2 py-0.5 rounded border border-gray-300 text-gray-400 hover:text-gray-700 bg-white opacity-0 group-hover/text:opacity-100 transition-opacity"
+          >
+            {t('common.edit')}
+          </button>
+          <button
+            onClick={() => onCancelSideBySide(chapterId, textItem.id)}
+            className="absolute top-2 right-2 text-xs px-2 py-0.5 rounded border border-gray-300 text-gray-400 hover:text-gray-700 bg-white opacity-0 group-hover/text:opacity-100 transition-opacity"
+          >
+            {t('story.detach')}
+          </button>
+        </>
+      )}
     </div>
   ) : null
 
