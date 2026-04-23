@@ -62,7 +62,7 @@ function AppRoutes() {
         <div className="fixed inset-0 bg-[#F7F4F0] z-50 flex items-center justify-center p-8 text-center">
           <div>
             <p className="text-3xl mb-4">📷</p>
-            <p className="text-lg font-bold text-stone-900 mb-2" style={{ fontFamily: 'Georgia, serif' }}>
+            <p className="text-lg font-bold text-stone-900 mb-2 font-cssfont">
               {t('landing.desktopOptimizationInfo')}
             </p>
             <p className="text-sm text-stone-500 leading-relaxed mb-6">

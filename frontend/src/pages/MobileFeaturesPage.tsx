@@ -48,8 +48,7 @@ function MobileFeatureCard({ feature, index }: { feature: FeatureData; index: nu
         {feature.tag}
       </p>
       <h3
-        className="text-xl font-bold text-stone-900 mb-3 leading-snug"
-        style={{ fontFamily: "'Georgia', serif" }}
+        className="text-xl font-bold font-cssfont text-stone-900 mb-3 leading-snug"
       >
         {feature.title}
       </h3>
@@ -132,8 +131,7 @@ export default function MobileFeaturesPage() {
 
   return (
     <div
-      className="min-h-screen bg-[#F7F4F0] text-stone-900"
-      style={{ fontFamily: "'Georgia', 'Times New Roman', serif" }}
+      className="min-h-screen bg-[#F7F4F0] text-stone-900 font-cssfont"
     >
       <PublicNavbar />
 

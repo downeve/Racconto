@@ -148,7 +148,7 @@ export default function PublicPortfolio() {
       <div className={`min-h-screen pt-14 flex flex-col ${darkMode ? 'bg-stone-900 text-white' : 'bg-[#F7F4F0] text-stone-900'}`}>
         <main className="flex-1 flex items-center justify-center px-6 pb-32">
           <div className="text-center">
-            <h2 className="text-2xl font-bold mb-3" style={{ fontFamily: "'Georgia', serif" }}>
+            <h2 className="text-2xl font-bold font-cssfont mb-3">
               {t('portfolio.startMessage')}
             </h2>
             <p className="text-stone-600 break-keep leading-relaxed text-sm">
@@ -169,8 +169,8 @@ export default function PublicPortfolio() {
           <div className="max-w-4xl mx-auto px-6 h-14 flex items-center justify-between">
             <Link 
               to="/" 
-              className="text-xl font-bold tracking-widest" 
-              style={{ fontFamily: "'Georgia', serif", letterSpacing: '0.15em' }}
+              className="text-xl font-bold font-cssfont tracking-widest" 
+              style={{ letterSpacing: '0.15em' }}
             >
               Racconto
             </Link>
@@ -196,8 +196,8 @@ export default function PublicPortfolio() {
             {/* Navbar.tsx와 동일한 텍스트 크기(text-xl)와 자간(0.15em) 적용 */}
             <Link 
               to="/" 
-              className={`text-xl font-bold tracking-widest ${darkMode ? 'text-white' : 'text-gray-900'}`}
-              style={{ fontFamily: "'Georgia', serif", letterSpacing: '0.15em' }}
+              className={`text-xl font-bold font-cssfont tracking-widest ${darkMode ? 'text-white' : 'text-gray-900'}`}
+              style={{ letterSpacing: '0.15em' }}
             >
               Racconto
             </Link>
@@ -250,8 +250,7 @@ export default function PublicPortfolio() {
                   )}
                 </div>
                 <div className="pt-3">
-                  <h3 className="font-semibold text-sm text-center italic tracking-wide"
-                    style={{ fontFamily: "'Georgia', serif" }}>
+                  <h3 className="font-semibold font-cssfont text-sm text-center italic tracking-wide">
                     {project.title}
                   </h3>
                 </div>
@@ -274,8 +273,7 @@ export default function PublicPortfolio() {
                 </p>
               )}
               {selectedProject.description && (
-                <p className={`text-base leading-relaxed [word-break:keep-all] ${subText}`}
-                  style={{ fontFamily: "'Georgia', serif" }}>
+                <p className={`text-base font-cssfont leading-relaxed [word-break:keep-all] ${subText}`}>
                   {selectedProject.description}
                 </p>
               )}
@@ -296,16 +294,14 @@ export default function PublicPortfolio() {
                       {idx + 1 < 10 ? `0${idx + 1}` : idx + 1}
                     </p>
                     <h3
-                      className="text-2xl font-bold mb-4 tracking-tight"
-                      style={{ fontFamily: "'Georgia', serif" }}
+                      className="text-2xl font-bold font-cssfont mb-4 tracking-tight"
                     >
                       {chapter.title}
                     </h3>
                     </div>
                     {chapter.description && (
                       <p
-                        className={`text-base leading-relaxed max-w-xl [word-break:keep-all] ${subText}`}
-                        style={{ fontFamily: "'Georgia', serif" }}
+                        className={`text-base font-cssfont leading-relaxed max-w-xl [word-break:keep-all] ${subText}`}
                       >
                         {chapter.description}
                       </p>
@@ -326,18 +322,12 @@ export default function PublicPortfolio() {
                           <p className={`text-xs tracking-widest uppercase mb-2 ${subText}`}>
                             {idx + 1}.{subIdx + 1}
                           </p>
-                          <h4
-                            className="text-xl font-semibold"
-                            style={{ fontFamily: "'Georgia', serif" }}
-                          >
+                          <h4 className="text-xl font-semibold font-cssfont">
                             {sub.title}
                           </h4>
                           </div>
                           {sub.description && (
-                            <p
-                              className={`text-sm leading-relaxed mt-2 max-w-xl ${subText}`}
-                              style={{ fontFamily: "'Georgia', serif" }}
-                            >
+                            <p className={`text-sm font-cssfont leading-relaxed mt-2 max-w-xl ${subText}`}>
                               {sub.description}
                             </p>
                           )}

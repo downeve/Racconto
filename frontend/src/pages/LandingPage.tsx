@@ -95,7 +95,7 @@ export default function LandingPage() {
   ]
 
   return (
-    <div className="min-h-screen bg-[#F7F4F0] text-stone-900" style={{ fontFamily: "'Georgia', 'Times New Roman', serif" }}>
+    <div className="min-h-screen bg-[#F7F4F0] text-stone-900 font-cssfont">
 
       {/* ─── 아래 스타일 코드를 추가하세요 ─── */}
       <style>{`
@@ -146,19 +146,19 @@ export default function LandingPage() {
             {t('landing.heroEyebrow')}
           </p>
           <h1
-            className="text-5xl md:text-7xl font-bold leading-tight mb-6 text-stone-900 break-keep"
-            style={{ fontFamily: "'Georgia', serif", letterSpacing: '-0.02em' }}
+            className="text-5xl md:text-7xl font-bold font-cssfont leading-tight mb-6 text-stone-900 break-keep"
+            style={{ letterSpacing: '-0.02em' }}
           >
             {t('landing.heroTitle')}
           </h1>
           <h1
-            className="text-5xl md:text-7xl font-bold leading-tight mb-6 text-stone-900 break-keep"
-            style={{ fontFamily: "'Georgia', serif", letterSpacing: '-0.02em' }}
+            className="text-5xl md:text-7xl font-bold font-cssfont leading-tight mb-6 text-stone-900 break-keep"
+            style={{ letterSpacing: '-0.02em' }}
           >
             {t('landing.heroTitle2')}
           </h1>
-          <p className="text-lg md:text-xl text-stone-500 leading-relaxed mb-10 max-w-xl mx-auto break-keep"
-            style={{ fontFamily: "'Georgia', serif", fontStyle: 'italic' }}>
+          <p className="font-cssfont text-lg md:text-xl text-stone-500 leading-relaxed mb-10 max-w-xl mx-auto break-keep"
+            style={{ fontStyle: 'italic' }}>
             {t('landing.heroSubtitle')}
           </p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
@@ -191,7 +191,7 @@ export default function LandingPage() {
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-10">
             <p className="text-xs tracking-[0.3em] text-stone-400 uppercase mb-3">{t('landing.demoEyebrow')}</p>
-            <h2 className="text-2xl md:text-3xl font-bold text-stone-900" style={{ fontFamily: "'Georgia', serif" }}>
+            <h2 className="text-2xl md:text-3xl font-bold text-stone-900 font-cssfont">
               {t('landing.demoTitle')}
             </h2>
           </div>
@@ -230,7 +230,7 @@ export default function LandingPage() {
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-16">
             <p className="text-sm tracking-[0.3em] text-stone-400 uppercase mb-3">{t('landing.featuresEyebrow')}</p>
-            <h2 className="text-3xl md:text-4xl font-bold text-stone-900" style={{ fontFamily: "'Georgia', serif" }}>
+            <h2 className="text-3xl md:text-4xl font-bold text-stone-900 font-cssfont">
               {t('landing.featuresTitle')}
             </h2>
           </div>
@@ -242,7 +242,7 @@ export default function LandingPage() {
                 <div className="mt-5">
                   <div className="flex items-baseline gap-3 mb-2">
                     <span className="text-xs text-stone-300 font-mono tracking-widest">{feature.number}</span>
-                    <h3 className="text-lg font-semibold text-stone-900" style={{ fontFamily: "'Georgia', serif" }}>
+                    <h3 className="text-lg font-semibold text-stone-900 font-cssfont">
                       {feature.title}
                     </h3>
                   </div>
@@ -258,7 +258,7 @@ export default function LandingPage() {
       <section className="py-24 px-6 bg-stone-900 text-white">
         <div className="max-w-2xl mx-auto text-center">
           <p className="text-xs tracking-[0.3em] text-stone-400 uppercase mb-4">{t('landing.betaEyebrow')}</p>
-          <h2 className="text-3xl md:text-4xl font-bold mb-4" style={{ fontFamily: "'Georgia', serif" }}>
+          <h2 className="text-3xl md:text-4xl font-bold font-cssfont mb-4">
             {t('landing.betaTitle')}
           </h2>
           <p className="text-stone-400 mb-2 text-sm leading-relaxed">
@@ -285,7 +285,7 @@ export default function LandingPage() {
       {/* Footer */}
       <footer className="py-8 px-6 bg-stone-900 border-t border-stone-800">
         <div className="max-w-6xl mx-auto flex items-center justify-between">
-          <span className="text-stone-500 text-sm tracking-widest" style={{ fontFamily: "'Georgia', serif" }}>
+          <span className="text-stone-500 text-sm tracking-widest font-cssfont">
             Racconto
           </span>
           <p className="text-stone-600 text-xs">© 2026 Racconto. All rights reserved.</p>

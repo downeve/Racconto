@@ -13,7 +13,7 @@ export default {
         gray: colors.stone,
       },
       fontFamily: {
-        serif: ['Georgia', 'Times New Roman', 'serif'],
+        cssfont: ['Noto Serif KR', 'Georgia', 'serif'],
       },
     },
   },

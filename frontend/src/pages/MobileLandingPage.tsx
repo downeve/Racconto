@@ -45,8 +45,7 @@ export default function MobileLandingPage() {
 
   return (
     <div
-      className="min-h-screen bg-[#F7F4F0] text-stone-900"
-      style={{ fontFamily: "'Georgia', 'Times New Roman', serif" }}
+      className="min-h-screen bg-[#F7F4F0] text-stone-900 font-cssfont"
     >
       <PublicNavbar />
 

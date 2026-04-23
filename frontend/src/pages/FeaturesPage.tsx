@@ -107,8 +107,7 @@ function FeatureSection({
           {feature.tag}
         </p>
         <h3
-          className="text-2xl md:text-3xl font-bold text-stone-900 mb-4 leading-snug"
-          style={{ fontFamily: "'Georgia', serif" }}
+          className="text-2xl md:text-3xl font-bold font-cssfont text-stone-900 mb-4 leading-snug"
         >
           {feature.title}
         </h3>
@@ -174,8 +173,7 @@ export default function FeaturesPage() {
 
   return (
     <div
-      className="min-h-screen bg-[#F7F4F0] text-stone-900"
-      style={{ fontFamily: "'Georgia', 'Times New Roman', serif" }}
+      className="min-h-screen bg-[#F7F4F0] text-stone-900 font-cssfont"
     >
       <style>{`
         @keyframes slowScroll {
@@ -191,8 +189,8 @@ export default function FeaturesPage() {
           What Racconto does
         </p>
         <h1
-          className="text-4xl md:text-6xl font-bold text-stone-900 mb-5 leading-tight"
-          style={{ fontFamily: "'Georgia', serif", letterSpacing: '-0.02em' }}
+          className="text-4xl md:text-6xl font-bold font-cssfont text-stone-900 mb-5 leading-tight"
+          style={{ letterSpacing: '-0.02em' }}
         >
           {t('landing.feature.featureDetailTitle')}
         </h1>
@@ -224,8 +222,7 @@ export default function FeaturesPage() {
             {t('landing.betaEyebrow')}
           </p>
           <h2
-            className="text-3xl md:text-4xl font-bold mb-4"
-            style={{ fontFamily: "'Georgia', serif" }}
+            className="text-3xl md:text-4xl font-bold font-cssfont mb-4"
           >
             {t('landing.betaTitle')}
           </h2>
@@ -254,8 +251,7 @@ export default function FeaturesPage() {
       <footer className="py-8 px-6 bg-stone-900 border-t border-stone-800">
         <div className="max-w-6xl mx-auto flex items-center justify-between">
           <span
-            className="text-stone-500 text-sm tracking-widest"
-            style={{ fontFamily: "'Georgia', serif" }}
+            className="text-stone-500 text-sm tracking-widest font-cssfont"
           >
             Racconto
           </span>

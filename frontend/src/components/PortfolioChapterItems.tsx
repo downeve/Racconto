@@ -135,11 +135,11 @@ export default function PortfolioChapterItems({
     // 독립 텍스트 블록
     if (item.item_type === 'TEXT' && item.block_type !== 'side-left' && item.block_type !== 'side-right') {
       result.push(
-        <div key={`text-${i}`} className="my-8 text-left max-w-2xl mx-auto" style={{ fontFamily: "'Nanum Myeongjo','Georgia', serif" }}>
+        <div key={`text-${i}`} className="my-8 text-left max-w-2xl mx-auto font-cssfont">
           <MarkdownRenderer
             content={item.text_content || ''}
             darkMode={darkMode}
-            className="leading-[1.9] [word-break:keep-all]"
+            className="leading-[2.1] [word-break:keep-all]"
           />
         </div>
       )
@@ -180,13 +180,13 @@ export default function PortfolioChapterItems({
       )
       const textCol = group.text ? (
         <div
-          className={`min-w-0 flex items-start w-full ${group.blockType === 'side-left' ? 'text-right' : 'text-left'}`}
-          style={{ flex: '2', fontFamily: "'Nanum Myeongjo','Georgia', serif" }}
+          className={`min-w-0 flex items-start w-full font-cssfont ${group.blockType === 'side-left' ? 'text-right' : 'text-left'}`}
+          style={{ flex: '2' }}
         >
           <MarkdownRenderer
             content={group.text.text_content || ''}
             darkMode={darkMode}
-            className="leading-[1.9] [word-break:keep-all] w-full"
+            className="leading-[2.1] [word-break:keep-all] w-full"
           />
         </div>
       ) : null

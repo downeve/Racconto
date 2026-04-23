@@ -19,8 +19,8 @@ export default function MarkdownRenderer({ content, className = '', darkMode = f
         p:      ({ children }) => <p className={`text-base leading-relaxed mb-2 last:mb-0 ${baseText} [&]:text-inherit`}>{children}</p>,
         strong: ({ children }) => <strong className="font-bold">{children}</strong>,
         em:     ({ children }) => <em className="italic">{children}</em>,
-        h1:     ({ children }) => <h1 className={`text-xl font-bold mb-2 ${headingColor}`} style={{ fontFamily: "'Georgia', serif" }}>{children}</h1>,
-        h2:     ({ children }) => <h2 className={`text-lg font-semibold mb-1.5 ${headingColor}`} style={{ fontFamily: "'Georgia', serif" }}>{children}</h2>,
+        h1:     ({ children }) => <h1 className={`text-xl font-bold font-cssfont mb-2 ${headingColor}`}>{children}</h1>,
+        h2:     ({ children }) => <h2 className={`text-lg font-semibold font-cssfont mb-1.5 ${headingColor}`}>{children}</h2>,
         h3:     ({ children }) => <h3 className={`text-base font-semibold mb-1 ${headingColor}`}>{children}</h3>,
         blockquote: ({ children }) => (
           <blockquote className={`border-l-2 pl-4 my-2 italic ${darkMode ? 'border-white/20 text-white/50' : 'border-gray-300 text-gray-500'}`}>

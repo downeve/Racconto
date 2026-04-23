@@ -1523,12 +1523,12 @@ function ProjectStory({
                             <p className={`text-xs tracking-widest uppercase ${subText}`}>
                               {idx + 1 < 10 ? `0${idx + 1}` : idx + 1}
                             </p>
-                            <h3 className={`text-2xl font-bold tracking-tight ${titleColor}`} style={{ fontFamily: "'Georgia', serif" }}>
+                            <h3 className={`text-2xl font-bold font-cssfont tracking-tight ${titleColor}`}>
                               {chapter.title}
                             </h3>
                           </div>
                           {chapter.description && (
-                            <p className={`text-base leading-relaxed max-w-xl mt-2 ${subText}`} style={{ fontFamily: "'Georgia', serif" }}>
+                            <p className={`text-base font-cssfont leading-relaxed max-w-xl mt-2 ${subText}`}>
                               {chapter.description}
                             </p>
                           )}
@@ -1549,12 +1549,12 @@ function ProjectStory({
                                 <p className={`text-xs tracking-widest uppercase ${subText}`}>
                                   {idx + 1}.{subIdx + 1}
                                 </p>
-                                <h4 className={`text-xl font-semibold ${titleColor}`} style={{ fontFamily: "'Georgia', serif" }}>
+                                <h4 className={`text-xl font-semibold font-cssfont ${titleColor}`}>
                                   {sub.title}
                                 </h4>
                               </div>
                               {sub.description && (
-                                <p className={`text-sm leading-relaxed mt-2 max-w-xl ${subText}`} style={{ fontFamily: "'Georgia', serif" }}>
+                                <p className={`text-sm font-cssfont leading-relaxed mt-2 max-w-xl ${subText}`}>
                                   {sub.description}
                                 </p>
                               )}

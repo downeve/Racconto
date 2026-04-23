@@ -244,7 +244,7 @@ export default function Projects() {
       </DndContext>
 
       {projects.length === 0 && (
-        <div className="text-center py-14" style={{ fontFamily: "'Georgia', 'Times New Roman', serif" }}>
+        <div className="text-center py-14 font-cssfont">
           <h1 className="text-2xl md:text-3xl font-bold mb-6 italic text-stone-600 leading-tight break-keep">
           {t('project.noProjects')}
           </h1>
