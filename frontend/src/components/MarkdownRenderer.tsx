@@ -16,7 +16,7 @@ export default function MarkdownRenderer({ content, className = '', darkMode = f
     <ReactMarkdown
       remarkPlugins={[remarkBreaks]}
       components={{
-        p:      ({ children }) => <p className={`text-sm leading-relaxed mb-2 last:mb-0 ${baseText} [&]:text-inherit`}>{children}</p>,
+        p:      ({ children }) => <p className={`text-base leading-relaxed mb-2 last:mb-0 ${baseText} [&]:text-inherit`}>{children}</p>,
         strong: ({ children }) => <strong className="font-bold">{children}</strong>,
         em:     ({ children }) => <em className="italic">{children}</em>,
         h1:     ({ children }) => <h1 className={`text-xl font-bold mb-2 ${headingColor}`} style={{ fontFamily: "'Georgia', serif" }}>{children}</h1>,
