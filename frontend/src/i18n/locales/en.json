@@ -233,6 +233,7 @@
     "attachLeft": "↑ Attach left",
     "attachRight": "↓ Attach right",
     "detach": "Detach",
+    "sideSingleHint": "Single col · in portfolio",
     "toOtherBlock": "Move",
     "toOtherBlockTitle": "Move to",
     "selectPhotos": "Click image to add.",

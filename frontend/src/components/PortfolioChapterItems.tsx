@@ -153,69 +153,25 @@ export default function PortfolioChapterItems({
 
     // Side-by-side 블록
     if (group.type === 'SIDE') {
-      const sideLayout = group.layout
       const sidePhotos = group.photos
-      // side 컬럼 너비 = 전체의 약 3/5 (flex:3 기준)
-      const sideColWidth = (effectiveWidth - 28) * 3 / 5
 
-      let sidePhotoContent: React.ReactNode
-      if (sideLayout === 'single') {
-        sidePhotoContent = (
-          <div className="space-y-2">
-            {sidePhotos.map(photo => (
-              <div key={photo.id} className="break-inside-avoid">
-                <img
-                  src={photo.image_url}
-                  loading="lazy"
-                  className="w-full rounded cursor-pointer hover:opacity-90 transition-opacity block"
-                  onClick={() => onLightbox?.(photo as PortfolioPhoto, allLightboxItems)}
-                />
-                {photo.caption && (
-                  <p className={`text-xs mt-1.5 leading-relaxed ${subText}`}>{photo.caption}</p>
-                )}
-              </div>
-            ))}
-          </div>
-        )
-      } else {
-        const sideCols = sideLayout === 'wide' ? 2 : 3
-        const sideRows: PortfolioChapterItem[][] = []
-        for (let k = 0; k < sidePhotos.length; k += sideCols) {
-          sideRows.push(sidePhotos.slice(k, k + sideCols))
-        }
-        sidePhotoContent = (
-          <div>
-            {sideRows.map((rowPhotos, rowIdx) => {
-              const ratios = rowPhotos.map(p => imageRatios[p.image_url || ''] ?? 1.5)
-              const totalGap = effectiveGap * (rowPhotos.length - 1)
-              const sumRatios = ratios.reduce((a, r) => a + r, 0)
-              const rowHeight = (sideColWidth - totalGap) / sumRatios
-              return (
-                <div key={`side-row-${bid}-${rowIdx}`} style={{ display: 'flex', gap: `${effectiveGap}px`, marginBottom: `${effectiveGap}px` }}>
-                  {rowPhotos.map((photo, j) => (
-                    <div
-                      key={photo.id}
-                      style={{ width: `${rowHeight * ratios[j]}px`, height: `${rowHeight}px`, flexShrink: 0 }}
-                      className="overflow-hidden rounded cursor-pointer"
-                      onClick={() => onLightbox?.(photo as PortfolioPhoto, allLightboxItems)}
-                    >
-                      <img
-                        src={photo.image_url}
-                        loading="lazy"
-                        className="w-full h-full object-cover hover:opacity-90 transition-opacity block"
-                        onLoad={(e) => handleImageLoad(photo.image_url || '', e)}
-                      />
-                      {photo.caption && (
-                        <p className={`text-xs mt-1 leading-relaxed ${subText}`}>{photo.caption}</p>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              )
-            })}
-          </div>
-        )
-      }
+      const sidePhotoContent = (
+        <div className="space-y-2">
+          {sidePhotos.map(photo => (
+            <div key={photo.id} className="break-inside-avoid">
+              <img
+                src={photo.image_url}
+                loading="lazy"
+                className="w-full rounded cursor-pointer hover:opacity-90 transition-opacity block"
+                onClick={() => onLightbox?.(photo as PortfolioPhoto, allLightboxItems)}
+              />
+              {photo.caption && (
+                <p className={`text-xs mt-1.5 leading-relaxed ${subText}`}>{photo.caption}</p>
+              )}
+            </div>
+          ))}
+        </div>
+      )
 
       const photoCol = (
         <div className="min-w-0" style={{ flex: '3' }}>
@@ -224,7 +180,7 @@ export default function PortfolioChapterItems({
       )
       const textCol = group.text ? (
         <div
-          className={`min-w-0 flex items-center w-full ${group.blockType === 'side-left' ? 'text-right' : 'text-left'}`}
+          className={`min-w-0 flex items-start w-full ${group.blockType === 'side-left' ? 'text-right' : 'text-left'}`}
           style={{ flex: '2', fontFamily: "'Georgia', serif" }}
         >
           <MarkdownRenderer
@@ -236,7 +192,7 @@ export default function PortfolioChapterItems({
       ) : null
 
       result.push(
-        <div key={`side-${bid}`} className="flex my-6 items-center" style={{ gap: '28px', maxWidth: '100%' }}>
+        <div key={`side-${bid}`} className="flex my-6 items-start" style={{ gap: '28px', maxWidth: '100%' }}>
           {group.blockType === 'side-right' ? <>{photoCol}{textCol}</> : <>{textCol}{photoCol}</>}
         </div>
       )

@@ -404,36 +404,23 @@ export const SortableSideBySideBlock = memo(function SortableSideBySideBlock({
   blockId, chapterId, items, onRemoveItem, onPhotoClick, onCancelSideBySide,
   // 👇 추가된 props 구조분해 할당
   editingTextItemId,textDraft, onTextDraftChange, onSaveText, onCancelEdit,
-  onEdit, onLayoutChange
+  onEdit
 }: SortableSideBySideBlockProps) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: blockId })
   const style = { transform: CSS.Transform.toString(transform), transition, opacity: isDragging ? 0.5 : 1 }
 
   const blockType = items[0]?.block_type || 'side-left'
-  const blockLayout = items.find(i => i.item_type === 'PHOTO')?.block_layout || 'grid'
   const photoItems = items.filter(i => i.item_type === 'PHOTO')
   const textItem = items.find(i => i.item_type === 'TEXT')
 
   const { t } = useTranslation()
 
-  const layoutLabels: Record<string, string> = { grid: t('portfolio.columnGrid'), wide: t('portfolio.columnWide'), single: t('portfolio.columnSingle') }
-
   const photoCol = (
-  <div className="flex-1 min-w-0 relative group/photo">  {/* relative 추가 */}
-    <div className="absolute -top-2 left-2 opacity-0 group-hover/photo:opacity-100 transition-opacity z-20 flex items-center gap-1 bg-white border border-gray-200 rounded shadow-sm px-1.5 py-0.5">
-      <span className="text-[10px] text-gray-400 mr-1">{t('portfolio.column')}</span>
-      {(['grid', 'wide', 'single'] as const).map(l => (
-        <button
-          key={l}
-          onClick={() => onLayoutChange(blockId, l)}
-          className={`text-[10px] px-1.5 py-0.5 rounded transition-colors ${
-            blockLayout === l ? 'bg-stone-700 text-white' : 'text-gray-500 hover:bg-gray-100'
-          }`}
-        >
-          {layoutLabels[l]}
-        </button>
-      ))}
-      <span className="text-[10px] text-gray-400 mr-1">{t('portfolio.layoutInPort')}</span>
+  <div className="flex-1 min-w-0 relative group/photo">
+    <div className="absolute -top-2 left-2 opacity-0 group-hover/photo:opacity-100 transition-opacity z-20">
+      <span className="text-[10px] text-gray-400 border border-gray-200 rounded px-1.5 py-0.5 bg-white">
+        {t('story.sideSingleHint')}
+      </span>
     </div>
       <div className="grid grid-cols-2 gap-2">
         {photoItems.map(item => (
