@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, memo } from 'react'
 import { useTranslation } from 'react-i18next'
 import PhotoNotePanel from './PhotoNotePanel'
 
@@ -105,7 +105,16 @@ export function Lightbox({
     }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
-  }, [photo, photos])
+  }, [photo, photos, onClose, onNavigate, idx])
+
+  useEffect(() => {
+    const preload = (url: string) => {
+      const img = new Image()
+      img.src = url
+    }
+    if (idx > 0) preload(photos[idx - 1].image_url)
+    if (idx < photos.length - 1) preload(photos[idx + 1].image_url)
+  }, [idx, photos])
 
   const getAssignedChapterInfo = () => {
     const assignedChapterId = photoChapterMap.get(photo.id)
@@ -334,7 +343,7 @@ interface PhotoCardProps {
   onToggleSelect: (id: string) => void
 }
 
-export function PhotoCard({
+export const PhotoCard = memo(function PhotoCard({
   photo, project, onSetCover, onDelete, onSetRating, onSetColorLabel,
   onOpenLightbox, showExif, gridCols, colorLabels, chapterPhotoIds,
   selectionMode, isSelected, onToggleSelect
@@ -481,4 +490,4 @@ export function PhotoCard({
       </div>
     </div>
   )
-}
+})

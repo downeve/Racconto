@@ -612,11 +612,11 @@ export default function ProjectDetail({
 
   const webTrashPhotos = useMemo(
     () => trashedPhotos.filter(p => canHardDelete(p)),
-    [trashedPhotos, isElectron]
+    [trashedPhotos, isElectron, isProjectFolderLinked]
   )
   const localTrashPhotos = useMemo(
     () => trashedPhotos.filter(p => !canHardDelete(p)),
-    [trashedPhotos, isElectron]
+    [trashedPhotos, isElectron, isProjectFolderLinked]
   )
 
   const handleDeleteAllTrash = () => {
@@ -709,22 +709,23 @@ export default function ProjectDetail({
     if (filterFolder !== null && photo.folder !== filterFolder) return false
     if (filterHasNote && !photoNoteIds.has(photo.id)) return false
     return true
-  }).sort((a, b) => {
+  }).map(photo => ({
+    photo,
+    takenAtMs: photo.taken_at ? new Date(photo.taken_at).getTime() : null
+  })).sort((a, b) => {
     let result = 0
     if (sortBy === 'taken_at') {
-      if (!a.taken_at && !b.taken_at) result = 0
-      else if (!a.taken_at) result = 1
-      else if (!b.taken_at) result = -1
-      else result = new Date(a.taken_at).getTime() - new Date(b.taken_at).getTime()
+      if (a.takenAtMs === null && b.takenAtMs === null) result = 0
+      else if (a.takenAtMs === null) result = 1
+      else if (b.takenAtMs === null) result = -1
+      else result = a.takenAtMs - b.takenAtMs
     } else if (sortBy === 'name') {
-      const nameA = a.original_filename || ''
-      const nameB = b.original_filename || ''
-      result = nameA.localeCompare(nameB)
+      result = (a.photo.original_filename || '').localeCompare(b.photo.original_filename || '')
     } else {
-      result = (a.order ?? 0) - (b.order ?? 0)
+      result = (a.photo.order ?? 0) - (b.photo.order ?? 0)
     }
     return sortOrder === 'desc' ? -result : result
-  }), [photos, filterRating, filterColor, filterFolder, filterHasNote, photoNoteIds, sortBy, sortOrder])
+  }).map(item => item.photo), [photos, filterRating, filterColor, filterFolder, filterHasNote, photoNoteIds, sortBy, sortOrder])
 
   const missingCount = photos.filter(p => p.local_missing && !p.deleted_at).length;
 
@@ -746,11 +747,12 @@ export default function ProjectDetail({
         photo_ids: Array.from(selectedPhotoIds)
       })
       // 성공 후 상태 초기화 및 새로고침
+      const count = selectedPhotoIds.size
       setSelectionMode(false)
       setSelectedPhotoIds(new Set())
       setShowBulkChapterMenu(false)
       await fetchChapterPhotoIds()
-      showToast(t('story.addMultiplePhotoSuccess', {count: selectedPhotoIds.size}), 'success')
+      showToast(t('story.addMultiplePhotoSuccess', { count }), 'success')
     } catch (error) {
       console.error("일괄 추가 실패", error)
       showToast('챕터 추가에 실패했습니다.', 'error')
