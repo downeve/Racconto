@@ -16,7 +16,11 @@ export default function MarkdownRenderer({ content, className = '', darkMode = f
     <ReactMarkdown
       remarkPlugins={[remarkBreaks]}
       components={{
-        p:      ({ children }) => <p className={`text-base leading-relaxed mb-2 last:mb-0 ${baseText} [&]:text-inherit`}>{children}</p>,
+        p: ({ children }) => {
+          const isEmpty = !children || (Array.isArray(children) && children.every(c => c === ''))
+          if (isEmpty) return <div className="h-4" />
+          return <p className={`text-base leading-relaxed mb-4 last:mb-0 ${baseText}`}>{children}</p>
+        },
         strong: ({ children }) => <strong className="font-bold">{children}</strong>,
         em:     ({ children }) => <em className="italic">{children}</em>,
         h1:     ({ children }) => <h1 className={`text-xl font-bold font-cssfont mb-2 ${headingColor}`}>{children}</h1>,
