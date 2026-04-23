@@ -135,8 +135,12 @@ export default function PortfolioChapterItems({
     // 독립 텍스트 블록
     if (item.item_type === 'TEXT' && item.block_type !== 'side-left' && item.block_type !== 'side-right') {
       result.push(
-        <div key={`text-${i}`} className="my-8 text-center italic">
-          <MarkdownRenderer content={item.text_content || ''} darkMode={darkMode} className="text-base leading-[1.9] [word-break:keep-all]" />
+        <div key={`text-${i}`} className="my-8 text-center italic" style={{ fontFamily: "'Georgia', serif" }}>
+          <MarkdownRenderer
+            content={item.text_content || ''}
+            darkMode={darkMode}
+            className="leading-[1.9] [word-break:keep-all]"
+          />
         </div>
       )
       return
@@ -221,9 +225,13 @@ export default function PortfolioChapterItems({
       const textCol = group.text ? (
         <div
           className={`min-w-0 flex items-center italic w-full ${group.blockType === 'side-left' ? 'text-right' : 'text-left'}`}
-          style={{ flex: '2' }}
+          style={{ flex: '2', fontFamily: "'Georgia', serif" }}
         >
-          <MarkdownRenderer content={group.text.text_content || ''} darkMode={darkMode} className="text-base leading-[1.9] [word-break:keep-all] w-full" />
+          <MarkdownRenderer
+            content={group.text.text_content || ''}
+            darkMode={darkMode}
+            className="leading-[1.9] [word-break:keep-all] w-full"
+          />
         </div>
       ) : null
 
