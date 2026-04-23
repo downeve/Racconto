@@ -194,7 +194,7 @@ export default function PortfolioChapterItems({
       ) : null
 
       result.push(
-        <div key={`side-${bid}`} className="flex my-6 items-start" style={{ gap: '28px', maxWidth: '100%' }}>
+        <div key={`side-${bid}`} className="flex my-6 items-center" style={{ gap: '28px', maxWidth: '100%' }}>
           {group.blockType === 'side-right' ? <>{photoCol}{textCol}</> : <>{textCol}{photoCol}</>}
         </div>
       )
