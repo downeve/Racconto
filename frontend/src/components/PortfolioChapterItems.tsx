@@ -135,7 +135,7 @@ export default function PortfolioChapterItems({
     // 독립 텍스트 블록
     if (item.item_type === 'TEXT' && item.block_type !== 'side-left' && item.block_type !== 'side-right') {
       result.push(
-        <div key={`text-${i}`} className="my-8 text-left" style={{ fontFamily: "'Georgia', serif" }}>
+        <div key={`text-${i}`} className="my-8 text-left max-w-2xl mx-auto" style={{ fontFamily: "'Georgia', serif" }}>
           <MarkdownRenderer
             content={item.text_content || ''}
             darkMode={darkMode}
