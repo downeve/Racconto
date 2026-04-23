@@ -135,7 +135,7 @@ export default function PortfolioChapterItems({
     // 독립 텍스트 블록
     if (item.item_type === 'TEXT' && item.block_type !== 'side-left' && item.block_type !== 'side-right') {
       result.push(
-        <div key={`text-${i}`} className="my-8 text-left max-w-2xl mx-auto" style={{ fontFamily: "'Georgia', serif" }}>
+        <div key={`text-${i}`} className="my-8 text-left max-w-2xl mx-auto" style={{ fontFamily: "'Nanum Myeongjo','Georgia', serif" }}>
           <MarkdownRenderer
             content={item.text_content || ''}
             darkMode={darkMode}
@@ -181,7 +181,7 @@ export default function PortfolioChapterItems({
       const textCol = group.text ? (
         <div
           className={`min-w-0 flex items-start w-full ${group.blockType === 'side-left' ? 'text-right' : 'text-left'}`}
-          style={{ flex: '2', fontFamily: "'Georgia', serif" }}
+          style={{ flex: '2', fontFamily: "'Nanum Myeongjo','Georgia', serif" }}
         >
           <MarkdownRenderer
             content={group.text.text_content || ''}
