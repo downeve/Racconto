@@ -29,7 +29,7 @@ export default function PublicNavbar() {
           </Link>
           <button
             onClick={toggleLanguage}
-            className="text-small font-semibold text-faint hover:text-ink-2 tracking-widest transition-colors"
+            className="text-small font-semibold text-faint hover:text-ink-2 hover:underline tracking-widest transition-colors"
           >
             {i18n.language === 'ko' ? 'EN' : 'KO'}
           </button>

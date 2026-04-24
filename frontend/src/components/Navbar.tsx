@@ -53,18 +53,18 @@ export default function Navbar({ onLogout }: NavbarProps) {
 
   if (isMobileDevice) {
     return (
-      <nav className="fixed top-0 left-0 right-0 z-[60] bg-[#F7F4F0]/90 backdrop-blur-sm border-b border-stone-200 text-stone-900">
+      <nav className="fixed top-0 left-0 right-0 z-[60] bg-canvas/90 backdrop-blur-sm border-b border-stone-200 text-stone-900">
         <div className="px-4 h-14 flex items-center justify-between">
           <Link
             to="/"
-            className="font-h3 font-sans tracking-widest"
+            className="text-body font-serif text-ink tracking-widest"
             style={{ letterSpacing: '0.15em' }}
           >
             Racconto
           </Link>
           <button
             onClick={onLogout}
-            className="text-sm tracking-wider text-stone-400 hover:text-stone-900"
+            className="text-small tracking-wider text-faint hover:text-accent hover:underline"
           >
             {t('auth.logout')}
           </button>
@@ -84,7 +84,7 @@ export default function Navbar({ onLogout }: NavbarProps) {
       >
         <Link
           to="/"
-          className="text-xl font-bold tracking-widest"
+          className="font-serif font-bold text-h3 text-ink tracking-widest"
           style={{ letterSpacing: '0.15em', WebkitAppRegion: 'no-drag' } as React.CSSProperties}
         >
           Racconto
@@ -93,24 +93,24 @@ export default function Navbar({ onLogout }: NavbarProps) {
           className="flex gap-6 items-center"
           style={{ WebkitAppRegion: 'no-drag' } as React.CSSProperties}
         >
-          <Link to="/projects" className="text-sm tracking-wider text-stone-600 hover:text-stone-900">{t('nav.projects')}</Link>
+          <Link to="/projects" className="text-body tracking-wider text-ink-2 hover:text-accent hover:underline">{t('nav.projects')}</Link>
           <button
             onClick={handlePortfolioClick}
-            className="text-sm tracking-wider text-stone-600 hover:text-stone-900"
+            className="text-body tracking-wider text-ink-2 hover:text-accent hover:underline"
           >
             {t('nav.portfolio')}
           </button>
-          <Link to="/trash" className="text-sm tracking-wider text-stone-600 hover:text-stone-900">{t('nav.trash')}</Link>
-          <Link to="/settings" className="text-sm tracking-wider text-stone-600 hover:text-stone-900">{t('nav.settings')}</Link>
+          <Link to="/trash" className="text-body tracking-wider text-ink-2 hover:text-ink">{t('nav.trash')}</Link>
+          <Link to="/settings" className="text-body tracking-wider text-ink-2 hover:text-ink">{t('nav.settings')}</Link>
           <button
             onClick={toggleLanguage}
-            className="text-sm font-bold text-stone-400 hover:text-stone-700 transition-colors"
+            className="text-small font-bold text-faint hover:text-ink-2 hover:underline transition-colors"
           >
             {i18n.language === 'ko' ? 'EN' : 'KO'}
           </button>
           <button
             onClick={onLogout}
-            className="text-sm tracking-wider text-stone-400 hover:text-stone-900"
+            className="text-small tracking-wider text-muted hover:text-accent hover:underline"
           >
             {t('auth.logout')}
           </button>
