@@ -65,7 +65,7 @@ export default function Register() {
       <div className="flex-1 flex items-center justify-center px-4 py-20">
         {success ? (
           // --- 회원가입 성공 (이메일 인증 대기) 화면 ---
-          <div className="bg-white rounded-lg shadow p-8 w-full max-w-sm text-center">
+          <div className="bg-white rounded-card shadow p-8 w-full max-w-sm text-center">
             <h1 className="text-2xl font-bold tracking-widest mb-6 font-serif">Racconto</h1>
             <p className="text-sm text-gray-600 mb-2">{t('register.success.title')}</p>
             <p className="text-sm text-gray-600 mb-6">{t('register.success.desc')}</p>
@@ -86,26 +86,26 @@ export default function Register() {
           </div>
         ) : (
           // --- 회원가입 입력 폼 화면 ---
-          <div className="bg-white rounded-lg shadow p-8 w-full max-w-sm">
+          <div className="bg-white rounded-card shadow p-8 w-full max-w-sm">
             <h1 className="text-2xl font-bold text-center mb-8 tracking-widest font-serif">Racconto</h1>
             <div className="space-y-4">
               <input
                 type="email"
-                className="w-full border rounded px-3 py-2 text-sm"
+                className="w-full border px-3 py-2 text-sm rounded-card"
                 placeholder={t('register.email')}
                 value={email}
                 onChange={e => setEmail(e.target.value)}
               />
               <input
                 type="password"
-                className="w-full border rounded px-3 py-2 text-sm"
+                className="w-full border px-3 py-2 text-sm rounded-card"
                 placeholder={t('register.password')}
                 value={password}
                 onChange={e => setPassword(e.target.value)}
               />
               <input
                 type="password"
-                className="w-full border rounded px-3 py-2 text-sm"
+                className="w-full border px-3 py-2 text-sm rounded-card"
                 placeholder={t('register.passwordConfirm')}
                 value={passwordConfirm}
                 onChange={e => setPasswordConfirm(e.target.value)}
@@ -115,7 +115,7 @@ export default function Register() {
               <button
                 onClick={handleSubmit}
                 disabled={loading}
-                className="w-full bg-stone-600 text-white px-4 py-2 text-sm tracking-wider hover:bg-stone-900 transition-colors rounded"
+                className="w-full rounded-btn bg-stone-600 text-white px-4 py-2 text-sm tracking-wider hover:bg-stone-900 transition-colors"
               >
                 {loading ? t('register.processing') : t('register.submit')}
               </button>

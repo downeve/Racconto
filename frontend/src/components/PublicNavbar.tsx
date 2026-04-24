@@ -11,11 +11,11 @@ export default function PublicNavbar() {
   }
 
   return (
-    <nav className="fixed top-0 left-0 right-0 z-50 bg-[#F7F4F0]/90 backdrop-blur-sm border-b border-stone-200">
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 h-14 flex items-center justify-between">
+    <nav className="fixed top-0 left-0 right-0 z-50 bg-canvas/90 backdrop-blur-sm border-b border-stone-200">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 h-14 flex items-center justify-between">
         <Link
           to="/"
-          className="text-xl font-bold font-cssfont tracking-widest"
+          className="font-serif font-bold text-h3 text-ink tracking-widest"
           style={{ letterSpacing: '0.15em' }}
         >
           Racconto
@@ -23,25 +23,25 @@ export default function PublicNavbar() {
         <div className="flex items-center gap-3 sm:gap-6">
           <Link
             to="/features"
-            className="text-xs sm:text-sm tracking-wider text-stone-600 hover:text-stone-900 transition-colors"
+            className="text-body sm:text-sm tracking-wider text-ink-2 hover:text-accent hover:underline transition-colors"
           >
             {t('nav.features')}
           </Link>
           <button
             onClick={toggleLanguage}
-            className="text-xs font-bold text-stone-400 hover:text-stone-700 tracking-widest transition-colors"
+            className="text-small font-semibold text-faint hover:text-ink-2 tracking-widest transition-colors"
           >
             {i18n.language === 'ko' ? 'EN' : 'KO'}
           </button>
           <Link
             to="/login"
-            className="hidden sm:inline-flex text-xs sm:text-sm tracking-wider text-stone-600 hover:text-stone-900 transition-colors"
+            className="hidden sm:inline-flex text-body sm:text-small tracking-wider text-ink-2 hover:text-accent hover:underline transition-colors"
           >
             {t('auth.login')}
           </Link>
           <Link
             to="/register"
-            className="hidden sm:inline-flex text-xs sm:text-sm tracking-wider bg-stone-900 text-white px-3 py-1.5 sm:px-4 sm:py-2 hover:bg-stone-700 transition-colors rounded whitespace-nowrap"
+            className="hidden sm:inline-flex tracking-wider text-small btn-primary transition-colors whitespace-nowrap"
           >
             {t('auth.register')}
           </Link>

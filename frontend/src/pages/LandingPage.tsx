@@ -20,7 +20,7 @@ export default function LandingPage() {
       title: t('landing.feature1Title'),
       desc: t('landing.feature1Desc'),
       visual: (
-        <div className="w-full h-64 rounded overflow-hidden shadow-md relative">
+        <div className="w-full h-64 rounded overflow-hidden shadow relative">
           <div
             className="w-full"
             style={{
@@ -41,7 +41,7 @@ export default function LandingPage() {
       title: t('landing.feature5Title'),
       desc: t('landing.feature5Desc'),
       visual: (
-        <div className="w-full h-64 rounded overflow-hidden shadow-md">
+        <div className="w-full h-64 rounded overflow-hidden shadow">
           <img
             src="./screenshots/screenshot-electron-1.webp"
             alt="Desktop app"
@@ -55,7 +55,7 @@ export default function LandingPage() {
       title: t('landing.feature4Title'),
       desc: t('landing.feature4Desc'),
       visual: (
-        <div className="w-full h-64 rounded overflow-hidden shadow-md">
+        <div className="w-full h-64 rounded overflow-hidden shadow">
           <img
             src="./screenshots/screenshot-notes.webp"
             alt="Project notes"
@@ -69,7 +69,7 @@ export default function LandingPage() {
       title: t('landing.feature2Title'),
       desc: t('landing.feature2Desc'),
       visual: (
-        <div className="w-full h-64 rounded overflow-hidden shadow-md">
+        <div className="w-full h-64 rounded overflow-hidden shadow">
           <img
             src="./screenshots/screenshot-photos.webp"
             alt="Photo curation workflow"
@@ -83,7 +83,7 @@ export default function LandingPage() {
       title: t('landing.feature3Title'),
       desc: t('landing.feature3Desc'),
       visual: (
-        <div className="w-full h-64 rounded overflow-hidden shadow-md">
+        <div className="w-full h-64 rounded overflow-hidden shadow">
           <img
             src="./screenshots/screenshot-portfolio.webp"
             alt="Public portfolio"
@@ -95,7 +95,7 @@ export default function LandingPage() {
   ]
 
   return (
-    <div className="min-h-screen bg-[#F7F4F0] text-stone-900 font-cssfont">
+    <div className="min-h-screen bg-canvas text-ink">
 
       {/* ─── 아래 스타일 코드를 추가하세요 ─── */}
       <style>{`
@@ -122,82 +122,83 @@ export default function LandingPage() {
           }}
         />
 
-        {/* 떠다니는 사진 프레임 장식 */}
-        <div className="absolute top-32 left-8 md:left-24 w-28 h-36 bg-white shadow-lg rounded-sm rotate-[-6deg] opacity-60"
+        {/* 떠다니는 사진 프레임 장식
+        <div className="absolute top-32 left-8 md:left-24 w-28 h-36 bg-white shadow rounded-sm rotate-[-6deg] opacity-60"
           style={{ transform: `rotate(-6deg) translateY(${scrollY * 0.05}px)` }}>
           <div className="w-full h-full bg-white/60 rounded-sm border border-stone-200" />
         </div>
-        <div className="absolute top-40 right-8 md:right-24 w-24 h-32 bg-white shadow-lg rounded-sm rotate-[4deg] opacity-50"
+        <div className="absolute top-40 right-8 md:right-24 w-24 h-32 bg-white shadow rounded-sm rotate-[4deg] opacity-50"
           style={{ transform: `rotate(4deg) translateY(${scrollY * 0.08}px)` }}>
           <div className="w-full h-full bg-stone-300 rounded-sm" />
         </div>
-        <div className="absolute bottom-32 left-12 md:left-40 w-20 h-28 bg-white shadow-md rounded-sm rotate-[3deg] opacity-40"
+        <div className="absolute bottom-32 left-12 md:left-40 w-20 h-28 bg-white shadow rounded-sm rotate-[3deg] opacity-40"
           style={{ transform: `rotate(3deg) translateY(${scrollY * 0.06}px)` }}>
           <div className="w-full h-full bg-stone-200 rounded-sm" />
         </div>
-        <div className="absolute bottom-40 right-12 md:right-40 w-32 h-40 bg-white shadow-md rounded-sm rotate-[-3deg] opacity-35"
+        <div className="absolute bottom-40 right-12 md:right-40 w-32 h-40 bg-white shadow rounded-sm rotate-[-3deg] opacity-35"
           style={{ transform: `rotate(-3deg) translateY(${scrollY * 0.04}px)` }}>
           <div className="w-full h-full bg-white/60 rounded-sm border border-stone-200" />
         </div>
+         */}
 
         {/* 메인 텍스트 */}
         <div className="relative z-10 text-center max-w-3xl">
-          <p className="text-xl tracking-[0.3em] text-stone-400 uppercase mb-6">
+          <p className="text-xl tracking-[0.3em] text-faint uppercase mb-6">
             {t('landing.heroEyebrow')}
           </p>
           <h1
-            className="text-5xl md:text-7xl font-bold font-cssfont leading-tight mb-6 text-stone-900 break-keep"
+            className="text-5xl md:text-7xl font-bold leading-tight mb-6 text-ink break-keep"
             style={{ letterSpacing: '-0.02em' }}
           >
             {t('landing.heroTitle')}
           </h1>
           <h1
-            className="text-5xl md:text-7xl font-bold font-cssfont leading-tight mb-6 text-stone-900 break-keep"
+            className="text-5xl md:text-7xl font-bold leading-tight mb-6 text-ink break-keep"
             style={{ letterSpacing: '-0.02em' }}
           >
             {t('landing.heroTitle2')}
           </h1>
-          <p className="font-cssfont text-lg md:text-xl text-stone-500 leading-relaxed mb-10 max-w-xl mx-auto break-keep"
+          <p className="text-lg md:text-xl text-muted leading-relaxed mb-10 max-w-xl mx-auto break-keep"
             style={{ fontStyle: 'italic' }}>
             {t('landing.heroSubtitle')}
           </p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
             <Link
               to="/register"
-              className="px-8 py-3.5 bg-stone-900 text-white text-sm tracking-widest hover:bg-stone-700 transition-all duration-200 shadow-lg rounded"
+              className="px-8 py-3.5 bg-card text-ink text-base tracking-widest hover:bg-ink-2 hover:text-hair transition-all duration-200 shadow rounded"
             >
               {t('landing.ctaPrimary')}
             </Link>
             <button
               onClick={() => featuresRef.current?.scrollIntoView({ behavior: 'smooth' })}
-              className="px-8 py-3.5 border border-stone-300 text-stone-600 text-sm tracking-widest hover:border-stone-500 hover:text-stone-900 transition-all duration-200 rounded"
+              className="px-8 py-3.5 bg-ink-2 text-hair text-base tracking-widest hover:bg-card hover:text-ink transition-all duration-200 rounded"
             >
               {t('landing.ctaSecondary')}
             </button>
           </div>
-          <p className="mt-6 text-xs text-stone-400 tracking-wider">
+          <p className="mt-6 text-base text-muted tracking-wider">
             {t('landing.betaBadge')}
           </p>
         </div>
 
         {/* 스크롤 힌트 */}
         <div className="absolute bottom-10 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 opacity-40">
-          <div className="w-px h-12 bg-stone-400 animate-pulse" />
+          <div className="w-px h-12 bg-faint animate-pulse" />
         </div>
       </section>
 
       {/* App Demo */}
-      <section className="py-16 px-6 bg-[#F7F4F0]">
+      <section className="py-16 px-6 bg-canvas">
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-10">
             <p className="text-xs tracking-[0.3em] text-stone-400 uppercase mb-3">{t('landing.demoEyebrow')}</p>
-            <h2 className="text-2xl md:text-3xl font-bold text-stone-900 font-cssfont">
+            <h2 className="text-2xl md:text-3xl font-bold text-ink">
               {t('landing.demoTitle')}
             </h2>
           </div>
 
           {/* 메인 스크린샷 */}
-          <div className="rounded-lg overflow-hidden shadow-xl border border-stone-200 mb-6">
+          <div className="rounded-card overflow-hidden shadow border border-hair mb-6">
             <img
               src="./screenshots/screenshot-main.webp"
               alt="Racconto app"
@@ -207,14 +208,14 @@ export default function LandingPage() {
 
           {/* 서브 스크린샷 2개 */}
           <div className="grid grid-cols-2 gap-4">
-            <div className="rounded-lg overflow-hidden shadow-md border border-stone-200">
+            <div className="rounded-card overflow-hidden shadow border border-hair">
               <img
                 src="./screenshots/screenshot-lightbox.webp"
                 alt="Lightbox view"
                 className="w-full object-cover"
               />
             </div>
-            <div className="rounded-lg overflow-hidden shadow-md border border-stone-200">
+            <div className="rounded-card overflow-hidden shadow border border-hair">
               <img
                 src="./screenshots/screenshot-note-panel.webp"
                 alt="Note panel"
@@ -226,11 +227,11 @@ export default function LandingPage() {
       </section>
 
       {/* Features */}
-      <section ref={featuresRef} className="py-24 px-6 bg-white">
+      <section ref={featuresRef} className="py-24 px-6 bg-canvas-2">
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-16">
-            <p className="text-sm tracking-[0.3em] text-stone-400 uppercase mb-3">{t('landing.featuresEyebrow')}</p>
-            <h2 className="text-3xl md:text-4xl font-bold text-stone-900 font-cssfont">
+            <p className="text-sm tracking-[0.3em] text-faint uppercase mb-3">{t('landing.featuresEyebrow')}</p>
+            <h2 className="text-3xl md:text-4xl font-bold text-ink">
               {t('landing.featuresTitle')}
             </h2>
           </div>
@@ -241,12 +242,12 @@ export default function LandingPage() {
                 {feature.visual}
                 <div className="mt-5">
                   <div className="flex items-baseline gap-3 mb-2">
-                    <span className="text-xs text-stone-300 font-mono tracking-widest">{feature.number}</span>
-                    <h3 className="text-lg font-semibold text-stone-900 font-cssfont">
+                    <span className="text-xs text-faint font-mono tracking-widest">{feature.number}</span>
+                    <h3 className="text-lg font-semibold text-ink">
                       {feature.title}
                     </h3>
                   </div>
-                  <p className="text-sm text-stone-500 leading-relaxed pl-7">{feature.desc}</p>
+                  <p className="text-sm text-muted leading-relaxed pl-7">{feature.desc}</p>
                 </div>
               </div>
             ))}
@@ -255,27 +256,27 @@ export default function LandingPage() {
       </section>
 
       {/* Beta CTA */}
-      <section className="py-24 px-6 bg-stone-900 text-white">
+      <section className="py-24 px-6 bg-ink text-white">
         <div className="max-w-2xl mx-auto text-center">
-          <p className="text-xs tracking-[0.3em] text-stone-400 uppercase mb-4">{t('landing.betaEyebrow')}</p>
-          <h2 className="text-3xl md:text-4xl font-bold font-cssfont mb-4">
+          <p className="text-base tracking-[0.3em] text-faint uppercase mb-4">{t('landing.betaEyebrow')}</p>
+          <h2 className="text-2xl md:text-4xl font-semibold mb-4">
             {t('landing.betaTitle')}
           </h2>
-          <p className="text-stone-400 mb-2 text-sm leading-relaxed">
+          <p className="text-faint mb-2 text-sm leading-relaxed">
             {t('landing.betaDesc')}
           </p>
-          <p className="text-stone-500 mb-10 text-xs">
+          <p className="text-faint mb-10 text-xs">
             {t('landing.betaLimit')}
           </p>
           <Link
             to="/register"
-            className="inline-block px-10 py-4 bg-white text-stone-900 text-sm tracking-widest font-semibold hover:bg-stone-100 transition-colors rounded"
+            className="inline-block px-10 py-4 bg-card text-ink-2 text-sm tracking-widest font-semibold hover:bg-ink-2 hover:text-hair transition-colors rounded"
           >
             {t('landing.ctaPrimary')}
           </Link>
-          <p className="mt-6 text-xs text-stone-500">
+          <p className="mt-6 text-xs text-faint">
             {t('landing.alreadyHaveAccount')}{' '}
-            <Link to="/login" className="text-stone-300 hover:text-white underline underline-offset-2">
+            <Link to="/login" className="text-hair hover:text-muted underline underline-offset-2">
               {t('auth.login')}
             </Link>
           </p>
@@ -283,12 +284,12 @@ export default function LandingPage() {
       </section>
 
       {/* Footer */}
-      <footer className="py-8 px-6 bg-stone-900 border-t border-stone-800">
+      <footer className="py-8 px-6 bg-ink border-t border-hair">
         <div className="max-w-6xl mx-auto flex items-center justify-between">
-          <span className="text-stone-500 text-sm tracking-widest font-cssfont">
+          <span className="text-ink text-sm tracking-widest">
             Racconto
           </span>
-          <p className="text-stone-600 text-xs">© 2026 Racconto. All rights reserved.</p>
+          <p className="text-muted text-xs">© 2026 Racconto. All rights reserved.</p>
         </div>
       </footer>
     </div>

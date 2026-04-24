@@ -139,19 +139,19 @@ export default function PublicPortfolio() {
     return () => window.removeEventListener('keydown', handleKeyDown)
   }, [lightboxIndex, lightboxItems])
 
-  const bg = darkMode ? 'bg-[#1A1A1A] text-white' : 'bg-[#F5F0EB] text-gray-900'
-  const subText = darkMode ? 'text-gray-400' : 'text-gray-500'
+  const bg = darkMode ? 'bg-[#18140F] text-hair' : 'bg-canvas text-ink'
+  const subText = darkMode ? 'text-faint' : 'text-muted'
 
   // 케이스 1: 먼저 사용자가 포트폴리오 설정을 안 했을 때 (@setup) 인지 확인합니다.
   if (username === '@setup' || !username) {
     return (
-      <div className={`min-h-screen pt-14 flex flex-col ${darkMode ? 'bg-stone-900 text-white' : 'bg-[#F7F4F0] text-stone-900'}`}>
+      <div className={`min-h-screen pt-14 flex flex-col ${darkMode ? 'bg-ink text-hair' : 'bg-canvas text-ink'}`}>
         <main className="flex-1 flex items-center justify-center px-6 pb-32">
           <div className="text-center">
-            <h2 className="text-2xl font-bold font-cssfont mb-3">
+            <h2 className="text-2xl text-ink-2 font-bold mb-3">
               {t('portfolio.startMessage')}
             </h2>
-            <p className="text-stone-600 break-keep leading-relaxed text-sm">
+            <p className="text-ink-2 break-keep leading-relaxed text-sm">
               {t('portfolio.startMessage2')}
             </p>
           </div>
@@ -163,13 +163,13 @@ export default function PublicPortfolio() {
   // 케이스 2: _setup이 아닌데 못 찾았을 때 (진짜 에러 화면)
   if (notFound) {
     return (
-      <div className={`fixed inset-0 z-[100] flex flex-col ${darkMode ? 'bg-stone-900 text-white' : 'bg-[#F7F4F0] text-stone-900'}`}>
+      <div className={`fixed inset-0 z-[100] flex flex-col ${darkMode ? 'bg-ink text-hair' : 'bg-canvas text-ink'}`}>
         {/* 단순화된 헤더 (로고만 표시) */}
-        <nav className="w-full bg-[#F7F4F0] border-b border-stone-200 text-stone-900 shrink-0">
+        <nav className="w-full bg-canvas border-b border-hair text-ink shrink-0">
           <div className="max-w-4xl mx-auto px-6 h-14 flex items-center justify-between">
             <Link 
               to="/" 
-              className="text-xl font-bold font-cssfont tracking-widest" 
+              className="text-xl font-bold tracking-widest" 
               style={{ letterSpacing: '0.15em' }}
             >
               Racconto
@@ -178,7 +178,7 @@ export default function PublicPortfolio() {
         </nav>
         <main className="flex-1 flex items-center justify-center px-6 pb-32">
           <div className="text-center">
-            <p className="text-gray-500">@{username}{t('portfolio.noUser')}</p>
+            <p className="text-muted">@{username}{t('portfolio.noUser')}</p>
           </div>
         </main>
       </div>
@@ -190,20 +190,20 @@ export default function PublicPortfolio() {
     {/* [수정된 부분] 로그아웃 상태일 때 보여주는 헤더를 fixed로 띄워 상단 빈 공간을 덮어버립니다. 라이트박스 띄울 때 헤더 밑으로 숨기기 z-60에서 z-30으로 조정*/}
       {!isAuthenticated && (
         <nav className={`fixed top-0 left-0 right-0 z-[30] border-b backdrop-blur-md transition-colors duration-300 ${
-          darkMode ? 'bg-[#1A1A1A]/90 border-white/10' : 'bg-[#F5F0EB]/90 border-gray-200'
+          darkMode ? 'bg-#18140F/90 border-hair/10' : 'bg-canvas/90 border-hair'
         }`}>
           <div className="max-w-4xl mx-auto px-6 h-14 flex items-center justify-between">
             {/* Navbar.tsx와 동일한 텍스트 크기(text-xl)와 자간(0.15em) 적용 */}
             <Link 
               to="/" 
-              className={`text-xl font-bold font-cssfont tracking-widest ${darkMode ? 'text-white' : 'text-gray-900'}`}
+              className={`text-xl font-bold tracking-widest ${darkMode ? 'text-hair' : 'text-ink'}`}
               style={{ letterSpacing: '0.15em' }}
             >
               Racconto
             </Link>
             <Link
               to={`/p/${username}`}
-              className={`text-sm ${darkMode ? 'text-gray-400 hover:text-white' : 'text-gray-500 hover:text-gray-900'}`}
+              className={`text-sm ${darkMode ? 'text-faint hover:text-hair' : 'text-muted hover:text-ink'}`}
             >
               @{username}
             </Link>
@@ -218,18 +218,18 @@ export default function PublicPortfolio() {
             {selectedProject && (
               <button
                 onClick={() => setSelectedProject(null)}
-                className={`text-sm ${subText} hover:text-current`}
+                className={`text-xs ${subText} hover:text-current`}
               >
                 {t('nav.backToList')}
               </button>
             )}
-            <h2 className={`text-2xl font-bold tracking-wide mb-2 ${darkMode ? 'text-white' : 'text-gray-900'}`}>
+            <h2 className={`text-2xl font-bold tracking-wide mb-2 ${darkMode ? 'text-hair' : 'text-ink'}`}>
               {selectedProject ? selectedProject.title : `@${username}`}
             </h2>
           </div>
           <button
             onClick={() => setDarkMode(!darkMode)}
-            className={`px-3 py-1 text-xs rounded-full border ${darkMode ? 'border-gray-600 text-gray-400' : 'border-gray-300 text-gray-500'}`}
+            className={`px-3 py-1 text-xs rounded-btn border ${darkMode ? 'border-ink-2 text-faint' : 'border-faint text-muted'}`}
           >
             {darkMode ? '☀️ ' + t('settings.themeBeige') : '🌙 ' + t('settings.themeDark')}
           </button>
@@ -239,10 +239,10 @@ export default function PublicPortfolio() {
           <div className="grid gap-8" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))' }}>
             {projects.map(project => (
               <div key={project.id} className="cursor-pointer group" onClick={() => openProject(project)}>
-                <div className="overflow-hidden rounded-sm">
+                <div className="overflow-hidden rounded-card">
                   {project.cover_image_url ? (
                     <img src={project.cover_image_url} alt={project.title}
-                      className="w-full h-56 object-cover group-hover:scale-[1.02] transition-transform duration-500" />
+                      className="w-full h-56 object-cover group-hover:duration-300 ease-out brightness(0.98→1.0) transition-transform" />
                   ) : (
                     <div className={`w-full h-56 flex items-center justify-center ${darkMode ? 'bg-gray-800' : 'bg-gray-100'}`}>
                       <span className={`text-sm ${subText}`}>No Cover</span>
@@ -250,7 +250,7 @@ export default function PublicPortfolio() {
                   )}
                 </div>
                 <div className="pt-3">
-                  <h3 className="font-semibold font-cssfont text-sm text-center italic tracking-wide">
+                  <h3 className="font-semibold text-sm text-center italic tracking-wide">
                     {project.title}
                   </h3>
                 </div>
@@ -268,12 +268,12 @@ export default function PublicPortfolio() {
           <div>
             <div className="mb-10 max-w-2xl">
               {selectedProject.location && (
-                <p className={`text-xs tracking-widest uppercase mb-6 ${subText}`}>
+                <p className={`text-sm tracking-widest uppercase mb-6 ${subText}`}>
                   📍 {selectedProject.location}
                 </p>
               )}
               {selectedProject.description && (
-                <p className={`text-base font-cssfont leading-relaxed [word-break:keep-all] ${subText}`}>
+                <p className={`text-base leading-relaxed [word-break:keep-all] ${subText}`}>
                   {selectedProject.description}
                 </p>
               )}
@@ -286,7 +286,7 @@ export default function PublicPortfolio() {
                 <div key={chapter.id} className="pt-12">
                   {/* 챕터 구분선 — 첫 챕터 제외 */}
                   {idx > 0 && (
-                    <div className={`h-px mb-12 ${darkMode ? 'bg-white/10' : 'bg-gray-200'}`} />
+                    <div className={`h-px mb-12 ${darkMode ? 'bg-muted' : 'bg-faint'}`} />
                   )}
                   <div className="mb-10">
                     <div className="flex items-baseline gap-2 mb-2">
@@ -294,14 +294,14 @@ export default function PublicPortfolio() {
                       {idx + 1 < 10 ? `0${idx + 1}` : idx + 1}
                     </p>
                     <h3
-                      className="text-2xl font-bold font-cssfont mb-4 tracking-tight"
+                      className="text-2xl font-bold mb-4 tracking-tight"
                     >
                       {chapter.title}
                     </h3>
                     </div>
                     {chapter.description && (
                       <p
-                        className={`text-base font-cssfont leading-relaxed max-w-xl [word-break:keep-all] ${subText}`}
+                        className={`text-base leading-relaxed max-w-xl [word-break:keep-all] ${subText}`}
                       >
                         {chapter.description}
                       </p>
@@ -322,12 +322,12 @@ export default function PublicPortfolio() {
                           <p className={`text-xs tracking-widest uppercase mb-2 ${subText}`}>
                             {idx + 1}.{subIdx + 1}
                           </p>
-                          <h4 className="text-xl font-semibold font-cssfont">
+                          <h4 className="text-xl font-semibold">
                             {sub.title}
                           </h4>
                           </div>
                           {sub.description && (
-                            <p className={`text-sm font-cssfont leading-relaxed mt-2 max-w-xl ${subText}`}>
+                            <p className={`text-sm leading-relaxed mt-2 max-w-xl ${subText}`}>
                               {sub.description}
                             </p>
                           )}
@@ -355,18 +355,18 @@ export default function PublicPortfolio() {
 
       {lightboxIndex !== null && activeLightboxItem && (
         <div
-          className={`fixed inset-0 ${darkMode ? 'bg-[#1A1A1A]/95' : 'bg-[#F5F0EB]/95'} z-50 flex items-center justify-center transition-colors duration-300`}
+          className={`fixed inset-0 ${darkMode ? 'bg-lightbox/[.92]' : 'bg-lightbox/[.92]'} z-50 flex items-center justify-center transition-colors duration-300`}
           onClick={() => setLightboxIndex(null)}
         >
           <button
-            className={`absolute top-6 right-6 text-2xl z-10 p-3 ${darkMode ? 'text-white' : 'text-gray-900'} hover:opacity-50`}
+            className={`absolute top-6 right-6 text-2xl z-10 p-3 ${darkMode ? 'text-hair' : 'text-hair'} hover:opacity-50`}
             onClick={() => setLightboxIndex(null)}
           >✕</button>
           
           {/* 첫 번째 사진이 아닐 때만 왼쪽 화살표 표시 */}
           {lightboxIndex > 0 && (
             <button
-              className={`absolute left-6 text-5xl z-10 select-none ${darkMode ? 'text-white' : 'text-gray-900'} hover:opacity-50`}
+              className={`absolute left-6 text-5xl z-10 select-none ${darkMode ? 'text-hair' : 'text-hair'} hover:opacity-50`}
               onClick={e => {
                 e.stopPropagation()
                 setLightboxIndex(lightboxIndex - 1)
@@ -388,7 +388,7 @@ export default function PublicPortfolio() {
           {/* 마지막 사진이 아닐 때만 오른쪽 화살표 표시 */}
           {lightboxIndex < lightboxItems.length - 1 && (
             <button
-              className={`absolute right-6 text-5xl z-10 select-none ${darkMode ? 'text-white' : 'text-gray-900'} hover:opacity-50`}
+              className={`absolute right-6 text-5xl z-10 select-none ${darkMode ? 'text-hair' : 'text-hair'} hover:opacity-50`}
               onClick={e => {
                 e.stopPropagation()
                 setLightboxIndex(lightboxIndex + 1)

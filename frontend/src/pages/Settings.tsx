@@ -213,9 +213,9 @@ export default function Settings() {
       </Heading>
 
       {/* 사용자 정보 */}
-      <div className="mb-5 p-4 bg-stone-50 rounded-lg border border-stone-200 shadow-sm">
+      <div className="mb-5 p-4 bg-stone-50 rounded-card border border-stone-200 shadow">
         <div className="flex items-center gap-3 mb-3">
-          <div className="bg-white p-2 rounded-full shadow-inner">
+          <div className="bg-canvas p-2 rounded-full shadow">
             <UserCircleIcon className="w-8 h-8 text-stone-400" />
           </div>
           <div>
@@ -227,32 +227,32 @@ export default function Settings() {
             </p>
           </div>
           {tier && (
-            <span className="ml-auto text-xs font-semibold px-2.5 py-1 rounded-full bg-stone-800 text-white tracking-wide">
+            <span className="ml-auto text-xs font-semibold px-2.5 py-1 rounded-card bg-stone-800 text-white tracking-wide">
               {t(`settings.tier.${tier}`, tier)}
             </span>
           )}
         </div>
         <div className="grid grid-cols-2 gap-2">
-          <div className="bg-white rounded-md p-3 border border-stone-100">
+          <div className="bg-white rounded-card p-3 border border-stone-100">
             <p className="text-xs text-stone-400 mb-1">{t('settings.usage.projects')}</p>
             <p className="text-sm font-semibold text-stone-800">
               {projectCount} / {projectLimit}
             </p>
-            <div className="mt-1.5 h-1 bg-stone-100 rounded-full overflow-hidden">
+            <div className="mt-1.5 h-1 bg-stone-100 rounded-card overflow-hidden">
               <div
-                className="h-full bg-stone-600 rounded-full"
+                className="h-full bg-stone-600 rounded-card"
                 style={{ width: `${projectLimit > 0 ? Math.min((projectCount / projectLimit) * 100, 100) : 0}%` }}
               />
             </div>
           </div>
-          <div className="bg-white rounded-md p-3 border border-stone-100">
+          <div className="bg-white rounded-card p-3 border border-stone-100">
             <p className="text-xs text-stone-400 mb-1">{t('settings.usage.photos')}</p>
             <p className="text-sm font-semibold text-stone-800">
               {photoCount} / {photoLimit}
             </p>
-            <div className="mt-1.5 h-1 bg-stone-100 rounded-full overflow-hidden">
+            <div className="mt-1.5 h-1 bg-stone-100 rounded-card overflow-hidden">
               <div
-                className="h-full bg-stone-600 rounded-full"
+                className="h-full bg-stone-600 rounded-card"
                 style={{ width: `${photoLimit > 0 ? Math.min((photoCount / photoLimit) * 100, 100) : 0}%` }}
               />
             </div>
@@ -261,7 +261,7 @@ export default function Settings() {
       </div>
 
       {/* 기본 보기 설정 */}
-      <div className="bg-white rounded-lg shadow p-6 mb-6">
+      <div className="bg-white rounded-card shadow p-6 mb-6">
         <h3 className="font-semibold mb-4 flex items-center gap-2">
           <ViewColumnsIcon className="w-5 h-5 text-gray-500" />
           {t('settings.defaultView')}
@@ -349,7 +349,7 @@ export default function Settings() {
       </div>
 
       {/* 컬러 레이블 설정 - 2, 2, 1 배열 */}
-      <div className="bg-white rounded-lg shadow p-6 mb-6">
+      <div className="bg-white rounded-card shadow p-6 mb-6">
         <h3 className="font-semibold mb-4 flex items-center gap-2">
           <SwatchIcon className="w-5 h-5 text-gray-500" />
           {t('settings.colorLabelNames')}
@@ -358,7 +358,7 @@ export default function Settings() {
         <div className="grid grid-cols-2 gap-x-8 gap-y-4">
           {COLOR_KEYS.map(({ key, color, value }) => (
             <div key={key} className="flex items-center gap-3">
-              <div className={`w-4 h-4 rounded-full ${color} shrink-0`} />
+              <div className={`w-4 h-4 rounded-card ${color} shrink-0`} />
               <span className="text-sm text-gray-500 w-12 shrink-0">{t(`colorLabels.${value}`)}</span>
               {/* flex-1을 w-40(고정 너비)으로 변경 */}
               <input
@@ -372,7 +372,7 @@ export default function Settings() {
       </div>
 
       {/* 포트폴리오 테마 */}
-      <div className="bg-white rounded-lg shadow p-6 mb-6">
+      <div className="bg-white rounded-card shadow p-6 mb-6">
         <h3 className="font-semibold mb-4 flex items-center gap-2">
           <PaintBrushIcon className="w-5 h-5 text-gray-500" />
           {t('settings.portfolioThemeDesc')}
@@ -394,7 +394,7 @@ export default function Settings() {
       </div>
 
       {/* 퍼블릭 포트폴리오 URL */}
-      <div className="bg-white rounded-lg shadow p-6 mb-6">
+      <div className="bg-white rounded-card shadow p-6 mb-6">
         <h3 className="font-semibold mb-1 flex items-center gap-2">
           <UserCircleIcon className="w-5 h-5 text-gray-500" />
           {t('settings.publicPortfolio')}
@@ -444,7 +444,7 @@ export default function Settings() {
 
       {/* 납품 선택 자동 태그 */}
       {DELIVERY_ENABLED && (
-      <div className="bg-white rounded-lg shadow p-6 mb-6">
+      <div className="bg-white rounded-card shadow p-6 mb-6">
         <h3 className="font-semibold mb-1 flex items-center gap-2">
           <TagIcon className="w-5 h-5 text-gray-500" />
           납품 선택 자동 태그
@@ -463,7 +463,7 @@ export default function Settings() {
                   : 'border-gray-300 hover:bg-gray-50'
               }`}
             >
-              <span className={`w-3 h-3 rounded-full ${opt.color}`} />
+              <span className={`w-3 h-3 rounded-card ${opt.color}`} />
               {colorName(opt.value)}
             </button>
           ))}
@@ -472,7 +472,7 @@ export default function Settings() {
       )}
 
       {/* 비밀번호 변경 - 2줄 구성 */}
-      <div className="bg-white rounded-lg shadow p-6 mb-6">
+      <div className="bg-white rounded-card shadow p-6 mb-6">
         <h3 className="font-semibold mb-4 flex items-center gap-2">
           <LockClosedIcon className="w-5 h-5 text-gray-500" />
           {t('settings.managePassword')}
@@ -482,7 +482,7 @@ export default function Settings() {
           <div>
             <input
               type="password"
-              className="w-full border rounded px-3 py-2 text-sm outline-none focus:border-black"
+              className="w-full border rounded-card px-3 py-2 text-sm outline-none focus:border-black"
               placeholder={t('settings.currentPassword')}
               value={currentPassword}
               onChange={e => setCurrentPassword(e.target.value)}
@@ -492,14 +492,14 @@ export default function Settings() {
           <div className="grid grid-cols-2 gap-3">
             <input
               type="password"
-              className="border rounded px-3 py-2 text-sm outline-none focus:border-black"
+              className="border rounded-card px-3 py-2 text-sm outline-none focus:border-black"
               placeholder={t('settings.newPassword')}
               value={newPassword}
               onChange={e => setNewPassword(e.target.value)}
             />
             <input
               type="password"
-              className="border rounded px-3 py-2 text-sm outline-none focus:border-black"
+              className="border rounded-card px-3 py-2 text-sm outline-none focus:border-black"
               placeholder={t('settings.newPasswordConfirm')}
               value={confirmPassword}
               onChange={e => setConfirmPassword(e.target.value)}
@@ -525,7 +525,7 @@ export default function Settings() {
         <button
           onClick={handleSave}
           className={`flex items-center gap-2 px-8 py-2.5 text-sm font-bold tracking-wider rounded transition-all ${
-            saved ? 'bg-green-600 text-white' : 'bg-black text-white hover:bg-gray-800 shadow-md'
+            saved ? 'bg-green-600 text-white' : 'bg-black text-white hover:bg-gray-800 shadow'
           }`}
         >
           {saved ? t('settings.saveSuccess') : t('common.save')}
@@ -542,7 +542,7 @@ export default function Settings() {
             {t('settings.withdrawAccount')}
           </button>
         ) : (
-          <div className="bg-red-50 border border-red-200 rounded-lg p-5">
+          <div className="bg-red-50 border border-red-200 rounded-card p-5">
             <h3 className="text-sm font-semibold text-red-700 mb-1">
               {t('settings.withdrawTitle')}
             </h3>

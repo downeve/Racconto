@@ -45,7 +45,7 @@ export default function MobileLandingPage() {
 
   return (
     <div
-      className="min-h-screen bg-[#F7F4F0] text-stone-900 font-cssfont"
+      className="min-h-screen bg-canvas text-ink"
     >
       <PublicNavbar />
 
@@ -101,7 +101,7 @@ export default function MobileLandingPage() {
         >
           {t('landing.demoTitle')}
         </p>
-        <div className="rounded-lg overflow-hidden shadow-lg border border-stone-200">
+        <div className="rounded-lg overflow-hidden shadow border border-stone-200">
           <img
             src="./screenshots/screenshot-main.webp"
             alt="Racconto app"
@@ -124,7 +124,7 @@ export default function MobileLandingPage() {
         <div className="space-y-10">
           {features.map((feature) => (
             <div key={feature.number}>
-              <div className="rounded-lg overflow-hidden shadow-md border border-stone-200 mb-4">
+              <div className="rounded-lg overflow-hidden shadow border border-stone-200 mb-4">
                 <img
                   src={feature.src}
                   alt={feature.alt}

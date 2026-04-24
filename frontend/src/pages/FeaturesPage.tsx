@@ -83,7 +83,7 @@ function FeatureSection({
       style={{ transitionDelay: `${index * 60}ms` }}
     >
       <div className={isOdd ? 'md:order-2' : ''}>
-        <div className="rounded-lg overflow-hidden shadow-lg border border-stone-200 bg-stone-50">
+        <div className="rounded-card overflow-hidden shadow border border-stone-200 bg-stone-50">
           <div
             className={feature.animateScroll ? 'w-full' : 'w-full'}
             style={
@@ -107,7 +107,7 @@ function FeatureSection({
           {feature.tag}
         </p>
         <h3
-          className="text-2xl md:text-3xl font-bold font-cssfont text-stone-900 mb-4 leading-snug"
+          className="text-2xl md:text-3xl font-bold text-stone-900 mb-4 leading-snug"
         >
           {feature.title}
         </h3>
@@ -173,7 +173,7 @@ export default function FeaturesPage() {
 
   return (
     <div
-      className="min-h-screen bg-[#F7F4F0] text-stone-900 font-cssfont"
+      className="min-h-screen bg-canvas text-ink"
     >
       <style>{`
         @keyframes slowScroll {
@@ -189,7 +189,7 @@ export default function FeaturesPage() {
           What Racconto does
         </p>
         <h1
-          className="text-4xl md:text-6xl font-bold font-cssfont text-stone-900 mb-5 leading-tight"
+          className="text-4xl md:text-6xl font-bold text-stone-900 mb-5 leading-tight"
           style={{ letterSpacing: '-0.02em' }}
         >
           {t('landing.feature.featureDetailTitle')}
@@ -203,7 +203,7 @@ export default function FeaturesPage() {
 
         <div className="flex items-center justify-center gap-4 mt-10">
           <div className="h-px w-16 bg-stone-300" />
-          <div className="w-1.5 h-1.5 rounded-full bg-stone-400" />
+          <div className="w-1.5 h-1.5 rounded-card bg-stone-400" />
           <div className="h-px w-16 bg-stone-300" />
         </div>
       </section>
@@ -222,7 +222,7 @@ export default function FeaturesPage() {
             {t('landing.betaEyebrow')}
           </p>
           <h2
-            className="text-3xl md:text-4xl font-bold font-cssfont mb-4"
+            className="text-3xl md:text-4xl font-bold mb-4"
           >
             {t('landing.betaTitle')}
           </h2>
@@ -251,7 +251,7 @@ export default function FeaturesPage() {
       <footer className="py-8 px-6 bg-stone-900 border-t border-stone-800">
         <div className="max-w-6xl mx-auto flex items-center justify-between">
           <span
-            className="text-stone-500 text-sm tracking-widest font-cssfont"
+            className="text-stone-500 text-sm tracking-widest"
           >
             Racconto
           </span>

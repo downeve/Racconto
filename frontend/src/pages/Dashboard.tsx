@@ -42,7 +42,7 @@ export default function Dashboard() {
   const recentProjects = projects.slice(0, 3)
 
   return (
-    <div className="min-h-screen bg-[#F7F4F0] text-stone-900 pb-20 font-cssfont">
+    <div className="min-h-screen bg-[#F7F4F0] text-stone-900 pb-20">
       <div className="max-w-7xl mx-auto px-6 pt-16">
         
         {/* 1. Welcome Section: LandingPage의 감성을 이어받음 */}
@@ -62,7 +62,7 @@ export default function Dashboard() {
         {/* 2. Quick Actions: 대시보드만의 기능적 섹션 */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-16">
           {/* 전체 통계 확인 */}
-          <div className="bg-white p-8 rounded shadow-sm border border-stone-100 flex flex-col justify-between">
+          <div className="bg-white p-8 rounded shadow border border-stone-100 flex flex-col justify-between">
             <div>
               <h3 className="text-stone-400 text-xs tracking-widest uppercase mb-2">My Stories</h3>
               <p className="text-3xl font-bold">{projects.length}</p>
@@ -74,7 +74,7 @@ export default function Dashboard() {
           </div>
           
           {/* 포트폴리오 바로가기: PublicPortfolio.tsx와 연결 */}
-          <div className="bg-stone-700 text-white p-8 rounded shadow-md flex flex-col justify-between">
+          <div className="bg-stone-700 text-white p-8 rounded shadow flex flex-col justify-between">
             <div>
               <h3 className="text-stone-400 text-xs tracking-widest uppercase mb-2">Portfolio</h3>
               <p className="text-lg mb-2">{t('dashboard.portSharing')}</p>
@@ -85,7 +85,7 @@ export default function Dashboard() {
           </div>
 
           {/* 새 프로젝트 생성 바로가기 */}
-          <div className="bg-white p-8 rounded shadow-sm border border-stone-100 flex flex-col justify-between">
+          <div className="bg-white p-8 rounded shadow border border-stone-100 flex flex-col justify-between">
             <div>
               <h3 className="text-stone-400 text-xs tracking-widest uppercase mb-2">Quick Start</h3>
               <p className="text-lg mb-2">{t('dashboard.newProject')}</p>
@@ -118,10 +118,10 @@ export default function Dashboard() {
             </div>
           ) : (
             /* 프로젝트가 없을 때의 Empty State */
-            <div className="bg-white/50 border-2 border-dashed border-stone-200 rounded-lg py-24 text-center">
-              <p className="text-stone-400 text-lg mb-6">아직 기록된 이야기가 없습니다.</p>
+            <div className="bg-white/50 border-2 border-dashed border-stone-200 rounded-card py-24 text-center">
+              <p className="text-stone-400 text-lg mb-6">{t('dashborad.noProjects')}아직 기록된 이야기가 없습니다.</p>
               <Link to="/projects" className="bg-stone-900 text-white px-8 py-3 rounded text-sm tracking-widest hover:bg-stone-700 transition-all">
-                첫 번째 프로젝트 시작하기
+                {t('dashboard.StartNew')}첫 번째 프로젝트 시작하기
               </Link>
             </div>
           )}

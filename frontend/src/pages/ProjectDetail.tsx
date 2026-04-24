@@ -961,7 +961,7 @@ export default function ProjectDetail({
 
   if (!project) return (
     <div className="min-h-screen flex items-center justify-center">
-      <div className="w-6 h-6 border-2 border-stone-300 border-t-stone-700 rounded-full animate-spin" />
+      <div className="w-6 h-6 border-2 border-stone-300 border-t-stone-700 rounded-card animate-spin" />
     </div>
   )
 
@@ -1020,7 +1020,7 @@ export default function ProjectDetail({
       {chapterMenuPhoto && (
         <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center"
           onClick={() => setChapterMenuPhoto(null)}>
-          <div className="bg-white rounded-xl p-5 shadow-2xl min-w-[320px]" onClick={e => { e.stopPropagation() }}>
+          <div className="bg-white rounded-card p-5 shadow min-w-[320px]" onClick={e => { e.stopPropagation() }}>
             <h3 className="text-sm font-semibold mb-3">{t('story.selectChapter')}</h3>
             <div className="space-y-1">
             {chapters.length === 0 ? (
@@ -1100,7 +1100,7 @@ export default function ProjectDetail({
             </button>
 
             {showFilter && (
-              <div className="bg-white rounded-lg shadow p-4 overflow-y-auto max-h-[calc(100vh-2rem)] min-h-[calc(100vh-8rem)] sticky top-4">
+              <div className="bg-white rounded-card shadow p-4 overflow-y-auto max-h-[calc(100vh-2rem)] min-h-[calc(100vh-8rem)] sticky top-4">
                 
                 {/* 💡 flex-col을 지워서 가로 배치(flex-row 기본값)로 변경했습니다 */}
                 <div className="mb-3 flex gap-2">
@@ -1175,7 +1175,7 @@ export default function ProjectDetail({
                     {/* 지운 사진 */}
                     <button
                       onClick={() => { handleResetAll(); setPhotoSubTab('trash'); fetchTrash(); }}
-                      className={`w-full text-left px-2 py-1.5 text-xs rounded flex items-center justify-between ${photoSubTab === 'trash' ? 'bg-red-600 text-white font-medium shadow-md' : 'hover:bg-red-50 text-gray-700'}`}
+                      className={`w-full text-left px-2 py-1.5 text-xs rounded flex items-center justify-between ${photoSubTab === 'trash' ? 'bg-red-600 text-white font-medium shadow' : 'hover:bg-red-50 text-gray-700'}`}
                     >
                       <span>{t('photo.trash')}</span>
                       <span className={`${photoSubTab === 'trash' ? 'text-red-200' : 'text-gray-400'}`}>
@@ -1329,7 +1329,7 @@ export default function ProjectDetail({
                   {/* local_missing 일괄 삭제 버튼 — Electron 앱 + missing 사진 있을 때만 표시 */}
                   {/* ✅ photos.some 대신 missingCount > 0 으로 수정 */}
                   {missingCount > 0 && (
-                    <div className="mb-4 flex items-center justify-between bg-yellow-50 border border-yellow-200 rounded-lg px-4 py-2.5">
+                    <div className="mb-4 flex items-center justify-between bg-yellow-50 border border-yellow-200 rounded-card px-4 py-2.5">
                       <p className="text-xs text-yellow-700">
                         {/* ✅ 하드코딩 제거 및 i18n 변수 적용 */}
                         ⚠️ {t('photo.local.MissingWarning', { count: missingCount })}
@@ -1377,7 +1377,7 @@ export default function ProjectDetail({
             {photoSubTab === 'trash' && (
               <div>
                 {trashedPhotos.length > 0 && (
-                  <div className="mb-4 flex items-center justify-between bg-red-50 border border-red-200 rounded-lg px-4 py-2.5 gap-3">
+                  <div className="mb-4 flex items-center justify-between bg-red-50 border border-red-200 rounded-card px-4 py-2.5 gap-3">
                     <div className="min-w-0">
                       <p className="text-xs text-red-600">
                         🗑️ {t('photo.trash')} {trashedPhotos.length}{t('photo.countText')}
@@ -1402,7 +1402,7 @@ export default function ProjectDetail({
                   </div>
                 )}
                 {trashedPhotos.length === 0 ? (
-                  <div className="text-center py-20 text-gray-400 border rounded-xl bg-gray-50">
+                  <div className="text-center py-20 text-gray-400 border rounded-card bg-gray-50">
                     <p className="text-lg mb-2">{t('photo.trashEmpty')}</p>
                   </div>
                 ) : (
@@ -1413,7 +1413,7 @@ export default function ProjectDetail({
                       const isLocal = !canHardDelete(photo)
 
                       return (
-                        <div key={photo.id} className="rounded overflow-hidden bg-transparent group relative shadow-sm border border-gray-200">
+                        <div key={photo.id} className="rounded overflow-hidden bg-transparent group relative shadow border border-gray-200">
                           <div className="relative">
                             <img
                               src={photo.image_url}
@@ -1459,7 +1459,7 @@ export default function ProjectDetail({
                                   }
                                 }
                               }}
-                              className="w-full text-center px-4 py-1.5 text-xs bg-white text-black rounded hover:bg-gray-200 font-medium shadow-lg"
+                              className="w-full text-center px-4 py-1.5 text-xs bg-white text-black rounded hover:bg-gray-200 font-medium shadow"
                             >
                               ↺ {t('trash.restore')}
                             </button>
@@ -1483,7 +1483,7 @@ export default function ProjectDetail({
                                   },
                                 })
                               }}
-                              className={`w-full text-center px-4 py-1.5 text-xs rounded font-medium shadow-lg ${
+                              className={`w-full text-center px-4 py-1.5 text-xs rounded font-medium shadow ${
                                 !isLocal
                                   ? 'bg-red-600 text-white hover:bg-red-700'
                                   : 'bg-gray-500 text-white hover:bg-gray-600'
@@ -1534,7 +1534,7 @@ export default function ProjectDetail({
       <button
         id="floating-top-button"
         onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-        className="fixed bottom-8 right-8 w-12 h-12 bg-black/70 hover:bg-black text-white rounded-full flex items-center justify-center shadow-2xl transition-all z-40 backdrop-blur-sm"
+        className="fixed bottom-8 right-8 w-12 h-12 bg-black/70 hover:bg-black text-white rounded-full flex items-center justify-center shadow transition-all z-40 backdrop-blur-sm"
         title="Top"
       >
         <span className="text-2xl font-bold">↑</span>
@@ -1543,7 +1543,7 @@ export default function ProjectDetail({
 
       {/* 🚀 다중 선택 하단 플로팅 바 */}
       {selectionMode && activeTab === 'photos' && (
-        <div className="fixed bottom-10 left-1/2 -translate-x-1/2 bg-gray-900 text-white px-3 py-2 rounded-lg shadow-2xl flex items-center gap-8 z-[100] animate-fade-in-up">
+        <div className="fixed bottom-10 left-1/2 -translate-x-1/2 bg-gray-900 text-white px-3 py-2 rounded-card shadow flex items-center gap-8 z-[100] animate-fade-in-up">
           <div className="flex flex-col">
             <span className="font-bold text-sm">{t('story.multiplePhotoSelected', { count: selectedPhotoIds.size })}</span>
             <span className="text-xs text-gray-400">{t('story.addMultiplePhoto')}</span>
@@ -1553,14 +1553,14 @@ export default function ProjectDetail({
             <button
               onClick={() => setShowBulkChapterMenu(v => !v)}
               disabled={selectedPhotoIds.size === 0}
-              className="px-2 py-1.5 bg-blue-500 hover:bg-blue-600 disabled:bg-gray-700 disabled:text-gray-500 rounded-lg text-xs font-bold transition-colors"
+              className="px-2 py-1.5 bg-blue-500 hover:bg-blue-600 disabled:bg-gray-700 disabled:text-gray-500 rounded-btn text-xs font-bold transition-colors"
             >
               📖 {t('story.addToChapter')}
             </button>
 
             {/* 챕터 목록 드롭다운 (위로 열림) */}
             {showBulkChapterMenu && selectedPhotoIds.size > 0 && (
-              <div className="absolute bottom-full left-0 mb-3 w-64 bg-white rounded-lg shadow-xl text-black py-2 max-h-64 overflow-y-auto">
+              <div className="absolute bottom-full left-0 mb-3 w-64 bg-white rounded-card shadow text-black py-2 max-h-64 overflow-y-auto">
                 {chapters.length === 0 ? (
                   <p className="text-xs text-gray-500 px-3 py-1.5">{t('story.noChapter')}</p>
                 ) : (
@@ -1593,7 +1593,7 @@ export default function ProjectDetail({
                 setSelectedPhotoIds(new Set())
                 setShowBulkChapterMenu(false)
               }}
-              className="px-2 py-1.5 bg-white/10 hover:bg-white/20 rounded-lg text-xs font-medium transition-colors"
+              className="px-2 py-1.5 bg-white/10 hover:bg-white/20 rounded-btn text-xs font-medium transition-colors"
             >
               {t('common.cancel')}
             </button>

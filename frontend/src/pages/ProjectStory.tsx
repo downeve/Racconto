@@ -811,10 +811,10 @@ function ProjectStory({
         </SortableContext>
         <DragOverlay dropAnimation={{ duration: 250, easing: 'cubic-bezier(0.18, 0.67, 0.6, 1.22)' }}>
           {activeBlockId && !draggingItemId ? (
-            <div className="bg-stone-50 border border-stone-300 rounded-lg p-3 opacity-90 shadow-xl">
+            <div className="bg-stone-50 border border-stone-300 rounded-card p-3 opacity-90 shadow">
               <div className="grid grid-cols-3 gap-2">
                 {activeBlockItems.map(item => (
-                  <div key={item.id} className={item.item_type === 'PHOTO' ? "aspect-[3/2] rounded overflow-hidden bg-gray-100" : "col-span-3 bg-stone-50 border border-stone-200 rounded-lg px-5 py-4"}>
+                  <div key={item.id} className={item.item_type === 'PHOTO' ? "aspect-[3/2] overflow-hidden bg-gray-100" : "col-span-3 bg-stone-50 border border-stone-200 rounded-card px-5 py-4"}>
                     {item.item_type === 'PHOTO' ? (
                       item.image_url ? <img src={item.image_url} className="w-full h-full object-contain" alt="" /> : <div className="w-full h-full bg-gray-200" />
                     ) : (
@@ -829,12 +829,12 @@ function ProjectStory({
             const draggedItem = Object.values(chapterPhotos).flat().find(i => i.id === draggingItemId)
             if (!draggedItem) return null
             if (draggedItem.item_type === 'TEXT') return (
-              <div className="w-180 bg-stone-50 border border-stone-200 rounded-lg px-5 py-4 shadow-xl rotate-1 scale-105 opacity-95">
+              <div className="w-180 bg-stone-50 border border-stone-200 rounded-card px-5 py-4 shadow rotate-1 scale-105 opacity-95">
                 <p className="text-sm text-gray-700 line-clamp-3">{draggedItem.text_content}</p>
               </div>
             )
             return (
-              <div className="aspect-[3/2] w-60 rounded-lg overflow-hidden shadow-2xl rotate-3 scale-105 bg-gray-100 opacity-60 cursor-grabbing">
+              <div className="aspect-[3/2] w-60 rounded-card overflow-hidden shadow rotate-3 scale-105 bg-gray-100 opacity-60 cursor-grabbing">
                 {draggedItem.image_url && <img src={draggedItem.image_url} className="w-full h-full object-contain" />}
               </div>
             )
@@ -844,10 +844,10 @@ function ProjectStory({
       )}
       {/* 3. 🚨 핵심: 얼리 리턴의 방해를 받지 않도록 제일 바깥에(아래에) 텍스트 입력창 배치 */}
             {editingTextItemId === 'new' && addingTextChapterId === targetChapterId && (
-              <div className="bg-white border-2 border-stone-100 rounded-xl p-5 my-4 shadow-md animate-in fade-in zoom-in-95">
+              <div className="bg-white border-2 border-stone-100 rounded-card p-5 my-4 shadow animate-in fade-in zoom-in-95">
                 <div className="flex flex-col gap-3">
                   <textarea
-                    className="w-full h-32 p-3 text-sm rounded-lg border border-stone-100 focus:ring-2 focus:ring-stone-200 focus:outline-none resize-none bg-stone-50/50"
+                    className="w-full h-32 p-3 text-sm rounded-card border border-stone-100 focus:ring-2 focus:ring-stone-200 focus:outline-none resize-none bg-stone-50/50"
                     value={textDraft}
                     onChange={(e) => setTextDraft(e.target.value)}
                     placeholder={t('story.textBlockPlaceholder')}
@@ -856,13 +856,13 @@ function ProjectStory({
                   <div className="flex gap-2 justify-end">
                     <button 
                       onClick={() => { setEditingTextItemId(null); setAddingTextChapterId(null); setTextDraft(''); }} 
-                      className="px-3 py-1.5 text-xs text-stone-500 border rounded-lg hover:bg-stone-50"
+                      className="px-3 py-1.5 text-xs text-stone-500 border rounded-btn hover:bg-stone-50"
                     >
                       {t('common.cancel')}
                     </button>
                     <button 
                       onClick={handleSaveTextBlock} 
-                      className="px-4 py-1.5 text-xs bg-stone-900 text-white rounded-lg font-medium hover:bg-stone-800"
+                      className="px-4 py-1.5 text-xs bg-stone-900 text-white rounded-btn font-medium hover:bg-stone-800"
                     >
                       {t('common.save')}
                     </button>
@@ -1058,7 +1058,7 @@ function ProjectStory({
 
       {/* 사이드바 */}
       <div className={`${isElectron ? 'hidden' : ''} w-48 shrink-0 sticky top-24 self-start`}>
-        <div className="bg-white rounded-lg shadow p-4 max-h-[calc(100vh-8rem)] overflow-y-auto">
+        <div className="bg-white rounded-card shadow p-4 max-h-[calc(100vh-8rem)] overflow-y-auto">
           <p className="text-xs font-semibold text-gray-500 mb-3">{t('story.chapters')}</p>
 
           {/* 챕터 추가 버튼 */}
@@ -1146,7 +1146,7 @@ function ProjectStory({
 
         {/* 챕터 추가 폼 — 사이드바 버튼 클릭 시 표시 */}
         {showAddChapter && !addingSubChapterTo && (
-          <div className="bg-white rounded-lg shadow p-4 mb-6">
+          <div className="bg-white rounded-card shadow p-4 mb-6">
             <input
               className="w-full border rounded px-3 py-2 text-sm mb-2"
               placeholder={t('story.chapterTitle')}
@@ -1155,7 +1155,7 @@ function ProjectStory({
               autoFocus
             />
             <textarea
-              className="w-full border rounded px-3 py-2 text-sm mb-3 resize-none"
+              className="w-full border rounded-card px-3 py-2 text-sm mb-3 resize-none"
               placeholder={t('story.chapterDescription')}
               rows={2}
               value={newDesc}
@@ -1191,7 +1191,7 @@ function ProjectStory({
                 ref={el => { chapterRefs.current[chapter.id] = el }}
               >
                 {/* 최상위 챕터 */}
-                <div className="bg-white rounded-lg shadow overflow-hidden">
+                <div className="bg-white rounded-card shadow overflow-hidden">
                   <div className="p-4 border-b">
                     {editingChapter === chapter.id ? (
                       <div>
@@ -1262,16 +1262,16 @@ function ProjectStory({
 
                   {/* 서브 챕터 추가 폼 */}
                   {addingSubChapterTo === chapter.id && (
-                    <div className="ml-8 mt-3 p-4 bg-gray-50 border border-gray-200 rounded-lg shadow-inner">
+                    <div className="ml-8 mt-3 p-4 bg-gray-50 border border-gray-200 rounded-card shadow">
                       <p className="text-xs text-gray-500 mb-2">↳ {chapter.title}{t('story.addSubChapter')}</p>
                       <input
-                        className="w-full border rounded px-3 py-2 text-sm mb-2"
+                        className="w-full border rounded-card px-3 py-2 text-sm mb-2"
                         placeholder={t('story.chapterTitle')}
                         value={newTitle}
                         onChange={e => setNewTitle(e.target.value)}
                       />
                       <textarea
-                        className="w-full border rounded px-3 py-2 text-sm mb-3"
+                        className="w-full border rounded-card px-3 py-2 text-sm mb-3"
                         placeholder={t('story.chapterDescription')}
                         rows={2}
                         value={newDesc}
@@ -1310,7 +1310,7 @@ function ProjectStory({
                   <div
                     key={subChapter.id}
                     ref={el => { chapterRefs.current[subChapter.id] = el }}
-                    className="ml-8 border-l-2 border-blue-200 pl-4 bg-white rounded-lg shadow overflow-hidden mt-3"
+                    className="ml-8 border-l-2 border-blue-200 pl-4 bg-white rounded-card shadow overflow-hidden mt-3"
                   >
                     {/* 서브챕터 헤더 */}
                     <div className="p-4 border-b">
@@ -1492,13 +1492,13 @@ function ProjectStory({
                   {/* 다크/라이트 토글 */}
                   <button
                     onClick={() => setPreviewDarkMode(v => !v)}
-                    className={`text-xs px-3 py-1 rounded-full border transition-colors ${toggleClass}`}
+                    className={`text-xs px-3 py-1 rounded-btn border transition-colors ${toggleClass}`}
                   >
                     {dm ? '☀️ ' + t('settings.themeBeige') : '🌙 ' + t('settings.themeDark')}
                   </button>
                   <button
                     onClick={() => setShowPreview(false)}
-                    className={`text-xl p-2 transition-colors ${closeColor}`}
+                    className={`text-xl p-2 rounded-btn transition-colors ${closeColor}`}
                   >✕</button>
                 </div>
               </div>
@@ -1523,12 +1523,12 @@ function ProjectStory({
                             <p className={`text-xs tracking-widest uppercase ${subText}`}>
                               {idx + 1 < 10 ? `0${idx + 1}` : idx + 1}
                             </p>
-                            <h3 className={`text-2xl font-bold font-cssfont tracking-tight ${titleColor}`}>
+                            <h3 className={`text-2xl font-bold tracking-tight ${titleColor}`}>
                               {chapter.title}
                             </h3>
                           </div>
                           {chapter.description && (
-                            <p className={`text-base font-cssfont leading-relaxed max-w-xl mt-2 ${subText}`}>
+                            <p className={`text-base leading-relaxed max-w-xl mt-2 ${subText}`}>
                               {chapter.description}
                             </p>
                           )}
@@ -1549,12 +1549,12 @@ function ProjectStory({
                                 <p className={`text-xs tracking-widest uppercase ${subText}`}>
                                   {idx + 1}.{subIdx + 1}
                                 </p>
-                                <h4 className={`text-xl font-semibold font-cssfont ${titleColor}`}>
+                                <h4 className={`text-xl font-semibold ${titleColor}`}>
                                   {sub.title}
                                 </h4>
                               </div>
                               {sub.description && (
-                                <p className={`text-sm font-cssfont leading-relaxed mt-2 max-w-xl ${subText}`}>
+                                <p className={`text-sm leading-relaxed mt-2 max-w-xl ${subText}`}>
                                   {sub.description}
                                 </p>
                               )}
@@ -1574,41 +1574,6 @@ function ProjectStory({
           </div>
         )
       })()}
-
-      {/*
-      {editingTextItemId && (
-      <div
-        className="fixed inset-0 bg-black/60 z-[100] flex items-center justify-center p-4 backdrop-blur-sm"
-        onClick={() => setEditingTextItemId(null)}
-      >
-        <div
-          className="w-full max-w-lg bg-white rounded-2xl p-6 shadow-2xl"
-          onClick={e => e.stopPropagation()}
-        >
-          <h3 className="text-base font-semibold mb-3 text-gray-900">{t("story.editTextBlock")}</h3>
-          <textarea
-            className="w-full h-40 px-3 py-2 text-sm rounded-lg border border-gray-300 bg-white text-gray-900 resize-none focus:outline-none focus:ring-2 focus:ring-gray-900"
-            value={textDraft}
-            onChange={e => setTextDraft(e.target.value)}
-            autoFocus
-          />
-          <div className="flex gap-2 justify-end mt-4">
-            <button
-              onClick={() => setEditingTextItemId(null)}
-              className="px-4 py-2 text-sm rounded-lg border border-gray-300 text-gray-600 hover:bg-gray-50 font-medium"
-            >
-              {t('common.cancel')}
-            </button>
-            <button
-              onClick={handleSaveTextBlock}
-              className="px-4 py-2 text-sm rounded-lg bg-gray-900 hover:bg-gray-700 text-white font-medium"
-            >
-              {t('common.save')}
-            </button>
-          </div>
-        </div>
-      </div>
-    )} */}
     </div>
   )
 }

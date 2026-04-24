@@ -41,7 +41,7 @@ export default function VerifyEmail() {
       <AuthNavbar />
 
       <div className="flex-1 flex items-center justify-center px-4 py-20">
-        <div className="bg-white rounded-lg shadow p-8 w-full max-w-sm text-center">
+        <div className="bg-white rounded-card shadow p-8 w-full max-w-sm text-center">
           <h1 className="text-2xl font-bold tracking-widest mb-6">Racconto</h1>
           
           {status === 'loading' && (

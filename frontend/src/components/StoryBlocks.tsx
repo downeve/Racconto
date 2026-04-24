@@ -85,7 +85,7 @@ export function SortablePhotoChapter({
 
   return (
     <div ref={setNodeRef} style={style} className="flex flex-col w-full h-full">
-      <div className="relative group rounded overflow-hidden aspect-[3/2] shadow-sm">
+      <div className="relative group rounded overflow-hidden aspect-[3/2] shadow">
         <img
           src={imageUrl || undefined}
           alt={caption || undefined}
@@ -113,7 +113,7 @@ export function SortablePhotoChapter({
         {/* 삭제 버튼 */}
         <button
           onClick={(e) => { e.stopPropagation(); onRemove(chapterId, id) }}
-          className="absolute top-1 right-1 bg-red-600 text-white rounded-full w-5 h-5 text-xs font-bold opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity z-20"
+          className="absolute top-1 right-1 bg-red-600 text-white rounded-btn w-5 h-5 text-xs font-bold opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity z-20"
         >×</button>
 
         {/* 블록 이동 버튼 — 새 블록 슬롯이 있으므로 항상 표시 */}
@@ -166,12 +166,12 @@ export const SortableTextBlock = memo(function SortableTextBlock({
   const isEditing = editingTextItemId === itemId;
 
   return (
-    <div ref={setNodeRef} style={style} className="col-span-3 group relative bg-stone-50 border border-stone-200 rounded-lg px-5 py-4 my-1">
+    <div ref={setNodeRef} style={style} className="col-span-3 group relative bg-stone-50 border border-stone-200 rounded-card px-5 py-4 my-1">
       {isEditing ? (
         /* 👇 편집 모드일 때: 단독 텍스트 인라인 편집창 */
         <div className="flex flex-col gap-2">
           <textarea
-            className="w-full h-32 p-3 text-sm rounded-lg border border-stone-100 focus:ring-2 focus:ring-stone-200 focus:outline-none resize-none bg-white"
+            className="w-full h-32 p-3 text-sm rounded-card border border-stone-100 focus:ring-2 focus:ring-stone-200 focus:outline-none resize-none bg-white"
             value={textDraft}
             onChange={(e) => onTextDraftChange?.(e.target.value)}
             autoFocus
@@ -281,7 +281,7 @@ export const SortablePhotoBlock = memo(function SortablePhotoBlock({
     <div
       ref={setRef}
       style={style}
-      className={`group/block relative mb-2 rounded-lg p-3 border transition-colors ${
+      className={`group/block relative mb-2 rounded-card p-3 border transition-colors ${
         isOver && isExternalDrag
           ? 'bg-blue-50 border-blue-300'
           : 'bg-stone-50 border-stone-200'
@@ -296,7 +296,7 @@ export const SortablePhotoBlock = memo(function SortablePhotoBlock({
       </div>
 
       {/* 레이아웃 툴바 */}
-      <div className="absolute -top-1 left-6 opacity-0 group-hover/block:opacity-100 transition-opacity z-20 flex items-center gap-1 bg-white border border-gray-200 rounded shadow-sm px-1.5 py-0.5">
+      <div className="absolute -top-1 left-6 opacity-0 group-hover/block:opacity-100 transition-opacity z-20 flex items-center gap-1 bg-white border border-gray-200 rounded shadow px-1.5 py-0.5">
         <span className="text-[10px] text-gray-400 mr-1">{t('portfolio.column')}</span>
         {(['grid', 'wide', 'single'] as const).map(l => (
           <button
@@ -384,7 +384,7 @@ export const SortableSideBySideBlock = memo(function SortableSideBySideBlock({
     </div>
       <div className="grid grid-cols-2 gap-2">
         {photoItems.map(item => (
-          <div key={item.id} className="relative group rounded overflow-hidden aspect-[3/2] shadow-sm">
+          <div key={item.id} className="relative group rounded overflow-hidden aspect-[3/2] shadow">
             <img
               src={item.image_url ?? ''}
               className="absolute inset-0 w-full h-full object-contain cursor-pointer"
@@ -392,7 +392,7 @@ export const SortableSideBySideBlock = memo(function SortableSideBySideBlock({
             />
             <button
               onClick={() => onRemoveItem(chapterId, item.id)}
-              className="absolute top-1 right-1 bg-red-600 text-white rounded-full w-5 h-5 text-xs font-bold opacity-0 group-hover:opacity-100 flex items-center justify-center z-10"
+              className="absolute top-1 right-1 bg-red-600 text-white rounded-btn w-5 h-5 text-xs font-bold opacity-0 group-hover:opacity-100 flex items-center justify-center z-10"
             >×</button>
           </div>
         ))}
@@ -401,7 +401,7 @@ export const SortableSideBySideBlock = memo(function SortableSideBySideBlock({
   )
 
   const textCol = textItem ? (
-    <div className="flex-1 min-w-0 group/text relative bg-stone-50 border border-stone-200 rounded-lg px-4 py-4">
+    <div className="flex-1 min-w-0 group/text relative bg-stone-50 border border-stone-200 rounded-card px-4 py-4">
       {editingTextItemId === textItem.id ? (
         /* 👇 편집 모드일 때: 텍스트 영역만 편집창으로 전환 */
         <div className="flex flex-col gap-2">

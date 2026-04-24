@@ -62,7 +62,7 @@ export default function ProjectEdit() {
         {t('project.editProject')}
       </Heading>
 
-      <div className="bg-white rounded-lg shadow p-6">
+      <div className="bg-white rounded-card shadow p-6">
         <div className="grid grid-cols-2 gap-4 mb-4">
           <input
             className="border rounded px-3 py-2"

@@ -93,7 +93,7 @@ export default function PhotoNotePanel({
       onClick={onClose}
     >
       <div
-        className="w-full max-w-lg bg-white rounded-xl shadow-2xl flex flex-col max-h-[80vh]"
+        className="w-full max-w-lg bg-white rounded-card shadow flex flex-col max-h-[80vh]"
         onClick={e => e.stopPropagation()}
       >
         {/* 헤더 */}
@@ -117,7 +117,7 @@ export default function PhotoNotePanel({
             notes.map(note => {
               const typeInfo = getNoteType(note.note_type)
               return (
-                <div key={note.id} className="bg-stone-50 rounded-lg p-3">
+                <div key={note.id} className="bg-stone-50 rounded-card p-3">
                   {editingNote === note.id ? (
                     <div>
                       <div className="flex gap-1.5 flex-wrap mb-2">
@@ -125,7 +125,7 @@ export default function PhotoNotePanel({
                           <button
                             key={type.value}
                             onClick={() => setEditType(type.value)}
-                            className={`px-2 py-0.5 text-xs rounded-full transition-colors ${
+                            className={`px-2 py-0.5 text-xs rounded-btn transition-colors ${
                               editType === type.value
                                 ? type.color + ' font-semibold ring-1 ring-current'
                                 : 'bg-gray-100 text-gray-400 hover:bg-gray-200'
@@ -201,7 +201,7 @@ export default function PhotoNotePanel({
               <button
                 key={type.value}
                 onClick={() => setNewType(type.value)}
-                className={`px-2 py-0.5 text-xs rounded-full transition-colors ${
+                className={`px-2 py-0.5 text-xs rounded-btn transition-colors ${
                   newType === type.value
                     ? type.color + ' font-semibold ring-1 ring-current'
                     : 'bg-gray-100 text-gray-400 hover:bg-gray-200'

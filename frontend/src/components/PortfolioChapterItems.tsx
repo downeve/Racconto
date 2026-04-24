@@ -138,7 +138,7 @@ export default function PortfolioChapterItems({
     // 독립 텍스트 블록
     if (item.item_type === 'TEXT' && item.block_type !== 'side-left' && item.block_type !== 'side-right') {
       result.push(
-        <div key={`text-${i}`} className="my-16 text-left max-w-xl mx-auto font-cssfont">
+        <div key={`text-${i}`} className="my-16 text-left max-w-xl mx-auto">
           <MarkdownRenderer
             content={item.text_content || ''}
             darkMode={darkMode}
@@ -168,11 +168,6 @@ export default function PortfolioChapterItems({
                 className="w-full rounded cursor-pointer hover:opacity-90 transition-opacity block"
                 onClick={() => onLightbox?.(photo as PortfolioPhoto, allLightboxItems)}
               />
-              {/*
-              {photo.caption && (
-                <p className={`text-xs mt-1.5 leading-relaxed ${subText}`}>{photo.caption}</p>
-              )}
-              */}
             </div>
           ))}
         </div>
@@ -185,7 +180,7 @@ export default function PortfolioChapterItems({
       )
       const textCol = group.text ? (
         <div
-          className={`min-w-0 flex items-center w-full font-cssfont ${group.blockType === 'side-left' ? 'text-right' : 'text-left'}`}
+          className={`min-w-0 flex items-center w-full ${group.blockType === 'side-left' ? 'text-right' : 'text-left'}`}
           style={{ flex: '2' }}
         >
           <MarkdownRenderer

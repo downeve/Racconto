@@ -41,7 +41,7 @@ export default function UploadToast() {
   const percent = progress.total > 0 ? Math.round((progress.done / progress.total) * 100) : 0
 
   return (
-    <div className="fixed bottom-6 right-6 z-50 w-72 bg-stone-800 text-white rounded-lg shadow-lg px-4 py-3">
+    <div className="fixed bottom-6 right-6 z-50 w-72 bg-stone-800 text-white rounded-card shadow px-4 py-3">
       <div className="flex items-center justify-between mb-2">
       <span className="text-sm font-medium">
         {progress.limitExceeded
@@ -72,9 +72,9 @@ export default function UploadToast() {
       </div>
 
       {/* 진행 바 */}
-      <div className="w-full bg-stone-600 rounded-full h-1.5">
+      <div className="w-full bg-stone-600 rounded-card h-1.5">
         <div
-          className={`h-1.5 rounded-full transition-all duration-300 ${
+          className={`h-1.5 rounded-card transition-all duration-300 ${
             progress.limitExceeded || (progress.failed > 0 && progress.finished) ? 'bg-red-400' : 'bg-white'
           }`}
           style={{ width: progress.limitExceeded ? '100%' : `${percent}%` }}

@@ -26,8 +26,8 @@ export default function ProjectCard({ project }: { project: Project }) {
 
   return (
     <Link to={`/projects/${project.slug || project.id}`}>
-      <div className="bg-white rounded-lg shadow hover:shadow-md transition-shadow overflow-hidden">
-        <div className="h-48 bg-gray-100 flex items-center justify-center">
+      <div className="bg-card rounded-card shadow hover:shadow transition-shadow overflow-hidden">
+        <div className="h-48 bg-hair flex items-center justify-center">
           {project.cover_image_url ? (
             <img
               src={project.cover_image_url}
@@ -35,21 +35,21 @@ export default function ProjectCard({ project }: { project: Project }) {
               className="w-full h-full object-cover"
             />
           ) : (
-            <span className="text-gray-400 text-sm">{t('project.noImage')}</span>
+            <span className="text-muted text-sm">{t('project.noImage')}</span>
           )}
         </div>
         <div className="p-4">
           <div className="flex items-start justify-between mb-2">
-            <h3 className="font-bold text-gray-900 [word-break:keep-all]">{project.title}</h3>
-            <span className={`text-xs px-2 py-1 rounded-full ml-2 shrink-0 ${statusColor[project.status] || 'bg-gray-100'}`}>
+            <h3 className="font-semibold text-base text-ink [word-break:keep-all]">{project.title}</h3>
+            <span className={`text-xs px-2 py-1 rounded-card ml-2 shrink-0 ${statusColor[project.status] || 'bg-gray-100'}`}>
               {t(`status.${project.status}`)} 
             </span>
           </div>
           {project.description && (
-            <p className="text-sm text-gray-600 line-clamp-2 [word-break:keep-all]">{project.description}</p>
+            <p className="text-base text-muted line-clamp-2 [word-break:keep-all]">{project.description}</p>
           )}
           {project.location && (
-            <p className="text-xs text-gray-400 mt-2">📍 {project.location}</p>
+            <p className="text-sm text-faint mt-2">📍 {project.location}</p>
           )}
         </div>
       </div>

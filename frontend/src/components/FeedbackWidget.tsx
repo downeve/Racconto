@@ -106,7 +106,7 @@ export default function FeedbackWidget() {
       <button
         onClick={() => setIsOpen(true)}
         // isShifted가 true면 bottom-[88px](위로 이동), false면 bottom-6(기본)
-        className={`fixed right-8 ${isShifted ? 'bottom-[84px]' : 'bottom-6'} bg-stone-800 text-white p-3 rounded-full shadow-lg hover:bg-stone-600 transition-all duration-300 z-50 flex items-center justify-center w-12 h-12`}
+        className={`fixed right-8 ${isShifted ? 'bottom-[84px]' : 'bottom-6'} rounded-btn bg-ink-2 text-hair p-3 shadow hover:bg-stone-600 transition-all duration-300 z-50 flex items-center justify-center w-12 h-12`}
         title={t('feedback.buttonTitle')}
       >
         💬
@@ -114,17 +114,17 @@ export default function FeedbackWidget() {
 
       {isOpen && (
         <div className="fixed inset-0 bg-black/20 flex items-center justify-center z-50 p-4 font-sans">
-          <div className="bg-white rounded-lg shadow-xl w-full max-w-sm p-6 relative">
+          <div className="bg-card rounded-card shadow w-full max-w-sm p-6 relative">
             <button
               onClick={() => setIsOpen(false)}
-              className="absolute top-4 right-4 text-stone-400 hover:text-stone-600"
+              className="absolute rounded-btn top-4 right-4 text-faint hover:text-ink-2"
             >
               ✕
             </button>
-            <h3 className="text-lg font-bold text-stone-900 mb-2">
+            <h3 className="text-lg font-bold text-ink mb-2">
               {t('feedback.modalTitle')}
             </h3>
-            <p className="text-xs text-stone-500 mb-4">
+            <p className="text-xs text-muted mb-4">
               {t('feedback.modalDesc')}
             </p>
             
@@ -132,14 +132,14 @@ export default function FeedbackWidget() {
               value={feedback}
               onChange={(e) => setFeedback(e.target.value)}
               placeholder={t('feedback.placeholder')}
-              className="w-full h-32 p-3 border border-stone-200 rounded text-sm focus:outline-none focus:border-stone-500 resize-none mb-4"
+              className="w-full h-32 p-3 border border-stone-200 rounded-card text-sm focus:outline-none focus:border-stone-500 resize-none mb-4"
               disabled={status === 'loading' || status === 'success'}
             />
 
             <button
               onClick={handleSubmit}
               disabled={status === 'loading' || status === 'success' || !feedback.trim()}
-              className="w-full py-2.5 bg-stone-900 text-white text-sm font-semibold rounded hover:bg-stone-700 disabled:bg-stone-300 transition-colors"
+              className="w-full py-2.5 bg-ink text-card text-sm font-semibold rounded-btn hover:bg-ink-2 disabled:bg-faint transition-colors"
             >
               {status === 'idle' && t('feedback.send')}
               {status === 'loading' && t('feedback.sending')}

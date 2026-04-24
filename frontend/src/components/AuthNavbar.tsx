@@ -15,7 +15,7 @@ export default function AuthNavbar() {
       <div className="max-w-6xl mx-auto px-4 sm:px-6 h-14 flex items-center justify-between">
         <Link
           to="/"
-          className="text-xl font-bold font-cssfont tracking-widest"
+          className="text-xl font-bold tracking-widest"
           style={{ letterSpacing: '0.15em' }}
         >
           Racconto

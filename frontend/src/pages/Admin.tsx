@@ -92,7 +92,7 @@ const OrphanSection = () => {
   return (
     <div className="mb-8">
       <h2 className="text-xs font-semibold text-gray-400 tracking-widest uppercase mb-3">Orphan Images</h2>
-      <div className="bg-white rounded-lg shadow p-5 max-w-xl">
+      <div className="bg-white rounded-card shadow p-5 max-w-xl">
         <p className="text-xs text-gray-500 mb-4">
           CF에 존재하지만 DB에 없는 이미지(업로드 24시간 경과)를 검사하고 삭제합니다.
         </p>
@@ -185,7 +185,7 @@ const ExternalStatsSection = () => {
     return (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 my-8">
             {/* Cloudflare Card */}
-            <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+            <div className="bg-white p-6 rounded-card shadow border border-gray-100">
                 <div className="flex items-center justify-between mb-4">
                     <h3 className="text-sm font-semibold text-gray-500 uppercase">Cloudflare Images</h3>
                     <span className="bg-orange-100 text-orange-600 text-xs px-2 py-1 rounded">Images v1</span>
@@ -195,7 +195,7 @@ const ExternalStatsSection = () => {
                         <span className="text-gray-600">현재 이미지 수</span>
                         <span className="font-bold">{data.cloudflare?.current?.toLocaleString()}</span>
                     </div>
-                    <div className="w-full bg-gray-100 h-2 rounded-full overflow-hidden">
+                    <div className="w-full bg-gray-100 h-2 rounded-card overflow-hidden">
                         <div 
                             className="bg-orange-400 h-full" 
                             style={{ width: `${(data.cloudflare?.current ?? 0 / (data.cloudflare?.limit || 1)) * 100}%` }}
@@ -206,7 +206,7 @@ const ExternalStatsSection = () => {
             </div>
 
             {/* Linode Card */}
-            <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+            <div className="bg-white p-6 rounded-card shadow border border-gray-100">
                 <div className="flex items-center justify-between mb-4">
                     <h3 className="text-sm font-semibold text-gray-500 uppercase">Linode Server</h3>
                     <span className={`text-xs px-2 py-1 rounded ${data.linode?.status === 'running' ? 'bg-green-100 text-green-600' : 'bg-red-100 text-red-600'}`}>
@@ -369,7 +369,7 @@ export default function Admin() {
             { label: 'Photos (DB)', value: stats.total_photos },
             { label: 'Notes', value: stats.total_notes },
           ].map(stat => (
-            <div key={stat.label} className="bg-white rounded-lg shadow p-4 text-center">
+            <div key={stat.label} className="bg-white rounded-card shadow p-4 text-center">
               <p className="text-2xl font-bold text-stone-800">{stat.value.toLocaleString()}</p>
               <p className="text-xs text-gray-400 mt-1">{stat.label}</p>
             </div>
@@ -386,7 +386,7 @@ export default function Admin() {
       {/* 인프라 비용 현황 */}
       <div className="mb-8">
         <h2 className="text-xs font-semibold text-gray-400 tracking-widest uppercase mb-3">Infrastructure Costs</h2>
-        <div className="bg-white rounded-lg shadow overflow-hidden">
+        <div className="bg-white rounded-card shadow overflow-hidden">
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b text-left text-gray-400 text-xs">
@@ -460,7 +460,7 @@ export default function Admin() {
             📢 Send Notice
           </button>
         ) : (
-          <div className="bg-white rounded-lg shadow p-5 max-w-xl">
+          <div className="bg-white rounded-card shadow p-5 max-w-xl">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-sm font-semibold">📢 Send Notice to Users</h2>
               <button

@@ -48,7 +48,7 @@ const NoteItem = memo(function NoteItem({
   return (
     <div
       ref={noteRef}
-      className={`bg-white rounded-lg shadow p-4 ${note.is_pinned ? 'ring-1 ring-stone-300' : ''}`}
+      className={`bg-white rounded-card shadow p-4 ${note.is_pinned ? 'ring-1 ring-stone-300' : ''}`}
     >
       {editingNote === note.id ? (
         <div>
@@ -58,7 +58,7 @@ const NoteItem = memo(function NoteItem({
                 <button
                   key={type.value}
                   onClick={() => setEditType(type.value)}
-                  className={`px-2.5 py-1 text-xs rounded-full transition-colors ${
+                  className={`px-2.5 py-1 text-xs rounded-btn transition-colors ${
                     editType === type.value
                       ? type.color + ' font-semibold ring-1 ring-current'
                       : 'bg-gray-100 text-gray-400 hover:bg-gray-200'
@@ -332,7 +332,7 @@ function ProjectNotes({
 
       {/* 사이드바 */}
       <div className={`${isElectron ? 'hidden' : ''} w-48 shrink-0 sticky top-24 self-start`}>
-        <div className="bg-white rounded-lg shadow p-4 max-h-[calc(100vh-8rem)] overflow-y-auto">
+        <div className="bg-white rounded-card shadow p-4 max-h-[calc(100vh-8rem)] overflow-y-auto">
           <p className="text-xs font-semibold text-gray-500 mb-3">{t('note.filter')}</p>
 
           {/* 전체 */}
@@ -409,14 +409,14 @@ function ProjectNotes({
       {/* 메인 영역 */}
       <div className="flex-1 min-w-0">
         {/* 새 노트 작성 */}
-        <div className="bg-white rounded-lg shadow p-4 mb-6">
+        <div className="bg-white rounded-card shadow p-4 mb-6">
           <div className="flex items-center gap-2 mb-3">
             <div className="flex gap-1.5 flex-wrap">
               {NOTE_TYPES.map(type => (
                 <button
                   key={type.value}
                   onClick={() => setNewType(type.value)}
-                  className={`px-2.5 py-1 text-xs rounded-full transition-colors ${
+                  className={`px-2.5 py-1 text-xs rounded-btn transition-colors ${
                     newType === type.value
                       ? type.color + ' font-semibold ring-1 ring-current'
                       : 'bg-gray-100 text-gray-400 hover:bg-gray-200'

@@ -214,7 +214,7 @@ export function Lightbox({
             {/* 드롭다운 위치 수정: top-full mt-2 로 아래로 열리게 설정 */}
             {showChapterMenu && !inChapter && (
               <div
-                className="absolute top-full mt-2 left-0 bg-white rounded shadow-lg z-50 min-w-[180px] py-1"
+                className="absolute top-full mt-2 left-0 bg-white rounded shadow z-50 min-w-[180px] py-1"
                 onClick={e => e.stopPropagation()}
               >
                 {chapters.length === 0 ? (
@@ -352,7 +352,7 @@ export const PhotoCard = memo(function PhotoCard({
   const isAlreadyInStory = chapterPhotoIds.has(photo.id)
 
   return (
-    <div className={`rounded overflow-hidden bg-gray-100 transition-all ${isSelected ? 'ring-4 ring-blue-500 shadow-lg' : ''}`}>
+    <div className={`rounded overflow-hidden bg-gray-100 transition-all ${isSelected ? 'ring-4 ring-blue-500 shadow' : ''}`}>
       <div className="relative group">
 
         {/* 이미지 */}
@@ -389,7 +389,7 @@ export const PhotoCard = memo(function PhotoCard({
             className="absolute top-3 left-3 z-20 cursor-pointer"
             onClick={e => { e.stopPropagation(); onToggleSelect(photo.id) }}
           >
-            <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center transition-colors shadow-sm ${
+            <div className={`w-6 h-6 rounded-card border-2 flex items-center justify-center transition-colors shadow ${
               isSelected ? 'bg-blue-500 border-blue-500' : 'bg-black/40 border-white/80'
             }`}>
               {isSelected && <span className="text-white text-sm font-bold">✓</span>}
@@ -408,7 +408,7 @@ export const PhotoCard = memo(function PhotoCard({
             <div className="absolute top-2 right-2 flex gap-1 pointer-events-auto">
               <button
                 onClick={e => { e.stopPropagation(); onSetCover(photo) }}
-                className={`${gridCols >= 4 ? 'px-1 py-0.5 text-[10px]' : 'px-2 py-1 text-xs'} rounded shadow-md transition-colors ${
+                className={`${gridCols >= 4 ? 'px-1 py-0.5 text-[10px]' : 'px-2 py-1 text-xs'} rounded shadow transition-colors ${
                   project?.cover_image_url === photo.image_url
                     ? 'bg-yellow-400 text-black'
                     : 'bg-black/50 hover:bg-black/80 text-white'
@@ -418,7 +418,7 @@ export const PhotoCard = memo(function PhotoCard({
               </button>
               <button
                 onClick={e => { e.stopPropagation(); onDelete(photo.id) }}
-                className="w-6 h-6 flex items-center justify-center bg-red-500/70 hover:bg-red-600 text-white rounded shadow-md text-xs font-bold transition-colors"
+                className="w-6 h-6 flex items-center justify-center bg-red-500/70 hover:bg-red-600 text-white rounded shadow text-xs font-bold transition-colors"
               >✕</button>
             </div>
 
@@ -431,7 +431,7 @@ export const PhotoCard = memo(function PhotoCard({
                     <button
                       key={star}
                       onClick={e => { e.stopPropagation(); onSetRating(photo, star) }}
-                      className={`transition-all duration-150 drop-shadow-md ${gridCols >= 4 ? 'text-[10px]' : 'text-xs'} ${
+                      className={`transition-all duration-150 drop-shadow ${gridCols >= 4 ? 'text-[10px]' : 'text-xs'} ${
                         isActive
                           ? 'text-yellow-400 scale-110'
                           : 'text-white/40 hover:text-yellow-200 hover:scale-125'
@@ -448,7 +448,7 @@ export const PhotoCard = memo(function PhotoCard({
                       key={label.value}
                       onClick={e => { e.stopPropagation(); onSetColorLabel(photo, label.value) }}
                       title={label.label}
-                      className={`rounded-full ${label.color} transition-all duration-150 shadow-sm border border-white/10 ${
+                      className={`rounded-full ${label.color} transition-all duration-150 shadow border border-white/10 ${
                         gridCols >= 4 ? 'w-2 h-2' : 'w-2.5 h-2.5'
                       } ${
                         isActive

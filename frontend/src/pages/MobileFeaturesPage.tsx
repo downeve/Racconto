@@ -36,7 +36,7 @@ function MobileFeatureCard({ feature, index }: { feature: FeatureData; index: nu
       }`}
       style={{ transitionDelay: `${index * 50}ms` }}
     >
-      <div className="rounded-lg overflow-hidden shadow-lg border border-stone-200 bg-stone-50 mb-4">
+      <div className="rounded-card overflow-hidden shadow border border-stone-200 bg-stone-50 mb-4">
         <img
           src={feature.screenshotSrc}
           alt={feature.screenshotAlt}
@@ -48,7 +48,7 @@ function MobileFeatureCard({ feature, index }: { feature: FeatureData; index: nu
         {feature.tag}
       </p>
       <h3
-        className="text-xl font-bold font-cssfont text-stone-900 mb-3 leading-snug"
+        className="text-xl font-bold text-stone-900 mb-3 leading-snug"
       >
         {feature.title}
       </h3>
@@ -131,7 +131,7 @@ export default function MobileFeaturesPage() {
 
   return (
     <div
-      className="min-h-screen bg-[#F7F4F0] text-stone-900 font-cssfont"
+      className="min-h-screen bg-[#F7F4F0] text-stone-900"
     >
       <PublicNavbar />
 
@@ -154,7 +154,7 @@ export default function MobileFeaturesPage() {
         </p>
         <div className="flex items-center justify-center gap-4 mt-8">
           <div className="h-px w-12 bg-stone-300" />
-          <div className="w-1 h-1 rounded-full bg-stone-400" />
+          <div className="w-1 h-1 rounded-card bg-stone-400" />
           <div className="h-px w-12 bg-stone-300" />
         </div>
       </section>

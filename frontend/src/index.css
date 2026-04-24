@@ -2,15 +2,51 @@
 @tailwind components;
 @tailwind utilities;
 
+/* 1. 기본 태그(html, body) 설정 */
 @layer base {
+  html { 
+    /* 전체 기본 폰트는 sans, 글자 크기는 body, 기본 글자색은 본문용 ink-2 */
+    @apply font-sans text-body text-ink-2; 
+    overflow-y: scroll;
+  }
+  
   body {
-    background-color: #F7F4F0;
-    color: #1c1917; /* stone-900 */
-    overflow-y: scroll; 
+    /* 하드코딩 대신 config에 등록한 색상 이름을 바로 사용! */
+    @apply bg-canvas text-ink;
+  }
+}
+
+/* 2. 커스텀 클래스 설정 */
+@layer components {
+  /* 콘텐츠 래퍼용 클래스 */
+  .editorial { 
+    @apply font-serif; 
   }
 }
 
 @keyframes slowScroll {
   0% { transform: translateY(0); }
   100% { transform: translateY(-25%); }
+}
+
+@layer components {
+  /* 공통 버튼 베이스 */
+  .btn-base {
+    @apply inline-flex items-center justify-center transition-ui duration-150 ease-out active:scale-[0.98];
+  }
+
+  /* 메인 버튼 (Primary) */
+  .btn-primary {
+    @apply btn-base bg-ink-2 text-canvas px-4 py-2 rounded-btn hover:bg-muted;
+  }
+
+  /* 보조 버튼 (Secondary) */
+  .btn-secondary {
+    @apply btn-base border border-hair text-ink-2 px-4 py-2 rounded-btn hover:bg-canvas-2;
+  }
+
+  /* 카드 리프트 효과 */
+  .card-hover {
+    @apply transition-ui duration-150 ease-out hover:-translate-y-[1px] hover:shadow-deep;
+  }
 }

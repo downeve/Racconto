@@ -33,12 +33,12 @@ export default function Login() {
       <AuthNavbar />
 
       <div className="flex-1 flex items-center justify-center px-4 py-20">
-        <div className="bg-white rounded-lg shadow p-8 w-full max-w-sm">
+        <div className="bg-card rounded-card shadow p-8 w-full max-w-sm">
           <h1 className="text-2xl font-bold text-center mb-8 tracking-widest font-serif">Racconto</h1>
 
           <div className="space-y-4">
             <input
-              className="w-full border rounded px-3 py-2 text-sm"
+              className="w-full border rounded-card px-3 py-2 text-sm"
               type="email"
               placeholder={t('auth.mail')}
               value={email}
@@ -46,7 +46,7 @@ export default function Login() {
               onKeyDown={e => e.key === 'Enter' && handleSubmit()}
             />
             <input
-              className="w-full border rounded px-3 py-2 text-sm"
+              className="w-full border rounded-card px-3 py-2 text-sm"
               type="password"
               placeholder={t('auth.password')}
               value={password}
@@ -57,7 +57,7 @@ export default function Login() {
             <button
               onClick={handleSubmit}
               disabled={loading}
-              className="w-full bg-stone-600 text-white px-4 py-2 text-sm tracking-wider hover:bg-stone-900 transition-colors rounded"
+              className="btn-primary w-full"
             >
               {loading ? t('auth.loggingIn') : t('auth.submit')}
             </button>

@@ -97,7 +97,7 @@ export default function ElectronSidebar({ activeTab, onTabChange, showTabs }: Pr
             <button
               key={item.key}
               onClick={() => onTabChange(item.key)}
-              className={`rounded-lg flex-1 flex flex-row items-center justify-center gap-1.5 py-2 text-xs tracking-wider transition-colors ${
+              className={`rounded-btn flex-1 flex flex-row items-center justify-center gap-1.5 py-2 text-xs tracking-wider transition-colors ${
                 activeTab === item.key
                   ? 'bg-stone-900 text-white'
                   : 'text-stone-600 hover:bg-stone-100 hover:text-stone-900'

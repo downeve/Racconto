@@ -62,7 +62,7 @@ function AppRoutes() {
         <div className="fixed inset-0 bg-[#F7F4F0] z-50 flex items-center justify-center p-8 text-center">
           <div>
             <p className="text-3xl mb-4">📷</p>
-            <p className="text-lg font-bold text-stone-900 mb-2 font-cssfont">
+            <p className="text-lg font-bold text-stone-900 mb-2">
               {t('landing.desktopOptimizationInfo')}
             </p>
             <p className="text-sm text-stone-500 leading-relaxed mb-6">
@@ -71,13 +71,13 @@ function AppRoutes() {
             <div className="flex flex-col gap-3 items-center mb-6">
               <a
                 href="https://racconto.app"
-                className="text-sm font-medium text-stone-700 border border-stone-300 rounded-full px-5 py-2 hover:bg-stone-100 transition-colors"
+                className="text-sm font-medium text-stone-700 border border-stone-300 rounded-card px-5 py-2 hover:bg-stone-100 transition-colors"
               >
                 {t('landing.openInBrowser')}
               </a>
               <a
                 href="https://racconto.app#download"
-                className="text-sm font-medium text-white bg-stone-800 rounded-full px-5 py-2 hover:bg-stone-700 transition-colors"
+                className="text-sm font-medium text-white bg-stone-800 rounded-card px-5 py-2 hover:bg-stone-700 transition-colors"
               >
                 {t('landing.downloadDesktopApp')}
               </a>

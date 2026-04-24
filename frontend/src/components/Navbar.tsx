@@ -57,7 +57,7 @@ export default function Navbar({ onLogout }: NavbarProps) {
         <div className="px-4 h-14 flex items-center justify-between">
           <Link
             to="/"
-            className="text-xl font-bold font-cssfont tracking-widest"
+            className="font-h3 font-sans tracking-widest"
             style={{ letterSpacing: '0.15em' }}
           >
             Racconto
@@ -84,7 +84,7 @@ export default function Navbar({ onLogout }: NavbarProps) {
       >
         <Link
           to="/"
-          className="text-xl font-bold font-cssfont tracking-widest"
+          className="text-xl font-bold tracking-widest"
           style={{ letterSpacing: '0.15em', WebkitAppRegion: 'no-drag' } as React.CSSProperties}
         >
           Racconto

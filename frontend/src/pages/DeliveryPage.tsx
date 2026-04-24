@@ -179,7 +179,7 @@ export default function DeliveryPage() {
   if (step === 'password') {
     return (
       <div className={`min-h-screen flex items-center justify-center ${bg} px-4`}>
-        <div className={`w-full max-w-sm ${cardBg} rounded-2xl shadow-xl p-8`}>
+        <div className={`w-full max-w-sm ${cardBg} rounded-2xl shadow p-8`}>
           <div className="text-center mb-6">
             <p className="text-3xl mb-3">🔒</p>
             <h1 className="text-lg font-semibold">{info?.project_title || '납품 링크'}</h1>
@@ -332,7 +332,7 @@ export default function DeliveryPage() {
           onClick={() => setEditingComment(null)}
         >
           <div
-            className={`w-full max-w-sm ${cardBg} rounded-2xl p-6 shadow-2xl`}
+            className={`w-full max-w-sm ${cardBg} rounded-2xl p-6 shadow`}
             onClick={e => e.stopPropagation()}
           >
             <h3 className="text-base font-semibold mb-3">코멘트 추가</h3>

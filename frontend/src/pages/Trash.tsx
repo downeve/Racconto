@@ -109,7 +109,7 @@ export default function Trash() {
       ) : (
         <div className="space-y-3">
           {projects.map(project => (
-            <div key={project.id} className="bg-white rounded-lg shadow p-4 flex items-center justify-between">
+            <div key={project.id} className="bg-white rounded-card shadow p-4 flex items-center justify-between">
               <div>
                 <h3 className="font-semibold">{project.title}</h3>
                 {project.title_en && <p className="text-xs text-gray-400">{project.title_en}</p>}
