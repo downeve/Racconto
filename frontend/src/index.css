@@ -37,12 +37,17 @@
 
   /* 메인 버튼 (Primary) */
   .btn-primary {
-    @apply btn-base bg-ink-2 text-canvas px-4 py-2 rounded-btn hover:bg-muted;
+    @apply btn-base bg-ink text-canvas px-4 py-2 rounded-btn hover:bg-canvas-3;
   }
 
   /* 보조 버튼 (Secondary) */
   .btn-secondary {
-    @apply btn-base border border-hair text-ink-2 px-4 py-2 rounded-btn hover:bg-canvas-2;
+    @apply btn-base border border-hair bg-canvas-2 text-ink-2 px-4 py-2 rounded-btn hover:bg-canvas-4 hover:border-secondary-border hover:text-ink;
+  }
+
+  /* 카드 패널 보조 버튼 (Secondary on card) */
+  .btn-secondary-on-card {
+    @apply btn-base border border-hair bg-card text-ink-2 px-4 py-2 rounded-btn hover:text-ink hover:border-faint hover:shadow;
   }
 
   /* 카드 리프트 효과 */

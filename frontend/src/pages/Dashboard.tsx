@@ -4,7 +4,6 @@ import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { useAuth } from '../context/AuthContext' // AuthContext가 구현되어 있다고 가정
 import ProjectCard from '../components/ProjectCard'
-import Heading from '../components/Heading'
 
 const API = import.meta.env.VITE_API_URL
 
@@ -43,57 +42,57 @@ export default function Dashboard() {
 
   return (
     <div className="min-h-screen bg-[#F7F4F0] text-stone-900 pb-20">
-      <div className="max-w-7xl mx-auto px-6 pt-16">
+      <div className="max-w-7xl mx-auto px-6 pt-space-lg">
         
         {/* 1. Welcome Section: LandingPage의 감성을 이어받음 */}
-        <section className="mb-16">
-          <p className="text-sm tracking-[0.3em] text-stone-400 uppercase mb-4">
+        <section className="mb-space-md">
+          <p className="text-small tracking-[0.3em] text-faint uppercase mb-4">
             Welcome back
           </p>
-          <h1 className="text-3xl md:text-4xl font-bold mb-6 text-stone-900 leading-tight break-keep">
+          <p className="font-serif text-h2 md:text-h1 font-bold mb-6 text-ink-2 leading-tight break-keep">
             {t('dashboard.title1')}<br />
             {t('dashboard.title2')}
-          </h1>
-          <p className="text-stone-500 italic text-lg">
+          </p>
+          <p className="font-serif text-muted italic text-h3">
             "Every photo has a story to tell."
           </p>
         </section>
 
         {/* 2. Quick Actions: 대시보드만의 기능적 섹션 */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-16">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-space-md">
           {/* 전체 통계 확인 */}
-          <div className="bg-white p-8 rounded shadow border border-stone-100 flex flex-col justify-between">
+          <div className="bg-card p-8 rounded-card shadow border border-hair flex flex-col justify-between">
             <div>
-              <h3 className="text-stone-400 text-xs tracking-widest uppercase mb-2">My Stories</h3>
-              <p className="text-3xl font-bold">{projects.length}</p>
-              <p className="text-stone-500 text-sm mt-1">{t('dashboard.projectOngoing')}</p>
+              <p className="text-faint text-body tracking-widest uppercase mb-2">My Stories</p>
+              <p className="text-h2 font-bold">{projects.length}</p>
+              <p className="text-muted text-body mt-1">{t('dashboard.projectOngoing')}</p>
             </div>
-            <Link to="/projects" className="text-stone-900 text-sm font-semibold hover:underline mt-6 inline-block">
+            <Link to="/projects" className="text-ink-2 text-body font-semibold hover:text-ink hover:underline mt-6 inline-block">
               {t('dashboard.projectList')}
             </Link>
           </div>
           
           {/* 포트폴리오 바로가기: PublicPortfolio.tsx와 연결 */}
-          <div className="bg-stone-700 text-white p-8 rounded shadow flex flex-col justify-between">
+          <div className="bg-canvas-4 p-8 rounded-card border border-hair shadow flex flex-col justify-between">
             <div>
-              <h3 className="text-stone-400 text-xs tracking-widest uppercase mb-2">Portfolio</h3>
-              <p className="text-lg mb-2">{t('dashboard.portSharing')}</p>
+              <p className="text-ink text-body tracking-widest uppercase mb-2">Portfolio</p>
+              <p className="text-h2 text-ink-2 mb-2">{t('dashboard.portSharing')}</p>
             </div>
-            <Link to={`/p/${user?.username}`} className="text-white text-sm font-semibold hover:underline underline-offset-4 hover:text-stone-300">
+            <Link to={`/p/${user?.username}`} className="text-ink-2 text-body font-semibold hover:underline underline-offset-4">
               {t('dashboard.goToPortfolio')}
             </Link>
           </div>
 
           {/* 새 프로젝트 생성 바로가기 */}
-          <div className="bg-white p-8 rounded shadow border border-stone-100 flex flex-col justify-between">
+          <div className="bg-card p-8 rounded-card shadow border border-hair flex flex-col justify-between">
             <div>
-              <h3 className="text-stone-400 text-xs tracking-widest uppercase mb-2">Quick Start</h3>
-              <p className="text-lg mb-2">{t('dashboard.newProject')}</p>
+              <p className="text-faint text-body tracking-widest uppercase mb-2">Quick Start</p>
+              <p className="text-h2 mb-2">{t('dashboard.newProject')}</p>
             </div>
             <Link 
             to="/projects" 
             state={{ openForm: true }} // [추가] state를 통해 신호 전달
-            className="inline-block bg-stone-700 text-white text-center py-2.5 px-4 text-sm rounded hover:bg-stone-800 transition-all"
+            className="inline-block text-body text-center btn-primary transition-all"
             >
                 {t('dashboard.makeNewProject')}
             </Link>
@@ -102,10 +101,8 @@ export default function Dashboard() {
 
         {/* 3. Recent Projects: Projects.tsx의 그리드 디자인 활용 */}
         <section>
-          <div className="flex items-end justify-between mb-8 border-b border-stone-200 pb-4">
-            <Heading level={2} className="!mb-0">
-              {t('dashboard.recent')}
-            </Heading>
+          <div className="flex items-end justify-between mb-space-sm border-b border-hair pb-space-xs">
+            <p className="text-h2 text-ink font-serif">{t('dashboard.recent')}</p>
           </div>
 
           {recentProjects.length > 0 ? (
@@ -118,10 +115,10 @@ export default function Dashboard() {
             </div>
           ) : (
             /* 프로젝트가 없을 때의 Empty State */
-            <div className="bg-white/50 border-2 border-dashed border-stone-200 rounded-card py-24 text-center">
-              <p className="text-stone-400 text-lg mb-6">{t('dashborad.noProjects')}아직 기록된 이야기가 없습니다.</p>
-              <Link to="/projects" className="bg-stone-900 text-white px-8 py-3 rounded text-sm tracking-widest hover:bg-stone-700 transition-all">
-                {t('dashboard.StartNew')}첫 번째 프로젝트 시작하기
+            <div className="bg-card border-2 border-dashed border-hair rounded-card py-space-lg text-center">
+              <p className="text-muted text-h2 mb-space-xs">{t('dashboard.noProjects')}</p>
+              <Link to="/projects" state={{ openForm: true }} className="text-body btn-primary tracking-widest transition-all">
+                {t('dashboard.startNew')}
               </Link>
             </div>
           )}

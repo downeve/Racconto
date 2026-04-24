@@ -28,17 +28,17 @@ export default function Login() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#F7F4F0]">
+    <div className="min-h-screen flex flex-col bg-canvas">
 
       <AuthNavbar />
 
       <div className="flex-1 flex items-center justify-center px-4 py-20">
         <div className="bg-card rounded-card shadow p-8 w-full max-w-sm">
-          <h1 className="text-2xl font-bold text-center mb-8 tracking-widest font-serif">Racconto</h1>
+          <h2 className="font-serif font-bold text-h2 text-center mb-8 tracking-widest">Racconto</h2>
 
           <div className="space-y-4">
             <input
-              className="w-full border rounded-card px-3 py-2 text-sm"
+              className="w-full border rounded-card px-3 py-2 text-body"
               type="email"
               placeholder={t('auth.mail')}
               value={email}
@@ -46,24 +46,24 @@ export default function Login() {
               onKeyDown={e => e.key === 'Enter' && handleSubmit()}
             />
             <input
-              className="w-full border rounded-card px-3 py-2 text-sm"
+              className="w-full border rounded-card px-3 py-2 text-body"
               type="password"
               placeholder={t('auth.password')}
               value={password}
               onChange={e => setPassword(e.target.value)}
               onKeyDown={e => e.key === 'Enter' && handleSubmit()}
             />
-            {error && <p className="text-red-500 text-xs">{error}</p>}
+            {error && <p className="text-red-500 text-small">{error}</p>}
             <button
               onClick={handleSubmit}
               disabled={loading}
-              className="btn-primary w-full"
+              className="text-body btn-primary w-full"
             >
               {loading ? t('auth.loggingIn') : t('auth.submit')}
             </button>
-            <p className="text-center text-xs text-gray-500">
-              {t('auth.noAccount')} {' '}
-              <Link to="/register" className="underline">{t('auth.register')}</Link>
+            <p className="text-center text-small text-muted">
+              {t('auth.noAccount')} {'  '}
+              <Link to="/register" className="text-small underline text-ink-2 hover:text-accent">{t('auth.register')}</Link>
             </p>
           </div>
         </div>

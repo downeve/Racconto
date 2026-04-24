@@ -13,6 +13,9 @@ export default {
         gray: colors.stone,
         canvas: '#F7F4F0',      //메인 배경
         'canvas-2': '#EFEAE3',  //Hover, subtle panel
+        'canvas-3': '#292524',    //Primary 버튼 Hover 적용, warm stone-800 
+        'canvas-4': '#E7E0D7',  //Secondary 버튼 Hover warm-stone-200
+        'secondary-border': "#D6D3D1", //Secondary 버튼 Hover border, warm-stone-300
         card: '#FFFFFF',        //모달, 카드
         ink: colors.stone[900],       //제목 및 강조
         'ink-2': colors.stone[700],   //본문
@@ -41,6 +44,13 @@ export default {
       },
       transitionTimingFunction: {
         'out': 'cubic-bezier(0, 0, 0.2, 1)',
+      },
+      spacing: {
+        'space-xs': '1rem',    // 16px
+        'space-sm': '1.5rem',  // 24px
+        'space-md': '3rem',    // 48px
+        'space-lg': '6rem',    // 96px
+        'space-xl': '9rem',    // 144px
       },
       boxShadow: {
         // 1. 기본 shadow (shadow 클래스 하나로 통일)

@@ -65,21 +65,21 @@ export default function Register() {
       <div className="flex-1 flex items-center justify-center px-4 py-20">
         {success ? (
           // --- 회원가입 성공 (이메일 인증 대기) 화면 ---
-          <div className="bg-white rounded-card shadow p-8 w-full max-w-sm text-center">
-            <h1 className="text-2xl font-bold tracking-widest mb-6 font-serif">Racconto</h1>
-            <p className="text-sm text-gray-600 mb-2">{t('register.success.title')}</p>
-            <p className="text-sm text-gray-600 mb-6">{t('register.success.desc')}</p>
-            {resendMessage && <p className="text-xs text-gray-500 mb-4">{resendMessage}</p>}
+          <div className="bg-card rounded-card shadow p-8 w-full max-w-sm text-center">
+            <h2 className="font-serif font-bold text-h2 tracking-widest mb-6">Racconto</h2>
+            <p className="text-body text-ink-2 mb-2">{t('register.success.title')}</p>
+            <p className="text-small text-ink-2 mb-6">{t('register.success.desc')}</p>
+            {resendMessage && <p className="text-small text-muted mb-4">{resendMessage}</p>}
             <button
               onClick={handleResend}
               disabled={resending}
-              className="w-full border border-stone-900 text-stone-900 py-2 text-sm tracking-wider hover:bg-stone-50 disabled:opacity-50 mb-3"
+              className="w-full rounded-btn text-body btn-secondary-on-card tracking-wider disabled:opacity-50 mb-3"
             >
               {resending ? t('register.sending') : t('register.resendEmail')}
             </button>
             <button
               onClick={() => navigate('/login')}
-              className="w-full bg-stone-900 text-white py-2 text-sm tracking-wider hover:bg-stone-700"
+              className="text-body btn-primary w-full"
             >
               {t('register.goToLogin')}
             </button>
@@ -87,41 +87,41 @@ export default function Register() {
         ) : (
           // --- 회원가입 입력 폼 화면 ---
           <div className="bg-white rounded-card shadow p-8 w-full max-w-sm">
-            <h1 className="text-2xl font-bold text-center mb-8 tracking-widest font-serif">Racconto</h1>
+            <h2 className="text-h2 font-serif font-bold text-center mb-8 tracking-widest">Racconto</h2>
             <div className="space-y-4">
               <input
                 type="email"
-                className="w-full border px-3 py-2 text-sm rounded-card"
+                className="w-full border px-3 py-2 text-body rounded-card"
                 placeholder={t('register.email')}
                 value={email}
                 onChange={e => setEmail(e.target.value)}
               />
               <input
                 type="password"
-                className="w-full border px-3 py-2 text-sm rounded-card"
+                className="w-full border px-3 py-2 text-body rounded-card"
                 placeholder={t('register.password')}
                 value={password}
                 onChange={e => setPassword(e.target.value)}
               />
               <input
                 type="password"
-                className="w-full border px-3 py-2 text-sm rounded-card"
+                className="w-full border px-3 py-2 text-body rounded-card"
                 placeholder={t('register.passwordConfirm')}
                 value={passwordConfirm}
                 onChange={e => setPasswordConfirm(e.target.value)}
                 onKeyDown={e => e.key === 'Enter' && handleSubmit()}
               />
-              {error && <p className="text-red-500 text-xs">{error}</p>}
+              {error && <p className="text-red-500 text-small">{error}</p>}
               <button
                 onClick={handleSubmit}
                 disabled={loading}
-                className="w-full rounded-btn bg-stone-600 text-white px-4 py-2 text-sm tracking-wider hover:bg-stone-900 transition-colors"
+                className="w-full text-body btn-primary tracking-wider transition-colors"
               >
                 {loading ? t('register.processing') : t('register.submit')}
               </button>
-              <p className="text-center text-xs text-gray-500">
+              <p className="text-center text-small text-muted">
                 {t('register.hasAccount')}{' '}
-                <Link to="/login" className="underline">{t('register.loginLink')}</Link>
+                <Link to="/login" className="underline text-small hover:text-accent">{t('register.loginLink')}</Link>
               </p>
             </div>
           </div>
