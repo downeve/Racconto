@@ -198,7 +198,7 @@ export function Lightbox({
           <div className="w-px h-3 bg-card/30" />
 
           {/* 챕터 추가 / 정보 표시 */}
-          <div className="relative flex items-center" onClick={e => e.stopPropagation()}>
+          <div className="flex items-center" onClick={e => e.stopPropagation()}>
             {inChapter ? (
               <span className="flex items-center text-small text-blue-400 px-3 py-1.5 border border-transparent font-medium">
                 {getAssignedChapterInfo()}
@@ -210,37 +210,6 @@ export function Lightbox({
               >
                 📖 {t('story.addToChapter')}
               </button>
-            )}
-
-            {/* 드롭다운 위치 수정: top-full mt-2 로 아래로 열리게 설정 */}
-            {showChapterMenu && !inChapter && (
-              <div
-                className="absolute top-full mt-2 left-0 bg-white rounded shadow z-50 min-w-[180px] py-1"
-              >
-                {chapters.length === 0 ? (
-                  <p className="text-small text-faint px-3 py-2">{t('story.noChapters')}</p>
-                ) : (
-                  chapters.filter(c => !c.parent_id).map((parent, parentIdx) => (
-                    <div key={parent.id}>
-                      <button
-                        onClick={() => { onAddToChapter(photo.id, parent.id); setShowChapterMenu(false) }}
-                        className="w-full text-left text-small px-3 py-2 hover:bg-hair text-ink-2 font-base"
-                      >
-                        {t('story.chapter')} {parentIdx + 1}. {parent.title}
-                      </button>
-                      {chapters.filter(c => c.parent_id === parent.id).map((child, childIdx) => (
-                        <button
-                          key={child.id}
-                          onClick={() => { onAddToChapter(photo.id, child.id); setShowChapterMenu(false) }}
-                          className="w-full text-left text-small px-3 py-2 hover:bg-hair/60 text-muted pl-6"
-                        >
-                          ↳ {t('story.chapter')} {parentIdx + 1}.{childIdx + 1}. {child.title}
-                        </button>
-                      ))}
-                    </div>
-                  ))
-                )}
-              </div>
             )}
           </div>
 
@@ -308,6 +277,44 @@ export function Lightbox({
           </div>
         </div>
       </div>
+
+      {/* 챕터 메뉴 */}
+      {showChapterMenu && !inChapter && (
+        <div
+          className="fixed inset-0 z-40"
+          onClick={e => { e.stopPropagation(); setShowChapterMenu(false) }}
+        >
+          <div
+            className="absolute bg-white rounded shadow z-50 min-w-[180px] py-1"
+            style={{ top: '4rem', left: '50%', transform: 'translateX(-50%)' }}
+            onClick={e => e.stopPropagation()}
+          >
+            {chapters.length === 0 ? (
+              <p className="text-small text-faint px-3 py-2">{t('story.noChapters')}</p>
+            ) : (
+              chapters.filter(c => !c.parent_id).map((parent, parentIdx) => (
+                <div key={parent.id}>
+                  <button
+                    onClick={() => { onAddToChapter(photo.id, parent.id); setShowChapterMenu(false) }}
+                    className="w-full text-left text-small px-3 py-2 hover:bg-hair text-ink-2 font-base"
+                  >
+                    {t('story.chapter')} {parentIdx + 1}. {parent.title}
+                  </button>
+                  {chapters.filter(c => c.parent_id === parent.id).map((child, childIdx) => (
+                    <button
+                      key={child.id}
+                      onClick={() => { onAddToChapter(photo.id, child.id); setShowChapterMenu(false) }}
+                      className="w-full text-left text-small px-3 py-2 hover:bg-hair/60 text-muted pl-6"
+                    >
+                      ↳ {t('story.chapter')} {parentIdx + 1}.{childIdx + 1}. {child.title}
+                    </button>
+                  ))}
+                </div>
+              ))
+            )}
+          </div>
+        </div>
+      )}
 
       {/* 노트 패널 */}
       {showNotePanel && (
