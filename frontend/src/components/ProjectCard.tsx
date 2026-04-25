@@ -40,7 +40,7 @@ export default function ProjectCard({ project }: { project: Project }) {
         </div>
         <div className="p-4">
           <div className="flex items-start justify-between mb-2">
-            <h3 className="font-semibold text-base text-ink [word-break:keep-all]">{project.title}</h3>
+            <h3 className="font-semibold text-body text-ink [word-break:keep-all]">{project.title}</h3>
             <span className={`text-xs px-2 py-1 rounded-card ml-2 shrink-0 ${statusColor[project.status] || 'bg-gray-100'}`}>
               {t(`status.${project.status}`)} 
             </span>

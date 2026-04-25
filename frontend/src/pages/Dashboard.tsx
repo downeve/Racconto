@@ -42,7 +42,7 @@ export default function Dashboard() {
 
   return (
     <div className="min-h-screen bg-[#F7F4F0] text-stone-900 pb-20">
-      <div className="max-w-7xl mx-auto px-6 pt-space-lg">
+      <div className="max-w-7xl mx-auto px-6 pt-space-md">
         
         {/* 1. Welcome Section: LandingPage의 감성을 이어받음 */}
         <section className="mb-space-md">

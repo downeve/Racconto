@@ -3,7 +3,6 @@ import axios from 'axios'
 import ProjectCard from '../components/ProjectCard'
 import { Link, useLocation } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import Heading from '../components/Heading'
 import ConfirmModal from '../components/ConfirmModal'
 import ToastNotification from '../components/ToastNotification'
 import { useElectronSidebar } from '../context/ElectronSidebarContext'
@@ -186,13 +185,13 @@ export default function Projects() {
         />
       )}
       {toast && <ToastNotification message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
-      <div className="flex items-center justify-between mb-8">
-          <Heading level={2} className="mb-2">
-            {t('nav.projects')}
-          </Heading>
+      <div className="flex items-center justify-between mb-space-sm">
+          <h3 className="font-body font-serif font-medium text-h2">
+            {t('nav.projectsList')}
+          </h3>
         <button
           onClick={() => setShowForm(!showForm)}
-          className="bg-ink-2 text-hair px-4 py-2 text-sm tracking-wider hover:bg-accent transition-colors rounded"
+          className="font-body btn-primary tracking-wider transition-colors"
         >
           {t('project.newProject')}
         </button>
@@ -200,30 +199,30 @@ export default function Projects() {
 
       {showForm && (
         <div className="max-w-3xl bg-card rounded-card shadow p-6 mb-8">
-          <h3 className="font-semibold mb-4">{t('project.createProject')}</h3>
+          <h3 className="text-h3 font-serif font-semibold mb-4">{t('project.createProject')}</h3>
           <div className="grid grid-cols-2 gap-4 mb-4">
-            <input className="border rounded px-3 py-2" placeholder={t('project.projectName')} value={title} onChange={e => setTitle(e.target.value)} />
-            <textarea className="border rounded px-3 py-2 col-span-2" placeholder={t('project.description')} rows={2} value={description} onChange={e => setDescription(e.target.value)} />
-            <input className="border rounded px-3 py-2" placeholder={t('project.location')} value={location} onChange={e => setLocation(e.target.value)} />
-            <select className="border rounded px-3 py-2" value={status} onChange={e => setStatus(e.target.value)}>
+            <input className="text-body text-ink-2 border rounded-card px-3 py-2" placeholder={t('project.projectName')} value={title} onChange={e => setTitle(e.target.value)} />
+            <textarea className="text-body text-ink-2 border rounded-card px-3 py-2 col-span-2" placeholder={t('project.description')} rows={2} value={description} onChange={e => setDescription(e.target.value)} />
+            <input className="text-body text-ink-2 border rounded-card px-3 py-2" placeholder={t('project.location')} value={location} onChange={e => setLocation(e.target.value)} />
+            <select className="text-body text-ink-2 border rounded-card px-3 py-2" value={status} onChange={e => setStatus(e.target.value)}>
               <option value="in_progress">{t('project.statusInProgress')}</option>
               <option value="completed">{t('project.statusCompleted')}</option>
               <option value="published">{t('project.statusPublished')}</option>
               <option value="archived">{t('project.statusArchived')}</option>
             </select>
-            <select className="border rounded px-3 py-2" value={isPublic} onChange={e => setIsPublic(e.target.value)}>
+            <select className="text-body text-ink-2 border rounded-card px-3 py-2" value={isPublic} onChange={e => setIsPublic(e.target.value)}>
               <option value="false">{t('project.privateProject')}</option>
               <option value="true">{t('project.publicProject')}</option>
             </select>
           </div>
           <div className="flex gap-2">
-            <button onClick={handleSubmit} className="bg-ink-2 text-hair px-6 py-2 text-sm tracking-wider hover:bg-accent transition-colors rounded">{t('common.save')}</button>
+            <button onClick={handleSubmit} className="text-body btn-primary tracking-wider transition-colors">{t('common.save')}</button>
             <button onClick={() => {
               setShowForm(false)
               setTitle(''); setTitleEn(''); setDescription('')
               setDescriptionEn(''); setLocation('')
               setStatus('in_progress'); setIsPublic('false')
-            }} className="border border-faint px-6 py-2 text-sm text-ink-2 hover:bg-muted hover:text-hair rounded">{t('common.cancel')}</button>
+            }} className="text-body btn-secondary-on-card">{t('common.cancel')}</button>
           </div>
         </div>
       )}
@@ -244,8 +243,8 @@ export default function Projects() {
       </DndContext>
 
       {projects.length === 0 && (
-        <div className="text-center py-14">
-          <h1 className="text-2xl md:text-3xl font-semibold mb-6 italic text-ink-2 leading-tight break-keep">
+        <div className="text-center py-space-lg">
+          <h1 className="text-h3 md:text-h2 font-semibold mb-6 italic text-ink-2 leading-tight break-keep">
           {t('project.noProjects')}
           </h1>
         </div>
