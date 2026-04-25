@@ -103,16 +103,16 @@ export default function ProjectEdit() {
           </select>
         </div>
 
-        <div className="flex gap-2">
+        <div className="flex gap-2 justify-end">
           <button
             onClick={handleSubmit}
-            className="bg-black text-white px-6 py-2 text-sm hover:bg-gray-800"
+            className="text-body btn-primary tracking-wider transition-colors"
           >
             {t('common.save')}
           </button>
           <button
             onClick={() => navigate(`/projects/${id}`)}
-            className="border px-6 py-2 text-sm hover:bg-gray-50"
+            className="text-body btn-secondary-on-card"
           >
             {t('common.cancel')}
           </button>

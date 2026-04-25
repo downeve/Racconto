@@ -37,7 +37,7 @@
 
   /* 메인 버튼 (Primary) */
   .btn-primary {
-    @apply btn-base bg-ink text-canvas px-3 py-1.5 rounded-btn hover:bg-canvas-3;
+    @apply btn-base bg-ink-2 text-canvas px-3 py-1.5 rounded-btn hover:bg-ink;
   }
 
   /* 보조 버튼 (Secondary) */

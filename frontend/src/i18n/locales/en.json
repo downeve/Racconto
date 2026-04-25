@@ -282,6 +282,7 @@
     "editMdDescription": "Note supports markdown.\nex.) **Bold**, *Italic*, - List",
     "editMdDescription2": "Note supports markdown.",
     "pinned": "Pinned",
+    "pinned2": "Pinned List",
     "pinRemove": "Remove pin",
     "pin": "Pin"
   },

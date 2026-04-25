@@ -215,7 +215,7 @@ export default function Projects() {
               <option value="true">{t('project.publicProject')}</option>
             </select>
           </div>
-          <div className="flex gap-2">
+          <div className="flex gap-2 justify-end">
             <button onClick={handleSubmit} className="text-body btn-primary tracking-wider transition-colors">{t('common.save')}</button>
             <button onClick={() => {
               setShowForm(false)

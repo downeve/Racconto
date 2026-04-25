@@ -591,21 +591,24 @@ function ProjectStory({
         sensors={sensors}
         collisionDetection={closestCenter}
         onDragStart={(e) => {
-          const allItems = Object.values(chapterPhotos).flat()
-          const activeItem = allItems.find(i => i.id === e.active.id)
-          const isItem = activeItem && activeItem.item_type === 'PHOTO'
-          if (isItem) {
-            setDraggingItemId(String(e.active.id))
-            draggingItemIdRef.current = String(e.active.id)
-            if (activeItem.block_id) {
-              setDraggingItemBlockId(activeItem.block_id)
-              draggingItemBlockIdRef.current = activeItem.block_id
-              currentDragBlockIdRef.current = activeItem.block_id
-            }
+          const activeIdStr = String(e.active.id)
+          // 블록을 먼저 확인: blockId === item.id인 경우(Lightbox 단건 추가) 오인식 방지
+          const draggedBlock = blocks.find(b => b.blockId === activeIdStr)
+          if (draggedBlock) {
+            setActiveBlockId(activeIdStr)
+            setActiveBlockItems(draggedBlock.items)
           } else {
-            setActiveBlockId(String(e.active.id))
-            const draggedBlock = blocks.find(b => b.blockId === e.active.id)
-            if (draggedBlock) setActiveBlockItems(draggedBlock.items)
+            const allItems = Object.values(chapterPhotos).flat()
+            const activeItem = allItems.find(i => i.id === activeIdStr)
+            if (activeItem && activeItem.item_type === 'PHOTO') {
+              setDraggingItemId(activeIdStr)
+              draggingItemIdRef.current = activeIdStr
+              if (activeItem.block_id) {
+                setDraggingItemBlockId(activeItem.block_id)
+                draggingItemBlockIdRef.current = activeItem.block_id
+                currentDragBlockIdRef.current = activeItem.block_id
+              }
+            }
           }
         }}
         onDragOver={(e) => {
@@ -853,7 +856,7 @@ function ProjectStory({
                     placeholder={t('story.textBlockPlaceholder')}
                     autoFocus
                   />
-                  <div className="flex gap-2 justify-start">
+                  <div className="flex gap-2 justify-end">
                     <button 
                       onClick={handleSaveTextBlock} 
                       className="text-small btn-primary"
@@ -1158,7 +1161,7 @@ function ProjectStory({
               value={newDesc}
               onChange={e => setNewDesc(e.target.value)}
             />
-            <div className="flex gap-2">
+            <div className="flex gap-2 justify-end">
               <button
                 onClick={handleAddChapter}
                 className="text-small btn-primary tracking-wider transition-colors"
@@ -1207,7 +1210,7 @@ function ProjectStory({
                           value={editDesc}
                           onChange={e => setEditDesc(e.target.value)}
                         />
-                        <div className="flex gap-2">
+                        <div className="flex gap-2 justify-end">
                           <button onClick={() => handleUpdateChapter(chapter)} className="text-small btn-primary">{t('common.save')}</button>
                           <button onClick={() => setEditingChapter(null)} className="text-small btn-secondary-on-card">{t('common.cancel')}</button>
                         </div>
@@ -1278,7 +1281,7 @@ function ProjectStory({
                         value={newDesc}
                         onChange={e => setNewDesc(e.target.value)}
                       />
-                      <div className="flex gap-2">
+                      <div className="flex gap-2 justify-end">
                         <button onClick={handleAddChapter} className="text-small btn-primary tracking-wider transition-colors">
                           {t('common.add')}
                         </button>
@@ -1332,7 +1335,7 @@ function ProjectStory({
                             value={editDesc}
                             onChange={e => setEditDesc(e.target.value)}
                           />
-                          <div className="flex gap-2">
+                          <div className="flex gap-2 justify-end">
                             <button onClick={() => handleUpdateChapter(subChapter)} className="bg-stone-600 text-white px-3 py-1 text-xs tracking-wider hover:bg-stone-700 transition-colors rounded">{t('common.save')}</button>
                             <button onClick={() => setEditingChapter(null)} className="border px-3 py-1 text-xs rounded">{t('common.cancel')}</button>
                           </div>

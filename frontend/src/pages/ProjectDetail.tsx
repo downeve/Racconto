@@ -1110,7 +1110,7 @@ export default function ProjectDetail({
                     {/* 전체 사진 */}
                     <button
                       onClick={handleResetAll}
-                      className={`w-full text-left px-2 py-1 text-menu rounded-card flex items-center justify-between ${isAllActive ? 'bg-ink text-card font-semibold' : 'hover:bg-hair text-ink-2'}`}
+                      className={`w-full text-left px-2 py-1.5 text-menu rounded-card flex items-center justify-between ${isAllActive ? 'bg-ink text-card font-semibold' : 'hover:bg-hair text-ink-2'}`}
                     >
                       <span>{t('photo.allPhotos')}</span>
                       <span className={isAllActive ? 'text-card' : 'text-muted'}>

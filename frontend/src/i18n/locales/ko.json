@@ -278,6 +278,7 @@
     "editMdDescription": "노트를 작성하세요. 마크다운을 지원합니다.\n예) **굵게**, *기울임*, - 목록",
     "editMdDescription2": "노트를 작성하세요. 마크다운을 지원합니다.",
     "pinned": "고정됨",
+    "pinned2": "고정 메모 목록",
     "pinRemove": "고정 해제",
     "pin": "고정"
   },
