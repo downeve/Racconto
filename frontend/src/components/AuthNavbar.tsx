@@ -13,13 +13,18 @@ export default function AuthNavbar() {
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 bg-[#F7F4F0]/90 backdrop-blur-sm border-b border-stone-200 text-stone-900">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 h-14 flex items-center justify-between">
-        <Link
-          to="/"
-          className="font-serif font-bold text-h3 text-ink tracking-widest"
-          style={{ letterSpacing: '0.15em' }}
-        >
-          Racconto
-        </Link>
+          {/* 로고 — serif, regular weight, 가벼운 tracking, 1px 광학 보정 */}
+          <Link
+            to="/"
+            className="font-serif text-h3 text-ink inline-block"
+            style={{
+              fontWeight: 700,
+              letterSpacing: '0.08em',
+              transform: 'translateY(1px)',
+            }}
+          >
+            Racconto
+          </Link>
         <button
           onClick={toggleLanguage}
           className="text-small font-semibold text-faint hover:text-ink-2 hover:underline transition-colors"

@@ -96,8 +96,8 @@
   "nav": {
     "projects": "PROJECTS",
     "projectsList": "Project List",
-    "trash": "🗑",
-    "settings": "⚙️",
+    "trash": "🗑 Deleted Projects",
+    "settings": "⚙️ Settings",
     "portfolio": "PORTFOLIOS",
     "backToList": "← List",
     "backToProjects": "← Back to projects",

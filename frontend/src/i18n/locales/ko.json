@@ -97,8 +97,8 @@
   "nav": {
     "projects": "프로젝트",
     "projectsList": "프로젝트 목록",
-    "trash": "🗑",
-    "settings": "⚙️",
+    "trash": "🗑 프로젝트 휴지통",
+    "settings": "⚙️ 설정",
     "portfolio": "포트폴리오",
     "backToList": "← 목록",
     "backToProjects": "← 목록으로",

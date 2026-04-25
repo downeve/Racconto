@@ -15,13 +15,28 @@ export default function Navbar({ onLogout }: NavbarProps) {
   const { t, i18n } = useTranslation()
   const navigate = useNavigate()
   const [username, setUsername] = useState<string | null>(null)
+  const [email, setEmail] = useState<string | null>(null)
+  const [dropdownOpen, setDropdownOpen] = useState(false)
+
+  useEffect(() => {
+    if (!dropdownOpen) return
+    const handler = (e: MouseEvent) => {
+      const el = document.getElementById('user-avatar-dropdown')
+      if (el && !el.contains(e.target as Node)) setDropdownOpen(false)
+    }
+    document.addEventListener('mousedown', handler)
+    return () => document.removeEventListener('mousedown', handler)
+  }, [dropdownOpen])
 
   useEffect(() => {
     const token = localStorage.getItem('token')
     if (!token) return
     axios.get(`${API}/auth/me`, {
       headers: { Authorization: `Bearer ${token}` }
-    }).then(res => setUsername(res.data.username || null))
+    }).then(res => {
+      setUsername(res.data.username || null)
+      setEmail(res.data.email || null)
+    })
 
     // 💡 [추가] 'usernameChanged' 이벤트가 발생하면 새 유저네임으로 상태 업데이트
     const handleUsernameChange = (e: Event) => {
@@ -50,6 +65,8 @@ export default function Navbar({ onLogout }: NavbarProps) {
       navigate('/p/@setup')
     }
   }
+
+  const avatarInitial = email ? email[0].toUpperCase() : '?'
 
   if (isMobileDevice) {
     return (
@@ -82,39 +99,88 @@ export default function Navbar({ onLogout }: NavbarProps) {
         className="max-w-7xl mx-auto h-14 flex items-center justify-between"
         style={{ paddingLeft: isElectron ? '5rem' : '1.5rem', paddingRight: '1.5rem' }}
       >
-        <Link
-          to="/"
-          className="font-serif font-bold text-h3 text-ink tracking-widest"
-          style={{ letterSpacing: '0.15em', WebkitAppRegion: 'no-drag' } as React.CSSProperties}
-        >
-          Racconto
-        </Link>
+        {/* 좌측: 로고 + 주 내비 */}
         <div
-          className="flex gap-6 items-center"
+          className="flex items-center gap-8"
           style={{ WebkitAppRegion: 'no-drag' } as React.CSSProperties}
         >
-          <Link to="/projects" className="text-body tracking-wider text-ink-2 hover:text-accent hover:underline">{t('nav.projects')}</Link>
+          {/* 로고 — serif, regular weight, 가벼운 tracking, 1px 광학 보정 */}
+          <Link
+            to="/"
+            className="font-serif text-h3 text-ink inline-block"
+            style={{
+              fontWeight: 700,
+              letterSpacing: '0.08em',
+              transform: 'translateY(1px)',
+            }}
+          >
+            Racconto
+          </Link>
+          <Link
+            to="/projects"
+            className="text-small uppercase text-muted hover:text-accent hover:underline"
+          >
+            {t('nav.projects')}
+          </Link>
           <button
             onClick={handlePortfolioClick}
-            className="text-body tracking-wider text-ink-2 hover:text-accent hover:underline"
+            className="text-small uppercase text-muted hover:text-accent hover:underline"
           >
             {t('nav.portfolio')}
           </button>
-          <Link to="/trash" className="text-body tracking-wider text-ink-2 hover:text-ink">{t('nav.trash')}</Link>
-          <Link to="/settings" className="text-body tracking-wider text-ink-2 hover:text-ink">{t('nav.settings')}</Link>
-          <button
-            onClick={toggleLanguage}
-            className="text-small font-bold text-faint hover:text-ink-2 hover:underline transition-colors"
-          >
-            {i18n.language === 'ko' ? 'EN' : 'KO'}
-          </button>
-          <button
-            onClick={onLogout}
-            className="text-small tracking-wider text-muted hover:text-accent hover:underline"
-          >
-            {t('auth.logout')}
-          </button>
         </div>
+
+        {/* 우측: 아바타 드롭다운 */}
+        <div
+          id="user-avatar-dropdown"
+          className="relative"
+          style={{ WebkitAppRegion: 'no-drag' } as React.CSSProperties}
+        >
+          <button
+            onClick={() => setDropdownOpen(v => !v)}
+            className="w-8 h-8 rounded-full bg-ink-2 text-card text-small font-bold flex items-center justify-center hover:bg-muted transition-colors"
+          >
+            {avatarInitial}
+          </button>
+
+          {dropdownOpen && (
+            <div className="absolute right-0 mt-2 w-44 bg-card rounded-card shadow border border-hair py-1 z-50">
+              {email && (
+                <div className="px-3 py-2 text-small text-muted border-b border-hair truncate">
+                  {email}
+                </div>
+              )}
+              <Link
+                to="/settings"
+                onClick={() => setDropdownOpen(false)}
+                className="w-full text-left px-3 py-2 text-small text-ink-2 hover:bg-hair/30 flex items-center gap-2"
+              >
+                {t('nav.settings')}
+              </Link>
+              <Link
+                to="/trash"
+                onClick={() => setDropdownOpen(false)}
+                className="w-full text-left px-3 py-2 text-small text-ink-2 hover:bg-hair/30 items-center gap-2 block"
+              >
+                {t('nav.trash')}
+              </Link>
+              <div className="border-t border-hair my-1" />
+              <button
+                onClick={() => { toggleLanguage(); setDropdownOpen(false) }}
+                className="w-full text-left px-3 py-2 text-small text-muted hover:bg-hair/30"
+              >
+                {i18n.language === 'ko' ? 'English' : '한국어'}
+              </button>
+              <button
+                onClick={() => { setDropdownOpen(false); onLogout() }}
+                className="w-full text-left px-3 py-2 text-small text-red-400 hover:bg-red-50"
+              >
+                {t('auth.logout')}
+              </button>
+            </div>
+          )}
+        </div>
+
       </div>
     </nav>
   )
