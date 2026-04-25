@@ -186,9 +186,9 @@ export default function Projects() {
       )}
       {toast && <ToastNotification message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
       <div className="flex items-center justify-between mb-space-sm">
-          <h3 className="font-body font-serif font-medium text-h2">
+          <h2 className="font-body font-serif font-medium text-h2">
             {t('nav.projectsList')}
-          </h3>
+          </h2>
         <button
           onClick={() => setShowForm(!showForm)}
           className="font-body btn-primary tracking-wider transition-colors"

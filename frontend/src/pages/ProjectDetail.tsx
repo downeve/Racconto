@@ -113,10 +113,22 @@ export default function ProjectDetail({
   }
 
   const [gridCols, setGridCols] = useState(3)
+  const [openDropdown, setOpenDropdown] = useState<'view' | 'sort' | 'exif' | null>(null)
+  const dropdownRef = useRef<HTMLDivElement>(null)
   const [labelSettings, setLabelSettings] = useState<Record<string, string>>({
     color_label_red: t('colors.reject'), color_label_yellow: t('colors.hold'), color_label_green: t('colors.select'),
     color_label_blue: t('colors.clientShare'), color_label_purple: t('colors.finalSelect'),
   })
+
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
+        setOpenDropdown(null)
+      }
+    }
+    document.addEventListener('mousedown', handler)
+    return () => document.removeEventListener('mousedown', handler)
+  }, [])
 
   useEffect(() => {
     axios.get(`${API}/settings/`).then(res => {
@@ -847,47 +859,6 @@ export default function ProjectDetail({
 
         <div className="border-t border-gray-100 my-2" />
 
-        {/* 뷰 설정 */}
-        <div className="mt-2 mb-2">
-          <div className="flex items-center justify-between mb-2">
-            <p className="text-xs font-semibold text-gray-500 mr-3 shrink-0">{t('filter.view')}</p>
-            <div className="flex gap-1 flex-1">
-              {[{ cols: 2, icon: '2' }, { cols: 3, icon: '3' }, { cols: 4, icon: '4' }].map(({ cols, icon }) => (
-                <button key={cols} onClick={() => setGridCols(cols)}
-                  className={`flex-1 py-1 text-xs rounded ${gridCols === cols ? 'bg-black text-white' : 'bg-gray-100 hover:bg-gray-200'}`}>{icon}</button>
-              ))}
-            </div>
-          </div>
-        </div>
-
-        {/* 정렬 */}
-        <div className="mb-2">
-          <div className="flex items-center justify-between mb-2">
-            <p className="text-xs font-semibold text-gray-500">{t('photo.listOrder')}</p>
-            <button onClick={() => setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')}
-              className="text-xs text-gray-500 hover:text-black">{sortOrder === 'asc' ? '↑' : '↓'}</button>
-          </div>
-          <div className="flex gap-1">
-            {[['default', t('photo.orderUpload')], ['taken_at', t('photo.orderTaken')], ['name', t('photo.orderName')]].map(([key, label]) => (
-              <button key={key} onClick={() => setSortBy(key as any)}
-                className={`flex-1 text-center py-1 text-[11px] rounded ${sortBy === key ? 'bg-black text-white' : 'bg-gray-100 hover:bg-gray-200'}`}>{label}</button>
-            ))}
-          </div>
-        </div>
-
-        {/* EXIF */}
-        <div className="mb-2 flex items-center justify-between">
-          <p className="text-xs font-semibold text-gray-500 mr-3 shrink-0">{t('filter.exifOnOff')}</p>
-          <div className="flex gap-1 flex-1">
-            <button onClick={() => setShowExif(true)}
-              className={`flex-1 py-1 text-xs rounded ${showExif ? 'bg-black text-white' : 'bg-gray-100 hover:bg-gray-200'}`}>On</button>
-            <button onClick={() => setShowExif(false)}
-              className={`flex-1 py-1 text-xs rounded ${!showExif ? 'bg-black text-white' : 'bg-gray-100 hover:bg-gray-200'}`}>Off</button>
-          </div>
-        </div>
-
-        <div className="border-t border-gray-100 my-2"></div>
-
         {/* 사진 다중 선택 - 챕터 추가 버튼 */}
         <div className="mb-2 flex items-center justify-between">
           <p className="text-xs font-semibold text-gray-500 mr-3 shrink-0">{t('filter.addToChapter')}</p>
@@ -956,7 +927,7 @@ export default function ProjectDetail({
         })()}
       </div>
     )
-  }, [isElectron, activeTab, photoSubTab, photos, trashedPhotos, uploading, gridCols, sortBy, sortOrder, showExif, filterRating, filterColor, filterFolder, filterHasNote, photoNoteIds, colorLabels, isAllActive, t])
+  }, [isElectron, activeTab, photoSubTab, photos, trashedPhotos, uploading, filterRating, filterColor, filterFolder, filterHasNote, photoNoteIds, colorLabels, isAllActive, t])
 
 
   if (!project) return (
@@ -1187,63 +1158,6 @@ export default function ProjectDetail({
                 
                 <div className="border-t border-gray-100 my-2"></div>
 
-                <div className="mt-2 mb-2">
-                  {/* 💡 flex를 사용해 라벨과 버튼 그룹을 한 줄로 만들었습니다! */}
-                  <div className="flex items-center justify-between mb-2">
-                    <p className="text-xs font-semibold text-gray-500 mr-3 shrink-0">{t('filter.view')}</p>
-                    <div className="flex gap-1 flex-1">
-                      {/* 💡 cols: 1 (목록형) 옵션을 삭제했습니다! */}
-                      {[{ cols: 2, icon: '2' }, { cols: 3, icon: '3' }, { cols: 4, icon: '4' }].map(({ cols, icon }) => (
-                        <button key={cols} onClick={() => setGridCols(cols)}
-                          className={`flex-1 py-1 text-xs rounded ${gridCols === cols ? 'bg-black text-white' : 'bg-gray-100 hover:bg-gray-200'}`}>{icon}</button>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-
-                <div className="mb-2">
-                  <div className="flex items-center justify-between mb-2">
-                    <p className="text-xs font-semibold text-gray-500">{t('photo.listOrder')}</p>
-                    <button
-                      onClick={() => setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')}
-                      className="text-xs text-gray-500 hover:text-black flex items-center gap-0.5"
-                    >
-                      {sortOrder === 'asc' ? '↑' : '↓'}
-                    </button>
-                  </div>
-                  <div className="flex gap-1">
-                    <button onClick={() => setSortBy('default')}
-                      className={`flex-1 text-center py-1 text-[11px] rounded tracking-tight ${sortBy === 'default' ? 'bg-black text-white' : 'bg-gray-100 hover:bg-gray-200'}`}>
-                      {t('photo.orderUpload')}
-                    </button>
-                    <button onClick={() => setSortBy('taken_at')}
-                      className={`flex-1 text-center py-1 text-[11px] rounded tracking-tight ${sortBy === 'taken_at' ? 'bg-black text-white' : 'bg-gray-100 hover:bg-gray-200'}`}>
-                      {t('photo.orderTaken')}
-                    </button>
-                    <button onClick={() => setSortBy('name')}
-                      className={`flex-1 text-center py-1 text-[11px] rounded tracking-tight ${sortBy === 'name' ? 'bg-black text-white' : 'bg-gray-100 hover:bg-gray-200'}`}>
-                      {t('photo.orderName')}
-                    </button>
-                  </div>
-                </div>
-
-                {/* EXIF 정보 On/Off */}
-                <div className="mb-2 flex items-center justify-between">
-                    <p className="text-xs font-semibold text-gray-500 mr-3 shrink-0">{t('filter.exifOnOff')}</p>
-                    <div className="flex gap-1 flex-1">
-                      <button onClick={() => setShowExif(true)}
-                        className={`flex-1 py-1 text-xs rounded ${showExif ? 'bg-black text-white' : 'bg-gray-100 hover:bg-gray-200'}`}>
-                        On
-                      </button>
-                      <button onClick={() => setShowExif(false)}
-                        className={`flex-1 py-1 text-xs rounded ${!showExif ? 'bg-black text-white' : 'bg-gray-100 hover:bg-gray-200'}`}>
-                        Off
-                      </button>
-                    </div>
-                </div>
-                
-                <div className="border-t border-gray-100 my-2"></div>
-
                 {/* 사진 다중 선택 - 챕터 추가 버튼 */}
                 <div className="mb-2 flex items-center justify-between">
                     <p className="text-xs font-semibold text-gray-500 mr-3 shrink-0">{t('filter.addToChapter')}</p>
@@ -1322,7 +1236,88 @@ export default function ProjectDetail({
 
           {/* 👉 우측 메인 사진 갤러리 영역 */}
           <div className="flex-1 min-w-0">
-            
+
+            {/* ── 사진 탭 툴바 ── */}
+            <div ref={dropdownRef} className="flex items-center gap-2 mb-4 relative">
+
+              {/* 뷰 아이콘 버튼 */}
+              <button
+                onClick={() => setOpenDropdown(openDropdown === 'view' ? null : 'view')}
+                className={`p-1.5 rounded text-xs flex items-center gap-1 ${openDropdown === 'view' ? 'bg-black text-white' : 'bg-gray-100 hover:bg-gray-200 text-gray-600'}`}
+                title={t('filter.view')}
+              >
+                <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor">
+                  <rect x="1" y="1" width="6" height="6" rx="1"/>
+                  <rect x="9" y="1" width="6" height="6" rx="1"/>
+                  <rect x="1" y="9" width="6" height="6" rx="1"/>
+                  <rect x="9" y="9" width="6" height="6" rx="1"/>
+                </svg>
+                <span>{gridCols}</span>
+              </button>
+              {openDropdown === 'view' && (
+                <div className="absolute top-full left-0 mt-1 bg-white rounded-card shadow p-2 z-50 flex gap-1">
+                  {[2, 3, 4].map(cols => (
+                    <button key={cols} onClick={() => { setGridCols(cols); setOpenDropdown(null) }}
+                      className={`w-8 h-8 text-xs rounded ${gridCols === cols ? 'bg-black text-white' : 'bg-gray-100 hover:bg-gray-200'}`}>
+                      {cols}
+                    </button>
+                  ))}
+                </div>
+              )}
+
+              {/* 정렬 아이콘 버튼 */}
+              <button
+                onClick={() => setOpenDropdown(openDropdown === 'sort' ? null : 'sort')}
+                className={`p-1.5 rounded text-xs flex items-center gap-1 ${openDropdown === 'sort' ? 'bg-black text-white' : 'bg-gray-100 hover:bg-gray-200 text-gray-600'}`}
+                title={t('photo.listOrder')}
+              >
+                <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor">
+                  <path d="M2 4h12v1.5H2zm2 3.5h8V9H4zm2 3.5h4v1.5H6z"/>
+                </svg>
+                <span>{sortOrder === 'asc' ? '↑' : '↓'}</span>
+              </button>
+              {openDropdown === 'sort' && (
+                <div className="absolute top-full left-0 mt-1 bg-white rounded-card shadow p-2 z-50 min-w-[160px]">
+                  <div className="flex justify-between items-center mb-2 px-1">
+                    <span className="text-xs text-gray-500 font-semibold">{t('photo.listOrder')}</span>
+                    <button onClick={() => { setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc'); setOpenDropdown(null) }}
+                      className="text-xs px-2 py-0.5 bg-gray-100 hover:bg-gray-200 rounded">
+                      {sortOrder === 'asc' ? '↑ ASC' : '↓ DESC'}
+                    </button>
+                  </div>
+                  {([['default', t('photo.orderUpload')], ['taken_at', t('photo.orderTaken')], ['name', t('photo.orderName')]] as const).map(([key, label]) => (
+                    <button key={key} onClick={() => { setSortBy(key as 'default' | 'taken_at' | 'name'); setOpenDropdown(null) }}
+                      className={`w-full text-left px-2 py-1 text-xs rounded ${sortBy === key ? 'bg-black text-white' : 'hover:bg-gray-50'}`}>
+                      {label}
+                    </button>
+                  ))}
+                </div>
+              )}
+
+              {/* EXIF 토글 아이콘 버튼 */}
+              <button
+                onClick={() => setOpenDropdown(openDropdown === 'exif' ? null : 'exif')}
+                className={`p-1.5 rounded text-xs flex items-center gap-1 ${openDropdown === 'exif' ? 'bg-black text-white' : 'bg-gray-100 hover:bg-gray-200 text-gray-600'}`}
+                title={t('filter.exifOnOff')}
+              >
+                <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor">
+                  <path d="M8 2a6 6 0 100 12A6 6 0 008 2zm.75 9h-1.5V7h1.5v4zm0-5.25h-1.5v-1.5h1.5v1.5z"/>
+                </svg>
+                <span>EXIF</span>
+              </button>
+              {openDropdown === 'exif' && (
+                <div className="absolute top-full left-0 mt-1 bg-white rounded-card shadow p-2 z-50 flex gap-1">
+                  {[true, false].map(val => (
+                    <button key={String(val)} onClick={() => { setShowExif(val); setOpenDropdown(null) }}
+                      className={`px-3 py-1 text-xs rounded ${showExif === val ? 'bg-black text-white' : 'bg-gray-100 hover:bg-gray-200'}`}>
+                      {val ? 'On' : 'Off'}
+                    </button>
+                  ))}
+                </div>
+              )}
+
+            </div>
+
             {/* 전체 사진 뷰 */}
             {(photoSubTab === 'all' || photoSubTab === 'folder')&& (
               <div>
