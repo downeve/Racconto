@@ -1,12 +1,11 @@
 import { useEffect, useState, useMemo, useRef } from 'react'
-import { useParams, Link } from 'react-router-dom'
+import { useParams } from 'react-router-dom'
 import axios from 'axios'
 import exifr from 'exifr'
 
 import ProjectStory from './ProjectStory'
 import DeliveryManager from '../components/DeliveryManager'
 import { useTranslation } from 'react-i18next'
-import Heading from '../components/Heading'
 import ProjectNotes from './ProjectNotes'
 import { useElectronSidebar } from '../context/ElectronSidebarContext'
 import ConfirmModal from '../components/ConfirmModal'
@@ -784,7 +783,7 @@ export default function ProjectDetail({
       <div className="p-4">
         {/* 업로드 버튼 */}
         <div className="mb-3 flex gap-2">
-          <label className={`flex-1 cursor-pointer bg-black text-white px-1.5 py-1.5 text-xs tracking-wider hover:bg-gray-800 inline-flex items-center justify-center gap-1 rounded ${uploading ? 'opacity-60 cursor-not-allowed' : ''}`}>
+          <label className={`flex-1 cursor-pointer btn-primary tracking-wider inline-flex items-center justify-center gap-1 ${uploading ? 'opacity-60 cursor-not-allowed' : ''}`}>
             {uploading ? (
               <>
                 <svg className="animate-spin w-3 h-3 shrink-0" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
@@ -796,7 +795,7 @@ export default function ProjectDetail({
             ) : t('photo.uploadPhotos')}
             <input type="file" accept="image/jpeg, image/png, image/webp" multiple className="hidden" onChange={handleUpload} disabled={uploading} />
           </label>
-          <label className={`flex-1 cursor-pointer bg-gray-700 text-white px-1.5 py-1.5 text-xs tracking-wider hover:bg-gray-600 inline-flex items-center justify-center gap-1 rounded ${uploading ? 'opacity-60 cursor-not-allowed' : ''}`}>
+          <label className={`flex-1 cursor-pointer text-small btn-secondary-on-card tracking-wider inline-flex items-center justify-center gap-1 rounded ${uploading ? 'opacity-60 cursor-not-allowed' : ''}`}>
             {uploading ? (
               <>
                 <svg className="animate-spin w-3 h-3 shrink-0" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
@@ -812,7 +811,7 @@ export default function ProjectDetail({
 
         {/* 라이브러리 */}
         <div className="mb-2">
-          <p className="text-xs font-semibold text-gray-500 mb-2">{t('photo.library')}</p>
+          <p className="text-small font-semibold text-muted mb-2">{t('photo.library')}</p>
           <div className="flex flex-col gap-1">
             {/* 전체 사진 */}
             <button onClick={handleResetAll}
@@ -966,24 +965,27 @@ export default function ProjectDetail({
         />
       )}
 
+      {/*
       {!isElectron && (
-        <Link to="/projects" className="text-sm text-gray-400 hover:text-black">
+        <Link to="/projects" className="text-small text-faint hover:text-ink-2">
           {t('nav.backToProjects')}
         </Link>
       )}
+      */}
 
       <div className="mb-4 flex items-start justify-between gap-6">
+
         <div className="flex-1">
-          <Heading level={2} className="mb-2">
+          <h3 className="font-serif text-h2 mb-2" style={{fontWeight:600}}>
             {project.title}
-          </Heading>
-          {project.location && <p className="text-sm text-gray-500 mb-4">📍 {project.location}</p>}
-          {project.description && <p className="text-gray-700 mb-2 max-w-2xl break-keep">{project.description}</p>}
+          </h3>
+          {project.location && <p className="text-small text-muted mb-4">📍 {project.location}</p>}
+          {project.description && <p className="text-ink-2 text-body mb-2 max-w-2xl break-keep">{project.description}</p>}
         </div>
         {project.cover_image_url && (
           <div className="shrink-0 flex flex-col items-center gap-2">
-            <img src={project.cover_image_url} alt="커버" className="w-24 h-24 object-cover rounded" />
-            <button onClick={handleRemoveCover} className="text-xs text-red-400 hover:text-red-600">{t('photo.removeCover')}</button>
+            <img src={project.cover_image_url} alt="커버" className="w-24 h-24 object-cover rounded-card" />
+            <button onClick={handleRemoveCover} className="text-small text-red-400 hover:text-red-600 hover:underline">{t('photo.removeCover')}</button>
           </div>
         )}
       </div>
@@ -991,11 +993,11 @@ export default function ProjectDetail({
       {chapterMenuPhoto && (
         <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center"
           onClick={() => setChapterMenuPhoto(null)}>
-          <div className="bg-white rounded-card p-5 shadow min-w-[320px]" onClick={e => { e.stopPropagation() }}>
-            <h3 className="text-sm font-semibold mb-3">{t('story.selectChapter')}</h3>
+          <div className="bg-card rounded-card p-5 shadow min-w-[320px]" onClick={e => { e.stopPropagation() }}>
+            <h3 className="text-body font-semibold mb-3">{t('story.selectChapter')}</h3>
             <div className="space-y-1">
             {chapters.length === 0 ? (
-              <div className="text-center py-6 text-gray-400 text-xs">
+              <div className="text-center py-6 text-faint text-small">
                 <p>{t('story.noChapter')}</p>
                 <p className="mt-1">{t('story.noChapter2')}</p>
               </div>
@@ -1007,7 +1009,7 @@ export default function ProjectDetail({
                   {/* 부모 챕터 UI */}
                   <button
                     onClick={() => handleAddToChapter(chapterMenuPhoto!, parent.id)}
-                    className="w-full text-left px-3 py-2 text-sm rounded hover:bg-gray-100 text-gray-800 font-medium flex items-center">
+                    className="w-full text-left px-3 py-2 text-small rounded hover:bg-hair text-ink-2 font-medium flex items-center">
                     <span className="text-gray-400 text-xs mr-2 shrink-0">{t('story.chapter')}. {idx + 1}</span>
                     <span className="truncate">{parent.title}</span>
                   </button>
@@ -1027,12 +1029,12 @@ export default function ProjectDetail({
             )}
             </div>
             <button onClick={() => setChapterMenuPhoto(null)}
-              className="mt-3 w-full text-xs text-gray-400 hover:text-black">{t('common.close')}</button>
+              className="mt-3 w-full text-small text-faint hover:text-ink">{t('common.close')}</button>
           </div>
         </div>
       )}
 
-      <div className={`flex border-b mb-6 sticky top-14 z-30 bg-[#F7F4F0] ${isElectron ? 'hidden' : ''}`}>
+      <div className={`flex border-b mb-6 sticky top-14 z-30 bg-canvas ${isElectron ? 'hidden' : ''}`}>
         <button onClick={() => { 
             setActiveTab('photos'); 
             setPhotoSubTab('all');
@@ -1040,20 +1042,20 @@ export default function ProjectDetail({
             fetchPhotos(); 
             fetchChapterPhotoIds() 
           }}
-          className={`px-6 py-2 text-sm tracking-wider ${activeTab === 'photos' ? 'border-b-2 border-black font-semibold' : 'text-gray-400'}`}>
+          className={`px-6 py-2 text-small tracking-wider ${activeTab === 'photos' ? 'border-b-2 border-black font-semibold' : 'text-gray-400'}`}>
           {t('photo.title')}
         </button>
         <button onClick={() => setActiveTab('story')}
-          className={`px-6 py-2 text-sm tracking-wider ${activeTab === 'story' ? 'border-b-2 border-black font-semibold' : 'text-gray-400'}`}>
+          className={`px-6 py-2 text-small tracking-wider ${activeTab === 'story' ? 'border-b-2 border-black font-semibold' : 'text-gray-400'}`}>
           {t('story.title')}
         </button>
         <button onClick={() => setActiveTab('notes')}
-          className={`px-6 py-2 text-sm tracking-wider ${activeTab === 'notes' ? 'border-b-2 border-black font-semibold' : 'text-gray-400'}`}>
+          className={`px-6 py-2 text-small tracking-wider ${activeTab === 'notes' ? 'border-b-2 border-black font-semibold' : 'text-gray-400'}`}>
           {t('note.title')}
         </button>
         {DELIVERY_ENABLED && (
         <button onClick={() => setActiveTab('delivery')}
-          className={`px-6 py-2 text-sm tracking-wider ${activeTab === 'delivery' ? 'border-b-2 border-black font-semibold' : 'text-gray-400'}`}>
+          className={`px-6 py-2 text-small tracking-wider ${activeTab === 'delivery' ? 'border-b-2 border-black font-semibold' : 'text-gray-400'}`}>
           {t('delivery.title')}
         </button>
         )}
@@ -1066,16 +1068,16 @@ export default function ProjectDetail({
           {/* 👈 좌측 사이드바 (필터 & 라이브러리 통합) */}
           <div className={`${isElectron ? 'hidden' : ''} ${showFilter ? 'w-48' : 'w-6'} sticky top-24 shrink-0 transition-all duration-200`}>
             <button onClick={() => setShowFilter(!showFilter)}
-              className="mb-2 text-gray-400 hover:text-black text-xs flex items-center gap-1">
+              className="mb-2 text-faint hover:text-ink text-caption flex items-center gap-1">
               {showFilter ? '◀ ' + t('filter.filter') : '▶'}
             </button>
 
             {showFilter && (
-              <div className="bg-white rounded-card shadow p-4 overflow-y-auto max-h-[calc(100vh-2rem)] min-h-[calc(100vh-8rem)] sticky top-4">
+              <div className="bg-card rounded-card shadow p-4 overflow-y-auto max-h-[calc(100vh-2rem)] min-h-[calc(100vh-8rem)] sticky top-4">
                 
                 {/* 💡 flex-col을 지워서 가로 배치(flex-row 기본값)로 변경했습니다 */}
                 <div className="mb-3 flex gap-2">
-                  <label className={`flex-1 cursor-pointer bg-black text-white px-1.5 py-1.5 text-xs tracking-wider hover:bg-gray-800 inline-flex items-center justify-center gap-1 rounded ${uploading ? 'opacity-60 cursor-not-allowed' : ''}`}>
+                  <label className={`flex-1 cursor-pointer btn-secondary px-1.5 py-1.5 text-menu tracking-wider inline-flex items-center justify-center gap-1 rounded-card ${uploading ? 'opacity-60 cursor-not-allowed' : ''}`}>
                     {uploading ? (
                       <>
                         <svg className="animate-spin w-3 h-3 shrink-0" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
@@ -1087,7 +1089,7 @@ export default function ProjectDetail({
                     ) : t('photo.uploadPhotos')}
                     <input type="file" accept="image/jpeg, image/png, image/webp" multiple className="hidden" onChange={handleUpload} disabled={uploading} />
                   </label>
-                  <label className={`flex-1 cursor-pointer bg-gray-700 text-white px-1.5 py-1.5 text-xs tracking-wider hover:bg-gray-600 inline-flex items-center justify-center gap-1 rounded ${uploading ? 'opacity-60 cursor-not-allowed' : ''}`}>
+                  <label className={`flex-1 cursor-pointer btn-secondary-on-card px-1.5 py-1.5 text-menu tracking-wider inline-flex items-center justify-center gap-1 rounded-card ${uploading ? 'opacity-60 cursor-not-allowed' : ''}`}>
                     {uploading ? (
                       <>
                         <svg className="animate-spin w-3 h-3 shrink-0" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
@@ -1103,15 +1105,15 @@ export default function ProjectDetail({
 
                 {/* 📂 새로 추가된 라이브러리 (기존 상단 가로 탭을 이쪽으로 이동) */}
                 <div className="mb-2">
-                  <p className="text-xs font-semibold text-gray-500 mb-2">{t('photo.library')}</p>
+                  <p className="text-menu font-semibold text-muted mb-1">{t('photo.library')}</p>
                   <div className="flex flex-col gap-1">
                     {/* 전체 사진 */}
                     <button
                       onClick={handleResetAll}
-                      className={`w-full text-left px-2 py-1.5 text-xs rounded flex items-center justify-between ${isAllActive ? 'bg-black text-white font-semibold' : 'hover:bg-gray-50 text-gray-700'}`}
+                      className={`w-full text-left px-2 py-1 text-menu rounded-card flex items-center justify-between ${isAllActive ? 'bg-ink text-card font-semibold' : 'hover:bg-hair text-ink-2'}`}
                     >
                       <span>{t('photo.allPhotos')}</span>
-                      <span className={isAllActive ? 'text-gray-300' : 'text-gray-400'}>
+                      <span className={isAllActive ? 'text-card' : 'text-muted'}>
                         {photos.filter(p => !p.deleted_at).length}
                       </span>
                     </button>
@@ -1119,7 +1121,7 @@ export default function ProjectDetail({
                     {photos.some(p => p.folder) && (
                     <div>
                         {[...new Set(photos.filter(p => p.folder).map(p => p.folder))].map(folder => (
-                        <div key={folder} className={`flex items-center rounded ${filterFolder === folder ? 'bg-black text-white' : 'hover:bg-gray-50'}`}>
+                        <div key={folder} className={`flex items-center rounded ${filterFolder === folder ? 'bg-ink-2 text-card' : 'hover:bg-hair'}`}>
                           <button onClick={() => {
                             setFilterFolder(filterFolder === folder ? null : folder!);
                             setPhotoSubTab(filterFolder === folder ? 'all' : 'folder');
@@ -1127,16 +1129,16 @@ export default function ProjectDetail({
                             className="flex-1 text-left px-2 py-1 text-xs flex items-center justify-between min-w-0">
                             <span className="flex items-center gap-1 min-w-0">
                               <span className="shrink-0">📁</span>
-                              <span className="truncate">{getFolderDisplayName(folder!)}</span>
+                              <span className="truncate text-caption">{getFolderDisplayName(folder!)}</span>
                               {isLocalSyncFolder(folder!) && (
-                                <span className={`shrink-0 text-[10px] ${filterFolder === folder ? 'text-gray-300' : 'text-gray-400'}`}>💻</span>
+                                <span className={`shrink-0 text-[10px] ${filterFolder === folder ? 'text-faint' : 'text-muted'}`}>💻</span>
                               )}
                             </span>
-                            <span className={`shrink-0 ml-2 ${filterFolder === folder ? 'text-gray-300' : 'text-gray-400'}`}>{photos.filter(p => p.folder === folder && !p.deleted_at).length}</span>
+                            <span className={`shrink-0 ml-2 ${filterFolder === folder ? 'text-card' : 'text-muted'}`}>{photos.filter(p => p.folder === folder && !p.deleted_at).length}</span>
                           </button>
                           <button
                             onClick={() => handleDeleteFolder(folder!)}
-                            className={`shrink-0 px-1.5 py-1 text-xs ${filterFolder === folder ? 'text-gray-400 hover:text-white' : 'text-gray-300 hover:text-red-500'}`}
+                            className={`shrink-0 px-1.5 py-1 text-eyebrow ${filterFolder === folder ? 'text-faint hover:text-card' : 'text-hair hover:text-red-500'}`}
                             title={t('photo.trash')}
                           >🗑</button>
                         </div>
@@ -1146,21 +1148,21 @@ export default function ProjectDetail({
                     {/* 지운 사진 */}
                     <button
                       onClick={() => { handleResetAll(); setPhotoSubTab('trash'); fetchTrash(); }}
-                      className={`w-full text-left px-2 py-1.5 text-xs rounded flex items-center justify-between ${photoSubTab === 'trash' ? 'bg-red-600 text-white font-medium shadow' : 'hover:bg-red-50 text-gray-700'}`}
+                      className={`w-full text-left px-2 py-1 text-menu rounded-card flex items-center justify-between ${photoSubTab === 'trash' ? 'bg-red-500 text-card shadow' : 'hover:bg-red-100 text-ink-2'}`}
                     >
                       <span>{t('photo.trash')}</span>
-                      <span className={`${photoSubTab === 'trash' ? 'text-red-200' : 'text-gray-400'}`}>
+                      <span className={`${photoSubTab === 'trash' ? 'text-red-200' : 'text-faint'}`}>
                         {trashedPhotos.length}
                       </span>
                     </button>
                   </div>
                 </div>
                 
-                <div className="border-t border-gray-100 my-2"></div>
+                <div className="border-t border-hair/90 my-2"></div>
 
                 {/* 사진 다중 선택 - 챕터 추가 버튼 */}
                 <div className="mb-2 flex items-center justify-between">
-                    <p className="text-xs font-semibold text-gray-500 mr-3 shrink-0">{t('filter.addToChapter')}</p>
+                    <p className="text-menu font-semibold text-muted mr-3 shrink-0">{t('filter.addToChapter')}</p>
                     <div className="flex gap-1 flex-1">
                       <button
                         onClick={() => {
@@ -1168,13 +1170,13 @@ export default function ProjectDetail({
                           setSelectedPhotoIds(new Set()) // 끌 때 선택 초기화
                           setShowBulkChapterMenu(false)
                         }}
-                        className={`flex-1 py-1 text-xs rounded ${selectionMode ? 'bg-black text-white' : 'bg-gray-100 hover:bg-gray-200'}`}>
+                        className={`flex-1 py-1 text-caption btn-secondary ${selectionMode ? 'bg-ink-2 text-card' : ''}`}>
                         {selectionMode ? t('common.cancel') : t('common.select')}
                       </button>
                     </div>
                 </div>
                 
-                <div className="border-t border-gray-100 my-2"></div>
+                <div className="border-t border-hair/90 my-2"></div>
 
                 {/* 노트 · 별점 · 컬러 필터 (폴더 선택 시 해당 폴더 내 카운트로 컨텍스트 반영) */}
                 {(() => {
@@ -1184,10 +1186,10 @@ export default function ProjectDetail({
                       {/* 노트 필터 */}
                       <button
                         onClick={() => { exitTrash(); setFilterHasNote(!filterHasNote) }}
-                        className={`w-full text-left px-1.5 py-1.5 mb-2 text-xs rounded flex items-center justify-between ${filterHasNote ? 'bg-black text-white' : 'hover:bg-gray-50 text-gray-700'}`}
+                        className={`w-full text-left px-2 py-1 mb-1.5 text-menu rounded-card flex items-center justify-between ${filterHasNote ? 'bg-ink text-card' : 'hover:bg-hair text-ink-2'}`}
                       >
                         <span>📝 {t('photo.hasNote')}</span>
-                        <span className={filterHasNote ? 'text-gray-300' : 'text-gray-400'}>
+                        <span className={filterHasNote ? '' : 'text-muted'}>
                           {base.filter(p => photoNoteIds.has(p.id)).length}
                         </span>
                       </button>
@@ -1195,34 +1197,34 @@ export default function ProjectDetail({
                       {/* 별점 필터 */}
                       <div className="mb-4">
                         <div className="flex items-center justify-between mb-2">
-                          <p className="text-xs font-semibold text-gray-500">{t('filter.rating')}</p>
-                          <button onClick={handleClearRatings} className="text-xs text-gray-400 hover:text-red-500">{t('common.reset')}</button>
+                          <p className="text-menu font-semibold text-muted rounded-card">{t('filter.rating')}</p>
+                          <button onClick={handleClearRatings} className="text-caption text-faint hover:text-red-500">{t('common.reset')}</button>
                         </div>
                         {[5, 4, 3, 2, 1].map(star => (
                           <button key={star} onClick={() => { exitTrash(); setFilterRating(filterRating === star ? null : star) }}
-                            className={`w-full text-left px-2 py-1 text-xs rounded flex items-center justify-between ${filterRating === star ? 'bg-black text-white' : 'hover:bg-gray-50'}`}>
+                            className={`w-full text-left px-2 py-1 text-caption rounded-card flex items-center justify-between ${filterRating === star ? 'bg-ink text-card' : 'hover:bg-hair'}`}>
                             <span>{'★'.repeat(star)}{'☆'.repeat(5 - star)}</span>
-                            <span className={filterRating === star ? 'text-gray-300' : 'text-gray-400'}>{base.filter(p => p.rating === star).length}</span>
+                            <span className={filterRating === star ? '' : 'text-muted'}>{base.filter(p => p.rating === star).length}</span>
                           </button>
                         ))}
                         <button onClick={() => { exitTrash(); setFilterRating(filterRating === 0 ? null : 0) }}
-                          className={`w-full text-left px-2 py-1 text-xs rounded flex items-center justify-between ${filterRating === 0 ? 'bg-black text-white' : 'hover:bg-gray-50'}`}>
-                          <span className={filterRating === 0 ? 'text-gray-300' : 'text-gray-400'}>{t('filter.unrated')}</span>
-                          <span className={filterRating === 0 ? 'text-gray-300' : 'text-gray-400'}>{base.filter(p => !p.rating).length}</span>
+                          className={`w-full text-left px-2 py-1 text-caption rounded flex items-center justify-between ${filterRating === 0 ? 'bg-ink text-card' : 'hover:bg-hair'}`}>
+                          <span>{t('filter.unrated')}</span>
+                          <span className={filterRating === 0 ? '' : 'text-muted'}>{base.filter(p => !p.rating).length}</span>
                         </button>
                       </div>
 
                       {/* 컬러 레이블 필터 */}
                       <div className="mb-2">
                         <div className="flex items-center justify-between mb-2">
-                          <p className="text-xs font-semibold text-gray-500">{t('filter.colors')}</p>
-                          <button onClick={handleClearColorLabels} className="text-xs text-gray-400 hover:text-red-500">{t('common.reset')}</button>
+                          <p className="text-menu font-semibold text-muted">{t('filter.colors')}</p>
+                          <button onClick={handleClearColorLabels} className="text-caption text-faint hover:text-red-500">{t('common.reset')}</button>
                         </div>
                         {colorLabels.map(label => (
                           <button key={label.value} onClick={() => { exitTrash(); setFilterColor(filterColor === label.value ? null : label.value) }}
-                            className={`w-full text-left px-2 py-1 text-xs rounded flex items-center justify-between ${filterColor === label.value ? 'bg-black text-white' : 'hover:bg-gray-50'}`}>
+                            className={`w-full text-left px-2 py-1 text-caption rounded-card flex items-center justify-between ${filterColor === label.value ? 'bg-ink text-card' : 'hover:bg-hair'}`}>
                             <span className="flex items-center gap-2"><span className={`w-3 h-3 rounded-full ${label.color}`} />{label.label}</span>
-                            <span className={filterColor === label.value ? 'text-gray-300' : 'text-gray-400'}>{base.filter(p => p.color_label === label.value).length}</span>
+                            <span className={filterColor === label.value ? '' : 'text-muted'}>{base.filter(p => p.color_label === label.value).length}</span>
                           </button>
                         ))}
                       </div>
@@ -1243,7 +1245,7 @@ export default function ProjectDetail({
               {/* 뷰 아이콘 버튼 */}
               <button
                 onClick={() => setOpenDropdown(openDropdown === 'view' ? null : 'view')}
-                className={`p-1.5 rounded text-xs flex items-center gap-1 ${openDropdown === 'view' ? 'bg-black text-white' : 'bg-gray-100 hover:bg-gray-200 text-gray-600'}`}
+                className={`p-1.5 rounded-card text-menu flex items-center gap-1 ${openDropdown === 'view' ? 'bg-ink text-card' : 'bg-gray-100 hover:bg-hair text-ink-2'}`}
                 title={t('filter.view')}
               >
                 <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor">
@@ -1255,10 +1257,10 @@ export default function ProjectDetail({
                 <span>{gridCols}</span>
               </button>
               {openDropdown === 'view' && (
-                <div className="absolute top-full left-0 mt-1 bg-white rounded-card shadow p-2 z-50 flex gap-1">
+                <div className="absolute top-full left-0 mt-1 bg-card rounded-card shadow p-2 z-50 flex gap-1">
                   {[2, 3, 4].map(cols => (
                     <button key={cols} onClick={() => { setGridCols(cols); setOpenDropdown(null) }}
-                      className={`w-8 h-8 text-xs rounded ${gridCols === cols ? 'bg-black text-white' : 'bg-gray-100 hover:bg-gray-200'}`}>
+                      className={`w-8 h-8 text-xs rounded ${gridCols === cols ? 'bg-ink text-card' : 'bg-gray-100 hover:bg-faint/40'}`}>
                       {cols}
                     </button>
                   ))}
@@ -1268,7 +1270,7 @@ export default function ProjectDetail({
               {/* 정렬 아이콘 버튼 */}
               <button
                 onClick={() => setOpenDropdown(openDropdown === 'sort' ? null : 'sort')}
-                className={`p-1.5 rounded text-xs flex items-center gap-1 ${openDropdown === 'sort' ? 'bg-black text-white' : 'bg-gray-100 hover:bg-gray-200 text-gray-600'}`}
+                className={`p-1.5 rounded text-menu flex items-center gap-1 ${openDropdown === 'sort' ? 'bg-ink text-card' : 'bg-gray-100 hover:bg-hair text-ink-2'}`}
                 title={t('photo.listOrder')}
               >
                 <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor">
@@ -1277,17 +1279,17 @@ export default function ProjectDetail({
                 <span>{sortOrder === 'asc' ? '↑' : '↓'}</span>
               </button>
               {openDropdown === 'sort' && (
-                <div className="absolute top-full left-0 mt-1 bg-white rounded-card shadow p-2 z-50 min-w-[160px]">
+                <div className="absolute top-full left-0 mt-1 bg-card rounded-card shadow p-2 z-50 min-w-[160px]">
                   <div className="flex justify-between items-center mb-2 px-1">
-                    <span className="text-xs text-gray-500 font-semibold">{t('photo.listOrder')}</span>
+                    <span className="text-menu text-muted font-semibold">{t('photo.listOrder')}</span>
                     <button onClick={() => { setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc'); setOpenDropdown(null) }}
-                      className="text-xs px-2 py-0.5 bg-gray-100 hover:bg-gray-200 rounded">
-                      {sortOrder === 'asc' ? '↑ ASC' : '↓ DESC'}
+                      className="text-caption px-2 py-0.5 bg-gray-100 hover:bg-faint-40 rounded-card">
+                      {sortOrder === 'asc' ? '↑ Asc' : '↓ Desc'}
                     </button>
                   </div>
                   {([['default', t('photo.orderUpload')], ['taken_at', t('photo.orderTaken')], ['name', t('photo.orderName')]] as const).map(([key, label]) => (
                     <button key={key} onClick={() => { setSortBy(key as 'default' | 'taken_at' | 'name'); setOpenDropdown(null) }}
-                      className={`w-full text-left px-2 py-1 text-xs rounded ${sortBy === key ? 'bg-black text-white' : 'hover:bg-gray-50'}`}>
+                      className={`w-full text-left px-2 py-1 text-menu rounded ${sortBy === key ? 'bg-ink text-card' : 'hover:bg-faint/50'}`}>
                       {label}
                     </button>
                   ))}
@@ -1297,7 +1299,7 @@ export default function ProjectDetail({
               {/* EXIF 토글 아이콘 버튼 */}
               <button
                 onClick={() => setOpenDropdown(openDropdown === 'exif' ? null : 'exif')}
-                className={`p-1.5 rounded text-xs flex items-center gap-1 ${openDropdown === 'exif' ? 'bg-black text-white' : 'bg-gray-100 hover:bg-gray-200 text-gray-600'}`}
+                className={`p-1.5 rounded text-menu flex items-center gap-1 ${openDropdown === 'exif' ? 'bg-black text-white' : 'bg-gray-100 hover:bg-gray-200 text-gray-600'}`}
                 title={t('filter.exifOnOff')}
               >
                 <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor">
@@ -1309,7 +1311,7 @@ export default function ProjectDetail({
                 <div className="absolute top-full left-0 mt-1 bg-white rounded-card shadow p-2 z-50 flex gap-1">
                   {[true, false].map(val => (
                     <button key={String(val)} onClick={() => { setShowExif(val); setOpenDropdown(null) }}
-                      className={`px-3 py-1 text-xs rounded ${showExif === val ? 'bg-black text-white' : 'bg-gray-100 hover:bg-gray-200'}`}>
+                      className={`px-3 py-1 text-menu rounded ${showExif === val ? 'bg-ink text-card' : 'bg-gray-100 hover:bg-faint/40'}`}>
                       {val ? 'On' : 'Off'}
                     </button>
                   ))}
@@ -1325,14 +1327,14 @@ export default function ProjectDetail({
                   {/* ✅ photos.some 대신 missingCount > 0 으로 수정 */}
                   {missingCount > 0 && (
                     <div className="mb-4 flex items-center justify-between bg-yellow-50 border border-yellow-200 rounded-card px-4 py-2.5">
-                      <p className="text-xs text-yellow-700">
+                      <p className="text-caption text-yellow-700">
                         {/* ✅ 하드코딩 제거 및 i18n 변수 적용 */}
                         ⚠️ {t('photo.local.MissingWarning', { count: missingCount })}
                       </p>
                       <button
                         onClick={handleDeleteAllMissing}
                         disabled={deletingMissing}
-                        className="text-xs px-3 py-1.5 bg-yellow-500 hover:bg-yellow-600 text-white rounded disabled:opacity-50"
+                        className="text-caption px-3 py-1.5 bg-yellow-500 hover:bg-yellow-600 text-card rounded-card disabled:opacity-50"
                       >
                         {deletingMissing ? t('photo.deleting') : t('photo.deleteAll')}
                       </button>
@@ -1359,10 +1361,10 @@ export default function ProjectDetail({
                 </div>
 
                 {filteredPhotos.length === 0 && (
-                  <div className="text-center py-20 text-gray-400">
+                  <div className="text-center text-h3 py-20 text-muted">
                     {photos.length === 0
-                      ? <><p className="text-lg mb-2">{t('photo.noPhotos')}</p></>
-                      : <><p className="text-lg mb-2">{t('filter.noMatch')}</p></>}
+                      ? <><p className="mb-2">{t('photo.noPhotos')}</p></>
+                      : <><p className="mb-2">{t('filter.noMatch')}</p></>}
                   </div>
                 )}
               </div>
@@ -1372,13 +1374,13 @@ export default function ProjectDetail({
             {photoSubTab === 'trash' && (
               <div>
                 {trashedPhotos.length > 0 && (
-                  <div className="mb-4 flex items-center justify-between bg-red-50 border border-red-200 rounded-card px-4 py-2.5 gap-3">
+                  <div className="mb-4 flex items-center justify-between bg-red-50 border border-red-200 rounded-card px-3 py-2 gap-3">
                     <div className="min-w-0">
-                      <p className="text-xs text-red-600">
+                      <p className="text-menu text-red-600">
                         🗑️ {t('photo.trash')} {trashedPhotos.length}{t('photo.countText')}
                       </p>
                       {localTrashPhotos.length > 0 && (
-                        <p className="text-xs text-amber-600 mt-0.5">
+                        <p className="text-caption text-amber-600 mt-0.5">
                           ⚠️ {t('trash.localSyncBadge')} {localTrashPhotos.length}{t('photo.countText')}
                         </p>
                       )}
@@ -1386,7 +1388,7 @@ export default function ProjectDetail({
                     <button
                       onClick={handleDeleteAllTrash}
                       disabled={deletingTrash}
-                      className="shrink-0 text-xs px-3 py-1.5 bg-red-500 hover:bg-red-600 text-white rounded disabled:opacity-50"
+                      className="shrink-0 text-menu px-3 py-1.5 bg-red-500 hover:bg-red-600 text-card rounded disabled:opacity-50"
                     >
                       {deletingTrash
                         ? t('photo.deleting')
@@ -1397,8 +1399,8 @@ export default function ProjectDetail({
                   </div>
                 )}
                 {trashedPhotos.length === 0 ? (
-                  <div className="text-center py-20 text-gray-400 border rounded-card bg-gray-50">
-                    <p className="text-lg mb-2">{t('photo.trashEmpty')}</p>
+                  <div className="text-center text-h3 py-20 text-muted border rounded-card bg-card">
+                    <p className="mb-2">{t('photo.trashEmpty')}</p>
                   </div>
                 ) : (
                   <div className="grid grid-cols-3 gap-4">
@@ -1408,7 +1410,7 @@ export default function ProjectDetail({
                       const isLocal = !canHardDelete(photo)
 
                       return (
-                        <div key={photo.id} className="rounded overflow-hidden bg-transparent group relative shadow border border-gray-200">
+                        <div key={photo.id} className="rounded overflow-hidden bg-transparent group relative shadow border border-hair">
                           <div className="relative">
                             <img
                               src={photo.image_url}
@@ -1417,7 +1419,7 @@ export default function ProjectDetail({
                             />
                             {isLocal && (
                               <div className="absolute top-1.5 left-1.5 z-10">
-                                <span className="inline-flex items-center gap-1 px-1.5 py-0.5 text-[10px] font-medium rounded bg-amber-500/90 text-white backdrop-blur-sm">
+                                <span className="inline-flex items-center gap-1 px-1.5 py-0.5 text-eyebrow font-medium rounded bg-amber-500/90 text-card backdrop-blur-sm">
                                   {t('trash.localSyncBadge')}
                                 </span>
                               </div>
@@ -1454,7 +1456,7 @@ export default function ProjectDetail({
                                   }
                                 }
                               }}
-                              className="w-full text-center px-4 py-1.5 text-xs bg-white text-black rounded hover:bg-gray-200 font-medium shadow"
+                              className="w-full text-center px-3 py-1.5 text-menu bg-card text-ink rounded-card hover:bg-hair font-medium shadow"
                             >
                               ↺ {t('trash.restore')}
                             </button>
@@ -1478,17 +1480,17 @@ export default function ProjectDetail({
                                   },
                                 })
                               }}
-                              className={`w-full text-center px-4 py-1.5 text-xs rounded font-medium shadow ${
+                              className={`w-full text-center px-3 py-1.5 text-menu rounded-card font-medium shadow ${
                                 !isLocal
-                                  ? 'bg-red-600 text-white hover:bg-red-700'
-                                  : 'bg-gray-500 text-white hover:bg-gray-600'
+                                  ? 'bg-red-600 text-card hover:bg-red-700'
+                                  : 'bg-gray-500 text-card hover:bg-gray-600'
                               }`}
                             >
                               ✕ {t('trash.permanentDelete')}
                             </button>
                           </div>
                           <div className="p-2 bg-transparent flex items-center justify-center h-10">
-                            <p className="text-xs text-red-500 font-medium">
+                            <p className="text-menu text-red-500 font-medium">
                               {t('trash.delete_warning', { daysLeft })}
                             </p>
                           </div>
@@ -1529,41 +1531,41 @@ export default function ProjectDetail({
       <button
         id="floating-top-button"
         onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-        className="fixed bottom-8 right-8 w-12 h-12 bg-black/70 hover:bg-black text-white rounded-full flex items-center justify-center shadow transition-all z-40 backdrop-blur-sm"
+        className="fixed bottom-8 right-8 w-10 h-10 bg-ink/70 hover:bg-ink text-card rounded-full flex items-center justify-center shadow transition-all z-40 backdrop-blur-sm"
         title="Top"
       >
-        <span className="text-2xl font-bold">↑</span>
+        <span className="text-h2 font-bold">↑</span>
       </button>
       )}
 
       {/* 🚀 다중 선택 하단 플로팅 바 */}
       {selectionMode && activeTab === 'photos' && (
-        <div className="fixed bottom-10 left-1/2 -translate-x-1/2 bg-gray-900 text-white px-3 py-2 rounded-card shadow flex items-center gap-8 z-[100] animate-fade-in-up">
+        <div className="fixed bottom-10 left-1/2 -translate-x-1/2 bg-canvas-2 border border-ink-2 px-3 py-2 rounded-card shadow flex items-center gap-8 z-[100] animate-fade-in-up">
           <div className="flex flex-col">
-            <span className="font-bold text-sm">{t('story.multiplePhotoSelected', { count: selectedPhotoIds.size })}</span>
-            <span className="text-xs text-gray-400">{t('story.addMultiplePhoto')}</span>
+            <span className="font-bold text-menu text-ink-2">{t('story.multiplePhotoSelected', { count: selectedPhotoIds.size })}</span>
+            {/* <span className="text-menu text-card">{t('story.addMultiplePhoto')}</span> */}
           </div>
           
           <div className="flex gap-3 relative">
             <button
               onClick={() => setShowBulkChapterMenu(v => !v)}
               disabled={selectedPhotoIds.size === 0}
-              className="px-2 py-1.5 bg-blue-500 hover:bg-blue-600 disabled:bg-gray-700 disabled:text-gray-500 rounded-btn text-xs font-bold transition-colors"
+              className="px-2 py-1.5  font-bold text-menu btn-secondary-on-card border hover:bg-faint/40 border-muted disabled:text-faint transition-colors"
             >
               📖 {t('story.addToChapter')}
             </button>
 
             {/* 챕터 목록 드롭다운 (위로 열림) */}
             {showBulkChapterMenu && selectedPhotoIds.size > 0 && (
-              <div className="absolute bottom-full left-0 mb-3 w-64 bg-white rounded-card shadow text-black py-2 max-h-64 overflow-y-auto">
+              <div className="absolute bottom-full left-0 mb-3 bg-card rounded-card shadow text-ink py-2 max-h-64 overflow-y-auto">
                 {chapters.length === 0 ? (
-                  <p className="text-xs text-gray-500 px-3 py-1.5">{t('story.noChapter')}</p>
+                  <p className="text-menu text-muted px-3 py-1.5">{t('story.noChapter')}</p>
                 ) : (
                   chapters.filter(c => !c.parent_id).map((parent, pIdx) => (
                     <div key={parent.id}>
                       <button
                         onClick={() => handleBulkAddToChapter(parent.id)}
-                        className="w-full text-left px-3 py-1.5 hover:bg-blue-50 text-xs font-bold text-gray-600"
+                        className="w-full text-left px-3 py-1.5 rounded-card hover:bg-hair text-menu font-semibold text-ink-2"
                       >
                         {t('story.chapter')} {pIdx + 1}. {parent.title}
                       </button>
@@ -1571,7 +1573,7 @@ export default function ProjectDetail({
                         <button
                           key={child.id}
                           onClick={() => handleBulkAddToChapter(child.id)}
-                          className="w-full text-left px-3 py-1.5 hover:bg-gray-100 text-xs text-gray-500 pl-8"
+                          className="w-full text-left px-3 py-1.5 rounded-card hover:bg-hair text-menu text-muted pl-8"
                         >
                           ↳ {pIdx + 1}.{cIdx + 1}. {child.title}
                         </button>
@@ -1588,7 +1590,7 @@ export default function ProjectDetail({
                 setSelectedPhotoIds(new Set())
                 setShowBulkChapterMenu(false)
               }}
-              className="px-2 py-1.5 bg-white/10 hover:bg-white/20 rounded-btn text-xs font-medium transition-colors"
+              className="px-2 py-1.5 text-menu btn-secondary-on-card border border-hair font-medium transition-colors"
             >
               {t('common.cancel')}
             </button>

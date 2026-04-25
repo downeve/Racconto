@@ -106,7 +106,7 @@ export default function FeedbackWidget() {
       <button
         onClick={() => setIsOpen(true)}
         // isShifted가 true면 bottom-[88px](위로 이동), false면 bottom-6(기본)
-        className={`fixed right-8 ${isShifted ? 'bottom-[84px]' : 'bottom-6'} rounded-btn bg-ink-2 text-hair p-3 shadow hover:bg-stone-600 transition-all duration-300 z-50 flex items-center justify-center w-12 h-12`}
+        className={`fixed right-8 ${isShifted ? 'bottom-[78px]' : 'bottom-6'} rounded-full bg-ink-2 text-hair p-3 shadow hover:bg-stone-600 transition-all duration-300 z-50 flex items-center justify-center w-10 h-10`}
         title={t('feedback.buttonTitle')}
       >
         💬

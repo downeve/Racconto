@@ -32,7 +32,9 @@ export default {
         'h2':      ['1.75rem',  { lineHeight: '1.25' }],                           // 28
         'h3':      ['1.25rem',  { lineHeight: '1.4' }],                            // 20
         'body':    ['1rem',     { lineHeight: '1.6' }],                            // 16 ✨
-        'small':   ['0.875rem', { lineHeight: '1.5' }],                            // 14 ✨
+        'small':   ['0.875rem', { lineHeight: '1.5' }],                             // 14
+        'menu':    ['0.8125rem',{ lineHeight: '1.5' }],                                // 13 (사이드바 메뉴용)
+        'caption': ['0.75rem',  { lineHeight: '1.4' }],                        // 12 ✨
         'eyebrow': ['0.6875rem',{ lineHeight: '1',    letterSpacing: '0.18em' }],  // 11
       },
       // 🚨 2. 부드러운 전환 효과를 위한 트랜지션 설정

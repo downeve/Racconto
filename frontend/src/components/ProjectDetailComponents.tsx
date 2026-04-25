@@ -83,6 +83,7 @@ export function Lightbox({
 }: LightboxProps) {
   const idx = photos.findIndex(p => p.id === photo.id)
   const [showChapterMenu, setShowChapterMenu] = useState(false)
+
   const [showNotePanel, setShowNotePanel] = useState(false)
   const { t, i18n } = useTranslation()
 
@@ -145,9 +146,9 @@ export function Lightbox({
       >
         {/* 1. 왼쪽: 인덱스 및 경고 (flex-1로 남는 공간 차지) */}
         <div className="flex-1 flex items-center gap-3 justify-start min-w-0">
-          <span className="text-white/50 text-sm whitespace-nowrap">{idx + 1} / {photos.length}</span>
+          <span className="text-card text-small whitespace-nowrap">{idx + 1} / {photos.length}</span>
           {photo.local_missing && (
-            <span className="text-yellow-400 text-xs font-bold px-2 py-0.5 bg-yellow-400/20 rounded-full whitespace-nowrap">
+            <span className="text-yellow-400 text-eyebrow font-bold px-2 py-0.5 bg-yellow-400/20 rounded-full whitespace-nowrap">
               ⚠️ {t('project.noLocalFile')}
             </span>
           )}
@@ -170,13 +171,13 @@ export function Lightbox({
                   key={star}
                   onMouseEnter={() => setHoverRating({ id: photo.id, star })}
                   onClick={() => onSetRating(photo, star)}
-                  className={`text-xl transition-colors ${colorClass}`}
+                  className={`text-body rounded-card transition-colors ${colorClass}`}
                 >★</button>
               )
             })}
           </div>
 
-          <div className="w-px h-3 bg-white/20" />
+          <div className="w-px h-3 bg-card/30" />
 
           {/* 컬러 라벨 */}
           <div className="flex gap-1.5">
@@ -185,7 +186,7 @@ export function Lightbox({
                 key={label.value}
                 onClick={() => onSetColorLabel(photo, label.value)}
                 title={label.label}
-                className={`w-5 h-5 rounded-full ${label.color} transition-all ${
+                className={`w-4 h-4 text-body rounded-full ${label.color} transition-all ${
                   photo.color_label === label.value
                     ? 'ring-2 ring-offset-2 ring-offset-black ring-white scale-110'
                     : 'opacity-40 hover:opacity-80'
@@ -194,18 +195,18 @@ export function Lightbox({
             ))}
           </div>
 
-          <div className="w-px h-3 bg-white/20" />
+          <div className="w-px h-3 bg-card/30" />
 
           {/* 챕터 추가 / 정보 표시 */}
-          <div className="relative flex items-center">
+          <div className="relative flex items-center" onClick={e => e.stopPropagation()}>
             {inChapter ? (
-              <span className="flex items-center text-xs text-blue-400 px-2 py-1 border border-transparent font-medium">
+              <span className="flex items-center text-small text-blue-400 px-3 py-1.5 border border-transparent font-medium">
                 {getAssignedChapterInfo()}
               </span>
             ) : (
               <button
                 onClick={() => setShowChapterMenu(v => !v)}
-                className="flex items-center text-xs px-2 py-1 border border-white/20 text-white/60 hover:text-white hover:border-white/50 rounded transition-colors"
+                className="flex items-center text-small px-3 py-1.5 border border-card/20 text-faint hover:text-white hover:border-white/50 rounded transition-colors"
               >
                 📖 {t('story.addToChapter')}
               </button>
@@ -215,16 +216,15 @@ export function Lightbox({
             {showChapterMenu && !inChapter && (
               <div
                 className="absolute top-full mt-2 left-0 bg-white rounded shadow z-50 min-w-[180px] py-1"
-                onClick={e => e.stopPropagation()}
               >
                 {chapters.length === 0 ? (
-                  <p className="text-xs text-gray-400 px-3 py-2">{t('story.noChapters')}</p>
+                  <p className="text-small text-faint px-3 py-2">{t('story.noChapters')}</p>
                 ) : (
                   chapters.filter(c => !c.parent_id).map((parent, parentIdx) => (
                     <div key={parent.id}>
                       <button
                         onClick={() => { onAddToChapter(photo.id, parent.id); setShowChapterMenu(false) }}
-                        className="w-full text-left text-xs px-3 py-2 hover:bg-gray-100 text-gray-700 font-medium"
+                        className="w-full text-left text-small px-3 py-2 hover:bg-hair text-ink-2 font-base"
                       >
                         {t('story.chapter')} {parentIdx + 1}. {parent.title}
                       </button>
@@ -232,7 +232,7 @@ export function Lightbox({
                         <button
                           key={child.id}
                           onClick={() => { onAddToChapter(photo.id, child.id); setShowChapterMenu(false) }}
-                          className="w-full text-left text-xs px-3 py-2 hover:bg-gray-100 text-gray-500 pl-6"
+                          className="w-full text-left text-small px-3 py-2 hover:bg-hair/60 text-muted pl-6"
                         >
                           ↳ {t('story.chapter')} {parentIdx + 1}.{childIdx + 1}. {child.title}
                         </button>
@@ -244,15 +244,15 @@ export function Lightbox({
             )}
           </div>
 
-          <div className="w-px h-3 bg-white/20" />
+          <div className="w-px h-3 bg-card/30" />
 
           {/* 노트 버튼 */}
           <button
             onClick={() => setShowNotePanel(v => !v)}
-            className={`text-xs px-2 py-1 border rounded transition-colors ${
+            className={`text-small px-3 py-1.5 border rounded-card transition-colors ${
               showNotePanel
-                ? 'border-white/50 text-white'
-                : 'border-white/20 text-white/60 hover:text-white hover:border-white/50'
+                ? 'border-card/50 text-card'
+                : 'border-card/20 text-card/60 hover:text-card hover:border-card/50'
             }`}
           >
             📝 {t('note.title')}
@@ -261,7 +261,7 @@ export function Lightbox({
 
         {/* 3. 오른쪽: 닫기 버튼 (flex-1로 남는 공간 차지하며 우측 정렬) */}
         <div className="flex-1 flex justify-end">
-          <button onClick={onClose} className="text-white/70 hover:text-white text-2xl p-3">✕</button>
+          <button onClick={onClose} className="text-card/70 hover:text-card text-h2 p-3 rounded-full">✕</button>
         </div>
       </div>
 
@@ -269,7 +269,7 @@ export function Lightbox({
       <div className="flex-1 flex items-center justify-center mt-0 relative min-h-0">
         {idx > 0 && (
           <button
-            className="absolute left-4 z-10 text-white/70 hover:text-white text-5xl select-none p-4"
+            className="absolute left-4 z-10 text-card/70 hover:text-card text-h1 select-none p-4"
             onClick={e => { e.stopPropagation(); onNavigate(photos[idx - 1]) }}
           >‹</button>
         )}
@@ -281,7 +281,7 @@ export function Lightbox({
         />
         {idx < photos.length - 1 && (
           <button
-            className="absolute right-4 z-10 text-white/70 hover:text-white text-5xl select-none p-4"
+            className="absolute right-4 z-10 text-card/70 hover:text-card text-h1 select-none p-4"
             onClick={e => { e.stopPropagation(); onNavigate(photos[idx + 1]) }}
           >›</button>
         )}
@@ -294,7 +294,7 @@ export function Lightbox({
             {/* EXIF */}
             {showExif && (photo.camera || photo.focal_length || photo.taken_at) && (
               <>
-                <span className="text-xs text-white/40">
+                <span className="text-small text-card/40">
                   {[
                     photo.taken_at
                       ? new Date(photo.taken_at).toLocaleDateString(i18n.language === 'ko' ? 'ko-KR' : 'en-US')
@@ -378,7 +378,7 @@ export const PhotoCard = memo(function PhotoCard({
 
         {/* 미싱 파일 경고 */}
         {photo.local_missing && (
-          <div className="absolute top-2 left-2 z-10 bg-yellow-400 text-black text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1">
+          <div className="absolute top-2 left-2 z-10 bg-yellow-400 text-ink-2 text-eyebrow font-semibold px-2 py-0.5 rounded-full flex items-center gap-1">
             ⚠️ {t('project.noLocalFile')}
           </div>
         )}
@@ -389,10 +389,10 @@ export const PhotoCard = memo(function PhotoCard({
             className="absolute top-3 left-3 z-20 cursor-pointer"
             onClick={e => { e.stopPropagation(); onToggleSelect(photo.id) }}
           >
-            <div className={`w-6 h-6 rounded-card border-2 flex items-center justify-center transition-colors shadow ${
-              isSelected ? 'bg-blue-500 border-blue-500' : 'bg-black/40 border-white/80'
+            <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition-colors shadow ${
+              isSelected ? 'bg-blue-500/50 border-blue-500/30' : 'bg-ink-2/40 border-card/80'
             }`}>
-              {isSelected && <span className="text-white text-sm font-bold">✓</span>}
+              {isSelected && <span className="text-card text-small font-semibold">✓</span>}
             </div>
           </div>
         )}
@@ -408,17 +408,17 @@ export const PhotoCard = memo(function PhotoCard({
             <div className="absolute top-2 right-2 flex gap-1 pointer-events-auto">
               <button
                 onClick={e => { e.stopPropagation(); onSetCover(photo) }}
-                className={`${gridCols >= 4 ? 'px-1 py-0.5 text-[10px]' : 'px-2 py-1 text-xs'} rounded shadow transition-colors ${
+                className={`${gridCols >= 4 ? 'px-1.5 py-1 text-eyebrow' : 'px-2 py-1 text-eyebrow'} rounded-card shadow transition-colors font-base ${
                   project?.cover_image_url === photo.image_url
-                    ? 'bg-yellow-400 text-black'
-                    : 'bg-black/50 hover:bg-black/80 text-white'
+                    ? 'bg-yellow-400 text-ink-2'
+                    : 'bg-ink/30 hover:bg-ink-2/90 text-card'
                 }`}
               >
                 {project?.cover_image_url === photo.image_url ? t('photo.isCover') : t('photo.setCover')}
               </button>
               <button
                 onClick={e => { e.stopPropagation(); onDelete(photo.id) }}
-                className="w-6 h-6 flex items-center justify-center bg-red-500/70 hover:bg-red-600 text-white rounded shadow text-xs font-bold transition-colors"
+                className="w-5 h-5 flex items-center justify-center bg-red-500/30 hover:bg-red-600 text-card rounded-full shadow text-xs font-bold transition-colors"
               >✕</button>
             </div>
 
@@ -431,7 +431,7 @@ export const PhotoCard = memo(function PhotoCard({
                     <button
                       key={star}
                       onClick={e => { e.stopPropagation(); onSetRating(photo, star) }}
-                      className={`transition-all duration-150 drop-shadow ${gridCols >= 4 ? 'text-[10px]' : 'text-xs'} ${
+                      className={`transition-all duration-150 drop-shadow ${gridCols >= 4 ? 'text-small' : 'text-small'} ${
                         isActive
                           ? 'text-yellow-400 scale-110'
                           : 'text-white/40 hover:text-yellow-200 hover:scale-125'
@@ -448,8 +448,8 @@ export const PhotoCard = memo(function PhotoCard({
                       key={label.value}
                       onClick={e => { e.stopPropagation(); onSetColorLabel(photo, label.value) }}
                       title={label.label}
-                      className={`rounded-full ${label.color} transition-all duration-150 shadow border border-white/10 ${
-                        gridCols >= 4 ? 'w-2 h-2' : 'w-2.5 h-2.5'
+                      className={`rounded-full ${label.color} transition-all duration-150 shadow border border-card/10 ${
+                        gridCols >= 4 ? 'w-2.5 h-2.5' : 'w-2.5 h-2.5'
                       } ${
                         isActive
                           ? 'ring-2 ring-offset-1 ring-offset-black/40 ring-white scale-125'
@@ -465,22 +465,22 @@ export const PhotoCard = memo(function PhotoCard({
       </div>
 
       {/* EXIF 영역 */}
-      <div className={`bg-white transition-opacity ${selectionMode ? 'opacity-40 pointer-events-none' : ''}`}>
+      <div className={`bg-card rounded-card transition-opacity ${selectionMode ? 'opacity-40 pointer-events-none' : ''}`}>
         {showExif && (photo.camera || photo.taken_at) && (
           <div className="px-2 pb-2">
-            <div className="border-t border-gray-100 pt-1 mt-1 space-y-0.5">
+            <div className="border-t border-gray-100 pt-1 mt-1 space-y-1">
               {photo.taken_at && (
-                <p className="text-[10px] text-gray-400 font-mono">
+                <p className="text-eyebrow text-faint font-mono">
                   {new Date(photo.taken_at).toLocaleDateString(i18n.language === 'ko' ? 'ko-KR' : 'en-US')}
                   {photo.camera && <span> · {photo.camera}</span>}
                 </p>
               )}
               {!photo.taken_at && photo.camera && (
-                <p className="text-[10px] text-gray-400 font-mono">{photo.camera}</p>
+                <p className="text-eyebrow text-faint font-mono">{photo.camera}</p>
               )}
-              {photo.lens && <p className="text-[10px] text-gray-400 font-mono">{photo.lens}</p>}
+              {photo.lens && <p className="text-eyebrow text-faint font-mono">{photo.lens}</p>}
               {(photo.focal_length || photo.aperture || photo.shutter_speed || photo.iso) && (
-                <p className="text-[10px] text-gray-400 font-mono">
+                <p className="text-eyebrow text-faint font-mono">
                   {[photo.focal_length, photo.aperture, photo.shutter_speed, photo.iso].filter(Boolean).join(' · ')}
                 </p>
               )}
