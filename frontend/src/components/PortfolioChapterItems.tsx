@@ -48,9 +48,6 @@ export default function PortfolioChapterItems({
   const effectiveWidth = containerWidth ?? PORTFOLIO_WIDTH - 48
   const effectiveGap = gap ?? PORTFOLIO_GAP
 
-  const captionColor = darkMode ? 'text-gray-500' : 'text-gray-500'
-  const subText = captionColor
-
   const handleImageLoad = (url: string, e: React.SyntheticEvent<HTMLImageElement>) => {
     const img = e.currentTarget
     if (!img.naturalWidth || !img.naturalHeight) return
@@ -77,18 +74,15 @@ export default function PortfolioChapterItems({
           <div
             key={photo.id}
             style={{ width: `${rowHeight * ratios[j]}px`, height: `${rowHeight}px`, flexShrink: 0 }}
-            className="overflow-hidden rounded cursor-pointer"
+            className="overflow-hidden cursor-pointer"
             onClick={() => onLightbox?.(photo as PortfolioPhoto, allLightboxItems)}
           >
             <img
               src={photo.image_url}
               loading="lazy"
-              className="w-full h-full object-cover hover:opacity-90 transition-opacity block"
+              className="w-full h-full rounded-photo object-cover hover:opacity-90 transition-opacity block"
               onLoad={(e) => handleImageLoad(photo.image_url || '', e)}
             />
-            {photo.caption && (
-              <p className={`text-xs mt-1 leading-relaxed ${subText}`}>{photo.caption}</p>
-            )}
           </div>
         ))}
       </div>
@@ -165,7 +159,7 @@ export default function PortfolioChapterItems({
               <img
                 src={photo.image_url}
                 loading="lazy"
-                className="w-full rounded cursor-pointer hover:opacity-90 transition-opacity block"
+                className="w-full rounded-photo cursor-pointer hover:opacity-90 transition-opacity block"
                 onClick={() => onLightbox?.(photo as PortfolioPhoto, allLightboxItems)}
               />
             </div>
@@ -211,12 +205,9 @@ export default function PortfolioChapterItems({
               <img
                 src={photo.image_url}
                 loading="lazy"
-                className="w-full rounded cursor-pointer hover:opacity-90 transition-opacity"
+                className="w-full rounded-photo cursor-pointer hover:opacity-90 transition-opacity"
                 onClick={() => onLightbox?.(photo as PortfolioPhoto, allLightboxItems)}
               />
-              {photo.caption && (
-                <p className={`text-xs mt-1.5 leading-relaxed ${subText}`}>{photo.caption}</p>
-              )}
             </div>
           ))}
         </div>

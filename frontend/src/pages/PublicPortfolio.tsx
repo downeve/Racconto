@@ -202,7 +202,7 @@ export default function PublicPortfolio() {
 
         <div className="flex items-center justify-between mb-space-md">
           <div className="flex items-center gap-4">
-            <h2 className={`text-2xl font-bold tracking-wide mb-2 ${darkMode ? 'text-hair' : 'text-ink'}`}>
+            <h2 className={`text-h2 font-bold tracking-wide mb-2 ${darkMode ? 'text-hair' : 'text-ink'}`}>
               {selectedProject ? selectedProject.title : `@${username}`}
             </h2>
           </div>
@@ -247,12 +247,12 @@ export default function PublicPortfolio() {
           <div>
             <div className="mb-space-md max-w-2xl">
               {selectedProject.location && (
-                <p className={`text-sm tracking-widest uppercase mb-6 ${subText}`}>
+                <p className={`text-menu uppercase mb-6 ${subText}`}>
                   📍 {selectedProject.location}
                 </p>
               )}
               {selectedProject.description && (
-                <p className={`text-base leading-relaxed [word-break:keep-all] ${subText}`}>
+                <p className={`text-body [word-break:keep-all] ${subText}`}>
                   {selectedProject.description}
                 </p>
               )}
@@ -269,23 +269,23 @@ export default function PublicPortfolio() {
                   )}
                   <div className="mb-space-md">
                     <div className="flex items-baseline gap-2 mb-2">
-                    <p className={`text-xs tracking-widest uppercase mb-3 ${subText}`}>
+                    <p className={`text-small uppercase mb-3 ${subText}`}>
                       {idx + 1 < 10 ? `0${idx + 1}` : idx + 1}
                     </p>
                     <h3
-                      className="text-2xl font-bold mb-4 tracking-tight"
+                      className="text-h2 font-bold mb-4 tracking-tight"
                     >
                       {chapter.title}
                     </h3>
                     </div>
                     {chapter.description && (
                       <p
-                        className={`text-base leading-relaxed max-w-xl [word-break:keep-all] ${subText}`}
+                        className={`text-body max-w-xl [word-break:keep-all] ${subText}`}
                       >
                         {chapter.description}
                       </p>
                     )}
-                    <div className={`mt-6 h-px w-12 ${darkMode ? 'bg-white/30' : 'bg-gray-400'}`} />
+                    <div className={`mt-6 h-px w-12 ${darkMode ? 'bg-card/30' : 'bg-faint'}`} />
                   </div>
                     <PortfolioChapterItems
                       items={chapter.items || []}
@@ -295,18 +295,18 @@ export default function PublicPortfolio() {
                     />
                     {chapter.sub_chapters?.map((sub, subIdx) => (
                       <div key={sub.id} className="mt-space-md">
-                        <div className={`h-px mb-10 w-1/3 ${darkMode ? 'bg-white/10' : 'bg-gray-200'}`} />
+                        <div className={`h-px mb-10 w-1/3 ${darkMode ? 'bg-card/10' : 'bg-hair'}`} />
                         <div className="mb-8">
                           <div className="flex items-baseline gap-2 mb-2">
-                          <p className={`text-xs tracking-widest uppercase mb-2 ${subText}`}>
+                          <p className={`text-caption uppercase mb-2 ${subText}`}>
                             {idx + 1}.{subIdx + 1}
                           </p>
-                          <h4 className="text-xl font-semibold">
+                          <h4 className="text-h3 font-semibold">
                             {sub.title}
                           </h4>
                           </div>
                           {sub.description && (
-                            <p className={`text-sm leading-relaxed mt-2 max-w-xl ${subText}`}>
+                            <p className={`text-body mt-2 max-w-xl ${subText}`}>
                               {sub.description}
                             </p>
                           )}
@@ -323,9 +323,9 @@ export default function PublicPortfolio() {
                 ))}
               </div>
             ) : (
-              <div className="text-center py-20 text-gray-400">
-                <p className="text-lg mb-2">{t('portfolio.noChapters')}</p>
-                <p className="text-sm">{t('portfolio.createChapterFirst')}</p>
+              <div className="text-center py-20 text-faint">
+                <p className="text-h3 mb-2">{t('portfolio.noChapters')}</p>
+                <p className="text-h3">{t('portfolio.createChapterFirst')}</p>
               </div>
             )}
           </div>
@@ -338,14 +338,14 @@ export default function PublicPortfolio() {
           onClick={() => setLightboxIndex(null)}
         >
           <button
-            className={`absolute top-6 right-6 text-2xl z-10 p-3 ${darkMode ? 'text-hair' : 'text-hair'} hover:opacity-50`}
+            className={`absolute top-6 right-6 text-h2 z-10 p-3 ${darkMode ? 'text-hair' : 'text-hair'} hover:opacity-50`}
             onClick={() => setLightboxIndex(null)}
           >✕</button>
           
           {/* 첫 번째 사진이 아닐 때만 왼쪽 화살표 표시 */}
           {lightboxIndex > 0 && (
             <button
-              className={`absolute left-6 text-5xl z-10 select-none ${darkMode ? 'text-hair' : 'text-hair'} hover:opacity-50`}
+              className={`absolute left-6 text-display z-10 select-none ${darkMode ? 'text-hair' : 'text-hair'} hover:opacity-50`}
               onClick={e => {
                 e.stopPropagation()
                 setLightboxIndex(lightboxIndex - 1)
@@ -353,21 +353,19 @@ export default function PublicPortfolio() {
             >‹</button>
           )}
 
-          <div 
-            className="w-full h-full p-4 flex flex-col items-center" 
-            onClick={e => e.stopPropagation()}
-          >
+          <div className="w-full h-full p-4 flex flex-col items-center">
             <img
-              src={activeLightboxItem.photo.image_url} 
+              src={activeLightboxItem.photo.image_url}
               alt={activeLightboxItem.photo.caption || ''}
               className="h-full w-auto object-contain"
+              onClick={e => e.stopPropagation()}
             />
           </div>
 
           {/* 마지막 사진이 아닐 때만 오른쪽 화살표 표시 */}
           {lightboxIndex < lightboxItems.length - 1 && (
             <button
-              className={`absolute right-6 text-5xl z-10 select-none ${darkMode ? 'text-hair' : 'text-hair'} hover:opacity-50`}
+              className={`absolute right-6 text-display z-10 select-none ${darkMode ? 'text-hair' : 'text-hair'} hover:opacity-50`}
               onClick={e => {
                 e.stopPropagation()
                 setLightboxIndex(lightboxIndex + 1)
