@@ -334,7 +334,7 @@ export default function PublicPortfolio() {
 
       {lightboxIndex !== null && activeLightboxItem && (
         <div
-          className={`fixed inset-0 ${darkMode ? 'bg-lightbox/[.92]' : 'bg-lightbox/[.92]'} z-50 flex items-center justify-center transition-colors duration-300`}
+          className={`fixed inset-0 ${darkMode ? 'bg-lightbox/[.97]' : 'bg-lightbox/[.97]'} z-50 flex items-center justify-center transition-colors duration-300`}
           onClick={() => setLightboxIndex(null)}
         >
           <button
