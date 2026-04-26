@@ -271,23 +271,23 @@ function ProjectNotes({
     if (activeTab !== 'notes') return
     setSidebarContent(
       <div className="p-4">
-        <p className="text-menu font-semibold text-muted mb-3">{t('note.filter')}</p>
+        <p className="text-menu font-semibold text-muted mb-2">{t('note.filter')}</p>
         <button onClick={() => { setFilterType(null); setFilterPinned(false) }}
-          className={`w-full text-left px-2 py-1.5 text-xs rounded flex items-center justify-between mb-1 ${!filterType && !filterPinned ? 'bg-black text-white' : 'hover:bg-gray-50 text-gray-700'}`}>
+          className={`w-full text-left px-2 py-1.5 text-menu rounded-card flex items-center justify-between mb-1 ${!filterType && !filterPinned ? 'bg-ink text-card' : 'hover:bg-hair text-ink-2'}`}>
           <span>{t('note.filterAll')}</span>
-          <span className={!filterType && !filterPinned ? 'text-gray-300' : 'text-gray-400'}>{notes.length}</span>
+          <span className={!filterType && !filterPinned ? 'text-faint' : 'text-muted'}>{notes.length}</span>
         </button>
         <button onClick={() => { setFilterPinned(!filterPinned); setFilterType(null) }}
-          className={`w-full text-left px-2 py-1.5 text-xs rounded flex items-center justify-between mb-3 ${filterPinned ? 'bg-black text-white' : 'hover:bg-gray-50 text-gray-700'}`}>
+          className={`w-full text-left px-2 py-1.5 text-caption rounded flex items-center justify-between mb-3 ${filterPinned ? 'bg-ink text-card' : 'hover:bg-hair text-ink-2'}`}>
           <span>📌 {t('note.pinned')}</span>
-          <span className={filterPinned ? 'text-gray-300' : 'text-gray-400'}>{notes.filter(n => n.is_pinned).length}</span>
+          <span className={filterPinned ? 'text-faint' : 'text-muted'}>{notes.filter(n => n.is_pinned).length}</span>
         </button>
-        <div className="border-t border-gray-100 my-2" />
+        <div className="border-t border-hair/90 my-2" />
         <div className="space-y-1">
           {NOTE_TYPES.map(type => (
             <button key={type.value}
               onClick={() => { setFilterType(filterType === type.value ? null : type.value); setFilterPinned(false) }}
-              className={`w-full text-left px-2 py-1.5 text-xs rounded flex items-center justify-between ${filterType === type.value ? 'bg-black text-white' : 'hover:bg-gray-50 text-gray-700'}`}>
+              className={`w-full text-left px-2 py-1.5 text-menu rounded flex items-center justify-between ${filterType === type.value ? 'bg-ink text-card' : 'hover:bg-hair text-ink-2'}`}>
               <span className="flex items-center gap-1.5">
                 <span className={`w-2 h-2 rounded-full ${
                   type.value === 'memo' ? 'bg-stone-400' :
@@ -296,18 +296,18 @@ function ProjectNotes({
                 }`} />
                 {type.label}
               </span>
-              <span className={filterType === type.value ? 'text-gray-300' : 'text-gray-400'}>{notes.filter(n => n.note_type === type.value).length}</span>
+              <span className={filterType === type.value ? 'text-faint' : 'text-muted'}>{notes.filter(n => n.note_type === type.value).length}</span>
             </button>
           ))}
         </div>
         {notes.filter(n => n.is_pinned).length > 0 && (
           <>
-            <div className="border-t border-gray-100 my-3" />
-            <p className="text-xs font-semibold text-gray-500 mb-2">📌 {t('note.pinned')}</p>
+            <div className="border-t border-hair/90 my-3" />
+            <p className="text-menu font-semibold text-muted mb-2">📌 {t('note.pinned2')}</p>
             <div className="space-y-1">
               {notes.filter(n => n.is_pinned).map(note => (
                 <button key={note.id} onClick={() => scrollToNote(note.id)}
-                  className="w-full text-left px-2 py-1 text-xs rounded hover:bg-gray-50 text-gray-600 hover:text-black truncate">
+                  className="w-full text-left px-2 py-1.5 text-menu rounded hover:bg-hair text-muted hover:text-ink truncate">
                   {note.content.slice(0, 30)}{note.content.length > 30 ? '...' : ''}
                 </button>
               ))}

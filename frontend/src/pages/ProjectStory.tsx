@@ -956,16 +956,16 @@ function ProjectStory({
     if (activeTab !== 'story') return
     setSidebarContent(
       <div className="p-4">
-        <p className="text-xs font-semibold text-gray-500 mb-3">{t('story.chapters')}</p>
+        <p className="text-menu font-semibold text-muted mb-3">{t('story.chapters')}</p>
         <button
           onClick={() => { setShowAddChapter(true); setAddingSubChapterTo(null) }}
-          className="w-full mb-2 text-xs bg-stone-600 text-white px-2 py-1.5 rounded hover:bg-stone-700 tracking-wider"
+          className="w-full mb-2 text-menu font-semibold btn-secondary px-2 py-1.5 rounded-card transition-colors tracking-wider"
         >
           {t('story.addChapter')}
         </button>
         <button
           onClick={() => setShowPreview(true)}
-          className="w-full mb-3 text-xs border border-stone-400 text-stone-600 px-2 py-1.5 rounded hover:bg-stone-50 transition-colors tracking-wider"
+          className="w-full mb-3 text-menu btn-secondary-on-card px-2 py-1.5 rounded-card transition-colors tracking-wider"
         >
           👁 {t('story.preview')}
         </button>
@@ -975,31 +975,31 @@ function ProjectStory({
             const subChapters = chapters.filter(c => c.parent_id === chapter.id)
             return (
               <div key={chapter.id}>
-                <div className="flex items-center gap-1 group rounded hover:bg-gray-50">
+                <div className="flex items-center gap-1 group rounded hover:bg-hair">
                   <button onClick={() => scrollToChapter(chapter.id)}
-                    className="flex-1 text-left px-2 py-1.5 text-xs flex items-center gap-1.5 min-w-0">
-                    <span className="text-gray-300 shrink-0">{idx + 1}</span>
-                    <span className="truncate text-gray-700 group-hover:text-black">{chapter.title}</span>
+                    className="flex-1 text-left px-2 py-1.5 text-menu flex items-center gap-1.5 min-w-0">
+                    <span className="text-muted shrink-0">{t('story.chapter')} {idx + 1}</span>
+                    <span className="truncate text-ink-2 group-hover:text-ink">{chapter.title}</span>
                   </button>
                   <div className="flex shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
                     <button onClick={() => handleMoveChapter(chapter.id, 'up')} disabled={idx === 0}
-                      className="text-gray-300 hover:text-black disabled:opacity-20 px-0.5 text-xs">↑</button>
+                      className="text-muted hover:text-ink disabled:opacity-20 px-0.5 text-caption">↑</button>
                     <button onClick={() => handleMoveChapter(chapter.id, 'down')} disabled={idx === mainChapters.length - 1}
-                      className="text-gray-300 hover:text-black disabled:opacity-20 px-0.5 text-xs">↓</button>
+                      className="text-muted hover:text-ink disabled:opacity-20 px-0.5 text-caption">↓</button>
                   </div>
                 </div>
                 {subChapters.map((sub, subIdx) => (
-                  <div key={sub.id} className="flex items-center gap-1 group rounded hover:bg-gray-50">
+                  <div key={sub.id} className="flex items-center gap-1 group rounded hover:bg-hair">
                     <button onClick={() => scrollToChapter(sub.id)}
-                      className="flex-1 text-left pl-5 pr-1 py-1 text-xs flex items-center gap-1.5 min-w-0">
-                      <span className="text-gray-200 shrink-0">{idx + 1}.{subIdx + 1}</span>
-                      <span className="truncate text-gray-400 group-hover:text-gray-700">{sub.title}</span>
+                      className="flex-1 text-left pl-5 pr-1 py-1 text-menu flex items-center gap-1.5 min-w-0">
+                      <span className="text-muted shrink-0">↳ {t('story.chapter')} {idx + 1}.{subIdx + 1}</span>
+                      <span className="text-ink-2 hover:text-ink truncate">{sub.title}</span>
                     </button>
                     <div className="flex shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
                       <button onClick={() => handleMoveChapter(sub.id, 'up')} disabled={subIdx === 0}
-                        className="text-gray-300 hover:text-black disabled:opacity-20 px-0.5 text-xs">↑</button>
+                        className="text-muted hover:text-ink disabled:opacity-20 px-0.5 text-caption">↑</button>
                       <button onClick={() => handleMoveChapter(sub.id, 'down')} disabled={subIdx === subChapters.length - 1}
-                        className="text-gray-300 hover:text-black disabled:opacity-20 px-0.5 text-xs">↓</button>
+                        className="text-muted hover:text-ink disabled:opacity-20 px-0.5 text-caption">↓</button>
                     </div>
                   </div>
                 ))}
