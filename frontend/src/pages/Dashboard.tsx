@@ -108,7 +108,7 @@ export default function Dashboard() {
           {recentProjects.length > 0 ? (
             <div className="grid gap-8" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))' }}>
               {recentProjects.map(project => (
-                <div key={project.id} className="transition-transform hover:-translate-y-1 duration-300">
+                <div key={project.id}>
                   <ProjectCard project={project} />
                 </div>
               ))}

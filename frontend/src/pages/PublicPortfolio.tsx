@@ -4,6 +4,7 @@ import axios from 'axios'
 import { useTranslation } from 'react-i18next'
 import { useAuth } from '../context/AuthContext'
 import PortfolioChapterItems, { type PortfolioPhoto } from '../components/PortfolioChapterItems'
+import PublicNavbar from '../components/PublicNavbar'
 
 const API = import.meta.env.VITE_API_URL
 
@@ -195,41 +196,12 @@ export default function PublicPortfolio() {
   return (
     <div className={`min-h-screen ${bg} transition-colors duration-300`}>
     {/* [수정된 부분] 로그아웃 상태일 때 보여주는 헤더를 fixed로 띄워 상단 빈 공간을 덮어버립니다. 라이트박스 띄울 때 헤더 밑으로 숨기기 z-60에서 z-30으로 조정*/}
-      {!isAuthenticated && (
-        <nav className={`fixed top-0 left-0 right-0 z-[30] border-b backdrop-blur-md transition-colors duration-300 ${
-          darkMode ? 'bg-#18140F/90 border-hair/10' : 'bg-canvas/90 border-hair'
-        }`}>
-          <div className="max-w-4xl mx-auto px-6 h-14 flex items-center justify-between">
-            {/* Navbar.tsx와 동일한 텍스트 크기(text-xl)와 자간(0.15em) 적용 */}
-            <Link 
-              to="/" 
-              className={`text-xl font-bold tracking-widest ${darkMode ? 'text-hair' : 'text-ink'}`}
-              style={{ letterSpacing: '0.15em' }}
-            >
-              Racconto
-            </Link>
-            <Link
-              to={`/p/${username}`}
-              className={`text-sm ${darkMode ? 'text-faint hover:text-hair' : 'text-muted hover:text-ink'}`}
-            >
-              @{username}
-            </Link>
-          </div>
-        </nav>
-      )}
+      {!isAuthenticated && <PublicNavbar username={username} darkMode={darkMode} />}
 
       <div className="max-w-4xl mx-auto px-6 py-8">
 
         <div className="flex items-center justify-between mb-8">
           <div className="flex items-center gap-4">
-            {selectedProject && (
-              <button
-                onClick={() => setSelectedProject(null)}
-                className={`text-xs ${subText} hover:text-current`}
-              >
-                {t('nav.backToList')}
-              </button>
-            )}
             <h2 className={`text-2xl font-bold tracking-wide mb-2 ${darkMode ? 'text-hair' : 'text-ink'}`}>
               {selectedProject ? selectedProject.title : `@${username}`}
             </h2>

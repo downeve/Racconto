@@ -408,15 +408,7 @@ export default function ProjectDetail({
     inputEl.value = ''
     if (validFiles.length === 0) return
 
-    const isFolder = validFiles.some(f => !!(f as any).webkitRelativePath)
-    if (isFolder) {
-      setConfirmModal({
-        message: t('photo.upload.folderConfirm', { count: validFiles.length }),
-        onConfirm: () => { setConfirmModal(null); doUpload(validFiles) },
-      })
-    } else {
-      doUpload(validFiles)
-    }
+    doUpload(validFiles)
   }
 
   // ProjectDetail.tsx 내부의 handleSetCover 수정
@@ -1161,9 +1153,9 @@ export default function ProjectDetail({
                 <div className="border-t border-hair/90 my-2"></div>
 
                 {/* 사진 다중 선택 - 챕터 추가 버튼 */}
-                <div className="mb-2 flex items-center justify-between">
+                <div className="mt-3 mb-3 flex items-center justify-between">
                     <p className="text-menu font-semibold text-muted mr-3 shrink-0">{t('filter.addToChapter')}</p>
-                    <div className="flex gap-1 flex-1">
+                    <div className="gap-1">
                       <button
                         onClick={() => {
                           setSelectionMode(v => !v)
@@ -1240,7 +1232,8 @@ export default function ProjectDetail({
           <div className="flex-1 min-w-0">
 
             {/* ── 사진 탭 툴바 ── */}
-            <div ref={dropdownRef} className="flex items-center gap-2 mb-4 relative">
+            {photoSubTab !== 'trash' && (
+            <div ref={dropdownRef} className="flex items-center gap-2 mb-2 relative">
 
               {/* 뷰 아이콘 버튼 */}
               <button
@@ -1283,8 +1276,8 @@ export default function ProjectDetail({
                   <div className="flex justify-between items-center mb-2 px-1">
                     <span className="text-menu text-muted font-semibold">{t('photo.listOrder')}</span>
                     <button onClick={() => { setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc'); setOpenDropdown(null) }}
-                      className="text-caption px-2 py-0.5 bg-gray-100 hover:bg-faint-40 rounded-card">
-                      {sortOrder === 'asc' ? '↑ Asc' : '↓ Desc'}
+                      className="text-caption px-2 py-0.5 bg-gray-100 hover:bg-faint/50 rounded-card">
+                      {sortOrder === 'asc' ? t('photo.orderAsc') : t('photo.orderDesc')}
                     </button>
                   </div>
                   {([['default', t('photo.orderUpload')], ['taken_at', t('photo.orderTaken')], ['name', t('photo.orderName')]] as const).map(([key, label]) => (
@@ -1299,7 +1292,7 @@ export default function ProjectDetail({
               {/* EXIF 토글 아이콘 버튼 */}
               <button
                 onClick={() => setOpenDropdown(openDropdown === 'exif' ? null : 'exif')}
-                className={`p-1.5 rounded text-menu flex items-center gap-1 ${openDropdown === 'exif' ? 'bg-black text-white' : 'bg-gray-100 hover:bg-gray-200 text-gray-600'}`}
+                className={`p-1.5 rounded text-menu flex items-center gap-1 ${openDropdown === 'exif' ? 'bg-black text-white' : 'bg-gray-100 hover:bg-hair text-gray-600'}`}
                 title={t('filter.exifOnOff')}
               >
                 <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor">
@@ -1308,10 +1301,10 @@ export default function ProjectDetail({
                 <span>EXIF</span>
               </button>
               {openDropdown === 'exif' && (
-                <div className="absolute top-full left-0 mt-1 bg-white rounded-card shadow p-2 z-50 flex gap-1">
+                <div className="absolute top-full left-14 mt-1 bg-card rounded-card shadow p-2 z-50 flex gap-1">
                   {[true, false].map(val => (
                     <button key={String(val)} onClick={() => { setShowExif(val); setOpenDropdown(null) }}
-                      className={`px-3 py-1 text-menu rounded ${showExif === val ? 'bg-ink text-card' : 'bg-gray-100 hover:bg-faint/40'}`}>
+                      className={`px-3 py-1 text-menu rounded ${showExif === val ? 'bg-ink text-card' : 'bg-gray-100 hover:bg-faint/50'}`}>
                       {val ? 'On' : 'Off'}
                     </button>
                   ))}
@@ -1319,6 +1312,7 @@ export default function ProjectDetail({
               )}
 
             </div>
+            )}
 
             {/* 전체 사진 뷰 */}
             {(photoSubTab === 'all' || photoSubTab === 'folder')&& (
