@@ -202,7 +202,7 @@ export default function PublicPortfolio() {
 
         <div className="flex items-center justify-between mb-space-md">
           <div className="flex items-center gap-4">
-            <h2 className={`text-h2 font-bold tracking-wide mb-2 ${darkMode ? 'text-hair' : 'text-ink'}`}>
+            <h2 className={`text-h2 font-bold font-serif tracking-wide mb-2 ${darkMode ? 'text-hair' : 'text-ink'}`}>
               {selectedProject ? selectedProject.title : `@${username}`}
             </h2>
           </div>
@@ -215,23 +215,36 @@ export default function PublicPortfolio() {
         </div>
 
         {!selectedProject && (
-          <div className="grid gap-8" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))' }}>
+          <div className="grid gap-6 grid-cols-1 md:grid-cols-2">
             {projects.map(project => (
-              <div key={project.id} className="cursor-pointer group" onClick={() => openProject(project)}>
-                <div className="overflow-hidden rounded-card">
+              <div
+                key={project.id}
+                className={`cursor-pointer group rounded-card overflow-hidden transition-shadow ${darkMode ? 'border border-white/10 hover:border-white/20' : 'shadow hover:shadow-deep'}`}
+                onClick={() => openProject(project)}
+              >
+                <div className={`h-48 flex items-center justify-center ${darkMode ? 'bg-stone-800' : 'bg-hair'}`}>
                   {project.cover_image_url ? (
-                    <img src={project.cover_image_url} alt={project.title}
-                      className="w-full h-56 object-cover group-hover:duration-300 ease-out brightness(0.98→1.0) transition-transform" />
+                    <img
+                      src={project.cover_image_url}
+                      alt={project.title}
+                      className="w-full h-full object-cover group-hover:opacity-95 transition-opacity"
+                    />
                   ) : (
-                    <div className={`w-full h-56 flex items-center justify-center ${darkMode ? 'bg-gray-800' : 'bg-gray-100'}`}>
-                      <span className={`text-sm ${subText}`}>No Cover</span>
-                    </div>
+                    <span className={`text-small ${subText}`}>No Cover</span>
                   )}
                 </div>
-                <div className="pt-3">
-                  <h3 className="font-semibold text-sm text-center italic tracking-wide">
+                <div className={`p-4 ${darkMode ? 'bg-stone-900' : 'bg-canvas-2'}`}>
+                  <h3 className={`font-semibold text-h3 font-serif [word-break:keep-all] ${darkMode ? 'text-hair' : 'text-ink-2'}`}>
                     {project.title}
                   </h3>
+                  {project.location && (
+                    <p className={`text-small mt-1 ${subText}`}>📍 {project.location}</p>
+                  )}
+                  {project.description && (
+                    <p className={`text-body font-serif mt-1 line-clamp-2 [word-break:keep-all] ${subText}`}>
+                      {project.description}
+                    </p>
+                  )}
                 </div>
               </div>
             ))}
@@ -252,14 +265,13 @@ export default function PublicPortfolio() {
                 </p>
               )}
               {selectedProject.description && (
-                <p className={`text-body [word-break:keep-all] ${subText}`}>
+                <p className={`text-body font-serif [word-break:keep-all] ${subText}`}>
                   {selectedProject.description}
                 </p>
               )}
             </div>
 
             {selectedProject.chapters.length > 0 ? (
-            // 변경 후
             <div className="space-y-0">
               {selectedProject.chapters.map((chapter, idx) => (
                 <div key={chapter.id} className="pt-space-lg">
@@ -273,14 +285,14 @@ export default function PublicPortfolio() {
                       {idx + 1 < 10 ? `0${idx + 1}` : idx + 1}
                     </p>
                     <h3
-                      className="text-h2 font-bold mb-4 tracking-tight"
+                      className="text-h2 font-bold font-serif mb-4 tracking-tight"
                     >
                       {chapter.title}
                     </h3>
                     </div>
                     {chapter.description && (
                       <p
-                        className={`text-body max-w-xl [word-break:keep-all] ${subText}`}
+                        className={`text-body font-serif max-w-xl [word-break:keep-all] ${subText}`}
                       >
                         {chapter.description}
                       </p>
@@ -301,12 +313,12 @@ export default function PublicPortfolio() {
                           <p className={`text-caption uppercase mb-2 ${subText}`}>
                             {idx + 1}.{subIdx + 1}
                           </p>
-                          <h4 className="text-h3 font-semibold">
+                          <h4 className="text-h3 font-serif font-semibold">
                             {sub.title}
                           </h4>
                           </div>
                           {sub.description && (
-                            <p className={`text-body mt-2 max-w-xl ${subText}`}>
+                            <p className={`text-body font-serif mt-2 max-w-xl ${subText}`}>
                               {sub.description}
                             </p>
                           )}
