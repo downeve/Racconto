@@ -138,7 +138,7 @@ export default function PortfolioChapterItems({
     // 독립 텍스트 블록
     if (item.item_type === 'TEXT' && item.block_type !== 'side-left' && item.block_type !== 'side-right') {
       result.push(
-        <div key={`text-${i}`} className="my-16 text-left max-w-xl mx-auto">
+        <div key={`text-${i}`} className="my-space-lg text-left max-w-xl mx-auto">
           <MarkdownRenderer
             content={item.text_content || ''}
             darkMode={darkMode}
@@ -192,7 +192,7 @@ export default function PortfolioChapterItems({
       ) : null
 
       result.push(
-        <div key={`side-${bid}`} className="flex my-6 items-center" style={{ gap: '28px', maxWidth: '100%' }}>
+        <div key={`side-${bid}`} className="flex my-space-md items-center" style={{ gap: '28px', maxWidth: '100%' }}>
           {group.blockType === 'side-right' ? <>{photoCol}{textCol}</> : <>{textCol}{photoCol}</>}
         </div>
       )
@@ -205,7 +205,7 @@ export default function PortfolioChapterItems({
 
     if (layout === 'single') {
       result.push(
-        <div key={`block-${bid}`} className="mb-8 space-y-4">
+        <div key={`block-${bid}`} className="mb-space-sm space-y-4">
           {photos.map(photo => (
             <div key={photo.id} className="break-inside-avoid">
               <img
@@ -228,7 +228,7 @@ export default function PortfolioChapterItems({
         rows.push(photos.slice(k, k + cols))
       }
       result.push(
-        <div key={`block-${bid}`} className="mb-6">
+        <div key={`block-${bid}`} className="mb-space-xs">
           {rows.map((rowPhotos, rowIdx) =>
             renderRow(rowPhotos, `row-${bid}-${rowIdx}`)
           )}

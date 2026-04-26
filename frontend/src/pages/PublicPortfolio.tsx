@@ -196,11 +196,11 @@ export default function PublicPortfolio() {
   return (
     <div className={`min-h-screen ${bg} transition-colors duration-300`}>
     {/* [수정된 부분] 로그아웃 상태일 때 보여주는 헤더를 fixed로 띄워 상단 빈 공간을 덮어버립니다. 라이트박스 띄울 때 헤더 밑으로 숨기기 z-60에서 z-30으로 조정*/}
-      {!isAuthenticated && <PublicNavbar username={username} darkMode={darkMode} />}
+      {!isAuthenticated && <PublicNavbar username={username} darkMode={darkMode} compact />}
 
-      <div className="max-w-4xl mx-auto px-6 py-8">
+      <div className="max-w-4xl mx-auto px-6 pt-space-md pb-space-xl">
 
-        <div className="flex items-center justify-between mb-8">
+        <div className="flex items-center justify-between mb-space-md">
           <div className="flex items-center gap-4">
             <h2 className={`text-2xl font-bold tracking-wide mb-2 ${darkMode ? 'text-hair' : 'text-ink'}`}>
               {selectedProject ? selectedProject.title : `@${username}`}
@@ -245,7 +245,7 @@ export default function PublicPortfolio() {
 
         {selectedProject && (
           <div>
-            <div className="mb-10 max-w-2xl">
+            <div className="mb-space-md max-w-2xl">
               {selectedProject.location && (
                 <p className={`text-sm tracking-widest uppercase mb-6 ${subText}`}>
                   📍 {selectedProject.location}
@@ -262,12 +262,12 @@ export default function PublicPortfolio() {
             // 변경 후
             <div className="space-y-0">
               {selectedProject.chapters.map((chapter, idx) => (
-                <div key={chapter.id} className="pt-12">
+                <div key={chapter.id} className="pt-space-lg">
                   {/* 챕터 구분선 — 첫 챕터 제외 */}
                   {idx > 0 && (
-                    <div className={`h-px mb-12 ${darkMode ? 'bg-muted' : 'bg-faint'}`} />
+                    <div className={`h-px mb-space-md ${darkMode ? 'bg-muted' : 'bg-faint'}`} />
                   )}
-                  <div className="mb-10">
+                  <div className="mb-space-md">
                     <div className="flex items-baseline gap-2 mb-2">
                     <p className={`text-xs tracking-widest uppercase mb-3 ${subText}`}>
                       {idx + 1 < 10 ? `0${idx + 1}` : idx + 1}
@@ -294,7 +294,7 @@ export default function PublicPortfolio() {
                       onLightbox={(photo, items) => openLightbox(photo as unknown as Photo, items as { photo: Photo; title: string }[])}
                     />
                     {chapter.sub_chapters?.map((sub, subIdx) => (
-                      <div key={sub.id} className="mt-16">
+                      <div key={sub.id} className="mt-space-md">
                         <div className={`h-px mb-10 w-1/3 ${darkMode ? 'bg-white/10' : 'bg-gray-200'}`} />
                         <div className="mb-8">
                           <div className="flex items-baseline gap-2 mb-2">
