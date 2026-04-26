@@ -60,7 +60,7 @@ export default function Navbar({ onLogout }: NavbarProps) {
 
   const handlePortfolioClick = () => {
     if (username) {
-      navigate(`/p/${username}`)
+      navigate(`/p/${username}`, { state: { resetToList: true } })
     } else {
       navigate('/p/@setup')
     }
@@ -118,13 +118,13 @@ export default function Navbar({ onLogout }: NavbarProps) {
           </Link>
           <Link
             to="/projects"
-            className="text-small uppercase text-muted hover:text-accent hover:underline"
+            className="text-small uppercase text-muted hover:text-ink-2 hover:font-bold"
           >
             {t('nav.projects')}
           </Link>
           <button
             onClick={handlePortfolioClick}
-            className="text-small uppercase text-muted hover:text-accent hover:underline"
+            className="text-small uppercase text-muted hover:text-ink-2 hover:font-bold"
           >
             {t('nav.portfolio')}
           </button>

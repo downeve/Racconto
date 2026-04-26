@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { useParams, Link, useNavigate } from 'react-router-dom'
+import { useParams, Link, useNavigate, useLocation } from 'react-router-dom'
 import axios from 'axios'
 import { useTranslation } from 'react-i18next'
 import { useAuth } from '../context/AuthContext'
@@ -60,7 +60,14 @@ export default function PublicPortfolio() {
   const { t } = useTranslation()
 
   const navigate = useNavigate()
+  const location = useLocation()
   const { isAuthenticated } = useAuth()
+
+  useEffect(() => {
+    if ((location.state as { resetToList?: boolean } | null)?.resetToList) {
+      setSelectedProject(null)
+    }
+  }, [location])
 
   // 3. 로그아웃 상태 & _setup 주소 방어 로직 추가
   useEffect(() => {

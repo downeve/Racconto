@@ -1220,7 +1220,7 @@ function ProjectStory({
                         <div>
                           <span className="text-small text-muted mr-2">{t('story.chapter')} {idx + 1}</span>
                           <span className="text-body text-ink-2 font-semibold mb-2">{chapter.title}</span>
-                          {chapter.description && <p className="text-small text-muted mt-1">{chapter.description}</p>}
+                          {chapter.description && <p className="text-body text-faint mt-1">{chapter.description}</p>}
                         </div>
                         <div className="flex gap-2 shrink-0">
                           <button
@@ -1345,7 +1345,7 @@ function ProjectStory({
                           <div>
                             <span className="text-small text-faint mr-2">{t('story.chapter')} {idx + 1}.{subIdx + 1}</span>
                             <span className="text-body text-ink-2 font-semibold">{subChapter.title}</span>
-                            {subChapter.description && <p className="text-small text-faint mt-1">{subChapter.description}</p>}
+                            {subChapter.description && <p className="text-body text-faint mt-1">{subChapter.description}</p>}
                           </div>
                           <div className="flex gap-2 shrink-0">
                             <button

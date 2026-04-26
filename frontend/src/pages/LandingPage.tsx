@@ -20,17 +20,15 @@ export default function LandingPage() {
       title: t('landing.feature1Title'),
       desc: t('landing.feature1Desc'),
       visual: (
-        <div className="w-full h-64 rounded overflow-hidden shadow relative">
+        <div className="w-full aspect-[3/4] rounded overflow-hidden shadow-md relative">
           <div
-            className="w-full"
-            style={{
-              animation: 'slowScroll 8s ease-in-out infinite alternate',
-            }}
+            className="absolute inset-x-0 top-0"
+            style={{ animation: 'slowScroll 8s ease-in-out infinite alternate' }}
           >
             <img
               src="./screenshots/screenshot-story.webp"
               alt="Story structure"
-              className="w-full object-cover object-top"
+              className="w-full"
             />
           </div>
         </div>
@@ -41,7 +39,7 @@ export default function LandingPage() {
       title: t('landing.feature5Title'),
       desc: t('landing.feature5Desc'),
       visual: (
-        <div className="w-full h-64 rounded overflow-hidden shadow">
+        <div className="w-full aspect-[16/9] rounded overflow-hidden shadow-md">
           <img
             src="./screenshots/screenshot-electron-1.webp"
             alt="Desktop app"
@@ -55,7 +53,7 @@ export default function LandingPage() {
       title: t('landing.feature4Title'),
       desc: t('landing.feature4Desc'),
       visual: (
-        <div className="w-full h-64 rounded overflow-hidden shadow">
+        <div className="w-full aspect-[3/4] rounded overflow-hidden shadow-md">
           <img
             src="./screenshots/screenshot-notes.webp"
             alt="Project notes"
@@ -69,7 +67,7 @@ export default function LandingPage() {
       title: t('landing.feature2Title'),
       desc: t('landing.feature2Desc'),
       visual: (
-        <div className="w-full h-64 rounded overflow-hidden shadow">
+        <div className="w-full aspect-[16/9] rounded overflow-hidden shadow-md">
           <img
             src="./screenshots/screenshot-photos.webp"
             alt="Photo curation workflow"
@@ -83,7 +81,7 @@ export default function LandingPage() {
       title: t('landing.feature3Title'),
       desc: t('landing.feature3Desc'),
       visual: (
-        <div className="w-full h-64 rounded overflow-hidden shadow">
+        <div className="w-full aspect-[3/4] rounded overflow-hidden shadow-md">
           <img
             src="./screenshots/screenshot-portfolio.webp"
             alt="Public portfolio"
@@ -115,7 +113,7 @@ export default function LandingPage() {
         <div
           className="absolute inset-0 pointer-events-none"
           style={{
-            backgroundImage: 'linear-gradient(stone #e7e3de 1px, transparent 1px), linear-gradient(90deg, #e7e3de 1px, transparent 1px)',
+            backgroundImage: 'linear-gradient(to bottom, #E7E3DE 1px, transparent 1px), linear-gradient(90deg, #e7e3de 1px, transparent 1px)',
             backgroundSize: '60px 60px',
             opacity: 0.4,
             transform: `translateY(${scrollY * 0.1}px)`,
@@ -142,23 +140,23 @@ export default function LandingPage() {
          */}
 
         {/* 메인 텍스트 */}
-        <div className="relative z-10 text-center max-w-3xl">
-          <p className="text-xl tracking-[0.3em] text-faint uppercase mb-6">
+        <div className="relative z-10 text-center max-w-4xl">
+          <p className="text-body md:text-h3 tracking-[0.3em] text-faint uppercase mb-6">
             {t('landing.heroEyebrow')}
           </p>
           <h1
-            className="text-5xl md:text-7xl font-bold leading-tight mb-6 text-ink break-keep"
+            className="text-h1 md:text-display font-serif font-bold leading-tight mb-6 text-ink break-keep"
             style={{ letterSpacing: '-0.02em' }}
           >
             {t('landing.heroTitle')}
           </h1>
           <h1
-            className="text-5xl md:text-7xl font-bold leading-tight mb-6 text-ink break-keep"
+            className="text-h1 md:text-display font-serif font-bold leading-tight mb-8 text-ink break-keep"
             style={{ letterSpacing: '-0.02em' }}
           >
             {t('landing.heroTitle2')}
           </h1>
-          <p className="text-lg md:text-xl text-muted leading-relaxed mb-10 max-w-xl mx-auto break-keep"
+          <p className="text-h3 md:text-h2 text-muted leading-relaxed mb-10 max-w-xl mx-auto break-keep"
             style={{ fontStyle: 'italic' }}>
             {t('landing.heroSubtitle')}
           </p>
@@ -183,7 +181,7 @@ export default function LandingPage() {
 
         {/* 스크롤 힌트 */}
         <div className="absolute bottom-10 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 opacity-40">
-          <div className="w-px h-12 bg-faint animate-pulse" />
+          <div className="w-px h-12 bg-muted animate-pulse" />
         </div>
       </section>
 
@@ -236,16 +234,45 @@ export default function LandingPage() {
             </h2>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
-            {features.map((feature) => (
+          {/* Row 1: 01 portrait 3:4 + 02 landscape 16:9 */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-16">
+            {[features[0], features[1]].map((feature) => (
               <div key={feature.number} className="group">
                 {feature.visual}
                 <div className="mt-5">
                   <div className="flex items-baseline gap-3 mb-2">
                     <span className="text-xs text-faint font-mono tracking-widest">{feature.number}</span>
-                    <h3 className="text-lg font-semibold text-ink">
-                      {feature.title}
-                    </h3>
+                    <h3 className="text-lg font-semibold text-ink">{feature.title}</h3>
+                  </div>
+                  <p className="text-sm text-muted leading-relaxed pl-7">{feature.desc}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Row 2: 03 big card — image left, text right */}
+          <div className="group mb-16 md:flex md:gap-12 md:items-start">
+            <div className="md:w-2/5 shrink-0 mb-6 md:mb-0">
+              {features[2].visual}
+            </div>
+            <div className="md:pt-6">
+              <div className="flex items-baseline gap-3 mb-3">
+                <span className="text-xs text-faint font-mono tracking-widest">{features[2].number}</span>
+                <h3 className="text-xl font-semibold text-ink">{features[2].title}</h3>
+              </div>
+              <p className="text-sm text-muted leading-relaxed pl-7">{features[2].desc}</p>
+            </div>
+          </div>
+
+          {/* Row 3: 04 landscape 16:9 + 05 portrait 3:4 */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            {[features[3], features[4]].map((feature) => (
+              <div key={feature.number} className="group">
+                {feature.visual}
+                <div className="mt-5">
+                  <div className="flex items-baseline gap-3 mb-2">
+                    <span className="text-xs text-faint font-mono tracking-widest">{feature.number}</span>
+                    <h3 className="text-lg font-semibold text-ink">{feature.title}</h3>
                   </div>
                   <p className="text-sm text-muted leading-relaxed pl-7">{feature.desc}</p>
                 </div>
