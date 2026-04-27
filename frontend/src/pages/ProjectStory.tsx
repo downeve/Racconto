@@ -145,6 +145,8 @@ function ProjectStory({
   const draggingItemIdRef = useRef<string | null>(null)
   const draggingItemBlockIdRef = useRef<string | null>(null)
   const currentDragBlockIdRef = useRef<string | null>(null)
+  // fetchChapterPhotos 경쟁 조건 방지: 챕터별 시퀀스 번호
+  const fetchSeqRef = useRef<Record<string, number>>({})
 
   const chapterRefs = useRef<Record<string, HTMLDivElement | null>>({})
 
@@ -193,8 +195,14 @@ function ProjectStory({
   }
   
   const fetchChapterPhotos = useCallback(async (chapterId: string) => {
+    fetchSeqRef.current[chapterId] = (fetchSeqRef.current[chapterId] ?? 0) + 1
+    const seq = fetchSeqRef.current[chapterId]
     const res = await axios.get(`${API}/chapters/${chapterId}/items`)
-    setChapterPhotos(prev => ({ ...prev, [chapterId]: res.data }))
+    setChapterPhotos(prev => {
+      // 더 최신 fetch 요청이 이미 있으면 이 응답은 무시
+      if (fetchSeqRef.current[chapterId] !== seq) return prev
+      return { ...prev, [chapterId]: res.data }
+    })
   }, [])
 
   // 변경 후 — API 호출 없이 모달만 열고, 저장 시 생성
@@ -467,41 +475,43 @@ function ProjectStory({
     const { active, over } = event
     if (!over || active.id === over.id) return
 
-    // state 업데이트 전에 미리 계산 (stale closure 방지)
+    const activeId = String(active.id)
+    const overId = String(over.id)
+
+    // 사용자가 의도한 순서를 현재 state 기준으로 계산 (API 호출용)
     const currentItems = chapterPhotos[chapterId] || []
     const blockItems = currentItems
       .filter(i => i.block_id === blockId)
-      .sort((a, b) => a.order_in_block - b.order_in_block)  // 현재 순서 기준으로 정렬
+      .sort((a, b) => a.order_in_block - b.order_in_block)
 
-    const oldIndex = blockItems.findIndex(i => i.id === active.id)
-    const newIndex = blockItems.findIndex(i => i.id === over.id)
+    const oldIndex = blockItems.findIndex(i => i.id === activeId)
+    const newIndex = blockItems.findIndex(i => i.id === overId)
     if (oldIndex === -1 || newIndex === -1) return
 
-    const newBlockItems = arrayMove(blockItems, oldIndex, newIndex)
-    const newItemIds = newBlockItems.map(i => i.id)
+    const intendedOrder = arrayMove(blockItems, oldIndex, newIndex).map(i => i.id)
 
-    // 낙관적 업데이트 — 배열 순서 자체를 newBlockItems 기준으로 재구성
+    // 낙관적 업데이트 — prev로 최신 state를 읽어 intendedOrder 적용
     setChapterPhotos(prev => {
       const items = prev[chapterId] || []
-      const blockItemIdSet = new Set(newBlockItems.map(i => i.id))
-      const nonBlockItems = items.filter(i => !blockItemIdSet.has(i.id))
-      const updatedBlockItems = newBlockItems.map((item, idx) => ({
-        ...item,
-        order_in_block: idx
-      }))
-      // nonBlockItems 기준으로 삽입 위치 계산:
-      // 이 블록의 order_num보다 작은 nonBlockItem 수 = 삽입 인덱스
-      const blockOrderNum = newBlockItems[0]?.order_num ?? 0
+      const intendedOrderSet = new Set(intendedOrder)
+      const nonBlockItems = items.filter(i => !intendedOrderSet.has(i.id))
+      const reorderedItems = intendedOrder
+        .flatMap(id => {
+          const item = items.find(i => i.id === id)
+          return item ? [item] : []
+        })
+        .map((item, idx) => ({ ...item, order_in_block: idx }))
+      if (reorderedItems.length === 0) return prev
+      const blockOrderNum = reorderedItems[0].order_num ?? 0
       const insertIdx = nonBlockItems.filter(i => i.order_num < blockOrderNum).length
       const result = [...nonBlockItems]
-      result.splice(insertIdx, 0, ...updatedBlockItems)
+      result.splice(insertIdx, 0, ...reorderedItems)
       return { ...prev, [chapterId]: result }
     })
 
-    // 미리 계산한 값으로 API 호출
     axios.put(`${API}/chapters/${chapterId}/blocks/${blockId}/reorder`, {
       block_id: blockId,
-      item_ids: newItemIds
+      item_ids: intendedOrder
     }).catch(err => console.error('블록 내 순서 업데이트 실패:', err))
   }, [chapterPhotos])
 
