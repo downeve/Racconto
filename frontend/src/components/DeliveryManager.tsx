@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import axios from 'axios'
+import { Lock, Camera } from 'lucide-react'
 
 const API = import.meta.env.VITE_API_URL
 
@@ -244,11 +245,11 @@ export default function DeliveryManager({ projectId }: Props) {
                   <div className="flex items-center gap-2 flex-wrap">
                     <span className="text-sm font-medium text-gray-800 truncate">{link.label || '무제 링크'}</span>
                     {link.has_password && (
-                      <span className="text-xs px-1.5 py-0.5 bg-yellow-100 text-yellow-700 rounded">🔒 비번</span>
+                      <span className="inline-flex items-center gap-1 text-xs px-1.5 py-0.5 bg-yellow-100 text-yellow-700 rounded"><Lock size={10} strokeWidth={1.5} /> 비번</span>
                     )}
                   </div>
                   <div className="text-xs text-gray-400 mt-0.5 flex gap-2 flex-wrap">
-                    <span>📷 {filterLabel(link)}</span>
+                    <span className="flex items-center gap-1"><Camera size={12} strokeWidth={1.5} />{filterLabel(link)}</span>
                     <span>·</span>
                     <span>선택 {link.selection_count}장</span>
                     <span>·</span>
