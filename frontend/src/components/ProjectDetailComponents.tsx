@@ -1,6 +1,7 @@
 import { useEffect, useState, memo } from 'react'
 import { useTranslation } from 'react-i18next'
 import PhotoNotePanel from './PhotoNotePanel'
+import { BookOpen, FileText, AlertTriangle, Check } from 'lucide-react'
 
 // ── 공통 타입 ──────────────────────────────────────────────
 
@@ -119,19 +120,19 @@ export function Lightbox({
 
   const getAssignedChapterInfo = () => {
     const assignedChapterId = photoChapterMap.get(photo.id)
-    if (!assignedChapterId) return `📖 ${t('story.chapterIncl')}`
+    if (!assignedChapterId) return t('story.chapterIncl')
 
     const assignedChapter = chapters.find(c => c.id === assignedChapterId)
-    if (!assignedChapter) return `📖 ${t('story.chapterIncl')}`
+    if (!assignedChapter) return t('story.chapterIncl')
 
     if (assignedChapter.parent_id) {
       const parent = chapters.find(c => c.id === assignedChapter.parent_id)
       const parentIdx = chapters.filter(c => !c.parent_id).findIndex(c => c.id === parent?.id) + 1
       const childIdx = chapters.filter(c => c.parent_id === parent?.id).findIndex(c => c.id === assignedChapter.id) + 1
-      return `📖 ${parentIdx}.${childIdx}. ${assignedChapter.title}`
+      return `${parentIdx}.${childIdx}. ${assignedChapter.title}`
     } else {
       const parentIdx = chapters.filter(c => !c.parent_id).findIndex(c => c.id === assignedChapter.id) + 1
-      return `📖 ${parentIdx}. ${assignedChapter.title}`
+      return `${parentIdx}. ${assignedChapter.title}`
     }
   }
 
@@ -148,8 +149,8 @@ export function Lightbox({
         <div className="flex-1 flex items-center gap-3 justify-start min-w-0">
           <span className="text-card text-small whitespace-nowrap">{idx + 1} / {photos.length}</span>
           {photo.local_missing && (
-            <span className="text-yellow-400 text-eyebrow font-bold px-2 py-0.5 bg-yellow-400/20 rounded-full whitespace-nowrap">
-              ⚠️ {t('project.noLocalFile')}
+            <span className="flex items-center gap-1 text-yellow-400 text-eyebrow font-bold px-2 py-0.5 bg-yellow-400/20 rounded-full whitespace-nowrap">
+              <AlertTriangle size={12} strokeWidth={1.5} />{t('project.noLocalFile')}
             </span>
           )}
         </div>
@@ -200,15 +201,15 @@ export function Lightbox({
           {/* 챕터 추가 / 정보 표시 */}
           <div className="flex items-center" onClick={e => e.stopPropagation()}>
             {inChapter ? (
-              <span className="flex items-center text-small text-blue-400 px-3 py-1.5 border border-transparent font-medium">
-                {getAssignedChapterInfo()}
+              <span className="flex items-center gap-1.5 text-small text-blue-400 px-3 py-1.5 border border-transparent font-medium">
+                <BookOpen size={13} strokeWidth={1.5} />{getAssignedChapterInfo()}
               </span>
             ) : (
               <button
                 onClick={() => setShowChapterMenu(v => !v)}
-                className="flex items-center text-small px-3 py-1.5 border border-card/20 text-faint hover:text-white hover:border-white/50 rounded transition-colors"
+                className="flex items-center gap-1.5 text-small px-3 py-1.5 border border-card/20 text-faint hover:text-white hover:border-white/50 rounded transition-colors"
               >
-                📖 {t('story.addToChapter')}
+                <BookOpen size={13} strokeWidth={1.5} />{t('story.addToChapter')}
               </button>
             )}
           </div>
@@ -218,13 +219,13 @@ export function Lightbox({
           {/* 노트 버튼 */}
           <button
             onClick={() => setShowNotePanel(v => !v)}
-            className={`text-small px-3 py-1.5 border rounded-card transition-colors ${
+            className={`flex items-center gap-1.5 text-small px-3 py-1.5 border rounded-card transition-colors ${
               showNotePanel
                 ? 'border-card/50 text-card'
                 : 'border-card/20 text-card/60 hover:text-card hover:border-card/50'
             }`}
           >
-            📝 {t('note.title')}
+            <FileText size={13} strokeWidth={1.5} />{t('note.title')}
           </button>
         </div>
 
@@ -386,7 +387,7 @@ export const PhotoCard = memo(function PhotoCard({
         {/* 미싱 파일 경고 */}
         {photo.local_missing && (
           <div className="absolute top-2 left-2 z-10 bg-yellow-400 text-ink-2 text-eyebrow font-semibold px-2 py-0.5 rounded-full flex items-center gap-1">
-            ⚠️ {t('project.noLocalFile')}
+            <AlertTriangle size={11} strokeWidth={1.5} />{t('project.noLocalFile')}
           </div>
         )}
 
@@ -399,7 +400,7 @@ export const PhotoCard = memo(function PhotoCard({
             <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition-colors shadow ${
               isSelected ? 'bg-blue-500/50 border-blue-500/30' : 'bg-ink-2/40 border-card/80'
             }`}>
-              {isSelected && <span className="text-card text-small font-semibold">✓</span>}
+              {isSelected && <Check size={12} strokeWidth={1.5} className="text-card" />}
             </div>
           </div>
         )}
