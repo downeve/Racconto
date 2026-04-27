@@ -708,6 +708,16 @@ def move_item_to_block(
     item.block_layout = target_layout
     if target_items:
         item.order_num = target_items[0].order_num
+    else:
+        used_order_nums = {
+            row[0] for row in db.query(models.ChapterItem.order_num)
+            .filter(models.ChapterItem.chapter_id == chapter_id)
+            .all()
+        }
+        new_order_num = item.order_num + 1
+        while new_order_num in used_order_nums:
+            new_order_num += 1
+        item.order_num = new_order_num
 
     # 원래 블록에 PHOTO가 남아있는지 확인
     remaining = db.query(models.ChapterItem).filter(

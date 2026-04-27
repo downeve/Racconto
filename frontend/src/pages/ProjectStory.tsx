@@ -533,12 +533,16 @@ function ProjectStory({
 
       setChapterPhotos(prev => {
         const all = prev[chapterId] || []
+        const sourceOrderNum = all.find(i => i.id === itemId)?.order_num ?? 0
+        const usedOrderNums = new Set(all.map(i => i.order_num))
+        let newOrderNum = sourceOrderNum + 1
+        while (usedOrderNums.has(newOrderNum)) newOrderNum++
         const sourceRemaining = all.filter(i =>
           i.block_id === sourceBlockId && i.item_type === 'PHOTO' && i.id !== itemId
         )
         const updated = all.map(i => {
           if (i.id === itemId) {
-            return { ...i, block_id: newBlockId, order_in_block: 0, block_layout: 'grid' as const }
+            return { ...i, block_id: newBlockId, order_in_block: 0, order_num: newOrderNum, block_layout: 'grid' as const }
           }
           const srcIdx = sourceRemaining.findIndex(s => s.id === i.id)
           if (srcIdx !== -1) return { ...i, order_in_block: srcIdx }
