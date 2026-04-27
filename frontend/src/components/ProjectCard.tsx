@@ -41,13 +41,13 @@ export default function ProjectCard({ project }: { project: Project }) {
         </div>
         <div className="p-4">
           <div className="flex items-start justify-between mb-2">
-            <h3 className="font-semibold text-body text-ink keep-all">{project.title}</h3>
+            <h3 className="font-semibold text-body text-ink [word-break:keep-all]">{project.title}</h3>
             <span className={`text-eyebrow px-2 py-1 rounded-full ml-2 shrink-0 ${statusColor[project.status] || 'bg-hair'}`}>
               {t(`status.${project.status}`)} 
             </span>
           </div>
           {project.description && (
-            <p className="text-small text-muted line-clamp-2 keep-all">{project.description}</p>
+            <p className="text-small text-muted line-clamp-2 [word-break:keep-all]">{project.description}</p>
           )}
           {project.location && (
             <p className="text-small text-faint mt-2 flex items-center gap-1"><MapPin size={12} strokeWidth={1.5} />{project.location}</p>

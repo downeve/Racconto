@@ -236,14 +236,14 @@ export default function PublicPortfolio() {
                   )}
                 </div>
                 <div className={`p-4 ${darkMode ? 'bg-stone-900' : 'bg-canvas-2'}`}>
-                  <h3 className={`font-semibold text-h3 font-serif keep-all ${darkMode ? 'text-hair' : 'text-ink-2'}`}>
+                  <h3 className={`font-semibold text-h3 font-serif [word-break:keep-all] ${darkMode ? 'text-hair' : 'text-ink-2'}`}>
                     {project.title}
                   </h3>
                   {project.location && (
                     <p className={`flex items-center gap-1 text-small mt-1 ${subText}`}><MapPin size={12} strokeWidth={1.5} />{project.location}</p>
                   )}
                   {project.description && (
-                    <p className={`text-body font-serif mt-1 line-clamp-2 keep-all ${subText}`}>
+                    <p className={`text-body font-serif mt-1 line-clamp-2 [word-break:keep-all] ${subText}`}>
                       {project.description}
                     </p>
                   )}
@@ -267,7 +267,7 @@ export default function PublicPortfolio() {
                 </p>
               )}
               {selectedProject.description && (
-                <p className={`text-body font-serif keep-all ${subText}`}>
+                <p className={`text-body font-serif [word-break:keep-all] ${subText}`}>
                   {selectedProject.description}
                 </p>
               )}
@@ -294,7 +294,7 @@ export default function PublicPortfolio() {
                     </div>
                     {chapter.description && (
                       <p
-                        className={`text-body font-serif max-w-xl keep-all ${subText}`}
+                        className={`text-body font-serif max-w-xl [word-break:keep-all] ${subText}`}
                       >
                         {chapter.description}
                       </p>
@@ -320,7 +320,7 @@ export default function PublicPortfolio() {
                           </h4>
                           </div>
                           {sub.description && (
-                            <p className={`text-body font-serif mt-2 max-w-xl keep-all ${subText}`}>
+                            <p className={`text-body font-serif mt-2 max-w-xl [word-break:keep-all] ${subText}`}>
                               {sub.description}
                             </p>
                           )}
