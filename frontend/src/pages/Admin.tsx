@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import axios from 'axios'
+import { Search, Trash2 } from 'lucide-react'
 
 const API = import.meta.env.VITE_API_URL
 
@@ -111,7 +112,7 @@ const OrphanSection = () => {
                 </svg>
                 Scanning...
               </>
-            ) : '🔍 고아 이미지 검사'}
+            ) : <><Search size={14} strokeWidth={1.5} /> 고아 이미지 검사</>}
           </button>
 
           {result && result.count > 0 && (
@@ -128,7 +129,7 @@ const OrphanSection = () => {
                   </svg>
                   Deleting...
                 </>
-              ) : `🗑 고아 이미지 일괄 삭제 (${result.count}개)`}
+              ) : <><Trash2 size={14} strokeWidth={1.5} /> 고아 이미지 일괄 삭제 ({result.count}개)</>}
             </button>
           )}
         </div>
