@@ -4,6 +4,7 @@ import ReactMarkdown from 'react-markdown'
 import { useTranslation } from 'react-i18next'
 import { useElectronSidebar } from '../context/ElectronSidebarContext'
 import ConfirmModal from '../components/ConfirmModal'
+import { Pencil, Eye, Pin } from 'lucide-react'
 
 const API = import.meta.env.VITE_API_URL
 
@@ -70,9 +71,11 @@ const NoteItem = memo(function NoteItem({
             </div>
             <button
               onClick={() => setEditPreviewMode(!editPreviewMode)}
-              className="ml-auto text-menu text-faint hover:text-ink"
+              className="ml-auto text-menu text-faint hover:text-ink inline-flex items-center gap-1"
             >
-              {editPreviewMode ? `✏️ ${t('note.editNote')}` : `👁 ${t('note.preview')}`}
+              {editPreviewMode
+                ? <><Pencil size={13} strokeWidth={1.5} />{t('note.editNote')}</>
+                : <><Eye size={13} strokeWidth={1.5} />{t('note.preview')}</>}
             </button>
           </div>
           {editPreviewMode ? (
@@ -117,7 +120,7 @@ const NoteItem = memo(function NoteItem({
                 </div>
               ) : null
             })()}
-            {note.is_pinned && <span className="text-menu text-faint">📌 {t('note.pinned')}</span>}
+            {note.is_pinned && <span className="text-menu text-faint inline-flex items-center gap-1"><Pin size={12} strokeWidth={1.5} />{t('note.pinned')}</span>}
             <div className="ml-auto flex items-center gap-3">
               <span className="text-menu text-faint">
                 {new Date(note.updated_at).toLocaleString(
@@ -130,7 +133,7 @@ const NoteItem = memo(function NoteItem({
                 className={`text-caption hover:text-ink transition-colors ${note.is_pinned ? 'text-muted' : 'text-gray-300 hover:text-muted'}`}
                 title={note.is_pinned ? `${t('note.pinRemove')}` : `${t('note.pin')}`}
               >
-                📌
+                <Pin size={14} strokeWidth={1.5} />
               </button>
               <button onClick={() => startEdit(note)} className="text-menu text-faint hover:text-ink">
                 {t('note.editNote')}
@@ -279,7 +282,7 @@ function ProjectNotes({
         </button>
         <button onClick={() => { setFilterPinned(!filterPinned); setFilterType(null) }}
           className={`w-full text-left px-2 py-1.5 text-caption rounded flex items-center justify-between mb-3 ${filterPinned ? 'bg-ink text-card' : 'hover:bg-hair text-ink-2'}`}>
-          <span>📌 {t('note.pinned')}</span>
+          <span className="flex items-center gap-1"><Pin size={12} strokeWidth={1.5} />{t('note.pinned')}</span>
           <span className={filterPinned ? 'text-faint' : 'text-muted'}>{notes.filter(n => n.is_pinned).length}</span>
         </button>
         <div className="border-t border-hair/90 my-2" />
@@ -303,7 +306,7 @@ function ProjectNotes({
         {notes.filter(n => n.is_pinned).length > 0 && (
           <>
             <div className="border-t border-hair/90 my-3" />
-            <p className="text-menu font-semibold text-muted mb-2">📌 {t('note.pinned2')}</p>
+            <p className="text-menu font-semibold text-muted mb-2 flex items-center gap-1"><Pin size={12} strokeWidth={1.5} />{t('note.pinned2')}</p>
             <div className="space-y-1">
               {notes.filter(n => n.is_pinned).map(note => (
                 <button key={note.id} onClick={() => scrollToNote(note.id)}
@@ -353,7 +356,7 @@ function ProjectNotes({
               filterPinned ? 'bg-ink text-card' : 'hover:bg-hair text-ink-2'
             }`}
           >
-            <span>📌 {t('note.pinned')}</span>
+            <span className="flex items-center gap-1"><Pin size={12} strokeWidth={1.5} />{t('note.pinned')}</span>
             <span className={filterPinned ? 'text-faint' : 'text-muted'}>{notes.filter(n => n.is_pinned).length}</span>
           </button>
 
@@ -391,7 +394,7 @@ function ProjectNotes({
           {notes.filter(n => n.is_pinned).length > 0 && (
             <>
               <div className="my-3" />
-              <p className="text-menu font-semibold text-muted mb-2">📌 {t('note.pinned2')}</p>
+              <p className="text-menu font-semibold text-muted mb-2 flex items-center gap-1"><Pin size={12} strokeWidth={1.5} />{t('note.pinned2')}</p>
               <div className="space-y-1">
                 {notes.filter(n => n.is_pinned).map(note => (
                   <button
@@ -430,7 +433,7 @@ function ProjectNotes({
             </div>
             <button
               onClick={() => setPreviewMode(!previewMode)}
-              className="ml-auto text-menu text-faint hover:text-ink"
+              className="ml-auto text-menu text-faint hover:text-ink inline-flex items-center gap-1"
             >
               {previewMode ? `✏️ ${t('note.editNote')}` : `👁 ${t('note.preview')}`}
             </button>
