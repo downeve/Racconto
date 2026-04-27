@@ -320,7 +320,7 @@ export default function PublicPortfolio() {
                           </h4>
                           </div>
                           {sub.description && (
-                            <p className={`text-body font-serif mt-2 max-w-xl ${subText}`}>
+                            <p className={`text-body font-serif mt-2 max-w-xl [word-break:keep-all] ${subText}`}>
                               {sub.description}
                             </p>
                           )}

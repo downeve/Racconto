@@ -155,7 +155,7 @@ export default function PortfolioChapterItems({
       const sidePhotoContent = (
         <div className="space-y-2">
           {sidePhotos.map(photo => (
-            <div key={photo.id} className="break-inside-avoid">
+            <div key={photo.id} className="break-inside-avoid rounded-photo">
               <img
                 src={photo.image_url}
                 loading="lazy"
@@ -201,7 +201,7 @@ export default function PortfolioChapterItems({
       result.push(
         <div key={`block-${bid}`} className="mb-space-sm space-y-4">
           {photos.map(photo => (
-            <div key={photo.id} className="break-inside-avoid">
+            <div key={photo.id} className="break-inside-avoid rounded-photo">
               <img
                 src={photo.image_url}
                 loading="lazy"

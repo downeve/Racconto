@@ -27,15 +27,15 @@ export default {
       },
       // 🚨 1. 타입 스케일 고정 (폰트크기, 행간, 자간을 한 세트로 등록)
       fontSize: {
-        'display': ['4rem',     { lineHeight: '1.05', letterSpacing: '-0.02em' }], // 64
-        'h1':      ['2.75rem',  { lineHeight: '1.1',  letterSpacing: '-0.01em' }], // 44
-        'h2':      ['1.75rem',  { lineHeight: '1.25' }],                           // 28
-        'h3':      ['1.25rem',  { lineHeight: '1.4' }],                            // 20
-        'body':    ['1rem',     { lineHeight: '1.6' }],                            // 16 ✨
-        'small':   ['0.875rem', { lineHeight: '1.5' }],                             // 14
-        'menu':    ['0.8125rem',{ lineHeight: '1.5' }],                                // 13 (사이드바 메뉴용)
-        'caption': ['0.75rem',  { lineHeight: '1.4' }],                        // 12 ✨
-        'eyebrow': ['0.6875rem',{ lineHeight: '1',    letterSpacing: '0.18em' }],  // 11
+        'display': ['4rem',      { lineHeight: '1.05', letterSpacing: '-0.02em' }], // 64
+        'h1':      ['2.75rem',   { lineHeight: '1.1',  letterSpacing: '-0.01em' }], // 44
+        'h2':      ['1.75rem',   { lineHeight: '1.2' }],                            // 28
+        'h3':      ['1.125rem',  { lineHeight: '1.4' }],                            // 18
+        'body':    ['0.9375rem', { lineHeight: '1.65' }],                           // 15
+        'small':   ['0.875rem',  { lineHeight: '1.5' }],                            // 14
+        'menu':    ['0.8125rem', { lineHeight: '1.5' }],                            // 13
+        'caption': ['0.75rem',   { lineHeight: '1.4' }],                            // 12
+        'eyebrow': ['0.6875rem', { lineHeight: '1', letterSpacing: '0.18em', fontFamily: 'mono' }], // 11
       },
       // 🚨 2. 부드러운 전환 효과를 위한 트랜지션 설정
       transitionProperty: {

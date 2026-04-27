@@ -360,7 +360,7 @@ export const PhotoCard = memo(function PhotoCard({
   const isAlreadyInStory = chapterPhotoIds.has(photo.id)
 
   return (
-    <div className={`rounded overflow-hidden bg-gray-100 transition-all ${isSelected ? 'ring-4 ring-blue-500 shadow' : ''}`}>
+    <div className={`rounded-photo overflow-hidden bg-gray-100 transition-all ${isSelected ? 'ring-4 ring-blue-500 shadow' : ''}`}>
       <div className="relative group">
 
         {/* 이미지 */}
