@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
+import { MapPin } from 'lucide-react'
 
 interface Project {
   id: string
@@ -49,7 +50,7 @@ export default function ProjectCard({ project }: { project: Project }) {
             <p className="text-small text-muted line-clamp-2 [word-break:keep-all]">{project.description}</p>
           )}
           {project.location && (
-            <p className="text-small text-faint mt-2">📍 {project.location}</p>
+            <p className="text-small text-faint mt-2 flex items-center gap-1"><MapPin size={12} strokeWidth={1.5} />{project.location}</p>
           )}
         </div>
       </div>
