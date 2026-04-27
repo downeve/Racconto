@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next'
 import { useAuth } from '../context/AuthContext'
 import PortfolioChapterItems, { type PortfolioPhoto } from '../components/PortfolioChapterItems'
 import PublicNavbar from '../components/PublicNavbar'
+import { Sun, Moon, MapPin } from 'lucide-react'
 
 const API = import.meta.env.VITE_API_URL
 
@@ -208,9 +209,11 @@ export default function PublicPortfolio() {
           </div>
           <button
             onClick={() => setDarkMode(!darkMode)}
-            className={`px-3 py-1 text-xs rounded-btn border ${darkMode ? 'border-ink-2 text-faint' : 'border-faint text-muted'}`}
+            className={`inline-flex items-center gap-1 px-3 py-1 text-xs rounded-btn border ${darkMode ? 'border-ink-2 text-faint' : 'border-faint text-muted'}`}
           >
-            {darkMode ? '☀️ ' + t('settings.themeBeige') : '🌙 ' + t('settings.themeDark')}
+            {darkMode
+              ? <><Sun size={12} strokeWidth={1.5} />{' '}{t('settings.themeBeige')}</>
+              : <><Moon size={12} strokeWidth={1.5} />{' '}{t('settings.themeDark')}</>}
           </button>
         </div>
 
@@ -238,7 +241,7 @@ export default function PublicPortfolio() {
                     {project.title}
                   </h3>
                   {project.location && (
-                    <p className={`text-small mt-1 ${subText}`}>📍 {project.location}</p>
+                    <p className={`flex items-center gap-1 text-small mt-1 ${subText}`}><MapPin size={12} strokeWidth={1.5} />{project.location}</p>
                   )}
                   {project.description && (
                     <p className={`text-body font-serif mt-1 line-clamp-2 [word-break:keep-all] ${subText}`}>
@@ -260,8 +263,8 @@ export default function PublicPortfolio() {
           <div>
             <div className="mb-space-md max-w-2xl">
               {selectedProject.location && (
-                <p className={`text-menu uppercase mb-6 ${subText}`}>
-                  📍 {selectedProject.location}
+                <p className={`flex items-center gap-1 text-menu uppercase mb-6 ${subText}`}>
+                  <MapPin size={12} strokeWidth={1.5} />{selectedProject.location}
                 </p>
               )}
               {selectedProject.description && (
