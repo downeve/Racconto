@@ -4,14 +4,15 @@ import { useTranslation } from 'react-i18next'
 import Heading from '../components/Heading' //
 import FolderProjectMapper from '../components/FolderProjectMapper'
 import { useAuth } from '../context/AuthContext'
-import { 
-  SwatchIcon, 
-  ViewColumnsIcon, 
-  PaintBrushIcon, 
-  TagIcon, 
+import {
+  SwatchIcon,
+  ViewColumnsIcon,
+  PaintBrushIcon,
+  TagIcon,
   LockClosedIcon,
   UserCircleIcon,
 } from '@heroicons/react/24/outline'
+import { Sun, Moon, Check } from 'lucide-react'
 
 const API = import.meta.env.VITE_API_URL
 const DELIVERY_ENABLED = import.meta.env.VITE_ENABLE_DELIVERY === 'true'
@@ -380,15 +381,15 @@ export default function Settings() {
         <div className="flex gap-3">
           <button
             onClick={() => setPortfolioTheme('light')}
-            className={`px-4 py-2 text-sm rounded border ${portfolioTheme === 'light' ? 'bg-black text-white border-black' : 'border-gray-300 hover:bg-gray-50'}`}
+            className={`inline-flex items-center gap-1.5 px-4 py-2 text-sm rounded border ${portfolioTheme === 'light' ? 'bg-black text-white border-black' : 'border-gray-300 hover:bg-gray-50'}`}
           >
-            ☀️ {t('settings.themeLight')}
+            <Sun size={14} strokeWidth={1.5} />{t('settings.themeLight')}
           </button>
           <button
             onClick={() => setPortfolioTheme('dark')}
-            className={`px-4 py-2 text-sm rounded border ${portfolioTheme === 'dark' ? 'bg-black text-white border-black' : 'border-gray-300 hover:bg-gray-50'}`}
+            className={`inline-flex items-center gap-1.5 px-4 py-2 text-sm rounded border ${portfolioTheme === 'dark' ? 'bg-black text-white border-black' : 'border-gray-300 hover:bg-gray-50'}`}
           >
-            🌙 {t('settings.themeDark')}
+            <Moon size={14} strokeWidth={1.5} />{t('settings.themeDark')}
           </button>
         </div>
       </div>
@@ -420,11 +421,11 @@ export default function Settings() {
               'bg-gray-100 text-gray-400 cursor-not-allowed'
             }`}
           >
-            {usernameSaved ? '✓' : t('common.save')}
+            {usernameSaved ? <Check size={14} strokeWidth={1.5} /> : t('common.save')}
           </button>
         </div>
         {usernameStatus === 'available' && (
-          <p className="text-xs text-green-500 mt-1.5 ml-[calc(theme(spacing.7)+theme(spacing.32)+theme(spacing.2))]">✓ {t('settings.usernameAvailable')}</p>
+          <p className="text-xs text-green-500 mt-1.5 ml-[calc(theme(spacing.7)+theme(spacing.32)+theme(spacing.2))] flex items-center gap-1"><Check size={12} strokeWidth={1.5} />{t('settings.usernameAvailable')}</p>
         )}
         {usernameStatus === 'taken' && (
           <p className="text-xs text-red-500 mt-1.5">{t('settings.usernameTaken')}</p>
