@@ -3,6 +3,7 @@ import { useNavigate, useParams, useLocation } from 'react-router-dom'
 import axios from 'axios'
 import { useTranslation } from 'react-i18next'
 import { useElectronSidebar } from '../context/ElectronSidebarContext'
+import { Camera, BookOpen, FileText } from 'lucide-react'
 
 const API = import.meta.env.VITE_API_URL
 
@@ -90,10 +91,10 @@ export default function ElectronSidebar({ activeTab, onTabChange, showTabs }: Pr
       {showTabs && isOnProjectDetail && (
         <div className="border-t border-stone-200 shrink-0 flex px-1 gap-1 py-1">
           {([
-            { key: 'photos', icon: '📷', label: t('photo.title') },
-            { key: 'story',  icon: '📖', label: t('story.title') },
-            { key: 'notes',  icon: '📝', label: t('note.title') },
-          ] as const).map(item => (
+            { key: 'photos' as const, Icon: Camera, label: t('photo.title') },
+            { key: 'story'  as const, Icon: BookOpen, label: t('story.title') },
+            { key: 'notes'  as const, Icon: FileText, label: t('note.title') },
+          ]).map(item => (
             <button
               key={item.key}
               onClick={() => onTabChange(item.key)}
@@ -103,7 +104,7 @@ export default function ElectronSidebar({ activeTab, onTabChange, showTabs }: Pr
                   : 'text-stone-600 hover:bg-stone-100 hover:text-stone-900'
               }`}
             >
-              <span>{item.icon}</span>
+              <item.Icon size={14} strokeWidth={1.5} />
               <span>{item.label}</span>
             </button>
           ))}
