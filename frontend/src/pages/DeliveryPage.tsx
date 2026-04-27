@@ -197,7 +197,7 @@ export default function DeliveryPage() {
           {pwError && <p className="text-red-500 text-sm mb-3">{pwError}</p>}
           <button
             onClick={submitPassword}
-            className="w-full py-3 bg-gray-900 hover:bg-gray-700 text-white rounded-xl font-medium transition-colors"
+            className="w-full py-3 bg-gray-900 hover:bg-gray-700 text-white rounded-xl font-medium transition-[background,color,border] duration-150 ease-out"
           >
             확인
           </button>
@@ -208,7 +208,7 @@ export default function DeliveryPage() {
 
   // ── 메인 뷰 ─────────────────────────────────────────────
   return (
-    <div className={`min-h-screen ${bg} transition-colors duration-300`}>
+    <div className={`min-h-screen ${bg} transition-[background,color,border] duration-150 ease-out`}>
       <div className="max-w-5xl mx-auto p-6">
 
         {/* 헤더 */}
@@ -229,7 +229,7 @@ export default function DeliveryPage() {
             <button
               onClick={submitSelections}
               disabled={saving || selectedCount === 0}
-              className={`px-4 py-2 text-sm rounded-full font-medium transition-colors ${
+              className={`px-4 py-2 text-sm rounded-full font-medium transition-[background,color,border] duration-150 ease-out ${
                 saved
                   ? 'bg-green-600 text-white'
                   : 'bg-gray-900 hover:bg-gray-700 text-white disabled:opacity-40'
@@ -272,7 +272,7 @@ export default function DeliveryPage() {
 
                   {/* 선택 체크 오버레이 */}
                   <div
-                    className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors"
+                    className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-[background,color,border] duration-150 ease-out"
                     onClick={() => toggleSelect(photo.id)}
                   />
 
@@ -410,7 +410,7 @@ export default function DeliveryPage() {
               {/* 라이트박스에서도 선택 토글 */}
               <button
                 onClick={() => toggleSelect(lightboxPhoto.id)}
-                className={`px-4 py-1.5 rounded-full text-sm font-medium transition-colors ${
+                className={`px-4 py-1.5 rounded-full text-sm font-medium transition-[background,color,border] duration-150 ease-out ${
                   lightboxPhoto.id in selected
                     ? 'bg-white text-black'
                     : 'bg-white/10 hover:bg-white/20 text-white'

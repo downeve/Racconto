@@ -960,13 +960,13 @@ function ProjectStory({
         <p className="text-menu font-semibold text-muted mb-3">{t('story.chapters')}</p>
         <button
           onClick={() => { setShowAddChapter(true); setAddingSubChapterTo(null) }}
-          className="w-full mb-2 text-menu font-semibold btn-secondary px-2 py-1.5 rounded-card transition-colors tracking-wider"
+          className="w-full mb-2 text-menu font-semibold btn-secondary px-2 py-1.5 rounded-card transition-[background,color,border] duration-150 ease-out tracking-wider"
         >
           {t('story.addChapter')}
         </button>
         <button
           onClick={() => setShowPreview(true)}
-          className="w-full mb-3 text-menu btn-secondary-on-card px-2 py-1.5 rounded-card transition-colors tracking-wider inline-flex items-center justify-center gap-1.5"
+          className="w-full mb-3 text-menu btn-secondary-on-card px-2 py-1.5 rounded-card transition-[background,color,border] duration-150 ease-out tracking-wider inline-flex items-center justify-center gap-1.5"
         >
           <Eye size={14} strokeWidth={1.5} />{t('story.preview')}
         </button>
@@ -1068,7 +1068,7 @@ function ProjectStory({
           {/* 챕터 추가 버튼 */}
           <button
             onClick={() => { setShowAddChapter(true); setAddingSubChapterTo(null) }}
-            className="w-full mb-2 text-menu font-semibold btn-secondary px-2 py-1.5 rounded-card transition-colors tracking-wider"
+            className="w-full mb-2 text-menu font-semibold btn-secondary px-2 py-1.5 rounded-card transition-[background,color,border] duration-150 ease-out tracking-wider"
           >
             {t('story.addChapter')}
           </button>
@@ -1076,7 +1076,7 @@ function ProjectStory({
           {/* 미리보기 버튼 */}
           <button
             onClick={() => setShowPreview(true)}
-            className="w-full mb-3 text-menu btn-secondary-on-card px-2 py-1.5 rounded-card transition-colors tracking-wider inline-flex items-center justify-center gap-1.5"
+            className="w-full mb-3 text-menu btn-secondary-on-card px-2 py-1.5 rounded-card transition-[background,color,border] duration-150 ease-out tracking-wider inline-flex items-center justify-center gap-1.5"
           >
             <Eye size={14} strokeWidth={1.5} />{t('story.preview')}
           </button>
@@ -1165,13 +1165,13 @@ function ProjectStory({
             <div className="flex gap-2 justify-end">
               <button
                 onClick={handleAddChapter}
-                className="text-small btn-primary tracking-wider transition-colors"
+                className="text-small btn-primary tracking-wider transition-[background,color,border] duration-150 ease-out"
               >
                 {t('common.add')}
               </button>
               <button
                 onClick={() => { setShowAddChapter(false); setAddingSubChapterTo(null); setNewTitle(''); setNewDesc('') }}
-                className="text-small btn-secondary-on-card tracking-wider transition-colors"
+                className="text-small btn-secondary-on-card tracking-wider transition-[background,color,border] duration-150 ease-out"
               >
                 {t('common.cancel')}
               </button>
@@ -1283,7 +1283,7 @@ function ProjectStory({
                         onChange={e => setNewDesc(e.target.value)}
                       />
                       <div className="flex gap-2 justify-end">
-                        <button onClick={handleAddChapter} className="text-small btn-primary tracking-wider transition-colors">
+                        <button onClick={handleAddChapter} className="text-small btn-primary tracking-wider transition-[background,color,border] duration-150 ease-out">
                           {t('common.add')}
                         </button>
                         <button 
@@ -1291,7 +1291,7 @@ function ProjectStory({
                             setShowAddChapter(false)
                             setAddingSubChapterTo(null)
                           }} 
-                          className="text-small btn-secondary-on-card tracking-wider transition-colors"
+                          className="text-small btn-secondary-on-card tracking-wider transition-[background,color,border] duration-150 ease-out"
                         >
                           {t('common.cancel')}
                         </button>
@@ -1303,7 +1303,7 @@ function ProjectStory({
                   <div className="p-4">
                     {renderChapterBlocks(chapter.id)}
                     <button onClick={() => handleAddTextBlock(chapter.id)}
-                        className="mt-2 text-small text-faint hover:text-ink-2 border border-dashed border-gray-300 hover:border-faint rounded-card px-3 py-1.5 w-full transition-colors"
+                        className="mt-2 text-small text-faint hover:text-ink-2 border border-dashed border-gray-300 hover:border-faint rounded-card px-3 py-1.5 w-full transition-[background,color,border] duration-150 ease-out"
                       >
                         {t('story.addTextBlock')}
                     </button>
@@ -1337,7 +1337,7 @@ function ProjectStory({
                             onChange={e => setEditDesc(e.target.value)}
                           />
                           <div className="flex gap-2 justify-end">
-                            <button onClick={() => handleUpdateChapter(subChapter)} className="bg-stone-600 text-white px-3 py-1 text-xs tracking-wider hover:bg-stone-700 transition-colors rounded">{t('common.save')}</button>
+                            <button onClick={() => handleUpdateChapter(subChapter)} className="bg-stone-600 text-white px-3 py-1 text-xs tracking-wider hover:bg-stone-700 transition-[background,color,border] duration-150 ease-out rounded">{t('common.save')}</button>
                             <button onClick={() => setEditingChapter(null)} className="border px-3 py-1 text-xs rounded">{t('common.cancel')}</button>
                           </div>
                         </div>
@@ -1384,7 +1384,7 @@ function ProjectStory({
                     <div className="p-4">
                     {renderChapterBlocks(subChapter.id)}
                     <button onClick={() => handleAddTextBlock(subChapter.id)}
-                        className="mt-2 text-small text-faint hover:text-ink-2 border border-dashed border-gray-300 hover:border-faint rounded-card px-3 py-1.5 w-full transition-colors"
+                        className="mt-2 text-small text-faint hover:text-ink-2 border border-dashed border-gray-300 hover:border-faint rounded-card px-3 py-1.5 w-full transition-[background,color,border] duration-150 ease-out"
                       >
                         {t('story.addTextBlock')}
                     </button>
@@ -1415,7 +1415,7 @@ function ProjectStory({
             {/* 노트 버튼 */}
               <button
                 onClick={e => { e.stopPropagation(); setShowNotePanel(v => !v) }}
-                className={`inline-flex items-center gap-1 text-xs px-2 py-1 border rounded transition-colors ${
+                className={`inline-flex items-center gap-1 text-xs px-2 py-1 border rounded transition-[background,color,border] duration-150 ease-out ${
                   showNotePanel
                     ? 'border-white/50 text-white'
                     : 'border-white/20 text-white/60 hover:text-white hover:border-white/50'
@@ -1492,7 +1492,7 @@ function ProjectStory({
           : 'border-gray-300 text-gray-500 hover:text-gray-900'
 
         return (
-          <div className={`fixed inset-0 z-[90] ${bg} overflow-y-auto transition-colors duration-300`}>
+          <div className={`fixed inset-0 z-[90] ${bg} overflow-y-auto transition-[background,color,border] duration-150 ease-out`}>
             {/* 헤더 */}
             <div className={`sticky top-0 z-10 backdrop-blur-sm border-b ${headerBg}`}>
               <div className="max-w-4xl mx-auto px-6 h-12 flex items-center justify-between">
@@ -1501,7 +1501,7 @@ function ProjectStory({
                   {/* 다크/라이트 토글 */}
                   <button
                     onClick={() => setPreviewDarkMode(v => !v)}
-                    className={`inline-flex items-center gap-1 text-xs px-3 py-1 rounded-btn border transition-colors ${toggleClass}`}
+                    className={`inline-flex items-center gap-1 text-xs px-3 py-1 rounded-btn border transition-[background,color,border] duration-150 ease-out ${toggleClass}`}
                   >
                     {dm
                       ? <><Sun size={12} strokeWidth={1.5} />{t('settings.themeBeige')}</>
@@ -1509,7 +1509,7 @@ function ProjectStory({
                   </button>
                   <button
                     onClick={() => setShowPreview(false)}
-                    className={`text-xl p-2 rounded-btn transition-colors ${closeColor}`}
+                    className={`text-xl p-2 rounded-btn transition-[background,color,border] duration-150 ease-out ${closeColor}`}
                   >✕</button>
                 </div>
               </div>

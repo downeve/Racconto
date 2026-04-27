@@ -139,7 +139,7 @@ export default function FeedbackWidget() {
             <button
               onClick={handleSubmit}
               disabled={status === 'loading' || status === 'success' || !feedback.trim()}
-              className="w-full py-2.5 bg-ink text-card text-sm font-semibold rounded-btn hover:bg-ink-2 disabled:bg-faint transition-colors"
+              className="w-full py-2.5 bg-ink text-card text-sm font-semibold rounded-btn hover:bg-ink-2 disabled:bg-faint transition-[background,color,border] duration-150 ease-out"
             >
               {status === 'idle' && t('feedback.send')}
               {status === 'loading' && t('feedback.sending')}

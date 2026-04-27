@@ -69,7 +69,7 @@ export default function ElectronSidebar({ activeTab, onTabChange, showTabs }: Pr
               <button
                 key={project.id}
                 onClick={() => navigate(`/projects/${project.id}`)}
-                className={`w-full text-left px-4 py-2 text-xs flex items-center gap-2 transition-colors ${
+                className={`w-full text-left px-4 py-2 text-xs flex items-center gap-2 transition-[background,color,border] duration-150 ease-out ${
                   currentId === project.id
                     ? 'bg-stone-200 text-stone-900 font-medium'
                     : 'text-stone-600 hover:bg-stone-100 hover:text-stone-900'
@@ -98,7 +98,7 @@ export default function ElectronSidebar({ activeTab, onTabChange, showTabs }: Pr
             <button
               key={item.key}
               onClick={() => onTabChange(item.key)}
-              className={`rounded-btn flex-1 flex flex-row items-center justify-center gap-1.5 py-2 text-xs tracking-wider transition-colors ${
+              className={`rounded-btn flex-1 flex flex-row items-center justify-center gap-1.5 py-2 text-xs tracking-wider transition-[background,color,border] duration-150 ease-out ${
                 activeTab === item.key
                   ? 'bg-stone-900 text-white'
                   : 'text-stone-600 hover:bg-stone-100 hover:text-stone-900'

@@ -195,8 +195,7 @@ export default function PublicPortfolio() {
   }
 
   return (
-    <div className={`min-h-screen ${bg} transition-colors duration-300`}>
-    {/* [수정된 부분] 로그아웃 상태일 때 보여주는 헤더를 fixed로 띄워 상단 빈 공간을 덮어버립니다. 라이트박스 띄울 때 헤더 밑으로 숨기기 z-60에서 z-30으로 조정*/}
+    <div className={`min-h-screen ${bg} transition-[background,color,border] duration-150 ease-out`}>
       {!isAuthenticated && <PublicNavbar username={username} darkMode={darkMode} compact />}
 
       <div className="max-w-4xl mx-auto px-6 pt-space-md pb-space-xl">
@@ -349,7 +348,7 @@ export default function PublicPortfolio() {
 
       {lightboxIndex !== null && activeLightboxItem && (
         <div
-          className={`fixed inset-0 ${darkMode ? 'bg-lightbox/[.97]' : 'bg-lightbox/[.97]'} z-50 flex items-center justify-center transition-colors duration-300`}
+          className={`fixed inset-0 ${darkMode ? 'bg-lightbox/[.97]' : 'bg-lightbox/[.97]'} z-50 flex items-center justify-center transition-[background,color,border] duration-150 ease-out`}
           onClick={() => setLightboxIndex(null)}
         >
           <button

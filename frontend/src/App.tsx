@@ -72,13 +72,13 @@ function AppRoutes() {
             <div className="flex flex-col gap-3 items-center mb-6">
               <a
                 href="https://racconto.app"
-                className="text-sm font-medium text-stone-700 border border-stone-300 rounded-card px-5 py-2 hover:bg-stone-100 transition-colors"
+                className="text-sm font-medium text-stone-700 border border-stone-300 rounded-card px-5 py-2 hover:bg-stone-100 transition-[background,color,border] duration-150 ease-out"
               >
                 {t('landing.openInBrowser')}
               </a>
               <a
                 href="https://racconto.app#download"
-                className="text-sm font-medium text-white bg-stone-800 rounded-card px-5 py-2 hover:bg-stone-700 transition-colors"
+                className="text-sm font-medium text-white bg-stone-800 rounded-card px-5 py-2 hover:bg-stone-700 transition-[background,color,border] duration-150 ease-out"
               >
                 {t('landing.downloadDesktopApp')}
               </a>

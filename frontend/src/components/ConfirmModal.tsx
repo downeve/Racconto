@@ -34,7 +34,7 @@ export default function ConfirmModal(props: Props) {
               <button
                 key={block.blockId}
                 onClick={() => onSelect(block.blockId)}
-                className="flex flex-col items-center gap-1 p-1 rounded-btn hover:bg-stone-50 border border-transparent hover:border-stone-200 transition-colors"
+                className="flex flex-col items-center gap-1 p-1 rounded-btn hover:bg-stone-50 border border-transparent hover:border-stone-200 transition-[background,color,border] duration-150 ease-out"
               >
                 <div className="w-full aspect-[3/2] rounded-btn overflow-hidden bg-gray-100">
                   {block.firstImageUrl
@@ -47,7 +47,7 @@ export default function ConfirmModal(props: Props) {
             {/* 새 블록 슬롯 */}
             <button
               onClick={() => onSelect('new')}
-              className="flex flex-col items-center gap-1 p-1 rounded-btn hover:bg-stone-50 border border-transparent hover:border-stone-200 transition-colors"
+              className="flex flex-col items-center gap-1 p-1 rounded-btn hover:bg-stone-50 border border-transparent hover:border-stone-200 transition-[background,color,border] duration-150 ease-out"
             >
               <div className="w-full aspect-[3/2] rounded border-2 border-dashed border-faint bg-card flex items-center justify-center">
                 <span className="text-muted text-2xl leading-none">+</span>

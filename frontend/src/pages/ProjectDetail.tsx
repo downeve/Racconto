@@ -1545,7 +1545,7 @@ export default function ProjectDetail({
             <button
               onClick={() => setShowBulkChapterMenu(v => !v)}
               disabled={selectedPhotoIds.size === 0}
-              className="inline-flex items-center gap-1.5 px-2 py-1.5 font-bold text-menu btn-secondary-on-card border hover:bg-faint/40 border-muted disabled:text-faint transition-colors"
+              className="inline-flex items-center gap-1.5 px-2 py-1.5 font-bold text-menu btn-secondary-on-card border hover:bg-faint/40 border-muted disabled:text-faint transition-[background,color,border] duration-150 ease-out"
             >
               <BookOpen size={13} strokeWidth={1.5} />{t('story.addToChapter')}
             </button>
@@ -1585,7 +1585,7 @@ export default function ProjectDetail({
                 setSelectedPhotoIds(new Set())
                 setShowBulkChapterMenu(false)
               }}
-              className="px-2 py-1.5 text-menu btn-secondary-on-card border border-hair font-medium transition-colors"
+              className="px-2 py-1.5 text-menu btn-secondary-on-card border border-hair font-medium transition-[background,color,border] duration-150 ease-out"
             >
               {t('common.cancel')}
             </button>

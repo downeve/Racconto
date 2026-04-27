@@ -27,7 +27,7 @@ export default function AuthNavbar() {
           </Link>
         <button
           onClick={toggleLanguage}
-          className="text-small font-semibold text-faint hover:text-ink-2 hover:font-bold transition-colors"
+          className="text-small font-semibold text-faint hover:text-ink-2 hover:font-bold transition-[background,color,border] duration-150 ease-out"
         >
           {i18n.language === 'ko' ? 'EN' : 'KO'}
         </button>

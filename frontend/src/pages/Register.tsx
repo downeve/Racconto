@@ -115,7 +115,7 @@ export default function Register() {
               <button
                 onClick={handleSubmit}
                 disabled={loading}
-                className="w-full text-body btn-primary tracking-wider transition-colors"
+                className="w-full text-body btn-primary tracking-wider transition-[background,color,border] duration-150 ease-out"
               >
                 {loading ? t('register.processing') : t('register.submit')}
               </button>

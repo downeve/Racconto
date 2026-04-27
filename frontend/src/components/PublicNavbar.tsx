@@ -14,12 +14,12 @@ export default function PublicNavbar({ username, darkMode, compact }: { username
 
   if (compact) {
     return (
-      <nav className={`fixed top-0 left-0 right-0 z-50 backdrop-blur-sm border-b transition-colors duration-300 ${dm ? 'bg-ink/90 border-hair/20' : 'bg-canvas/90 border-stone-200'}`}>
+      <nav className={`fixed top-0 left-0 right-0 z-50 backdrop-blur-sm border-b transition-[background,color,border] duration-150 ease-out ${dm ? 'bg-ink/90 border-hair/20' : 'bg-canvas/90 border-stone-200'}`}>
         <div className="max-w-4xl mx-auto px-4 sm:px-6 h-14 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <Link
               to="/"
-              className={`font-serif text-h3 inline-block transition-colors ${dm ? 'text-hair' : 'text-ink'}`}
+              className={`font-serif text-h3 inline-block transition-[background,color,border] duration-150 ease-out ${dm ? 'text-hair' : 'text-ink'}`}
               style={{ fontWeight: 700, letterSpacing: '0.08em', transform: 'translateY(1px)' }}
             >
               Racconto
@@ -28,7 +28,7 @@ export default function PublicNavbar({ username, darkMode, compact }: { username
               <Link
                 to={`/p/${username}`}
                 state={{ resetToList: true }}
-                className={`text-small transition-colors ${dm ? 'text-faint hover:text-hair' : 'text-muted hover:text-ink'} hover:font-bold`}
+                className={`text-small transition-[background,color,border] duration-150 ease-out ${dm ? 'text-faint hover:text-hair' : 'text-muted hover:text-ink'} hover:font-bold`}
               >
                 @{username}
               </Link>
@@ -36,7 +36,7 @@ export default function PublicNavbar({ username, darkMode, compact }: { username
           </div>
           <Link
             to="/features"
-            className={`text-body sm:text-small tracking-wider transition-colors hover:font-bold ${dm ? 'text-faint hover:text-hair' : 'text-ink-2 hover:text-ink'}`}
+            className={`text-body sm:text-small tracking-wider transition-[background,color,border] duration-150 ease-out hover:font-bold ${dm ? 'text-faint hover:text-hair' : 'text-ink-2 hover:text-ink'}`}
           >
             {t('nav.features')}
           </Link>
@@ -46,13 +46,13 @@ export default function PublicNavbar({ username, darkMode, compact }: { username
   }
 
   return (
-    <nav className={`fixed top-0 left-0 right-0 z-50 backdrop-blur-sm border-b transition-colors duration-300 ${dm ? 'bg-ink/90 border-hair/20' : 'bg-canvas/90 border-stone-200'}`}>
+    <nav className={`fixed top-0 left-0 right-0 z-50 backdrop-blur-sm border-b transition-[background,color,border] duration-150 ease-out ${dm ? 'bg-ink/90 border-hair/20' : 'bg-canvas/90 border-stone-200'}`}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 h-14 flex items-center justify-between">
           {/* 로고 — serif, regular weight, 가벼운 tracking, 1px 광학 보정 */}
           <div className="flex items-center gap-3">
             <Link
               to="/"
-              className={`font-serif text-h3 inline-block transition-colors ${dm ? 'text-hair' : 'text-ink'}`}
+              className={`font-serif text-h3 inline-block transition-[background,color,border] duration-150 ease-out ${dm ? 'text-hair' : 'text-ink'}`}
               style={{
                 fontWeight: 700,
                 letterSpacing: '0.08em',
@@ -65,7 +65,7 @@ export default function PublicNavbar({ username, darkMode, compact }: { username
               <Link
                 to={`/p/${username}`}
                 state={{ resetToList: true }}
-                className={`text-small transition-colors ${dm ? 'text-faint hover:text-hair' : 'text-muted hover:text-ink'} hover:font-bold`}
+                className={`text-small transition-[background,color,border] duration-150 ease-out ${dm ? 'text-faint hover:text-hair' : 'text-muted hover:text-ink'} hover:font-bold`}
               >
                 @{username}
               </Link>
@@ -74,25 +74,25 @@ export default function PublicNavbar({ username, darkMode, compact }: { username
         <div className="flex items-center gap-3 sm:gap-6">
           <Link
             to="/features"
-            className={`text-body sm:text-small tracking-wider transition-colors hover:font-bold ${dm ? 'text-faint hover:text-hair' : 'text-ink-2 hover:text-ink'}`}
+            className={`text-body sm:text-small tracking-wider hover:font-bold transition-[background,color,border] duration-150 ease-out ${dm ? 'text-faint hover:text-hair' : 'text-ink-2 hover:text-ink'}`}
           >
             {t('nav.features')}
           </Link>
           <button
             onClick={toggleLanguage}
-            className={`text-small font-semibold tracking-widest transition-colors hover:font-bold ${dm ? 'text-faint hover:text-hair' : 'text-faint hover:text-ink-2'}`}
+            className={`text-small font-semibold tracking-widest hover:font-bold transition-[background,color,border] duration-150 ease-out ${dm ? 'text-faint hover:text-hair' : 'text-faint hover:text-ink-2'}`}
           >
             {i18n.language === 'ko' ? 'EN' : 'KO'}
           </button>
           <Link
             to="/login"
-            className={`hidden sm:inline-flex text-body sm:text-small tracking-wider transition-colors hover:font-bold ${dm ? 'text-faint hover:text-hair' : 'text-ink-2 hover:text-ink'}`}
+            className={`hidden sm:inline-flex text-body sm:text-small tracking-wider hover:font-bold transition-[background,color,border] duration-150 ease-out ${dm ? 'text-faint hover:text-hair' : 'text-ink-2 hover:text-ink'}`}
           >
             {t('auth.login')}
           </Link>
           <Link
             to="/register"
-            className="hidden sm:inline-flex tracking-wider text-small btn-primary transition-colors whitespace-nowrap"
+            className="hidden sm:inline-flex tracking-wider text-small btn-primary whitespace-nowrap transition-[background,color,border] duration-150 ease-out"
           >
             {t('auth.register')}
           </Link>

@@ -172,7 +172,7 @@ export function Lightbox({
                   key={star}
                   onMouseEnter={() => setHoverRating({ id: photo.id, star })}
                   onClick={() => onSetRating(photo, star)}
-                  className={`text-body rounded-card transition-colors ${colorClass}`}
+                  className={`text-body rounded-card transition-[background,color,border] duration-150 ease-out ${colorClass}`}
                 >★</button>
               )
             })}
@@ -207,7 +207,7 @@ export function Lightbox({
             ) : (
               <button
                 onClick={() => setShowChapterMenu(v => !v)}
-                className="flex items-center gap-1.5 text-small px-3 py-1.5 border border-card/20 text-faint hover:text-white hover:border-white/50 rounded transition-colors"
+                className="flex items-center gap-1.5 text-small px-3 py-1.5 border border-card/20 text-faint hover:text-white hover:border-white/50 rounded transition-[background,color,border] duration-150 ease-out"
               >
                 <BookOpen size={13} strokeWidth={1.5} />{t('story.addToChapter')}
               </button>
@@ -219,7 +219,7 @@ export function Lightbox({
           {/* 노트 버튼 */}
           <button
             onClick={() => setShowNotePanel(v => !v)}
-            className={`flex items-center gap-1.5 text-small px-3 py-1.5 border rounded-card transition-colors ${
+            className={`flex items-center gap-1.5 text-small px-3 py-1.5 border rounded-card transition-[background,color,border] duration-150 ease-out ${
               showNotePanel
                 ? 'border-card/50 text-card'
                 : 'border-card/20 text-card/60 hover:text-card hover:border-card/50'
@@ -397,7 +397,7 @@ export const PhotoCard = memo(function PhotoCard({
             className="absolute top-3 left-3 z-20 cursor-pointer"
             onClick={e => { e.stopPropagation(); onToggleSelect(photo.id) }}
           >
-            <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition-colors shadow ${
+            <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition-[background,color,border] duration-150 ease-out shadow ${
               isSelected ? 'bg-blue-500/50 border-blue-500/30' : 'bg-ink-2/40 border-card/80'
             }`}>
               {isSelected && <Check size={12} strokeWidth={1.5} className="text-card" />}
@@ -416,7 +416,7 @@ export const PhotoCard = memo(function PhotoCard({
             <div className="absolute top-2 right-2 flex gap-1 pointer-events-auto">
               <button
                 onClick={e => { e.stopPropagation(); onSetCover(photo) }}
-                className={`${gridCols >= 4 ? 'px-1.5 py-1 text-eyebrow' : 'px-2 py-1 text-eyebrow'} rounded-card shadow transition-colors font-base ${
+                className={`${gridCols >= 4 ? 'px-1.5 py-1 text-eyebrow' : 'px-2 py-1 text-eyebrow'} rounded-card shadow transition-[background,color,border] duration-150 ease-out font-base ${
                   project?.cover_image_url === photo.image_url
                     ? 'bg-yellow-400 text-ink-2'
                     : 'bg-ink/30 hover:bg-ink-2/90 text-card'
@@ -426,7 +426,7 @@ export const PhotoCard = memo(function PhotoCard({
               </button>
               <button
                 onClick={e => { e.stopPropagation(); onDelete(photo.id) }}
-                className="w-5 h-5 flex items-center justify-center bg-red-500/30 hover:bg-red-600 text-card rounded-full shadow text-xs font-bold transition-colors"
+                className="w-5 h-5 flex items-center justify-center bg-red-500/30 hover:bg-red-600 text-card rounded-full shadow text-xs font-bold transition-[background,color,border] duration-150 ease-out"
               >✕</button>
             </div>
 

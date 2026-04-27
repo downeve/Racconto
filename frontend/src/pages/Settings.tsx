@@ -363,7 +363,7 @@ export default function Settings() {
               <span className="text-sm text-gray-500 w-12 shrink-0">{t(`colorLabels.${value}`)}</span>
               {/* flex-1을 w-40(고정 너비)으로 변경 */}
               <input
-                className="w-40 border rounded px-3 py-1.5 text-sm outline-none focus:border-black transition-colors"
+                className="w-40 border rounded px-3 py-1.5 text-sm outline-none focus:border-black transition-[background,color,border] duration-150 ease-out"
                 value={settings[key] || ''}
                 onChange={e => handleChange(key, e.target.value)}
               />
@@ -415,7 +415,7 @@ export default function Settings() {
             onClick={handleUsernameSave}
             // 수정: '사용 가능' 상태이거나 '빈 칸'일 때 버튼 활성화
             disabled={(usernameStatus !== 'available' && username !== '') && !usernameSaved}
-            className={`px-4 py-2 text-sm rounded transition-colors ${
+            className={`px-4 py-2 text-sm rounded transition-[background,color,border] duration-150 ease-out ${
               usernameSaved ? 'bg-green-600 text-white' :
               (usernameStatus === 'available' || username === '') ? 'bg-black text-white hover:bg-gray-800' :
               'bg-gray-100 text-gray-400 cursor-not-allowed'
@@ -458,7 +458,7 @@ export default function Settings() {
             <button
               key={opt.value}
               onClick={() => setDeliveryTagColor(opt.value)}
-              className={`flex items-center gap-2 px-3 py-2 text-sm rounded border transition-colors ${
+              className={`flex items-center gap-2 px-3 py-2 text-sm rounded border transition-[background,color,border] duration-150 ease-out ${
                 deliveryTagColor === opt.value
                   ? 'bg-black text-white border-black'
                   : 'border-gray-300 hover:bg-gray-50'
@@ -513,7 +513,7 @@ export default function Settings() {
           <div className="flex justify-start pt-2">
             <button
               onClick={handlePasswordChange}
-              className="bg-black text-white px-4 py-2 text-sm hover:bg-gray-800 transition-colors"
+              className="bg-black text-white px-4 py-2 text-sm hover:bg-gray-800 transition-[background,color,border] duration-150 ease-out"
             >
               {t('settings.changePassword')}
             </button>

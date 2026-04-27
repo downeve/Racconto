@@ -53,7 +53,7 @@ export default function VerifyEmail() {
               <p className="text-sm text-gray-600 mb-6">{message}</p>
               <button
                 onClick={() => navigate('/login')}
-                className="w-full bg-stone-600 text-white px-4 py-2 text-sm tracking-wider hover:bg-stone-900 transition-colors rounded"
+                className="w-full bg-stone-600 text-white px-4 py-2 text-sm tracking-wider hover:bg-stone-900 transition-[background,color,border] duration-150 ease-out rounded"
               >
                 {t('verify.login')}
               </button>

@@ -106,7 +106,7 @@ export default function ProjectEdit() {
         <div className="flex gap-2 justify-end">
           <button
             onClick={handleSubmit}
-            className="text-body btn-primary tracking-wider transition-colors"
+            className="text-body btn-primary tracking-wider transition-[background,color,border] duration-150 ease-out"
           >
             {t('common.save')}
           </button>

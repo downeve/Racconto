@@ -138,7 +138,7 @@ export default function Navbar({ onLogout }: NavbarProps) {
         >
           <button
             onClick={() => setDropdownOpen(v => !v)}
-            className="w-8 h-8 rounded-full bg-ink-2 text-card text-small font-bold flex items-center justify-center hover:bg-muted transition-colors"
+            className="w-8 h-8 rounded-full bg-ink-2 text-card text-small font-bold flex items-center justify-center hover:bg-muted transition-[background,color,border] duration-150 ease-out"
           >
             {avatarInitial}
           </button>

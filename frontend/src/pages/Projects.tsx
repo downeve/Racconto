@@ -191,7 +191,7 @@ export default function Projects() {
           </h2>
         <button
           onClick={() => setShowForm(!showForm)}
-          className="font-body btn-primary tracking-wider transition-colors"
+          className="font-body btn-primary tracking-wider transition-[background,color,border] duration-150 ease-out"
         >
           {t('project.newProject')}
         </button>
@@ -216,7 +216,7 @@ export default function Projects() {
             </select>
           </div>
           <div className="flex gap-2 justify-end">
-            <button onClick={handleSubmit} className="text-body btn-primary tracking-wider transition-colors">{t('common.save')}</button>
+            <button onClick={handleSubmit} className="text-body btn-primary tracking-wider transition-[background,color,border] duration-150 ease-out">{t('common.save')}</button>
             <button onClick={() => {
               setShowForm(false)
               setTitle(''); setTitleEn(''); setDescription('')

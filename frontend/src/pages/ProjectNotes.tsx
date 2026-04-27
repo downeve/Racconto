@@ -59,7 +59,7 @@ const NoteItem = memo(function NoteItem({
                 <button
                   key={type.value}
                   onClick={() => setEditType(type.value)}
-                  className={`px-2.5 py-1 text-menu rounded-card transition-colors ${
+                  className={`px-2.5 py-1 text-menu rounded-card transition-[background,color,border] duration-150 ease-out ${
                     editType === type.value
                       ? type.color + ' ring-1 ring-current'
                       : 'bg-gray-100 text-faint hover:hair'
@@ -93,13 +93,13 @@ const NoteItem = memo(function NoteItem({
           <div className="flex gap-2 mt-2">
             <button
               onClick={() => handleUpdate(note.id)}
-              className="text-small btn-primary tracking-wider transition-colors"
+              className="text-small btn-primary tracking-wider transition-[background,color,border] duration-150 ease-out"
             >
               {t('note.saveNote')}
             </button>
             <button
               onClick={() => { setEditingNote(null); setEditPreviewMode(false) }}
-              className="text-small btn-secondary-on-card tracking-wider transition-colors"
+              className="text-small btn-secondary-on-card tracking-wider transition-[background,color,border] duration-150 ease-out"
             >
               {t('note.cancelNote')}
             </button>
@@ -130,7 +130,7 @@ const NoteItem = memo(function NoteItem({
               </span>
               <button
                 onClick={() => handleTogglePin(note.id)}
-                className={`text-caption hover:text-ink transition-colors ${note.is_pinned ? 'text-muted' : 'text-gray-300 hover:text-muted'}`}
+                className={`text-caption hover:text-ink transition-[background,color,border] duration-150 ease-out ${note.is_pinned ? 'text-muted' : 'text-gray-300 hover:text-muted'}`}
                 title={note.is_pinned ? `${t('note.pinRemove')}` : `${t('note.pin')}`}
               >
                 <Pin size={14} strokeWidth={1.5} />
@@ -421,7 +421,7 @@ function ProjectNotes({
                 <button
                   key={type.value}
                   onClick={() => setNewType(type.value)}
-                  className={`px-2.5 py-1 text-menu rounded-btn transition-colors ${
+                  className={`px-2.5 py-1 text-menu rounded-btn transition-[background,color,border] duration-150 ease-out ${
                     newType === type.value
                       ? type.color + ' font-semibold ring-1 ring-current'
                       : 'bg-gray-100 text-muted hover:bg-hair'
@@ -462,7 +462,7 @@ function ProjectNotes({
             <button
               onClick={handleAdd}
               disabled={!newContent.trim()}
-              className="text-small btn-primary tracking-wider transition-colors disabled:opacity-40"
+              className="text-small btn-primary tracking-wider transition-[background,color,border] duration-150 ease-out disabled:opacity-40"
             >
               {t('note.addNote')}
             </button>

@@ -281,7 +281,7 @@ export const SortablePhotoBlock = memo(function SortablePhotoBlock({
     <div
       ref={setRef}
       style={style}
-      className={`group/block relative mb-2 rounded-card p-3 border transition-colors ${
+      className={`group/block relative mb-2 rounded-card p-3 border transition-[background,color,border] duration-150 ease-out ${
         isOver && isExternalDrag
           ? 'bg-blue-50 border-blue-300'
           : 'bg-stone-50 border-stone-200'
@@ -297,19 +297,19 @@ export const SortablePhotoBlock = memo(function SortablePhotoBlock({
 
       {/* 레이아웃 툴바 */}
       <div className="absolute -top-1 left-6 opacity-0 group-hover/block:opacity-100 transition-opacity z-20 flex items-center gap-1 bg-white border border-gray-200 rounded shadow px-1.5 py-0.5">
-        <span className="text-[10px] text-gray-400 mr-1">{t('portfolio.column')}</span>
+        <span className="text-[10px] text-faint mr-1">{t('portfolio.column')}</span>
         {(['grid', 'wide', 'single'] as const).map(l => (
           <button
             key={l}
             onClick={() => onLayoutChange(blockId, l)}
-            className={`text-[10px] px-1.5 py-0.5 rounded transition-colors ${
-              blockLayout === l ? 'bg-stone-700 text-white' : 'text-gray-500 hover:bg-gray-100'
+            className={`text-[10px] px-1.5 py-0.5 rounded transition-[background,color,border] duration-150 ease-out ${
+              blockLayout === l ? 'bg-muted text-card' : 'text-gray-500 hover:bg-gray-100'
             }`}
           >
             {layoutLabels[l]}
           </button>
         ))}
-         <span className="text-[10px] text-gray-400 mr-1">{t('portfolio.layoutInPort')}</span>
+         <span className="text-[10px] text-faint mr-1">{t('portfolio.layoutInPort')}</span>
       </div>
 
       <DndContext

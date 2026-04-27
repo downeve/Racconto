@@ -297,7 +297,7 @@ export default function LandingPage() {
           </p>
           <Link
             to="/register"
-            className="inline-block px-10 py-4 bg-card text-ink-2 text-sm tracking-widest font-semibold hover:bg-ink-2 hover:text-hair transition-colors rounded"
+            className="inline-block px-10 py-4 bg-card text-ink-2 text-sm tracking-widest font-semibold hover:bg-ink-2 hover:text-hair transition-[background,color,border] duration-150 ease-out rounded"
           >
             {t('landing.ctaPrimary')}
           </Link>

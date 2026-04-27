@@ -126,7 +126,7 @@ export default function PhotoNotePanel({
                           <button
                             key={type.value}
                             onClick={() => setEditType(type.value)}
-                            className={`px-2 py-0.5 text-xs rounded-btn transition-colors ${
+                            className={`px-2 py-0.5 text-xs rounded-btn transition-[background,color,border] duration-150 ease-out ${
                               editType === type.value
                                 ? type.color + ' font-semibold ring-1 ring-current'
                                 : 'bg-gray-100 text-gray-400 hover:bg-gray-200'
@@ -202,7 +202,7 @@ export default function PhotoNotePanel({
               <button
                 key={type.value}
                 onClick={() => setNewType(type.value)}
-                className={`px-2 py-0.5 text-xs rounded-btn transition-colors ${
+                className={`px-2 py-0.5 text-xs rounded-btn transition-[background,color,border] duration-150 ease-out ${
                   newType === type.value
                     ? type.color + ' font-semibold ring-1 ring-current'
                     : 'bg-gray-100 text-gray-400 hover:bg-gray-200'
