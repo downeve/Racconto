@@ -100,21 +100,20 @@ export function SortablePhotoChapter({
           {...listeners}
           className="absolute top-1.5 left-1.5 p-1.5 rounded cursor-grab opacity-0 group-hover:opacity-100 transition-opacity z-20"
         >
-          <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-            <path d="M6 3C6 3.55228 5.55228 4 5 4C4.44772 4 4 3.55228 4 3C4 2.44772 4.44772 2 5 2C5.55228 2 6 2.44772 6 3Z" fill="white"/>
-            <path d="M6 8C6 8.55228 5.55228 9 5 9C4.44772 9 4 8.55228 4 8C4 7.44772 4.44772 7 5 7C5.55228 7 6 7.44772 6 8Z" fill="white"/>
-            <path d="M6 13C6 13.5523 5.55228 14 5 14C4.44772 14 4 13.5523 4 13C4 12.4477 4.44772 12 5 12C5.55228 12 6 12.4477 6 13Z" fill="white"/>
-            <path d="M12 3C12 3.55228 11.5523 4 11 4C10.4477 4 10 3.55228 10 3C10 2.44772 10.4477 2 11 2C11.5523 2 12 2.44772 12 3Z" fill="white"/>
-            <path d="M12 8C12 8.55228 11.5523 9 11 9C10.4477 9 10 8.55228 10 8C10 7.44772 10.4477 7 11 7C11.5523 7 12 7.44772 12 8Z" fill="white"/>
-            <path d="M12 13C12 13.5523 11.5523 14 11 14C10.4477 14 10 13.5523 10 13C10 12.4477 10.4477 12 11 12C11.5523 12 12 12.4477 12 13Z" fill="white"/>
-          </svg>
+          <DragHandleDots size={12} color="white" />
         </div>
 
         {/* 삭제 버튼 */}
         <button
           onClick={(e) => { e.stopPropagation(); onRemove(chapterId, id) }}
-          className="absolute top-1 right-1 bg-red-600 text-white rounded-btn w-5 h-5 text-xs font-bold opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity z-20"
-        >×</button>
+          className="absolute top-1 right-1 bg-stone-900/70 text-white rounded w-5 h-5 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity z-20 hover:bg-stone-900"
+          aria-label="삭제"
+        >
+          <svg width="10" height="10" viewBox="0 0 10 10" fill="none" strokeWidth="1.5" stroke="currentColor">
+            <line x1="1" y1="1" x2="9" y2="9" />
+            <line x1="9" y1="1" x2="1" y2="9" />
+          </svg>
+        </button>
 
         {/* 블록 이동 버튼 — 새 블록 슬롯이 있으므로 항상 표시 */}
         {(
@@ -391,9 +390,15 @@ export const SortableSideBySideBlock = memo(function SortableSideBySideBlock({
               onClick={() => onPhotoClick(item)}
             />
             <button
-              onClick={() => onRemoveItem(chapterId, item.id)}
-              className="absolute top-1 right-1 bg-red-600 text-white rounded-btn w-5 h-5 text-xs font-bold opacity-0 group-hover:opacity-100 flex items-center justify-center z-10"
-            >×</button>
+              onClick={(e) => { e.stopPropagation(); onRemoveItem(chapterId, item.id) }}
+              className="absolute top-1 right-1 bg-stone-900/70 text-white rounded w-5 h-5 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity z-10 hover:bg-stone-900"
+              aria-label="삭제"
+            >
+              <svg width="10" height="10" viewBox="0 0 10 10" fill="none" strokeWidth="1.5" stroke="currentColor">
+                <line x1="1" y1="1" x2="9" y2="9" />
+                <line x1="9" y1="1" x2="1" y2="9" />
+              </svg>
+            </button>
           </div>
         ))}
       </div>

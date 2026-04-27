@@ -6,6 +6,8 @@ import { useAuth } from '../context/AuthContext'
 import PortfolioChapterItems, { type PortfolioPhoto } from '../components/PortfolioChapterItems'
 import PublicNavbar from '../components/PublicNavbar'
 import { Sun, Moon, MapPin } from 'lucide-react'
+//import { Download } from 'lucide-react'
+//import { exportToPDF } from '../utils/exportToPDF'
 
 const API = import.meta.env.VITE_API_URL
 
@@ -51,6 +53,8 @@ export default function PublicPortfolio() {
   const [selectedProject, setSelectedProject] = useState<PortfolioProject | null>(null)
   const [darkMode, setDarkMode] = useState(false)
   const [notFound, setNotFound] = useState(false)
+  //const [isPdfExporting, setIsPdfExporting] = useState(false)
+  //const [pdfProgress, setPdfProgress]       = useState('')
 
   // [새로운 코드]
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null)
@@ -124,6 +128,29 @@ export default function PublicPortfolio() {
     })
     return items
   }
+
+  {/*
+  const handleExportPDF = async () => {
+    if (!selectedProject || isPdfExporting) return
+    setIsPdfExporting(true)
+    setPdfProgress('준비 중...')
+    try {
+      await exportToPDF(
+        'portfolio-print-area',
+        'portfolio-print-start',  // 출력 시작점 (title 영역)
+        selectedProject.title,
+        darkMode,
+        (step) => setPdfProgress(step)
+      )
+    } catch (err) {
+      console.error('PDF export failed:', err)
+      alert('PDF 저장 중 오류가 발생했습니다.')
+    } finally {
+      setIsPdfExporting(false)
+      setPdfProgress('')
+    }
+  }
+  */}
 
   const openLightbox = (photo: Photo, items: { photo: Photo; title: string }[]) => {
     // 💡 photo.id 가 아니라 객체 자체(photo === photo)를 비교하여 중복 사진이라도 '클릭한 바로 그 사진'의 위치를 정확히 찾습니다.
@@ -201,19 +228,33 @@ export default function PublicPortfolio() {
       <div className="max-w-4xl mx-auto px-6 pt-space-md pb-space-xl">
 
         <div className="flex items-center justify-between mb-space-md">
-          <div className="flex items-center gap-4">
+          <div id="portfolio-print-start" className="flex items-center gap-4">
             <h2 className={`text-h2 font-bold font-serif tracking-wide mb-2 ${darkMode ? 'text-hair' : 'text-ink'}`}>
               {selectedProject ? selectedProject.title : `@${username}`}
             </h2>
           </div>
-          <button
-            onClick={() => setDarkMode(!darkMode)}
-            className={`inline-flex items-center gap-1 px-3 py-1 text-xs rounded-btn border ${darkMode ? 'border-ink-2 text-faint' : 'border-faint text-muted'}`}
-          >
-            {darkMode
-              ? <><Sun size={12} strokeWidth={1.5} />{' '}{t('settings.themeBeige')}</>
-              : <><Moon size={12} strokeWidth={1.5} />{' '}{t('settings.themeDark')}</>}
-          </button>
+          <div className="flex items-center gap-2">
+            {/*{selectedProject && (
+              <button
+                onClick={handleExportPDF}
+                disabled={isPdfExporting}
+                className={`inline-flex items-center gap-1 px-3 py-1 text-xs rounded-btn border
+                  ${darkMode ? 'border-ink-2 text-faint' : 'border-faint text-muted'}
+                  disabled:opacity-40 disabled:cursor-not-allowed`}
+              >
+                <Download size={12} strokeWidth={1.5} />
+                {isPdfExporting ? pdfProgress : 'PDF'}
+              </button>
+            )}*/}
+            <button
+              onClick={() => setDarkMode(!darkMode)}
+              className={`inline-flex items-center gap-1 px-3 py-1 text-xs rounded-btn border ${darkMode ? 'border-ink-2 text-faint' : 'border-faint text-muted'}`}
+            >
+              {darkMode
+                ? <><Sun size={12} strokeWidth={1.5} />{' '}{t('settings.themeBeige')}</>
+                : <><Moon size={12} strokeWidth={1.5} />{' '}{t('settings.themeDark')}</>}
+            </button>
+          </div>
         </div>
 
         {!selectedProject && (
@@ -259,7 +300,7 @@ export default function PublicPortfolio() {
         )}
 
         {selectedProject && (
-          <div>
+          <div id="portfolio-print-area">
             <div className="mb-space-md max-w-2xl">
               {selectedProject.location && (
                 <p className={`flex items-center gap-1 text-menu uppercase mb-6 ${subText}`}>

@@ -484,10 +484,12 @@ function ProjectStory({
         ...item,
         order_in_block: idx
       }))
-      // 블록 아이템이 원래 있던 첫 번째 위치에 삽입
-      const firstIdx = items.findIndex(i => blockItemIdSet.has(i.id))
+      // nonBlockItems 기준으로 삽입 위치 계산:
+      // 이 블록의 order_num보다 작은 nonBlockItem 수 = 삽입 인덱스
+      const blockOrderNum = newBlockItems[0]?.order_num ?? 0
+      const insertIdx = nonBlockItems.filter(i => i.order_num < blockOrderNum).length
       const result = [...nonBlockItems]
-      result.splice(firstIdx === -1 ? result.length : firstIdx, 0, ...updatedBlockItems)
+      result.splice(insertIdx, 0, ...updatedBlockItems)
       return { ...prev, [chapterId]: result }
     })
 
@@ -685,56 +687,66 @@ function ProjectStory({
           }
 
           const activeId = String(active.id)
-          const chapterId = Object.keys(chapterPhotos).find(cid =>
-            chapterPhotos[cid].some(i => i.id === activeId)
-          )
-          if (!chapterId) return
 
-          const items = chapterPhotos[chapterId]
-          const activeItem = items.find(i => i.id === activeId)
-          if (!activeItem) return
+          // stale closure 방지: 함수형 업데이트로 최신 state 읽기
+          // onDragOver가 이미 block_id를 바꿔둔 상태에서 정확히 읽음
+          let syncChapterId: string | null = null
+          let syncItems: { id: string; block_id: string | null; order_num: number; order_in_block: number }[] = []
 
-          const activeIndex = items.findIndex(i => i.id === activeId)
-          if (activeIndex === -1) return
+          setChapterPhotos(prev => {
+            const chapterId = Object.keys(prev).find(cid => prev[cid].some(i => i.id === activeId))
+            if (!chapterId) return prev
 
-          const targetBlockId = activeItem.block_id
+            const items = prev[chapterId]
+            if (!items.find(i => i.id === activeId)) return prev
 
-          let lastTargetIndex = -1
-          items.forEach((item, idx) => {
-            if (item.block_id === targetBlockId && item.id !== activeId) {
-              lastTargetIndex = idx
-            }
-          })
-
-          const insertIndex = lastTargetIndex === -1 ? activeIndex : lastTargetIndex
-          const newItems = arrayMove(items, activeIndex, insertIndex)
-
-          const blockCounter: Record<string, number> = {}
-          const finalItems = newItems.map(item => {
-            if (item.item_type !== 'PHOTO' || !item.block_id) return item
-            const bid = item.block_id
-            blockCounter[bid] = (blockCounter[bid] ?? 0)
-            const order = blockCounter[bid]++
-            return { ...item, order_in_block: order }
-          })
-
-          setChapterPhotos(prev => ({ ...prev, [chapterId]: finalItems }))
-
-          const itemsToSync = finalItems.map((item, index) => ({
-            id: item.id,
-            block_id: item.block_id,
-            order_num: (index + 1) * 10,
-            order_in_block: item.item_type === 'PHOTO'
-              ? finalItems.filter(i => i.block_id === item.block_id).indexOf(item)
-              : 0
-          }))
-
-          try {
-            await axios.put(`${API}/chapters/${chapterId}/items/bulk-sync`, {
-              items: itemsToSync
+            // arrayMove 대신 블록 단위 그룹화 → order_num 기준 재정렬
+            // TEXT 블록이 섞여 있어도 순서가 뒤바뀌지 않음
+            const blockOrder = new Map<string, number>()
+            items.forEach(item => {
+              const bid = item.block_id ?? item.id
+              if (!blockOrder.has(bid)) blockOrder.set(bid, item.order_num)
             })
-          } catch (err) {
-            console.error('동기화 실패:', err)
+
+            const sortedBlockIds = [...blockOrder.entries()]
+              .sort((a, b) => a[1] - b[1])
+              .map(e => e[0])
+
+            const blockGroups = new Map<string, typeof items>()
+            items.forEach(item => {
+              const bid = item.block_id ?? item.id
+              if (!blockGroups.has(bid)) blockGroups.set(bid, [])
+              blockGroups.get(bid)!.push(item)
+            })
+
+            const finalItems: typeof items = []
+            sortedBlockIds.forEach((bid, blockIdx) => {
+              const group = (blockGroups.get(bid) || [])
+                .sort((a, b) => a.order_in_block - b.order_in_block)
+              group.forEach((item, itemIdx) => {
+                finalItems.push({
+                  ...item,
+                  order_num: blockIdx * 10,
+                  order_in_block: item.item_type === 'PHOTO' ? itemIdx : 0,
+                })
+              })
+            })
+
+            syncChapterId = chapterId
+            syncItems = finalItems.map(item => ({
+              id: item.id,
+              block_id: item.block_id,
+              order_num: item.order_num,
+              order_in_block: item.order_in_block,
+            }))
+
+            return { ...prev, [chapterId]: finalItems }
+          })
+
+          if (syncChapterId) {
+            axios.put(`${API}/chapters/${syncChapterId}/items/bulk-sync`, {
+              items: syncItems
+            }).catch(err => console.error('동기화 실패:', err))
           }
         }}
       >
