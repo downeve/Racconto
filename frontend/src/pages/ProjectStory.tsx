@@ -72,7 +72,9 @@ function groupIntoBlocks(items: ChapterItem[]): ChapterBlock[] {
       blocks.push({ type: 'TEXT', blockId: item.id, items: [item], order_num: item.order_num })
     } else if (isSideBySide) {
       if (blockMap.has(bid)) {
-        blockMap.get(bid)!.items.push(item)
+        const existingBlock = blockMap.get(bid)!
+        existingBlock.items.push(item)
+        existingBlock.order_num = Math.min(existingBlock.order_num, item.order_num)
       } else {
         const block: ChapterBlock = { type: 'SIDE', blockId: bid, items: [item], order_num: item.order_num }
         blockMap.set(bid, block)
@@ -81,7 +83,6 @@ function groupIntoBlocks(items: ChapterItem[]): ChapterBlock[] {
     } else {
       if (blockMap.has(bid)) {
         blockMap.get(bid)!.items.push(item)
-        blockMap.get(bid)!.items.sort((a, b) => a.order_in_block - b.order_in_block)
       } else {
         const block: ChapterBlock = { type: 'PHOTO', blockId: bid, items: [item], order_num: item.order_num }
         blockMap.set(bid, block)
@@ -417,7 +418,7 @@ function ProjectStory({
 
     const findBlockIndex = (dndId: string) => {
       return blocks.findIndex(b => {
-        // blockId로 직접 비교 (SortableContext에 등록된 id와 동일)
+        // TEXT 블록은 blockId === item.id이므로 이 조건으로도 매칭됨
         if (b.blockId === dndId) return true;
         // 사진 위에 drop된 경우, 그 사진을 포함한 블록 찾기
         if (b.items.some(item => item.id === dndId)) return true;
@@ -494,6 +495,8 @@ function ProjectStory({
     setChapterPhotos(prev => {
       const items = prev[chapterId] || []
       const intendedOrderSet = new Set(intendedOrder)
+      // order_num 값이 아닌 배열 위치 기준으로 삽입 위치 결정
+      const firstBlockItemIdx = items.findIndex(i => intendedOrderSet.has(i.id))
       const nonBlockItems = items.filter(i => !intendedOrderSet.has(i.id))
       const reorderedItems = intendedOrder
         .flatMap(id => {
@@ -502,8 +505,10 @@ function ProjectStory({
         })
         .map((item, idx) => ({ ...item, order_in_block: idx }))
       if (reorderedItems.length === 0) return prev
-      const blockOrderNum = reorderedItems[0].order_num ?? 0
-      const insertIdx = nonBlockItems.filter(i => i.order_num < blockOrderNum).length
+      const insertIdx = nonBlockItems.filter((_, i) => {
+        const originalIdx = items.findIndex(item => item.id === nonBlockItems[i].id)
+        return originalIdx < firstBlockItemIdx
+      }).length
       const result = [...nonBlockItems]
       result.splice(insertIdx, 0, ...reorderedItems)
       return { ...prev, [chapterId]: result }
@@ -513,7 +518,7 @@ function ProjectStory({
       block_id: blockId,
       item_ids: intendedOrder
     }).catch(err => console.error('블록 내 순서 업데이트 실패:', err))
-  }, [chapterPhotos])
+  }, [])
 
   // 블록 간 사진 이동
   const handleCrossBlockDragEnd = useCallback(async (
@@ -553,12 +558,15 @@ function ProjectStory({
         return { ...prev, [chapterId]: updated }
       })
 
-      await axios.put(`${API}/chapters/${chapterId}/items/move-to-block`, {
-        item_id: itemId,
-        target_block_id: newBlockId,
-      }).catch(err => console.error('새 블록 이동 실패:', err))
-
-      fetchChapterPhotos(chapterId)
+      try {
+        await axios.put(`${API}/chapters/${chapterId}/items/move-to-block`, {
+          item_id: itemId,
+          target_block_id: newBlockId,
+        })
+      } catch (err) {
+        console.error('새 블록 이동 실패:', err)
+        fetchChapterPhotos(chapterId)
+      }
       return
     }
 
@@ -601,13 +609,16 @@ function ProjectStory({
       return { ...prev, [chapterId]: updated }
     })
 
-    await axios.put(`${API}/chapters/${chapterId}/items/move-to-block`, {
-      item_id: itemId,
-      target_block_id: targetBlockId,
-    }).catch(err => console.error('블록 간 이동 실패:', err))
-
-    fetchChapterPhotos(chapterId)
-  }, [chapterPhotos, fetchChapterPhotos])
+    try {
+      await axios.put(`${API}/chapters/${chapterId}/items/move-to-block`, {
+        item_id: itemId,
+        target_block_id: targetBlockId,
+      })
+    } catch (err) {
+      console.error('블록 간 이동 실패:', err)
+      fetchChapterPhotos(chapterId)
+    }
+  }, [fetchChapterPhotos])
 
   //챕터 블록 <DndContext /> 헬퍼 함수
   const renderChapterBlocks = (targetChapterId: string) => {
@@ -654,7 +665,6 @@ function ProjectStory({
           if (!over || active.id === over.id) return
           if (!draggingItemIdRef.current) return
 
-          const activeId = String(active.id)
           const overId = String(over.id)
 
           let newBlockId: string | null = null
@@ -667,27 +677,13 @@ function ProjectStory({
           }
 
           if (!newBlockId || newBlockId === currentDragBlockIdRef.current) return
-
           currentDragBlockIdRef.current = newBlockId
-          setChapterPhotos((prev) => {
-            const chapterId = Object.keys(prev).find(cid => prev[cid].some(i => i.id === activeId))
-            if (!chapterId) return prev
-
-            const items = prev[chapterId]
-            const activeIndex = items.findIndex(i => i.id === activeId)
-            if (activeIndex === -1) return prev
-
-            const activeItem = items[activeIndex]
-            if (activeItem.block_id === newBlockId) return prev
-
-            const newItems = [...items]
-            newItems[activeIndex] = { ...activeItem, block_id: newBlockId! }
-            return { ...prev, [chapterId]: newItems }
-          })
         }}
         onDragEnd={async (e) => {
           const { active, over } = e
           const itemId = draggingItemIdRef.current
+          const sourceBlockId = draggingItemBlockIdRef.current
+          const finalBlockId = currentDragBlockIdRef.current
 
           setActiveBlockId(null)
           setActiveBlockItems([])
@@ -703,6 +699,11 @@ function ProjectStory({
           }
           if (!over) {
             fetchChapterPhotos(targetChapterId)
+            return
+          }
+
+          if (finalBlockId && sourceBlockId && finalBlockId !== sourceBlockId) {
+            handleCrossBlockDragEnd(targetChapterId, itemId, sourceBlockId, finalBlockId)
             return
           }
 

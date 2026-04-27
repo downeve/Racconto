@@ -52,7 +52,7 @@ export default function PublicNavbar({ username, darkMode, compact }: { username
           <div className="flex items-center gap-3">
             <Link
               to="/"
-              className={`font-serif text-h3 inline-block transition-[background,color,border] duration-150 ease-out ${dm ? 'text-hair' : 'text-ink'}`}
+              className={`font-serif text-h3 md:text-h2 inline-block transition-[background,color,border] duration-150 ease-out ${dm ? 'text-hair' : 'text-ink'}`}
               style={{
                 fontWeight: 700,
                 letterSpacing: '0.08em',
@@ -65,7 +65,7 @@ export default function PublicNavbar({ username, darkMode, compact }: { username
               <Link
                 to={`/p/${username}`}
                 state={{ resetToList: true }}
-                className={`text-small transition-[background,color,border] duration-150 ease-out ${dm ? 'text-faint hover:text-hair' : 'text-muted hover:text-ink'} hover:font-bold`}
+                className={`texy-body md:text-h3 transition-[background,color,border] duration-150 ease-out ${dm ? 'text-faint hover:text-hair' : 'text-muted hover:text-ink'} hover:font-bold`}
               >
                 @{username}
               </Link>
@@ -74,25 +74,25 @@ export default function PublicNavbar({ username, darkMode, compact }: { username
         <div className="flex items-center gap-3 sm:gap-6">
           <Link
             to="/features"
-            className={`text-body sm:text-small tracking-wider hover:font-bold transition-[background,color,border] duration-150 ease-out ${dm ? 'text-faint hover:text-hair' : 'text-ink-2 hover:text-ink'}`}
+            className={`text-body md:text-h3 tracking-wider hover:font-bold transition-[background,color,border] duration-150 ease-out ${dm ? 'text-faint hover:text-hair' : 'text-ink-2 hover:text-ink'}`}
           >
             {t('nav.features')}
           </Link>
           <button
             onClick={toggleLanguage}
-            className={`text-small font-semibold tracking-widest hover:font-bold transition-[background,color,border] duration-150 ease-out ${dm ? 'text-faint hover:text-hair' : 'text-faint hover:text-ink-2'}`}
+            className={`text-body md:text-h3 font-semibold tracking-widest hover:font-bold transition-[background,color,border] duration-150 ease-out ${dm ? 'text-faint hover:text-hair' : 'text-faint hover:text-ink-2'}`}
           >
             {i18n.language === 'ko' ? 'EN' : 'KO'}
           </button>
           <Link
             to="/login"
-            className={`hidden sm:inline-flex text-body sm:text-small tracking-wider hover:font-bold transition-[background,color,border] duration-150 ease-out ${dm ? 'text-faint hover:text-hair' : 'text-ink-2 hover:text-ink'}`}
+            className={`hidden sm:inline-flex texty-body md:text-h3 tracking-wider hover:font-bold transition-[background,color,border] duration-150 ease-out ${dm ? 'text-faint hover:text-hair' : 'text-ink-2 hover:text-ink'}`}
           >
             {t('auth.login')}
           </Link>
           <Link
             to="/register"
-            className="hidden sm:inline-flex tracking-wider text-small btn-primary whitespace-nowrap transition-[background,color,border] duration-150 ease-out"
+            className="hidden sm:inline-flex tracking-wider text-body btn-primary whitespace-nowrap"
           >
             {t('auth.register')}
           </Link>

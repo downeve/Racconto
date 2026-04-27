@@ -120,25 +120,6 @@ export default function LandingPage() {
           }}
         />
 
-        {/* 떠다니는 사진 프레임 장식
-        <div className="absolute top-32 left-8 md:left-24 w-28 h-36 bg-white shadow rounded-sm rotate-[-6deg] opacity-60"
-          style={{ transform: `rotate(-6deg) translateY(${scrollY * 0.05}px)` }}>
-          <div className="w-full h-full bg-white/60 rounded-sm border border-stone-200" />
-        </div>
-        <div className="absolute top-40 right-8 md:right-24 w-24 h-32 bg-white shadow rounded-sm rotate-[4deg] opacity-50"
-          style={{ transform: `rotate(4deg) translateY(${scrollY * 0.08}px)` }}>
-          <div className="w-full h-full bg-stone-300 rounded-sm" />
-        </div>
-        <div className="absolute bottom-32 left-12 md:left-40 w-20 h-28 bg-white shadow rounded-sm rotate-[3deg] opacity-40"
-          style={{ transform: `rotate(3deg) translateY(${scrollY * 0.06}px)` }}>
-          <div className="w-full h-full bg-stone-200 rounded-sm" />
-        </div>
-        <div className="absolute bottom-40 right-12 md:right-40 w-32 h-40 bg-white shadow rounded-sm rotate-[-3deg] opacity-35"
-          style={{ transform: `rotate(-3deg) translateY(${scrollY * 0.04}px)` }}>
-          <div className="w-full h-full bg-white/60 rounded-sm border border-stone-200" />
-        </div>
-         */}
-
         {/* 메인 텍스트 */}
         <div className="relative z-10 text-center max-w-4xl">
           <p className="text-body md:text-h3 tracking-[0.3em] text-faint uppercase mb-6">
@@ -163,13 +144,13 @@ export default function LandingPage() {
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
             <Link
               to="/register"
-              className="px-8 py-3.5 bg-card text-ink text-base tracking-widest hover:bg-ink-2 hover:text-hair transition-all duration-200 shadow rounded"
+              className="px-8 py-3.5 min-w-48 text-body font-serif font-semibold btn-primary tracking-widest transition-all duration-200 shadow rounded"
             >
               {t('landing.ctaPrimary')}
             </Link>
             <button
               onClick={() => featuresRef.current?.scrollIntoView({ behavior: 'smooth' })}
-              className="px-8 py-3.5 bg-ink-2 text-hair text-base tracking-widest hover:bg-card hover:text-ink transition-all duration-200 rounded"
+              className="px-8 py-3.5 min-w-48 text-body font-serif font-semibold btn-secondary-on-card transition-all duration-200 rounded"
             >
               {t('landing.ctaSecondary')}
             </button>

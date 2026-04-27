@@ -16,7 +16,7 @@ export default function AuthNavbar() {
           {/* 로고 — serif, regular weight, 가벼운 tracking, 1px 광학 보정 */}
           <Link
             to="/"
-            className="font-serif text-h3 text-ink inline-block"
+            className="font-serif text-h2 text-ink inline-block"
             style={{
               fontWeight: 700,
               letterSpacing: '0.08em',
@@ -27,7 +27,7 @@ export default function AuthNavbar() {
           </Link>
         <button
           onClick={toggleLanguage}
-          className="text-small font-semibold text-faint hover:text-ink-2 hover:font-bold transition-[background,color,border] duration-150 ease-out"
+          className="text-body md:text-h3 font-semibold text-faint hover:text-ink-2 hover:font-bold transition-[background,color,border] duration-150 ease-out"
         >
           {i18n.language === 'ko' ? 'EN' : 'KO'}
         </button>

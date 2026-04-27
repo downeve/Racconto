@@ -107,7 +107,7 @@ export default function Navbar({ onLogout }: NavbarProps) {
           {/* 로고 — serif, regular weight, 가벼운 tracking, 1px 광학 보정 */}
           <Link
             to="/"
-            className="font-serif text-h3 text-ink inline-block"
+            className="font-serif text-h3 md:text-h2 text-ink inline-block"
             style={{
               fontWeight: 700,
               letterSpacing: '0.08em',
@@ -118,13 +118,13 @@ export default function Navbar({ onLogout }: NavbarProps) {
           </Link>
           <Link
             to="/projects"
-            className="text-small uppercase text-muted hover:text-ink-2 hover:font-bold"
+            className="text-body md:text-h3 uppercase text-muted hover:text-ink-2 hover:font-bold"
           >
             {t('nav.projects')}
           </Link>
           <button
             onClick={handlePortfolioClick}
-            className="text-small uppercase text-muted hover:text-ink-2 hover:font-bold"
+            className="text-body md:text-h3 uppercase text-muted hover:text-ink-2 hover:font-bold"
           >
             {t('nav.portfolio')}
           </button>
