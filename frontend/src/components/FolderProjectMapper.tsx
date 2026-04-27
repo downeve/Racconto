@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
 import axios from 'axios'
 import { FolderOpenIcon, XMarkIcon, LinkIcon, ExclamationTriangleIcon } from '@heroicons/react/24/outline'
+import { Folder } from 'lucide-react'
 import ConfirmModal from './ConfirmModal'
 
 const API = import.meta.env.VITE_API_URL
@@ -165,7 +166,9 @@ export default function FolderProjectMapper() {
       <div className="flex items-center gap-2">
         <button onClick={handleSelectFolder}
           className="px-3 py-2 text-sm border rounded hover:bg-gray-50 shrink-0">
-          {selectedFolder ? '📁 ' + selectedFolder.split('/').pop() : t('electron.selectFolder')}
+          {selectedFolder
+            ? <span className="flex items-center gap-1"><Folder size={14} strokeWidth={1.5} />{selectedFolder.split('/').pop()}</span>
+            : t('electron.selectFolder')}
         </button>
         <select
           value={selectedProjectId}
