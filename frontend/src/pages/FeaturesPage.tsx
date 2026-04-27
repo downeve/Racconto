@@ -111,7 +111,7 @@ function FeatureSection({
         >
           {feature.title}
         </h3>
-        <p className="text-stone-500 text-sm md:text-base leading-relaxed [word-break:keep-all]">
+        <p className="text-stone-500 text-sm md:text-base leading-relaxed keep-all">
           {feature.desc}
         </p>
 

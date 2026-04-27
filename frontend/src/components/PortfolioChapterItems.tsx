@@ -180,7 +180,7 @@ export default function PortfolioChapterItems({
           <MarkdownRenderer
             content={group.text.text_content || ''}
             darkMode={darkMode}
-            className="leading-[2.1] [word-break:keep-all] w-full font-serif"
+            className="leading-[2.1] keep-all w-full font-serif"
           />
         </div>
       ) : null

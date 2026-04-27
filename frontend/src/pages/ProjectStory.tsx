@@ -1573,7 +1573,7 @@ function ProjectStory({
                             </h3>
                           </div>
                           {chapter.description && (
-                            <p className={`text-body font-serif max-w-xl [word-break:keep-all] mt-2 ${subText}`}>
+                            <p className={`text-body font-serif max-w-xl keep-all mt-2 ${subText}`}>
                               {chapter.description}
                             </p>
                           )}
@@ -1601,7 +1601,7 @@ function ProjectStory({
                                 </h4>
                               </div>
                               {sub.description && (
-                                <p className={`text-body font-serif mt-2 max-w-xl [word-break:keep-all] ${subText}`}>
+                                <p className={`text-body font-serif mt-2 max-w-xl keep-all ${subText}`}>
                                   {sub.description}
                                 </p>
                               )}
