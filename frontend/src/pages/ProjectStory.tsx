@@ -518,7 +518,7 @@ function ProjectStory({
       block_id: blockId,
       item_ids: intendedOrder
     }).catch(err => console.error('블록 내 순서 업데이트 실패:', err))
-  }, [])
+  }, [chapterPhotos])
 
   // 블록 간 사진 이동
   const handleCrossBlockDragEnd = useCallback(async (
