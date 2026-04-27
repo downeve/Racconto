@@ -706,6 +706,8 @@ def move_item_to_block(
     item.block_id = body.target_block_id
     item.order_in_block = len(target_items)
     item.block_layout = target_layout
+    if target_items:
+        item.order_num = target_items[0].order_num
 
     # 원래 블록에 PHOTO가 남아있는지 확인
     remaining = db.query(models.ChapterItem).filter(

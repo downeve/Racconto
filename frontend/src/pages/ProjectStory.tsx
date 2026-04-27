@@ -162,9 +162,14 @@ function ProjectStory({
   const blocksPerChapter = useMemo(() => {
     const map: Record<string, ChapterBlock[]> = {}
     Object.keys(chapterPhotos).forEach(chapterId => {
-      const visibleItems = (chapterPhotos[chapterId] || []).filter(item =>
-        item.item_type === 'TEXT' || (item.photo_id != null && allPhotoIds.has(item.photo_id))
-      )
+      const visibleItems = (chapterPhotos[chapterId] || [])
+        .filter(item =>
+          item.item_type === 'TEXT' || (item.photo_id != null && allPhotoIds.has(item.photo_id))
+        )
+        .sort((a, b) => {
+          if (a.order_num !== b.order_num) return a.order_num - b.order_num
+          return a.order_in_block - b.order_in_block
+        })
       map[chapterId] = groupIntoBlocks(visibleItems)
     })
     return map
@@ -547,27 +552,32 @@ function ProjectStory({
       return
     }
 
-    const items = chapterPhotos[chapterId] || []
-    const targetItems = items.filter(i => i.block_id === targetBlockId && i.item_type === 'PHOTO')
-    const targetLayout = targetItems[0]?.block_layout || 'grid'
-    const sourceRemaining = items.filter(i =>
-      i.block_id === sourceBlockId && i.item_type === 'PHOTO' && i.id !== itemId
-    )
-
-    // 낙관적 업데이트
+    // 낙관적 업데이트 — prev로 최신 state를 읽어 stale closure 방지 + order_num 갱신
     setChapterPhotos(prev => {
       const all = prev[chapterId] || []
+      const prevTargetItems = all.filter(i => i.block_id === targetBlockId && i.item_type === 'PHOTO')
+      const prevTargetLayout = prevTargetItems[0]?.block_layout || 'grid'
+      const prevTargetOrderNum = prevTargetItems[0]?.order_num ?? (all[all.length - 1]?.order_num ?? 0)
+      const prevSourceRemaining = all.filter(i =>
+        i.block_id === sourceBlockId && i.item_type === 'PHOTO' && i.id !== itemId
+      )
+
       const updated = all.map(i => {
         if (i.id === itemId) {
-          return { ...i, block_id: targetBlockId, order_in_block: targetItems.length, block_layout: targetLayout }
+          return {
+            ...i,
+            block_id: targetBlockId,
+            order_in_block: prevTargetItems.length,
+            order_num: prevTargetOrderNum,
+            block_layout: prevTargetLayout,
+          }
         }
-        // 원래 블록 order_in_block 재정렬
-        const srcIdx = sourceRemaining.findIndex(s => s.id === i.id)
+        const srcIdx = prevSourceRemaining.findIndex(s => s.id === i.id)
         if (srcIdx !== -1) return { ...i, order_in_block: srcIdx }
         return i
       })
       // 원래 블록이 비면 side-by-side 텍스트도 독립 처리
-      if (sourceRemaining.length === 0) {
+      if (prevSourceRemaining.length === 0) {
         return {
           ...prev,
           [chapterId]: updated.map(i => {
