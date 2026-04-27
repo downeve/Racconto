@@ -142,3 +142,69 @@ API 베이스: dev는 `http://localhost:8000`, 패키징 후는 `https://raccont
 1. [단계] → 검증: [확인 방법]
 2. [단계] → 검증: [확인 방법]
 ```
+
+
+## 🎨 디자인 시스템 — 아이콘 규칙
+
+### 이모지 아이콘 사용 금지
+
+UI 컴포넌트에서 이모지를 아이콘 대용으로 절대 사용하지 말 것.
+이모지(📁 📝 🗑 💻 📖 👁 ☀️ 🌙 📍 등)는 OS마다 색감·비율·렌더링이
+달라서 Racconto의 에디토리얼 톤을 깬다.
+
+**금지 패턴:**
+```tsx
+// ❌ 이모지 아이콘
+<span>📁</span>
+<button>🗑 삭제</button>
+{isDark ? '🌙' : '☀️'}
+```
+
+### Lucide React 아이콘 세트 단일 표준
+
+모든 아이콘은 `lucide-react` 패키드만 사용한다.
+이미 설치되어 있으므로 추가 설치 불필요.
+
+**올바른 사용법:**
+```tsx
+import { Folder, FileText, Trash2, Monitor, BookOpen,
+         Eye, Sun, Moon, MapPin } from 'lucide-react'
+
+// 기본 stroke width: 1.5 (Instrument Serif와 잘 맞는 절제된 굵기)
+<Trash2 size={16} strokeWidth={1.5} />
+<MapPin size={16} strokeWidth={1.5} />
+```
+
+**strokeWidth 규칙:**
+- 기본값: `1.5` (전체 UI 통일)
+- 강조가 필요한 경우만 예외적으로 `2` 허용
+- `strokeWidth` 미지정 시 Lucide 기본값(2)이 들어가므로 반드시 명시할 것
+
+**자주 쓰는 아이콘 대응표:**
+
+| 기존 이모지 | Lucide 컴포넌트 |
+|------------|----------------|
+| 📁 | `<Folder />` |
+| 📝 | `<FileText />` |
+| 🗑 | `<Trash2 />` |
+| 💻 | `<Monitor />` |
+| 📖 | `<BookOpen />` |
+| 👁 | `<Eye />` |
+| ☀️ | `<Sun />` |
+| 🌙 | `<Moon />` |
+| 📍 | `<MapPin />` |
+
+### 기존 코드 수정 시
+
+작업 중 이모지 아이콘을 발견하면 해당 파일 범위 안에서 함께 교체할 것.
+단, 이모지 교체만을 목적으로 한 대규모 리팩토링은 별도 커밋으로 분리한다.
+
+**커밋 메시지 예시:**
+
+style: 이모지 아이콘 → Lucide 아이콘 교체 (ProjectDetail, Navbar)
+
+### 예외
+
+- 실제 텍스트 콘텐츠(캡션, 설명글, 마케팅 카피)의 이모지는 허용
+- CLAUDE.md 등 개발 문서 내부의 이모지는 허용
+- 사용자가 입력한 텍스트에 포함된 이모지는 그대로 렌더링
