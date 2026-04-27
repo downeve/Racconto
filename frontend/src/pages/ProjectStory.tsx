@@ -1,6 +1,7 @@
 import { useEffect, useState, useMemo, useRef, memo, useCallback } from 'react'
 import axios from 'axios'
 import { useTranslation } from 'react-i18next'
+import { Eye, FileText, Sun, Moon } from 'lucide-react'
 import PhotoNotePanel from '../components/PhotoNotePanel'
 import { useElectronSidebar } from '../context/ElectronSidebarContext'
 import ConfirmModal from '../components/ConfirmModal'
@@ -965,9 +966,9 @@ function ProjectStory({
         </button>
         <button
           onClick={() => setShowPreview(true)}
-          className="w-full mb-3 text-menu btn-secondary-on-card px-2 py-1.5 rounded-card transition-colors tracking-wider"
+          className="w-full mb-3 text-menu btn-secondary-on-card px-2 py-1.5 rounded-card transition-colors tracking-wider inline-flex items-center justify-center gap-1.5"
         >
-          👁 {t('story.preview')}
+          <Eye size={14} strokeWidth={1.5} />{t('story.preview')}
         </button>
         <div className="space-y-1">
           {chapters.filter(c => !c.parent_id).map((chapter, idx) => {
@@ -1414,13 +1415,13 @@ function ProjectStory({
             {/* 노트 버튼 */}
               <button
                 onClick={e => { e.stopPropagation(); setShowNotePanel(v => !v) }}
-                className={`text-xs px-2 py-1 border rounded transition-colors ${
+                className={`inline-flex items-center gap-1 text-xs px-2 py-1 border rounded transition-colors ${
                   showNotePanel
                     ? 'border-white/50 text-white'
                     : 'border-white/20 text-white/60 hover:text-white hover:border-white/50'
                 }`}
               >
-                📝 {t('note.title')}
+                <FileText size={12} strokeWidth={1.5} />{t('note.title')}
               </button>
               <span className="text-white/50 text-sm">
                 {selectedPhotoIndex + 1} / {currentChapterPhotos.length}
@@ -1500,9 +1501,11 @@ function ProjectStory({
                   {/* 다크/라이트 토글 */}
                   <button
                     onClick={() => setPreviewDarkMode(v => !v)}
-                    className={`text-xs px-3 py-1 rounded-btn border transition-colors ${toggleClass}`}
+                    className={`inline-flex items-center gap-1 text-xs px-3 py-1 rounded-btn border transition-colors ${toggleClass}`}
                   >
-                    {dm ? '☀️ ' + t('settings.themeBeige') : '🌙 ' + t('settings.themeDark')}
+                    {dm
+                      ? <><Sun size={12} strokeWidth={1.5} />{t('settings.themeBeige')}</>
+                      : <><Moon size={12} strokeWidth={1.5} />{t('settings.themeDark')}</>}
                   </button>
                   <button
                     onClick={() => setShowPreview(false)}
