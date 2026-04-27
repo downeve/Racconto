@@ -4,6 +4,7 @@
 
 import { useEffect, useState } from 'react'
 import { useParams } from 'react-router-dom'
+import { Link2, Lock, Sun, Moon } from 'lucide-react'
 
 const API = import.meta.env.VITE_API_URL
 
@@ -168,7 +169,7 @@ export default function DeliveryPage() {
     return (
       <div className={`min-h-screen flex items-center justify-center ${bg}`}>
         <div className="text-center">
-          <p className="text-3xl mb-3">🔗</p>
+          <div className="flex justify-center mb-3"><Link2 size={40} strokeWidth={1.5} /></div>
           <p className={subText}>{errorMsg}</p>
         </div>
       </div>
@@ -181,7 +182,7 @@ export default function DeliveryPage() {
       <div className={`min-h-screen flex items-center justify-center ${bg} px-4`}>
         <div className={`w-full max-w-sm ${cardBg} rounded-2xl shadow p-8`}>
           <div className="text-center mb-6">
-            <p className="text-3xl mb-3">🔒</p>
+            <div className="flex justify-center mb-3"><Lock size={40} strokeWidth={1.5} /></div>
             <h1 className="text-lg font-semibold">{info?.project_title || '납품 링크'}</h1>
             {info?.label && <p className={`text-sm ${subText} mt-1`}>{info.label}</p>}
           </div>
@@ -220,9 +221,9 @@ export default function DeliveryPage() {
             {/* 다크모드 토글 */}
             <button
               onClick={() => setDarkMode(!darkMode)}
-              className={`px-3 py-1 text-xs rounded-full border ${darkMode ? 'border-gray-600 text-gray-400' : 'border-gray-300 text-gray-500'}`}
+              className={`inline-flex items-center gap-1 px-3 py-1 text-xs rounded-full border ${darkMode ? 'border-gray-600 text-gray-400' : 'border-gray-300 text-gray-500'}`}
             >
-              {darkMode ? '☀️ 라이트' : '🌙 다크'}
+              {darkMode ? <><Sun size={12} strokeWidth={1.5} /> 라이트</> : <><Moon size={12} strokeWidth={1.5} /> 다크</>}
             </button>
             {/* 선택 완료 버튼 */}
             <button
