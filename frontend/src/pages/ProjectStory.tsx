@@ -5,7 +5,7 @@ import { Eye, FileText, Sun, Moon } from 'lucide-react'
 import PhotoNotePanel from '../components/PhotoNotePanel'
 import { useElectronSidebar } from '../context/ElectronSidebarContext'
 import ConfirmModal from '../components/ConfirmModal'
-import PortfolioChapterItems, { type PortfolioChapterItem } from '../components/PortfolioChapterItems'
+import PortfolioChapterItems, { type PortfolioChapterItem, type PortfolioPhoto } from '../components/PortfolioChapterItems'
 import {
   SortablePhotoBlock,
   SortableTextBlock,
@@ -132,6 +132,8 @@ function ProjectStory({
   // 포트폴리오 미리보기
   const [showPreview, setShowPreview] = useState(false)
   const [previewDarkMode, setPreviewDarkMode] = useState(false)
+  const [previewLbIndex, setPreviewLbIndex] = useState<number | null>(null)
+  const [previewLbItems, setPreviewLbItems] = useState<{ photo: PortfolioPhoto; title: string }[]>([])
 
   const [activeBlockId, setActiveBlockId] = useState<string | null>(null)
   const [activeBlockItems, setActiveBlockItems] = useState<ChapterItem[]>([])
@@ -264,6 +266,19 @@ function ProjectStory({
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [selectedPhotoIndex, currentChapterPhotos]);
+
+  useEffect(() => {
+    if (previewLbIndex === null) return
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') { setPreviewLbIndex(null); return }
+      if (e.key === 'ArrowRight' && previewLbIndex < previewLbItems.length - 1)
+        setPreviewLbIndex(v => v! + 1)
+      if (e.key === 'ArrowLeft' && previewLbIndex > 0)
+        setPreviewLbIndex(v => v! - 1)
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [previewLbIndex, previewLbItems])
 
   useEffect(() => {
     if (activeTab !== 'story') return
@@ -1480,16 +1495,36 @@ function ProjectStory({
       {/* ── 포트폴리오 미리보기 오버레이 ─────────────────────── */}
       {showPreview && (() => {
         const dm = previewDarkMode
-        const bg = dm ? 'bg-[#1A1A1A] text-white' : 'bg-[#F5F0EB] text-gray-900'
-        const headerBg = dm ? 'bg-[#1A1A1A]/90 border-white/10' : 'bg-[#F5F0EB]/90 border-gray-200'
-        const subText = dm ? 'text-gray-400' : 'text-gray-500'
-        const divider = dm ? 'bg-white/10' : 'bg-gray-200'
-        const accent = dm ? 'bg-white/30' : 'bg-gray-400'
-        const titleColor = dm ? 'text-white' : 'text-gray-900'
-        const closeColor = dm ? 'text-gray-400 hover:text-white' : 'text-gray-400 hover:text-gray-700'
+        const bg = dm ? 'bg-ink text-hair' : 'bg-canvas text-ink'
+        const headerBg = dm ? 'bg-ink/90 border-hair/10' : 'bg-canvas/90 border-faint'
+        const subText = dm ? 'text-faint' : 'text-muted'
+        const divider = dm ? 'bg-muted' : 'bg-faint'
+        const accent = dm ? 'bg-card/30' : 'bg-faint'
+        const closeColor = dm ? 'text-faint hover:text-hair' : 'text-faint hover:text-ink-2'
         const toggleClass = dm
-          ? 'border-gray-600 text-gray-400 hover:text-white'
-          : 'border-gray-300 text-gray-500 hover:text-gray-900'
+          ? 'border-muted text-faint hover:text-hair'
+          : 'border-faint text-muted hover:text-ink'
+
+        // 전체 챕터 사진을 라이트박스용으로 수집
+        const allLbItems: { photo: PortfolioPhoto; title: string }[] =
+          chapters.filter(c => !c.parent_id).flatMap((chapter) => {
+            const subs = chapters.filter(c => c.parent_id === chapter.id)
+            const mainItems = getVisibleChapterItems(chapter.id)
+              .filter(i => i.item_type !== 'TEXT')
+              .map(i => ({ photo: i as PortfolioPhoto, title: chapter.title }))
+            const subItems = subs.flatMap(sub =>
+              getVisibleChapterItems(sub.id)
+                .filter(i => i.item_type !== 'TEXT')
+                .map(i => ({ photo: i as PortfolioPhoto, title: sub.title }))
+            )
+            return [...mainItems, ...subItems]
+          })
+
+        const openLb = (photo: PortfolioPhoto) => {
+          const idx = allLbItems.findIndex(i => i.photo === photo)
+          setPreviewLbItems(allLbItems)
+          setPreviewLbIndex(idx !== -1 ? idx : 0)
+        }
 
         return (
           <div className={`fixed inset-0 z-[90] ${bg} overflow-y-auto transition-[background,color,border] duration-150 ease-out`}>
@@ -1498,7 +1533,6 @@ function ProjectStory({
               <div className="max-w-4xl mx-auto px-6 h-12 flex items-center justify-between">
                 <span className={`text-xs tracking-widest uppercase ${subText}`}>Portfolio Preview</span>
                 <div className="flex items-center gap-3">
-                  {/* 다크/라이트 토글 */}
                   <button
                     onClick={() => setPreviewDarkMode(v => !v)}
                     className={`inline-flex items-center gap-1 text-xs px-3 py-1 rounded-btn border transition-[background,color,border] duration-150 ease-out ${toggleClass}`}
@@ -1516,7 +1550,7 @@ function ProjectStory({
             </div>
 
             {/* 본문 */}
-            <div className="max-w-4xl mx-auto px-6 py-12">
+            <div className="max-w-4xl mx-auto px-6 pt-space-md pb-space-xl">
               {chapters.length === 0 ? (
                 <p className={`text-center py-20 ${subText}`}>{t('story.noChapter')}</p>
               ) : (
@@ -1525,21 +1559,21 @@ function ProjectStory({
                     const subChapters = chapters.filter(c => c.parent_id === chapter.id)
                     const items = getVisibleChapterItems(chapter.id)
                     return (
-                      <div key={chapter.id} className="pt-20">
-                        {idx > 0 && <div className={`h-px mb-20 ${divider}`} />}
+                      <div key={chapter.id} className="pt-space-lg">
+                        {idx > 0 && <div className={`h-px mb-space-md ${divider}`} />}
 
                         {/* 챕터 헤더 */}
-                        <div className="mb-10">
+                        <div className="mb-space-md">
                           <div className="flex items-baseline gap-2 mb-2">
-                            <p className={`text-xs tracking-widest uppercase ${subText}`}>
+                            <p className={`text-small uppercase mb-3 ${subText}`}>
                               {idx + 1 < 10 ? `0${idx + 1}` : idx + 1}
                             </p>
-                            <h3 className={`text-2xl font-bold tracking-tight ${titleColor}`}>
+                            <h3 className="text-h2 font-bold font-serif mb-4 tracking-tight">
                               {chapter.title}
                             </h3>
                           </div>
                           {chapter.description && (
-                            <p className={`text-base leading-relaxed max-w-xl mt-2 ${subText}`}>
+                            <p className={`text-body font-serif max-w-xl [word-break:keep-all] mt-2 ${subText}`}>
                               {chapter.description}
                             </p>
                           )}
@@ -1548,31 +1582,35 @@ function ProjectStory({
 
                         <PortfolioChapterItems
                           items={items as PortfolioChapterItem[]}
+                          allLightboxItems={allLbItems}
                           darkMode={dm}
+                          onLightbox={openLb}
                         />
 
                         {/* 서브챕터 */}
                         {subChapters.map((sub, subIdx) => (
-                          <div key={sub.id} className="mt-16">
+                          <div key={sub.id} className="mt-space-md">
                             <div className={`h-px mb-10 w-1/3 ${divider}`} />
                             <div className="mb-8">
                               <div className="flex items-baseline gap-2 mb-2">
-                                <p className={`text-xs tracking-widest uppercase ${subText}`}>
+                                <p className={`text-caption uppercase mb-2 ${subText}`}>
                                   {idx + 1}.{subIdx + 1}
                                 </p>
-                                <h4 className={`text-xl font-semibold ${titleColor}`}>
+                                <h4 className="text-h3 font-serif font-semibold">
                                   {sub.title}
                                 </h4>
                               </div>
                               {sub.description && (
-                                <p className={`text-sm leading-relaxed mt-2 max-w-xl ${subText}`}>
+                                <p className={`text-body font-serif mt-2 max-w-xl [word-break:keep-all] ${subText}`}>
                                   {sub.description}
                                 </p>
                               )}
                             </div>
                             <PortfolioChapterItems
                               items={getVisibleChapterItems(sub.id) as PortfolioChapterItem[]}
+                              allLightboxItems={allLbItems}
                               darkMode={dm}
+                              onLightbox={openLb}
                             />
                           </div>
                         ))}
@@ -1582,6 +1620,42 @@ function ProjectStory({
                 </div>
               )}
             </div>
+
+            {/* 프리뷰 라이트박스 */}
+            {previewLbIndex !== null && (() => {
+              const activeLbItem = previewLbItems[previewLbIndex]
+              return activeLbItem ? (
+                <div
+                  className="fixed inset-0 bg-lightbox/[.97] z-[100] flex items-center justify-center"
+                  onClick={() => setPreviewLbIndex(null)}
+                >
+                  <button
+                    className="absolute top-6 right-6 text-h2 z-10 p-3 text-hair hover:opacity-50"
+                    onClick={() => setPreviewLbIndex(null)}
+                  >✕</button>
+                  {previewLbIndex > 0 && (
+                    <button
+                      className="absolute left-6 text-display z-10 select-none text-hair hover:opacity-50"
+                      onClick={e => { e.stopPropagation(); setPreviewLbIndex(v => v! - 1) }}
+                    >‹</button>
+                  )}
+                  <div className="w-full h-full p-4 flex flex-col items-center">
+                    <img
+                      src={activeLbItem.photo.image_url}
+                      alt={activeLbItem.photo.caption || ''}
+                      className="h-full w-auto object-contain"
+                      onClick={e => e.stopPropagation()}
+                    />
+                  </div>
+                  {previewLbIndex < previewLbItems.length - 1 && (
+                    <button
+                      className="absolute right-6 text-display z-10 select-none text-hair hover:opacity-50"
+                      onClick={e => { e.stopPropagation(); setPreviewLbIndex(v => v! + 1) }}
+                    >›</button>
+                  )}
+                </div>
+              ) : null
+            })()}
           </div>
         )
       })()}
