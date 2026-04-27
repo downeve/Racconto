@@ -1076,9 +1076,9 @@ function ProjectStory({
           {/* 미리보기 버튼 */}
           <button
             onClick={() => setShowPreview(true)}
-            className="w-full mb-3 text-menu btn-secondary-on-card px-2 py-1.5 rounded-card transition-colors tracking-wider"
+            className="w-full mb-3 text-menu btn-secondary-on-card px-2 py-1.5 rounded-card transition-colors tracking-wider inline-flex items-center justify-center gap-1.5"
           >
-            👁 {t('story.preview')}
+            <Eye size={14} strokeWidth={1.5} />{t('story.preview')}
           </button>
 
           {/* 챕터 네비게이션 목록 */}

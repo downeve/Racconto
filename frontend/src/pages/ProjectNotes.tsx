@@ -435,7 +435,9 @@ function ProjectNotes({
               onClick={() => setPreviewMode(!previewMode)}
               className="ml-auto text-menu text-faint hover:text-ink inline-flex items-center gap-1"
             >
-              {previewMode ? `✏️ ${t('note.editNote')}` : `👁 ${t('note.preview')}`}
+              {previewMode
+                ? <><Pencil size={13} strokeWidth={1.5} />{t('note.editNote')}</>
+                : <><Eye size={13} strokeWidth={1.5} />{t('note.preview')}</>}
             </button>
           </div>
 
