@@ -2,6 +2,7 @@ import { BrowserRouter, HashRouter, Routes, Route, Navigate, useLocation } from 
 import { AuthProvider, useAuth } from './context/AuthContext'
 import { useTranslation } from 'react-i18next'
 import { useEffect } from 'react';
+import { Camera } from 'lucide-react'
 import Navbar from './components/Navbar'
 import Login from './pages/Login'
 import Dashboard from './pages/Dashboard'
@@ -61,7 +62,7 @@ function AppRoutes() {
       !location.pathname.startsWith('/delivery/') && (
         <div className="fixed inset-0 bg-[#F7F4F0] z-50 flex items-center justify-center p-8 text-center">
           <div>
-            <p className="text-3xl mb-4">📷</p>
+            <div className="flex justify-center mb-4"><Camera size={36} strokeWidth={1.5} /></div>
             <p className="text-lg font-bold text-stone-900 mb-2">
               {t('landing.desktopOptimizationInfo')}
             </p>
