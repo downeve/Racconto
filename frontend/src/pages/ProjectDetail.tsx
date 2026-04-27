@@ -2,6 +2,7 @@ import { useEffect, useState, useMemo, useRef } from 'react'
 import { useParams } from 'react-router-dom'
 import axios from 'axios'
 import exifr from 'exifr'
+import { Folder, Monitor, Trash2, FileText, MapPin, AlertTriangle, BookOpen } from 'lucide-react'
 
 import ProjectStory from './ProjectStory'
 import DeliveryManager from '../components/DeliveryManager'
@@ -822,19 +823,19 @@ export default function ProjectDetail({
                     }}
                       className="flex-1 text-left px-2 py-1 text-xs flex items-center justify-between min-w-0">
                       <span className="flex items-center gap-1 min-w-0">
-                        <span className="shrink-0">📁</span>
+                        <Folder size={12} strokeWidth={1.5} className="shrink-0" />
                         <span className="truncate text-caption">{getFolderDisplayName(folder!)}</span>
                         {isLocalSyncFolder(folder!) && (
-                          <span className={`shrink-0 text-[10px] ${filterFolder === folder ? 'text-faint' : 'text-muted'}`}>💻</span>
+                          <Monitor size={10} strokeWidth={1.5} className={`shrink-0 ${filterFolder === folder ? 'text-faint' : 'text-muted'}`} />
                         )}
                       </span>
                       <span className={`shrink-0 ml-2 ${filterFolder === folder ? 'text-card' : 'text-muted'}`}>{photos.filter(p => p.folder === folder && !p.deleted_at).length}</span>
                     </button>
                     <button
                       onClick={() => handleDeleteFolder(folder!)}
-                      className={`shrink-0 px-1.5 py-1 text-eyebrow ${filterFolder === folder ? 'text-faint hover:text-card' : 'text-hair hover:text-red-500'}`}
+                      className={`shrink-0 px-1.5 py-1 ${filterFolder === folder ? 'text-faint hover:text-card' : 'text-hair hover:text-red-500'}`}
                       title={t('photo.trash')}
-                    >🗑</button>
+                    ><Trash2 size={12} strokeWidth={1.5} /></button>
                   </div>
                 ))}
               </div>
@@ -875,7 +876,7 @@ export default function ProjectDetail({
             <>
               <button onClick={() => { exitTrash(); setFilterHasNote(!filterHasNote) }}
                 className={`w-full text-left px-2 py-1 mb-1.5 text-menu rounded-card flex items-center justify-between ${filterHasNote ? 'bg-ink text-card' : 'hover:bg-hair text-ink-2'}`}>
-                <span>📝 {t('photo.hasNote')}</span>
+                <span className="flex items-center gap-1"><FileText size={12} strokeWidth={1.5} />{t('photo.hasNote')}</span>
                 <span className={filterHasNote ? '' : 'text-muted'}>{base.filter(p => photoNoteIds.has(p.id)).length}</span>
               </button>
 
@@ -971,7 +972,7 @@ export default function ProjectDetail({
           <h3 className="font-serif text-h2 mb-2" style={{fontWeight:600}}>
             {project.title}
           </h3>
-          {project.location && <p className="text-small text-muted mb-4">📍 {project.location}</p>}
+          {project.location && <p className="text-small text-muted mb-4 flex items-center gap-1"><MapPin size={12} strokeWidth={1.5} />{project.location}</p>}
           {project.description && <p className="text-ink-2 text-body mb-2 max-w-2xl break-keep">{project.description}</p>}
         </div>
         {project.cover_image_url && (
@@ -1120,19 +1121,19 @@ export default function ProjectDetail({
                           }}
                             className="flex-1 text-left px-2 py-1 text-xs flex items-center justify-between min-w-0">
                             <span className="flex items-center gap-1 min-w-0">
-                              <span className="shrink-0">📁</span>
+                              <Folder size={12} strokeWidth={1.5} className="shrink-0" />
                               <span className="truncate text-caption">{getFolderDisplayName(folder!)}</span>
                               {isLocalSyncFolder(folder!) && (
-                                <span className={`shrink-0 text-[10px] ${filterFolder === folder ? 'text-faint' : 'text-muted'}`}>💻</span>
+                                <Monitor size={10} strokeWidth={1.5} className={`shrink-0 ${filterFolder === folder ? 'text-faint' : 'text-muted'}`} />
                               )}
                             </span>
                             <span className={`shrink-0 ml-2 ${filterFolder === folder ? 'text-card' : 'text-muted'}`}>{photos.filter(p => p.folder === folder && !p.deleted_at).length}</span>
                           </button>
                           <button
                             onClick={() => handleDeleteFolder(folder!)}
-                            className={`shrink-0 px-1.5 py-1 text-eyebrow ${filterFolder === folder ? 'text-faint hover:text-card' : 'text-hair hover:text-red-500'}`}
+                            className={`shrink-0 px-1.5 py-1 ${filterFolder === folder ? 'text-faint hover:text-card' : 'text-hair hover:text-red-500'}`}
                             title={t('photo.trash')}
-                          >🗑</button>
+                          ><Trash2 size={12} strokeWidth={1.5} /></button>
                         </div>
                       ))}
                     </div>
@@ -1180,7 +1181,7 @@ export default function ProjectDetail({
                         onClick={() => { exitTrash(); setFilterHasNote(!filterHasNote) }}
                         className={`w-full text-left px-2 py-1 mb-1.5 text-menu rounded-card flex items-center justify-between ${filterHasNote ? 'bg-ink text-card' : 'hover:bg-hair text-ink-2'}`}
                       >
-                        <span>📝 {t('photo.hasNote')}</span>
+                        <span className="flex items-center gap-1"><FileText size={12} strokeWidth={1.5} />{t('photo.hasNote')}</span>
                         <span className={filterHasNote ? '' : 'text-muted'}>
                           {base.filter(p => photoNoteIds.has(p.id)).length}
                         </span>
@@ -1321,9 +1322,9 @@ export default function ProjectDetail({
                   {/* ✅ photos.some 대신 missingCount > 0 으로 수정 */}
                   {missingCount > 0 && (
                     <div className="mb-4 flex items-center justify-between bg-yellow-50 border border-yellow-200 rounded-card px-4 py-2.5">
-                      <p className="text-caption text-yellow-700">
+                      <p className="text-caption text-yellow-700 flex items-center gap-1">
                         {/* ✅ 하드코딩 제거 및 i18n 변수 적용 */}
-                        ⚠️ {t('photo.local.MissingWarning', { count: missingCount })}
+                        <AlertTriangle size={12} strokeWidth={1.5} className="shrink-0" />{t('photo.local.MissingWarning', { count: missingCount })}
                       </p>
                       <button
                         onClick={handleDeleteAllMissing}
@@ -1370,12 +1371,12 @@ export default function ProjectDetail({
                 {trashedPhotos.length > 0 && (
                   <div className="mb-4 flex items-center justify-between bg-red-50 border border-red-200 rounded-card px-3 py-2 gap-3">
                     <div className="min-w-0">
-                      <p className="text-menu text-red-600">
-                        🗑️ {t('photo.trash')} {trashedPhotos.length}{t('photo.countText')}
+                      <p className="text-menu text-red-600 flex items-center gap-1">
+                        <Trash2 size={13} strokeWidth={1.5} className="shrink-0" />{t('photo.trash')} {trashedPhotos.length}{t('photo.countText')}
                       </p>
                       {localTrashPhotos.length > 0 && (
-                        <p className="text-caption text-amber-600 mt-0.5">
-                          ⚠️ {t('trash.localSyncBadge')} {localTrashPhotos.length}{t('photo.countText')}
+                        <p className="text-caption text-amber-600 mt-0.5 flex items-center gap-1">
+                          <AlertTriangle size={11} strokeWidth={1.5} className="shrink-0" />{t('trash.localSyncBadge')} {localTrashPhotos.length}{t('photo.countText')}
                         </p>
                       )}
                     </div>
@@ -1544,9 +1545,9 @@ export default function ProjectDetail({
             <button
               onClick={() => setShowBulkChapterMenu(v => !v)}
               disabled={selectedPhotoIds.size === 0}
-              className="px-2 py-1.5  font-bold text-menu btn-secondary-on-card border hover:bg-faint/40 border-muted disabled:text-faint transition-colors"
+              className="inline-flex items-center gap-1.5 px-2 py-1.5 font-bold text-menu btn-secondary-on-card border hover:bg-faint/40 border-muted disabled:text-faint transition-colors"
             >
-              📖 {t('story.addToChapter')}
+              <BookOpen size={13} strokeWidth={1.5} />{t('story.addToChapter')}
             </button>
 
             {/* 챕터 목록 드롭다운 (위로 열림) */}
