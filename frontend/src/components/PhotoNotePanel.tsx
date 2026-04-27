@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import axios from 'axios'
 import ReactMarkdown from 'react-markdown'
 import { useTranslation } from 'react-i18next'
+import { FileText } from 'lucide-react'
 
 const API = import.meta.env.VITE_API_URL
 
@@ -98,7 +99,7 @@ export default function PhotoNotePanel({
       >
         {/* 헤더 */}
         <div className="flex items-center justify-between px-5 py-4 border-b">
-          <h3 className="text-sm font-semibold text-stone-800">📝 {t('note.title')}</h3>
+          <h3 className="text-sm font-semibold text-stone-800 flex items-center gap-1.5"><FileText size={14} strokeWidth={1.5} />{t('note.title')}</h3>
           <button
             onClick={onClose}
             className="text-gray-400 hover:text-black text-xl leading-none"
