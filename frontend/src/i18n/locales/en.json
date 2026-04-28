@@ -521,10 +521,17 @@
     "title2": "Let's begin your story here!",
     "projectList": "All projects list →",
     "projectOngoing": "Ongoing projects",
+    "totalStories": "Total stories",
     "goToPortfolio": "Go to Portfolio →",
     "portSharing": "Share your story with others.",
     "newProject": "Begin your story.",
     "makeNewProject": "+ Add New Project",
-    "recent": "Recent projects"
+    "recent": "Recent projects",
+    "viewAll": "View all",
+    "lastUpdated": "Last updated",
+    "startNew": "Start new project",
+    "noProjects": "No stories started yet.",
+    "emptyTitle": "No stories yet",
+    "emptySubtitle": "Shall we open your first page?"
   }
 }

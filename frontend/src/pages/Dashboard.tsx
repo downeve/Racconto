@@ -18,6 +18,7 @@ interface Project {
   cover_image_url: string
   is_public: string
   created_at: string
+  updated_at: string
 }
 
 export default function Dashboard() {
@@ -37,8 +38,12 @@ export default function Dashboard() {
     fetchProjects()
   }, [])
 
-  // 최근 작업한 프로젝트 최대 3개만 추출 (Projects.tsx의 데이터 활용)
-  const recentProjects = projects.slice(0, 3)
+  const publicProjects = projects.filter(p => p.is_public === 'true').slice(0, 3)
+
+  const recentProjects = [...projects]
+    .filter(p => p.status !== 'archived')
+    .sort((a, b) => new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime())
+    .slice(0, 3)
 
   return (
     <div className="min-h-screen bg-[#F7F4F0] text-stone-900 pb-20">
@@ -50,11 +55,11 @@ export default function Dashboard() {
             Welcome back
           </p>
           <p className="font-serif text-h2 md:text-h1 font-bold mb-6 text-ink-2 leading-tight break-keep">
-            {t('dashboard.title1')}<br />
+            {t('dashboard.title1')}<br className="hidden md:block" />
             {t('dashboard.title2')}
           </p>
           <p className="font-serif text-muted italic text-h3">
-            "Every photo has a story to tell."
+            &#x201C;Every photo has a story to tell.&#x201D;
           </p>
         </section>
 
@@ -67,16 +72,16 @@ export default function Dashboard() {
                 <div>
                   <p className="text-faint text-body tracking-widest uppercase mb-2">My Stories</p>
                   <p className="text-h2 font-bold">{projects.length}</p>
-                  <p className="text-muted text-body mt-1">{t('dashboard.projectOngoing')}</p>
+                  <p className="text-muted text-body mt-1">{t('dashboard.totalStories')}</p>
                 </div>
               </div>
               <div className="w-px bg-hair self-stretch mx-5" />
               <div className="grid grid-cols-2 grid-rows-2 gap-x-4 gap-y-3 flex-1 self-center">
                 {[
-                  { labelKey: 'status.in_progress', value: 'in_progress', color: 'bg-purple-400' },
-                  { labelKey: 'status.completed',   value: 'completed',   color: 'bg-green-500' },
-                  { labelKey: 'status.published',   value: 'published',   color: 'bg-blue-400'  },
-                  { labelKey: 'status.archived',    value: 'archived',    color: 'bg-stone-300' },
+                  { labelKey: 'status.in_progress', value: 'in_progress', color: 'bg-status-progress' },
+                  { labelKey: 'status.completed',   value: 'completed',   color: 'bg-status-completed' },
+                  { labelKey: 'status.published',   value: 'published',   color: 'bg-status-published'  },
+                  { labelKey: 'status.archived',    value: 'archived',    color: 'bg-status-archived' },
                 ].map(({ labelKey, value, color }) => (
                   <div key={value} className="flex flex-col gap-0.5">
                     <span className="flex items-center gap-1.5 text-xs tracking-wide uppercase text-muted">
@@ -102,19 +107,23 @@ export default function Dashboard() {
             <div>
               <p className="text-ink text-body tracking-widest uppercase mb-2">Portfolio</p>
             </div>
-            <div className="flex gap-2 my-1">
-              {projects
-                .filter(p => p.is_public === 'true')
-                .slice(0, 3)
-                .map(p => (
-                  <div key={p.id} className="w-1/3 aspect-square rounded overflow-hidden bg-stone-100">
-                    {p.cover_image_url
-                      ? <img src={p.cover_image_url} alt={p.title} className="w-full h-full object-cover" />
-                      : <div className="w-full h-full bg-stone-200" />
-                    }
-                  </div>
-                ))
-              }
+            <div className="grid grid-cols-3 grid-rows-2 gap-2 my-1 aspect-[3/2]">
+              {publicProjects[0] && (
+                <div className="col-span-2 row-span-2 rounded overflow-hidden bg-stone-100">
+                  {publicProjects[0].cover_image_url
+                    ? <img src={publicProjects[0].cover_image_url} alt={publicProjects[0].title} className="w-full h-full object-cover" />
+                    : <div className="w-full h-full bg-stone-200" />
+                  }
+                </div>
+              )}
+              {publicProjects.slice(1, 3).map(p => (
+                <div key={p.id} className="rounded overflow-hidden bg-stone-100">
+                  {p.cover_image_url
+                    ? <img src={p.cover_image_url} alt={p.title} className="w-full h-full object-cover" />
+                    : <div className="w-full h-full bg-stone-200" />
+                  }
+                </div>
+              ))}
             </div>
             <Link to={`/p/${user?.username}`} className="text-ink-2 text-body mt-2 font-semibold hover:underline underline-offset-4">
               {t('dashboard.goToPortfolio')}
@@ -125,6 +134,11 @@ export default function Dashboard() {
           <div className="bg-card p-6 rounded-card shadow border border-hair flex flex-col justify-between">
             <div>
               <p className="text-faint text-body tracking-widest uppercase mb-2">Quick Start</p>
+              {recentProjects[0] && (
+                <p className="text-faint text-small mb-3">
+                  {t('dashboard.lastUpdated')} · {recentProjects[0].title}
+                </p>
+              )}
               <p className="text-h2 mb-2">{t('dashboard.newProject')}</p>
             </div>
             <Link 
@@ -141,6 +155,9 @@ export default function Dashboard() {
         <section>
           <div className="flex items-end justify-between mb-space-sm border-b border-hair pb-space-xs">
             <p className="text-h2 text-ink font-serif">{t('dashboard.recent')}</p>
+            <Link to="/projects" className="text-muted text-body hover:text-ink transition-colors">
+              {t('dashboard.viewAll')} →
+            </Link>
           </div>
 
           {recentProjects.length > 0 ? (
@@ -152,9 +169,13 @@ export default function Dashboard() {
               ))}
             </div>
           ) : (
-            /* 프로젝트가 없을 때의 Empty State */
-            <div className="bg-card border-2 border-dashed border-hair rounded-card py-space-lg text-center">
-              <p className="text-muted text-h2 mb-space-xs">{t('dashboard.noProjects')}</p>
+            <div className="bg-card rounded-card py-space-xl text-center">
+              <p className="font-serif text-h2 text-ink-2 mb-3">
+                {t('dashboard.emptyTitle')}
+              </p>
+              <p className="text-muted text-body mb-space-md">
+                {t('dashboard.emptySubtitle')}
+              </p>
               <Link to="/projects" state={{ openForm: true }} className="text-body btn-primary tracking-widest transition-all">
                 {t('dashboard.startNew')}
               </Link>

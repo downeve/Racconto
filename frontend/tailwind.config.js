@@ -24,6 +24,12 @@ export default {
         hair: colors.stone[200],      //구분선, 보더
         accent: 'oklch(55% 0.08 55)', //포커스, 링크 Hover(선택)
         lightbox: colors.stone[950], //라이트박스 배경색
+        status: {
+          progress:  '#F59E0B',  // amber-500
+          completed: '#10B981',  // emerald-500
+          published: '#3B82F6',  // blue-500
+          archived:  '#D6D3D1',  // stone-300
+        },
       },
       // 🚨 1. 타입 스케일 고정 (폰트크기, 행간, 자간을 한 세트로 등록)
       fontSize: {
