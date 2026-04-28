@@ -381,9 +381,9 @@ export const SortableSideBySideBlock = memo(function SortableSideBySideBlock({
         {t('story.sideSingleHint')}
       </span>
     </div>
-      <div className="grid grid-cols-2 gap-2">
+      <div className="grid grid-cols-1 gap-2">
         {photoItems.map(item => (
-          <div key={item.id} className="relative group rounded overflow-hidden aspect-[3/2] shadow">
+          <div key={item.id} className="relative group rounded overflow-hidden h-56 shadow">
             <img
               src={item.image_url ?? ''}
               className="absolute inset-0 w-full h-full object-contain cursor-pointer"
