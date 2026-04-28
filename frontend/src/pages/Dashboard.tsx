@@ -64,89 +64,99 @@ export default function Dashboard() {
         </section>
 
         {/* 2. Quick Actions: 대시보드만의 기능적 섹션 */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-space-md">
-          {/* 전체 통계 확인 */}
-          <div className="bg-card p-6 rounded-card shadow border border-hair flex flex-col justify-between">
-            <div className="flex items-stretch">
-              <div className="flex flex-col justify-between min-w-[100px]">
-                <div>
-                  <p className="text-faint text-body tracking-widest uppercase mb-2">My Stories</p>
-                  <p className="text-h2 font-bold">{projects.length}</p>
-                  <p className="text-muted text-body mt-1">{t('dashboard.totalStories')}</p>
+        <div className="grid grid-cols-1 md:grid-cols-[2fr_3fr] gap-6 mb-space-md">
+          {/* My Stories + Quick Start 합침 */}
+          <div className="bg-card p-6 rounded-card shadow border border-hair flex flex-col gap-5">
+            {/* 상단: My Stories */}
+            <div>
+              <div className="flex items-stretch">
+                <div className="flex flex-col justify-between min-w-[140px]">
+                  <div>
+                    <p className="text-faint text-body tracking-widest uppercase mb-2">My Stories</p>
+                    <p className="text-h2 font-bold">{projects.length}</p>
+                    <p className="text-muted text-body mt-1">{t('dashboard.totalStories')}</p>
+                  </div>
+                </div>
+                <div className="w-px bg-hair self-stretch mx-5" />
+                <div className="grid grid-cols-2 grid-rows-2 gap-x-4 gap-y-3 flex-1 self-center">
+                  {[
+                    { labelKey: 'status.in_progress', value: 'in_progress', color: 'bg-status-progress' },
+                    { labelKey: 'status.completed',   value: 'completed',   color: 'bg-status-completed' },
+                    { labelKey: 'status.published',   value: 'published',   color: 'bg-status-published'  },
+                    { labelKey: 'status.archived',    value: 'archived',    color: 'bg-status-archived' },
+                  ].map(({ labelKey, value, color }) => (
+                    <div key={value} className="flex flex-col gap-0.5">
+                      <span className="flex items-center gap-1.5 text-xs tracking-wide uppercase text-muted">
+                        <span className={`w-1.5 h-1.5 rounded-full ${color}`} />
+                        {t(labelKey)}
+                      </span>
+                      <span className="text-h3 font-semibold text-ink">
+                        {projects.filter(p => p.status === value).length}
+                      </span>
+                    </div>
+                  ))}
                 </div>
               </div>
-              <div className="w-px bg-hair self-stretch mx-5" />
-              <div className="grid grid-cols-2 grid-rows-2 gap-x-4 gap-y-3 flex-1 self-center">
-                {[
-                  { labelKey: 'status.in_progress', value: 'in_progress', color: 'bg-status-progress' },
-                  { labelKey: 'status.completed',   value: 'completed',   color: 'bg-status-completed' },
-                  { labelKey: 'status.published',   value: 'published',   color: 'bg-status-published'  },
-                  { labelKey: 'status.archived',    value: 'archived',    color: 'bg-status-archived' },
-                ].map(({ labelKey, value, color }) => (
-                  <div key={value} className="flex flex-col gap-0.5">
-                    <span className="flex items-center gap-1.5 text-xs tracking-wide uppercase text-muted">
-                      <span className={`w-1.5 h-1.5 rounded-full ${color}`} />
-                      {t(labelKey)}
-                    </span>
-                    <span className="text-h3 font-semibold text-ink">
-                      {projects.filter(p => p.status === value).length}
-                    </span>
-                  </div>
-                ))}
-              </div>
-            </div>
-            <div>
-              <Link to="/projects" className="text-ink-2 text-body font-semibold hover:text-ink hover:underline mt-6 inline-block">
+              <Link to="/projects" className="text-ink-2 text-body font-semibold hover:text-ink hover:underline mt-4 inline-block">
                 {t('dashboard.projectList')}
               </Link>
-              </div>
-          </div>
-          
-          {/* 포트폴리오 바로가기: PublicPortfolio.tsx와 연결 */}
-          <div className="bg-canvas-4 p-6 rounded-card border border-hair shadow flex flex-col justify-between">
-            <div>
-              <p className="text-ink text-body tracking-widest uppercase mb-2">Portfolio</p>
             </div>
-            <div className="grid grid-cols-3 grid-rows-2 gap-2 my-1 aspect-[3/2]">
-              {publicProjects[0] && (
-                <div className="col-span-2 row-span-2 rounded overflow-hidden bg-stone-100">
-                  {publicProjects[0].cover_image_url
-                    ? <img src={publicProjects[0].cover_image_url} alt={publicProjects[0].title} className="w-full h-full object-cover" />
-                    : <div className="w-full h-full bg-stone-200" />
-                  }
+
+            <div className="border-t border-hair" />
+
+            {/* 하단: Quick Start */}
+            <div className="flex flex-col gap-3">
+              <div>
+                <p className="text-faint text-body tracking-widest uppercase mb-2">Quick Start</p>
+                {recentProjects[0] && (
+                  <p className="text-muted text-body mb-3 truncate">
+                    {t('dashboard.lastUpdated')} · {recentProjects[0].title}
+                  </p>
+                )}
+                <p className="text-h2 mb-2">{t('dashboard.newProject')}</p>
+              </div>
+              <Link
+                to="/projects"
+                state={{ openForm: true }}
+                className="inline-block text-body text-center btn-primary transition-all"
+              >
+                {t('dashboard.makeNewProject')}
+              </Link>
+            </div>
+          </div>
+
+          {/* 포트폴리오 바로가기 */}
+          <div className="bg-canvas-4 p-6 rounded-card border border-hair shadow flex flex-col gap-2">
+            <p className="text-ink text-body tracking-widest uppercase">Portfolio</p>
+            <div className="relative flex-1 min-h-0">
+              {publicProjects.length === 0 ? (
+                <div className="absolute inset-0 flex flex-col items-center justify-center text-center gap-1">
+                  <p className="text-ink-2 text-h3 font-serif">{t('dashboard.noPublicProjects')}</p>
+                  <p className="text-faint text-body">{t('dashboard.noPublicProjectsHint')}</p>
+                </div>
+              ) : (
+                <div className="absolute inset-0 grid grid-cols-3 grid-rows-2 gap-2">
+                  {publicProjects[0] && (
+                    <div className="col-span-2 row-span-2 rounded overflow-hidden bg-stone-100">
+                      {publicProjects[0].cover_image_url
+                        ? <img src={publicProjects[0].cover_image_url} alt={publicProjects[0].title} className="w-full h-full object-cover" />
+                        : <div className="w-full h-full bg-stone-200" />
+                      }
+                    </div>
+                  )}
+                  {publicProjects.slice(1, 3).map(p => (
+                    <div key={p.id} className="rounded overflow-hidden bg-stone-100">
+                      {p.cover_image_url
+                        ? <img src={p.cover_image_url} alt={p.title} className="w-full h-full object-cover" />
+                        : <div className="w-full h-full bg-stone-200" />
+                      }
+                    </div>
+                  ))}
                 </div>
               )}
-              {publicProjects.slice(1, 3).map(p => (
-                <div key={p.id} className="rounded overflow-hidden bg-stone-100">
-                  {p.cover_image_url
-                    ? <img src={p.cover_image_url} alt={p.title} className="w-full h-full object-cover" />
-                    : <div className="w-full h-full bg-stone-200" />
-                  }
-                </div>
-              ))}
             </div>
             <Link to={`/p/${user?.username}`} className="text-ink-2 text-body mt-2 font-semibold hover:underline underline-offset-4">
               {t('dashboard.goToPortfolio')}
-            </Link>
-          </div>
-
-          {/* 새 프로젝트 생성 바로가기 */}
-          <div className="bg-card p-6 rounded-card shadow border border-hair flex flex-col justify-between">
-            <div>
-              <p className="text-faint text-body tracking-widest uppercase mb-2">Quick Start</p>
-              {recentProjects[0] && (
-                <p className="text-faint text-small mb-3">
-                  {t('dashboard.lastUpdated')} · {recentProjects[0].title}
-                </p>
-              )}
-              <p className="text-h2 mb-2">{t('dashboard.newProject')}</p>
-            </div>
-            <Link 
-            to="/projects" 
-            state={{ openForm: true }} // [추가] state를 통해 신호 전달
-            className="inline-block text-body text-center btn-primary transition-all"
-            >
-                {t('dashboard.makeNewProject')}
             </Link>
           </div>
         </div>

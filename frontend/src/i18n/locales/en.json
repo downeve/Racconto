@@ -528,10 +528,12 @@
     "makeNewProject": "+ Add New Project",
     "recent": "Recent projects",
     "viewAll": "View all",
-    "lastUpdated": "Last updated",
+    "lastUpdated": "Last updated project",
     "startNew": "Start new project",
     "noProjects": "No stories started yet.",
     "emptyTitle": "No stories yet",
-    "emptySubtitle": "Shall we open your first page?"
+    "emptySubtitle": "Shall we open your first page?",
+    "noPublicProjects": "No public portfolio yet",
+    "noPublicProjectsHint": "Make a project public and it will appear here."
   }
 }
