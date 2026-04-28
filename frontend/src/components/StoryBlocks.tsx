@@ -1,5 +1,6 @@
 import { useTranslation } from 'react-i18next'
-import { memo } from 'react'
+import { memo, useState, useMemo } from 'react'
+import { computePortfolioRows, colsForLayout } from '../utils/portfolioRows'
 import MarkdownRenderer from './MarkdownRenderer'
 import {
   DndContext,
@@ -64,12 +65,13 @@ export interface SortablePhotoChapterProps {
   caption: string | null
   onRemove: (chapterId: string, itemId: string) => void
   onClick: () => void
-  otherBlocks: OtherBlock[]                                          // 추가
+  otherBlocks: OtherBlock[]
   onRequestMove: (itemId: string) => void
+  fullWidthHint?: boolean
 }
 
 export function SortablePhotoChapter({
-  id, imageUrl, chapterId, caption, onRemove, onClick, onRequestMove
+  id, imageUrl, chapterId, caption, onRemove, onClick, onRequestMove, fullWidthHint
 }: SortablePhotoChapterProps) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id })
   // useState import 필요
@@ -126,6 +128,16 @@ export function SortablePhotoChapter({
               {t('story.toOtherBlock')}
             </button>
           </div>
+        )}
+
+        {/* 풀너비 힌트 배지 */}
+        {fullWidthHint && (
+          <span
+            className="absolute bottom-1 left-1 z-10 inline-flex items-center gap-0.5 px-1.5 py-[3px] rounded font-mono text-[9px] tracking-wider uppercase bg-stone-900/75 text-white backdrop-blur-sm pointer-events-none"
+            title="포트폴리오에서 가로 풀너비로 표시됩니다"
+          >
+            ↔ {t('story.row.fullWidth')}
+          </span>
         )}
       </div>
     </div>
@@ -233,6 +245,90 @@ export const SortableTextBlock = memo(function SortableTextBlock({
   )
 })
 
+// ── GhostFrameGrid ─────────────────────────────────────────
+
+interface GhostFrameGridProps {
+  items: ChapterItem[]
+  layout: 'grid' | 'wide' | 'single'
+  chapterId: string
+  onRemoveItem: (chapterId: string, itemId: string) => void
+  onPhotoClick: (item: ChapterItem) => void
+  otherBlocks: OtherBlock[]
+  onRequestMove: (itemId: string) => void
+}
+
+function GhostFrameGrid({
+  items, layout, chapterId, onRemoveItem, onPhotoClick, otherBlocks, onRequestMove
+}: GhostFrameGridProps) {
+  const { t } = useTranslation()
+  const rows = useMemo(() => computePortfolioRows(items, layout), [items, layout])
+  const [hoveredRow, setHoveredRow] = useState<number | null>(null)
+
+  return (
+    <div className="flex flex-col gap-1.5">
+      {rows.map(row => {
+        const isHovered = hoveredRow === row.rowIdx
+        const rowItems = row.itemIds.map(id => items.find(p => p.id === id)!)
+
+        return (
+          <div key={row.rowIdx}>
+            <div className="font-mono text-[9px] tracking-wider uppercase mb-0.5 ml-0.5 pointer-events-none transition-colors duration-150"
+              style={{ color: isHovered ? '#57534e' : '#a8a29e' }}
+            >
+              {row.isFullWidth ? t('story.row.fullWidth') : t('story.row.index', { n: row.rowIdx + 1 })}
+            </div>
+
+            <div
+              role="group"
+              aria-label={row.isFullWidth ? t('story.row.fullWidth') : t('story.row.index', { n: row.rowIdx + 1 })}
+              className={`grid grid-cols-3 gap-2 p-1 rounded-sm outline-dashed outline-[1.5px] outline-offset-1 transition-[outline-color] duration-150 ${
+                isHovered ? 'outline-stone-500' : 'outline-stone-300/60'
+              }`}
+              onMouseEnter={() => setHoveredRow(row.rowIdx)}
+              onMouseLeave={() => setHoveredRow(null)}
+            >
+              {row.isFullWidth ? (
+                <div className="col-span-3">
+                  <SortablePhotoChapter
+                    id={rowItems[0].id}
+                    imageUrl={rowItems[0].image_url}
+                    chapterId={chapterId}
+                    caption={rowItems[0].caption}
+                    onRemove={onRemoveItem}
+                    onClick={() => onPhotoClick(rowItems[0])}
+                    otherBlocks={otherBlocks}
+                    onRequestMove={onRequestMove}
+                    fullWidthHint
+                  />
+                </div>
+              ) : (
+                <>
+                  {rowItems.map(item => (
+                    <SortablePhotoChapter
+                      key={item.id}
+                      id={item.id}
+                      imageUrl={item.image_url}
+                      chapterId={chapterId}
+                      caption={item.caption}
+                      onRemove={onRemoveItem}
+                      onClick={() => onPhotoClick(item)}
+                      otherBlocks={otherBlocks}
+                      onRequestMove={onRequestMove}
+                    />
+                  ))}
+                  {Array.from({ length: 3 - row.itemIds.length }).map((_, k) => (
+                    <div key={`pad-${k}`} aria-hidden />
+                  ))}
+                </>
+              )}
+            </div>
+          </div>
+        )
+      })}
+    </div>
+  )
+}
+
 // ── SortablePhotoBlock ──────────────────────────────────────
 
 export interface SortablePhotoBlockProps {
@@ -246,15 +342,17 @@ export interface SortablePhotoBlockProps {
   onLayoutChange: (blockId: string, layout: 'grid' | 'wide' | 'single') => void
   draggingItemId: string | null
   draggingItemBlockId: string | null
-  otherBlocks: OtherBlock[]                                          // 추가
+  otherBlocks: OtherBlock[]
   onRequestMove: (itemId: string, chapterId: string, sourceBlockId: string) => void
+  ghostMode?: boolean
 }
 
 export const SortablePhotoBlock = memo(function SortablePhotoBlock({
   blockId, chapterId, items, sensors,
   onRemoveItem, onPhotoClick, onInnerDragEnd, onLayoutChange,
   draggingItemId, draggingItemBlockId,
-  otherBlocks, onRequestMove
+  otherBlocks, onRequestMove,
+  ghostMode = true,
 }: SortablePhotoBlockProps) {
   const { attributes, listeners, setNodeRef: setSortableRef, transform, transition, isDragging } = useSortable({ id: blockId })
   const style = { transform: CSS.Transform.toString(transform), transition, opacity: isDragging ? 0.5 : 1 }
@@ -275,6 +373,14 @@ export const SortablePhotoBlock = memo(function SortablePhotoBlock({
 
   const blockLayout = items[0]?.block_layout || 'grid'
   const layoutLabels: Record<string, string> = { grid: t('portfolio.columnGrid'), wide: t('portfolio.columnWide'), single: t('portfolio.columnSingle') }
+
+  const ghostRows = useMemo(
+    () => ghostMode ? computePortfolioRows(items, blockLayout) : [],
+    [ghostMode, items, blockLayout]
+  )
+  const hasLastFullWidth = ghostRows.some(r => r.isFullWidth)
+  const photoCount = items.filter(i => i.item_type === 'PHOTO').length
+  const cols = colsForLayout(blockLayout)
 
   return (
     <div
@@ -308,7 +414,12 @@ export const SortablePhotoBlock = memo(function SortablePhotoBlock({
             {layoutLabels[l]}
           </button>
         ))}
-         <span className="text-[10px] text-faint mr-1">{t('portfolio.layoutInPort')}</span>
+        <span className="text-[10px] text-faint">{t('portfolio.layoutInPort')}</span>
+        {ghostMode && photoCount > 0 && (
+          <span className="text-[10px] text-stone-400 border-l border-stone-200 pl-1.5 ml-0.5">
+            {cols}열 · {photoCount}장{hasLastFullWidth ? ` · ${t('story.blockHint.lastFullWidth')}` : ''}
+          </span>
+        )}
       </div>
 
       <DndContext
@@ -317,21 +428,33 @@ export const SortablePhotoBlock = memo(function SortablePhotoBlock({
         onDragEnd={(e) => onInnerDragEnd(e, blockId, chapterId)}
       >
         <SortableContext items={items.map(i => i.id)} strategy={rectSortingStrategy}>
-          <div className="grid grid-cols-3 gap-2">
-            {items.map(item => (
-              <SortablePhotoChapter
-                key={item.id}
-                id={item.id}
-                imageUrl={item.image_url}
-                chapterId={chapterId}
-                caption={item.caption}
-                onRemove={onRemoveItem}
-                onClick={() => onPhotoClick(item)}
-                otherBlocks={otherBlocks}       // 추가
-                onRequestMove={(itemId) => onRequestMove(itemId, chapterId, blockId)}
-              />
-            ))}
-          </div>
+          {ghostMode ? (
+            <GhostFrameGrid
+              items={items}
+              layout={blockLayout}
+              chapterId={chapterId}
+              onRemoveItem={onRemoveItem}
+              onPhotoClick={onPhotoClick}
+              otherBlocks={otherBlocks}
+              onRequestMove={(itemId) => onRequestMove(itemId, chapterId, blockId)}
+            />
+          ) : (
+            <div className="grid grid-cols-3 gap-2">
+              {items.map(item => (
+                <SortablePhotoChapter
+                  key={item.id}
+                  id={item.id}
+                  imageUrl={item.image_url}
+                  chapterId={chapterId}
+                  caption={item.caption}
+                  onRemove={onRemoveItem}
+                  onClick={() => onPhotoClick(item)}
+                  otherBlocks={otherBlocks}
+                  onRequestMove={(itemId) => onRequestMove(itemId, chapterId, blockId)}
+                />
+              ))}
+            </div>
+          )}
         </SortableContext>
       </DndContext>
     </div>

@@ -257,7 +257,17 @@
     "error": {
       "ReorderFailedLog": "Failed to reorder chapters:",
       "ReorderFailedAlert": "Failed to change the order."
-    }
+    },
+    "row": {
+      "index": "Row {{n}}",
+      "fullWidth": "Full Width"
+    },
+    "blockHint": {
+      "lastFullWidth": "Last photo is full-width"
+    },
+    "ghostMode": "Row guide",
+    "portfolioPreviewPanel": "Preview panel",
+    "portfolioPreviewTitle": "Portfolio Preview"
   },
   "note": {
     "title": "Note",

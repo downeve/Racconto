@@ -1,11 +1,12 @@
 import { useEffect, useState, useMemo, useRef, memo, useCallback } from 'react'
 import axios from 'axios'
 import { useTranslation } from 'react-i18next'
-import { Eye, FileText, Sun, Moon } from 'lucide-react'
+import { Eye, FileText, Sun, Moon, Rows3, PanelRight } from 'lucide-react'
 import PhotoNotePanel from '../components/PhotoNotePanel'
 import { useElectronSidebar } from '../context/ElectronSidebarContext'
 import ConfirmModal from '../components/ConfirmModal'
 import PortfolioChapterItems, { type PortfolioChapterItem, type PortfolioPhoto } from '../components/PortfolioChapterItems'
+import PortfolioPreview from '../components/PortfolioPreview'
 import {
   SortablePhotoBlock,
   SortableTextBlock,
@@ -130,9 +131,19 @@ function ProjectStory({
   const [selectedPhotoIndex, setSelectedPhotoIndex] = useState<number | null>(null);
   const [currentChapterPhotos, setCurrentChapterPhotos] = useState<ChapterItem[]>([]);
 
-  // 포트폴리오 미리보기
+  // 포트폴리오 미리보기 (모달)
   const [showPreview, setShowPreview] = useState(false)
   const [previewDarkMode, setPreviewDarkMode] = useState(false)
+
+  // Ghost Frame + Preview Panel 토글 (localStorage 영속화)
+  const [ghostMode, setGhostMode] = useState<boolean>(() => {
+    const saved = localStorage.getItem('story.ghostMode')
+    return saved === null ? true : saved === 'true'
+  })
+  const [showPortfolioPreview, setShowPortfolioPreview] = useState<boolean>(() => {
+    const saved = localStorage.getItem('story.showPortfolioPreview')
+    return saved === null ? true : saved === 'true'
+  })
   const [previewLbIndex, setPreviewLbIndex] = useState<number | null>(null)
   const [previewLbItems, setPreviewLbItems] = useState<{ photo: PortfolioPhoto; title: string }[]>([])
 
@@ -162,6 +173,9 @@ function ProjectStory({
   // O(N²) 성능 저하를 막기 위한 Set(해시테이블) 캐싱
   const allPhotoIds = useMemo(() => new Set(allPhotos.map(p => p.id)), [allPhotos]);
 
+  useEffect(() => { localStorage.setItem('story.ghostMode', String(ghostMode)) }, [ghostMode])
+  useEffect(() => { localStorage.setItem('story.showPortfolioPreview', String(showPortfolioPreview)) }, [showPortfolioPreview])
+
   const blocksPerChapter = useMemo(() => {
     const map: Record<string, ChapterBlock[]> = {}
     Object.keys(chapterPhotos).forEach(chapterId => {
@@ -177,6 +191,22 @@ function ProjectStory({
     })
     return map
   }, [chapterPhotos, allPhotoIds])
+
+  const allBlocksForPreview = useMemo(() => {
+    type PreviewBlock = { blockId: string; blockLayout: 'grid'|'wide'|'single'; items: ChapterItem[]; blockType: 'PHOTO'|'TEXT'|'SIDE' }
+    const result: PreviewBlock[] = []
+    chapters.filter(c => !c.parent_id).forEach(ch => {
+      ;(blocksPerChapter[ch.id] || []).forEach(b =>
+        result.push({ blockId: b.blockId, blockLayout: b.items[0]?.block_layout || 'grid', items: b.items, blockType: b.type })
+      )
+      chapters.filter(c => c.parent_id === ch.id).forEach(sub => {
+        ;(blocksPerChapter[sub.id] || []).forEach(b =>
+          result.push({ blockId: b.blockId, blockLayout: b.items[0]?.block_layout || 'grid', items: b.items, blockType: b.type })
+        )
+      })
+    })
+    return result
+  }, [chapters, blocksPerChapter])
 
   // 드래그 센서
   const sensors = useSensors(
@@ -857,9 +887,10 @@ function ProjectStory({
                       firstImageUrl: b.items[0]?.image_url ?? null,
                       count: b.items.length,
                     }))}
-                  onRequestMove={(itemId, chapterId, sourceBlockId) =>   // 추가
+                  onRequestMove={(itemId, chapterId, sourceBlockId) =>
                     setMoveModalItem({ itemId, chapterId, sourceBlockId })
                   }
+                  ghostMode={ghostMode}
                 />
               )
             })}
@@ -1132,6 +1163,32 @@ function ProjectStory({
           >
             <Eye size={14} strokeWidth={1.5} />{t('story.preview')}
           </button>
+
+          {/* Ghost Frame / Preview Panel 토글 */}
+          <div className="flex gap-1.5 mb-3">
+            <button
+              aria-pressed={ghostMode}
+              onClick={() => setGhostMode(v => !v)}
+              className={`flex-1 inline-flex items-center justify-center gap-1 px-1.5 py-1 text-[10px] rounded-card border transition-[background,color,border] duration-150 ease-out ${
+                ghostMode ? 'bg-stone-800 text-white border-stone-800' : 'text-muted border-faint hover:border-muted'
+              }`}
+              title={t('story.ghostMode')}
+            >
+              <Rows3 size={11} strokeWidth={1.5} />
+              {t('story.ghostMode')}
+            </button>
+            <button
+              aria-pressed={showPortfolioPreview}
+              onClick={() => setShowPortfolioPreview(v => !v)}
+              className={`flex-1 inline-flex items-center justify-center gap-1 px-1.5 py-1 text-[10px] rounded-card border transition-[background,color,border] duration-150 ease-out ${
+                showPortfolioPreview ? 'bg-stone-800 text-white border-stone-800' : 'text-muted border-faint hover:border-muted'
+              }`}
+              title={t('story.portfolioPreviewPanel')}
+            >
+              <PanelRight size={11} strokeWidth={1.5} />
+              {t('story.portfolioPreviewPanel')}
+            </button>
+          </div>
 
           {/* 챕터 네비게이션 목록 */}
           <div className="space-y-1">
@@ -1454,6 +1511,11 @@ function ProjectStory({
           </div>
         )}
       </div>
+
+      {/* 포트폴리오 미리보기 패널 */}
+      {showPortfolioPreview && (
+        <PortfolioPreview blocks={allBlocksForPreview} />
+      )}
 
       {/* 라이트박스 */}
       {selectedPhotoIndex !== null && currentChapterPhotos[selectedPhotoIndex] && (
