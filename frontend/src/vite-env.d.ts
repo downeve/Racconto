@@ -24,5 +24,7 @@ interface Window {
     onUnmapped: (callback: (filePath: string) => void) => void
     onFolderUnlinked: (callback: (folderPath: string) => void) => void
     folderExists: (folderPath: string) => Promise<boolean>
+    onMenuNavigate: (callback: (path: string) => void) => void
+    onMenuAction: (callback: (action: string) => void) => void
   }
 }

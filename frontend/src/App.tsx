@@ -59,10 +59,10 @@ function AppRoutes() {
 
   useEffect(() => {
     if (!isElectron) return
-    window.racconto.onMenuNavigate((path: string) => {
+    window.racconto!.onMenuNavigate((path: string) => {
       navigate(path)
     })
-    window.racconto.onMenuAction((action: string) => {
+    window.racconto!.onMenuAction((action: string) => {
       if (action === 'logout') {
         logout()
       } else if (action === 'toggleLanguage') {
