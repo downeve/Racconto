@@ -6,6 +6,7 @@ import { useAuth } from '../context/AuthContext' // AuthContext가 구현되어 
 import ProjectCard from '../components/ProjectCard'
 
 const API = import.meta.env.VITE_API_URL
+const isElectron = typeof window !== 'undefined' && !!window.racconto
 
 interface Project {
   id: string
@@ -47,7 +48,7 @@ export default function Dashboard() {
 
   return (
     <div className="min-h-screen bg-[#F7F4F0] text-stone-900 pb-20">
-      <div className="max-w-7xl mx-auto px-6 pt-space-md">
+      <div className={`max-w-7xl mx-auto px-6 ${isElectron ? 'pt-4' : 'pt-space-md'}`}>
         
         {/* 1. Welcome Section: LandingPage의 감성을 이어받음 */}
         <section className="mb-space-md">

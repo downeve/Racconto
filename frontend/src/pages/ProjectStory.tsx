@@ -141,10 +141,7 @@ function ProjectStory({
   //  const saved = localStorage.getItem('story.ghostMode')
   //  return saved === null ? true : saved === 'true'
   //})
-  const [showPortfolioPreview, setShowPortfolioPreview] = useState<boolean>(() => {
-    const saved = localStorage.getItem('story.showPortfolioPreview')
-    return saved === null ? true : saved === 'true'
-  })
+  const [showPortfolioPreview, setShowPortfolioPreview] = useState(false)
   const [previewLbIndex, setPreviewLbIndex] = useState<number | null>(null)
   const [previewLbItems, setPreviewLbItems] = useState<{ photo: PortfolioPhoto; title: string }[]>([])
 
@@ -175,7 +172,6 @@ function ProjectStory({
   const allPhotoIds = useMemo(() => new Set(allPhotos.map(p => p.id)), [allPhotos]);
 
   //useEffect(() => { localStorage.setItem('story.ghostMode', String(ghostMode)) }, [ghostMode])
-  useEffect(() => { localStorage.setItem('story.showPortfolioPreview', String(showPortfolioPreview)) }, [showPortfolioPreview])
 
   const blocksPerChapter = useMemo(() => {
     const map: Record<string, ChapterBlock[]> = {}
@@ -1064,6 +1060,35 @@ function ProjectStory({
         >
           <Eye size={14} strokeWidth={1.5} />{t('story.preview')}
         </button>
+          
+          {/* Ghost Frame / Preview Panel 토글 */}
+          <div className="flex gap-1.5 mb-3">
+            {/* Ghot Frame 토글 버튼 숨김 처리
+            <button
+              aria-pressed={ghostMode}
+              onClick={() => setGhostMode(v => !v)}
+              className={`flex-1 inline-flex items-center justify-center gap-1 px-1.5 py-1 text-[10px] rounded-card border transition-[background,color,border] duration-150 ease-out ${
+                ghostMode ? 'bg-stone-800 text-white border-stone-800' : 'text-muted border-faint hover:border-muted'
+              }`}
+              title={t('story.ghostMode')}
+            >
+              <Rows3 size={11} strokeWidth={1.5} />
+              {t('story.ghostMode')}
+            </button>
+            */}
+            <button
+              aria-pressed={showPortfolioPreview}
+              onClick={() => setShowPortfolioPreview(v => !v)}
+              className={`flex-1 inline-flex items-center justify-center gap-1 px-1.5 py-1 text-caption rounded-card border transition-[background,color,border] duration-150 ease-out ${
+                showPortfolioPreview ? 'bg-stone-800 text-card border-stone-800' : 'text-muted border-faint hover:border-muted'
+              }`}
+              title={t('story.portfolioPreviewPanel')}
+            >
+              <PanelRight size={11} strokeWidth={1.5} />
+              {t('story.portfolioPreviewPanel')}
+            </button>
+          </div>
+
         <div className="space-y-1">
           {chapters.filter(c => !c.parent_id).map((chapter, idx) => {
             const mainChapters = chapters.filter(c => !c.parent_id)

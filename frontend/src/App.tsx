@@ -1,7 +1,7 @@
-import { BrowserRouter, HashRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom'
+import { BrowserRouter, HashRouter, Routes, Route, Navigate, useLocation, useNavigate } from 'react-router-dom'
 import { AuthProvider, useAuth } from './context/AuthContext'
 import { useTranslation } from 'react-i18next'
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { Camera } from 'lucide-react'
 import Navbar from './components/Navbar'
 import Login from './pages/Login'
@@ -42,9 +42,10 @@ function AdminRoute({ children }: { children: React.ReactNode }) {
 }
 
 function AppRoutes() {
-  const { isAuthenticated, logout } = useAuth()
-  const {t} = useTranslation()
+  const { isAuthenticated, logout, user } = useAuth()
+  const {t, i18n} = useTranslation()
   const location = useLocation()
+  const navigate = useNavigate()
 
   // 납품 링크 페이지 Navbar 숨김
   const hideNavbar = location.pathname.startsWith('/delivery/')
@@ -53,8 +54,34 @@ function AppRoutes() {
   const isMobileDevice = /Android.*Mobile|webOS|iPhone|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)
   const [electronTab, setElectronTab] = useState<'photos' | 'story' | 'notes'>('photos')
 
+  const userRef = useRef(user)
+  useEffect(() => { userRef.current = user }, [user])
+
+  useEffect(() => {
+    if (!isElectron) return
+    window.racconto.onMenuNavigate((path: string) => {
+      navigate(path)
+    })
+    window.racconto.onMenuAction((action: string) => {
+      if (action === 'logout') {
+        logout()
+      } else if (action === 'toggleLanguage') {
+        const nextLang = i18n.language.startsWith('ko') ? 'en' : 'ko'
+        i18n.changeLanguage(nextLang)
+        localStorage.setItem('app_language', nextLang)
+      } else if (action === 'portfolio') {
+        const u = userRef.current
+        if (u?.username) {
+          navigate(`/p/${u.username}`, { state: { resetToList: true } })
+        } else {
+          navigate('/p/@setup')
+        }
+      }
+    })
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
+
   return (
-    <div className="min-h-screen bg-[#F7F4F0] pt-14">
+    <div className={`min-h-screen bg-[#F7F4F0]${isElectron ? '' : ' pt-14'}`}>
       {/* 모바일 기기 차단 — UA 기반 감지 */}
       {isMobileDevice &&
       !['/', '/features', '/login', '/register', '/verify-email'].includes(location.pathname) &&
@@ -87,7 +114,7 @@ function AppRoutes() {
         </div>
       )}
 
-      {isAuthenticated && !hideNavbar && <Navbar onLogout={logout} />}
+      {!isElectron && isAuthenticated && !hideNavbar && <Navbar onLogout={logout} />}
 
       {/* Electron 사이드바 — 인증된 상태, 납품/공개 페이지 제외 */}
       {isElectron && isAuthenticated && !hideNavbar && (

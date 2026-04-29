@@ -1,4 +1,4 @@
-const { app, BrowserWindow, ipcMain, dialog, net, nativeImage } = require('electron')
+const { app, BrowserWindow, ipcMain, dialog, net, nativeImage, Menu } = require('electron')
 const path = require('path')
 const chokidar = require('chokidar')
 const fs = require('fs')
@@ -577,8 +577,7 @@ function createWindow() {
   mainWindow = new BrowserWindow({
     width: 1280,
     height: 800,
-    titleBarStyle: 'hiddenInset',
-    trafficLightPosition: { x: 16, y: 18 },
+    titleBarStyle: 'default',
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
       contextIsolation: true,
@@ -598,11 +597,80 @@ function createWindow() {
   }
 }
 
+// ── 앱 메뉴 ──────────────────────────────────────────
+function buildAppMenu() {
+  const template = [
+    {
+      label: 'Racconto',
+      submenu: [
+        { role: 'about' },
+        { type: 'separator' },
+        { role: 'hide' },
+        { role: 'hideOthers' },
+        { role: 'unhide' },
+        { type: 'separator' },
+        { role: 'quit' },
+      ],
+    },
+    {
+      label: 'Navigate',
+      submenu: [
+        {
+          label: 'Dashboard',
+          click: () => mainWindow?.webContents.send('menu:navigate', '/dashboard'),
+        },
+        {
+          label: 'Projects',
+          click: () => mainWindow?.webContents.send('menu:navigate', '/projects'),
+        },
+        {
+          label: 'Portfolio',
+          click: () => mainWindow?.webContents.send('menu:action', 'portfolio'),
+        },
+      ],
+    },
+    {
+      label: 'Account',
+      submenu: [
+        {
+          label: 'Settings',
+          click: () => mainWindow?.webContents.send('menu:navigate', '/settings'),
+        },
+        {
+          label: 'Trash',
+          click: () => mainWindow?.webContents.send('menu:navigate', '/trash'),
+        },
+        { type: 'separator' },
+        {
+          label: 'Toggle Language',
+          click: () => mainWindow?.webContents.send('menu:action', 'toggleLanguage'),
+        },
+        { type: 'separator' },
+        {
+          label: 'Sign Out',
+          click: () => mainWindow?.webContents.send('menu:action', 'logout'),
+        },
+      ],
+    },
+    {
+      label: 'Window',
+      submenu: [
+        { role: 'minimize' },
+        { role: 'zoom' },
+        { type: 'separator' },
+        { role: 'front' },
+      ],
+    },
+  ]
+  Menu.setApplicationMenu(Menu.buildFromTemplate(template))
+}
+
 // ── 앱 시작 ──────────────────────────────────────────
 app.whenReady().then(() => {
   initQueue()
   process.env.APP_VERSION = app.getVersion()
   createWindow()
+  buildAppMenu()
 
   // 토큰이 있을 때만 감시 시작 — auth:setToken에서 처리
   // 기존 매핑 폴더 감시는 로그인 후에만 시작

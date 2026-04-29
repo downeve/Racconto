@@ -23,4 +23,6 @@ contextBridge.exposeInMainWorld('racconto', {
   onLimitExceeded: (callback) => ipcRenderer.on('upload:limitExceeded', (event, data) => callback(data)),
   onFolderUnlinked: (callback) => ipcRenderer.on('folderMap:unlinked', (event, folderPath) => callback(folderPath)),
   folderExists: (folderPath) => ipcRenderer.invoke('fs:folderExists', folderPath),
+  onMenuNavigate: (callback) => ipcRenderer.on('menu:navigate', (_, path) => callback(path)),
+  onMenuAction: (callback) => ipcRenderer.on('menu:action', (_, action) => callback(action)),
 })

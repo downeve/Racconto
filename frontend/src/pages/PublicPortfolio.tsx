@@ -10,6 +10,7 @@ import { Sun, Moon, MapPin } from 'lucide-react'
 //import { exportToPDF } from '../utils/exportToPDF'
 
 const API = import.meta.env.VITE_API_URL
+const isElectron = typeof window !== 'undefined' && !!window.racconto
 
 interface Photo {
   id: string
@@ -181,7 +182,7 @@ export default function PublicPortfolio() {
   // 케이스 1: 먼저 사용자가 포트폴리오 설정을 안 했을 때 (@setup) 인지 확인합니다.
   if (username === '@setup' || !username) {
     return (
-      <div className={`min-h-screen pt-14 flex flex-col ${darkMode ? 'bg-ink text-hair' : 'bg-canvas text-ink'}`}>
+      <div className={`min-h-screen flex flex-col ${darkMode ? 'bg-ink text-hair' : 'bg-canvas text-ink'}`}>
         <main className="flex-1 flex items-center justify-center px-6 pb-32">
           <div className="text-center">
             <h2 className="text-2xl text-ink-2 font-bold mb-3">
@@ -225,7 +226,7 @@ export default function PublicPortfolio() {
     <div className={`min-h-screen ${bg} transition-[background,color,border] duration-150 ease-out`}>
       {!isAuthenticated && <PublicNavbar username={username} darkMode={darkMode} compact />}
 
-      <div className="max-w-4xl mx-auto px-6 pt-space-md pb-space-xl">
+      <div className={`max-w-4xl mx-auto px-6 ${isElectron ? 'pt-4' : 'pt-space-md'} pb-space-xl`}>
 
         <div className="flex items-center justify-between mb-space-md">
           <div id="portfolio-print-start" className="flex items-center gap-4">

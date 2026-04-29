@@ -94,10 +94,11 @@
     }
   },
   "nav": {
+    "dashboard": "Dashboard",
     "projects": "PROJECTS",
     "projectsList": "Project List",
-    "trash": "🗑 Deleted Projects",
-    "settings": "⚙️ Settings",
+    "trash": "Deleted Projects",
+    "settings": "Settings",
     "portfolio": "PORTFOLIOS",
     "backToList": "← List",
     "backToProjects": "← Back to projects",
@@ -126,7 +127,7 @@
     "noLocalFile2": "Images with no local files"
   },
   "photo": {
-    "title": "Photos",
+    "title": "Photo",
     "allPhotos": "All photos",
     "library": "Library",
     "trash": "Deleted photos",
