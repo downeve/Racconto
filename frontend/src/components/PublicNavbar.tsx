@@ -19,7 +19,7 @@ export default function PublicNavbar({ username, darkMode, compact }: { username
           <div className="flex items-center gap-3">
             <Link
               to="/"
-              className={`font-serif text-h3 inline-block transition-[background,color,border] duration-150 ease-out ${dm ? 'text-hair' : 'text-ink'}`}
+              className={`font-serif text-h2 inline-block transition-[background,color,border] duration-150 ease-out ${dm ? 'text-hair' : 'text-ink'}`}
               style={{ fontWeight: 700, letterSpacing: '0.08em', transform: 'translateY(1px)' }}
             >
               Racconto
@@ -28,7 +28,7 @@ export default function PublicNavbar({ username, darkMode, compact }: { username
               <Link
                 to={`/p/${username}`}
                 state={{ resetToList: true }}
-                className={`text-small transition-[background,color,border] duration-150 ease-out ${dm ? 'text-faint hover:text-hair' : 'text-muted hover:text-ink'} hover:font-bold`}
+                className={`text-body transition-[background,color,border] duration-150 ease-out ${dm ? 'text-faint hover:text-hair' : 'text-muted hover:text-ink'} hover:font-bold`}
               >
                 @{username}
               </Link>
@@ -36,7 +36,7 @@ export default function PublicNavbar({ username, darkMode, compact }: { username
           </div>
           <Link
             to="/features"
-            className={`text-body sm:text-small tracking-wider transition-[background,color,border] duration-150 ease-out hover:font-bold ${dm ? 'text-faint hover:text-hair' : 'text-ink-2 hover:text-ink'}`}
+            className={`text-body sm:text-h3 tracking-wider transition-[background,color,border] duration-150 ease-out hover:font-bold ${dm ? 'text-faint hover:text-hair' : 'text-ink-2 hover:text-ink'}`}
           >
             {t('nav.features')}
           </Link>
@@ -52,7 +52,7 @@ export default function PublicNavbar({ username, darkMode, compact }: { username
           <div className="flex items-center gap-3">
             <Link
               to="/"
-              className={`font-serif text-h3 md:text-h2 inline-block transition-[background,color,border] duration-150 ease-out ${dm ? 'text-hair' : 'text-ink'}`}
+              className={`font-serif text-h2 md:text-h2 inline-block transition-[background,color,border] duration-150 ease-out ${dm ? 'text-hair' : 'text-ink'}`}
               style={{
                 fontWeight: 700,
                 letterSpacing: '0.08em',

@@ -293,7 +293,7 @@ export default function PublicPortfolio() {
             ))}
             {projects.length === 0 && (
               <div className="col-span-3 text-center py-20">
-                <p className={subText}>{t('portfolio.noPublicProjects')}</p>
+                <p className={`text-h2 ${subText}`}>{t('portfolio.noPublicProjects')}</p>
               </div>
             )}
           </div>
