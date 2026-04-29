@@ -6,12 +6,12 @@ import { useTranslation } from 'react-i18next'
 import ConfirmModal from '../components/ConfirmModal'
 import ToastNotification from '../components/ToastNotification'
 import { useElectronSidebar } from '../context/ElectronSidebarContext'
-import {
-  DndContext, closestCenter, PointerSensor, useSensor, useSensors,
-  type DragEndEvent,
-} from '@dnd-kit/core'
-import { SortableContext, rectSortingStrategy, useSortable, arrayMove } from '@dnd-kit/sortable'
-import { CSS } from '@dnd-kit/utilities'
+// import {
+//   DndContext, closestCenter, PointerSensor, useSensor, useSensors,
+//   type DragEndEvent,
+// } from '@dnd-kit/core'
+// import { SortableContext, rectSortingStrategy, useSortable, arrayMove } from '@dnd-kit/sortable'
+// import { CSS } from '@dnd-kit/utilities'
 
 const API = import.meta.env.VITE_API_URL
 
@@ -26,10 +26,50 @@ interface Project {
   cover_image_url: string
   is_public: string
   created_at: string
+  updated_at: string
 }
 
 // 🔥 최적화: React.memo로 감싸서 불필요한 리렌더링 방지
-const SortableProjectCard = memo(function SortableProjectCard({
+// const SortableProjectCard = memo(function SortableProjectCard({
+//   project,
+//   onDelete,
+//   t,
+// }: {
+//   project: Project
+//   onDelete: (id: string) => void
+//   t: (key: string) => string
+// }) {
+//   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: project.id })
+//   const style = {
+//     transform: CSS.Transform.toString(transform),
+//     transition,
+//     opacity: isDragging ? 0.4 : 1,
+//   }
+//   return (
+//     <div ref={setNodeRef} style={style} className="relative group">
+//       {/* 드래그 핸들 */}
+//       <div
+//         {...attributes}
+//         {...listeners}
+//         className="absolute top-2 left-2 z-10 opacity-0 group-hover:opacity-100 transition-opacity cursor-grab active:cursor-grabbing bg-white/80 rounded p-0.5 text-stone-400 hover:text-stone-700 select-none"
+//         title="드래그하여 순서 변경"
+//       >
+//         <svg width="14" height="14" viewBox="0 0 14 14" fill="currentColor">
+//           <circle cx="4" cy="3" r="1.2"/><circle cx="10" cy="3" r="1.2"/>
+//           <circle cx="4" cy="7" r="1.2"/><circle cx="10" cy="7" r="1.2"/>
+//           <circle cx="4" cy="11" r="1.2"/><circle cx="10" cy="11" r="1.2"/>
+//         </svg>
+//       </div>
+//       <ProjectCard project={project} />
+//       <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity flex gap-1">
+//         <Link to={`/projects/${project.slug || project.id}/edit`} className="bg-card text-ink px-2 py-1 text-xs rounded shadow hover:bg-muted hover:text-hair" onClick={e => e.stopPropagation()}>{t('common.edit')}</Link>
+//         <button onClick={e => { e.preventDefault(); onDelete(project.id) }} className="bg-red-400 text-card px-2 py-1 text-xs rounded shadow hover:bg-red-600">{t('common.delete')}</button>
+//       </div>
+//     </div>
+//   )
+// })
+
+const ProjectCardItem = memo(function ProjectCardItem({
   project,
   onDelete,
   t,
@@ -38,27 +78,8 @@ const SortableProjectCard = memo(function SortableProjectCard({
   onDelete: (id: string) => void
   t: (key: string) => string
 }) {
-  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: project.id })
-  const style = {
-    transform: CSS.Transform.toString(transform),
-    transition,
-    opacity: isDragging ? 0.4 : 1, // 기존의 깔끔한 반투명 피드백 유지
-  }
   return (
-    <div ref={setNodeRef} style={style} className="relative group">
-      {/* 드래그 핸들 */}
-      <div
-        {...attributes}
-        {...listeners}
-        className="absolute top-2 left-2 z-10 opacity-0 group-hover:opacity-100 transition-opacity cursor-grab active:cursor-grabbing bg-white/80 rounded p-0.5 text-stone-400 hover:text-stone-700 select-none"
-        title="드래그하여 순서 변경"
-      >
-        <svg width="14" height="14" viewBox="0 0 14 14" fill="currentColor">
-          <circle cx="4" cy="3" r="1.2"/><circle cx="10" cy="3" r="1.2"/>
-          <circle cx="4" cy="7" r="1.2"/><circle cx="10" cy="7" r="1.2"/>
-          <circle cx="4" cy="11" r="1.2"/><circle cx="10" cy="11" r="1.2"/>
-        </svg>
-      </div>
+    <div className="relative group">
       <ProjectCard project={project} />
       <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity flex gap-1">
         <Link
@@ -101,18 +122,18 @@ export default function Projects() {
   const [isPublic, setIsPublic] = useState('false')
   const { triggerRefresh } = useElectronSidebar()
   const { t } = useTranslation()
-  const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 8 } }))
+  // const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 8 } }))
 
-  const handleDragEnd = async (event: DragEndEvent) => {
-    const { active, over } = event
-    if (!over || active.id === over.id) return
-    const oldIndex = projects.findIndex(p => p.id === active.id)
-    const newIndex = projects.findIndex(p => p.id === over.id)
-    const reordered = arrayMove(projects, oldIndex, newIndex)
-    setProjects(reordered)
-    await axios.patch(`${API}/projects/reorder`, { ids: reordered.map(p => p.id) })
-    triggerRefresh()
-  }
+  // const handleDragEnd = async (event: DragEndEvent) => {
+  //   const { active, over } = event
+  //   if (!over || active.id === over.id) return
+  //   const oldIndex = projects.findIndex(p => p.id === active.id)
+  //   const newIndex = projects.findIndex(p => p.id === over.id)
+  //   const reordered = arrayMove(projects, oldIndex, newIndex)
+  //   setProjects(reordered)
+  //   await axios.patch(`${API}/projects/reorder`, { ids: reordered.map(p => p.id) })
+  //   triggerRefresh()
+  // }
 
   // 🔥 최적화: useCallback 및 상태 직접 조작(prev filter)으로 빠른 UI 갱신
   const handleDelete = useCallback((projectId: string) => {
@@ -135,7 +156,10 @@ export default function Projects() {
 
   const fetchProjects = async () => {
     const res = await axios.get(`${API}/projects/`)
-    setProjects(res.data)
+    const sorted = [...res.data].sort(
+      (a, b) => new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime()
+    )
+    setProjects(sorted)
   }
 
   useEffect(() => {
@@ -227,11 +251,11 @@ export default function Projects() {
         </div>
       )}
 
-      <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
-        <SortableContext items={projects.map(p => p.id)} strategy={rectSortingStrategy}>
+      {/* <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+        <SortableContext items={projects.map(p => p.id)} strategy={rectSortingStrategy}> */}
           <div className="grid gap-6 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
             {projects.map(project => (
-              <SortableProjectCard
+              <ProjectCardItem
                 key={project.id}
                 project={project}
                 onDelete={handleDelete}
@@ -239,8 +263,8 @@ export default function Projects() {
               />
             ))}
           </div>
-        </SortableContext>
-      </DndContext>
+        {/* </SortableContext>
+      </DndContext> */}
 
       {projects.length === 0 && (
         <div className="text-center py-space-lg">

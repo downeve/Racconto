@@ -14,7 +14,7 @@ interface PortfolioPreviewProps {
   blocks: PreviewBlock[]
 }
 
-const BAR_HEIGHT = 20
+const BAR_HEIGHT = 24
 const BAR_GAP = 3
 const BLOCK_GAP = 8
 
@@ -28,7 +28,8 @@ export default function PortfolioPreview({ blocks }: PortfolioPreviewProps) {
       }
       if (block.blockType === 'SIDE') {
         const photos = block.items.filter(i => i.item_type === 'PHOTO')
-        return { blockId: block.blockId, kind: 'side' as const, photos }
+        const textItem = block.items.find(i => i.item_type === 'TEXT')
+        return { blockId: block.blockId, kind: 'side' as const, photos, textItem }
       }
       const rows = computePortfolioRows(block.items, block.blockLayout)
       const photoMap = Object.fromEntries(
@@ -49,8 +50,8 @@ export default function PortfolioPreview({ blocks }: PortfolioPreviewProps) {
   if (blocks.length === 0) return null
 
   return (
-    <div className="shrink-0 w-[200px] sticky top-6 self-start">
-      <p className="text-[10px] font-mono uppercase tracking-wider text-stone-400 mb-2">
+    <div className="shrink-0 w-[140px] sticky top-28 self-start">
+      <p className="text-menu font-mono tracking-wider text-faint mb-2">
         {t('story.portfolioPreviewTitle')}
       </p>
       <div className="space-y-0" style={{ gap: `${BLOCK_GAP}px` }}>
@@ -59,15 +60,16 @@ export default function PortfolioPreview({ blocks }: PortfolioPreviewProps) {
             {block.kind === 'text' && (
               <div className="flex items-center gap-1 my-1">
                 <div className="flex-1 h-px bg-stone-200" />
-                <span className="text-[8px] font-mono text-stone-300 shrink-0">T</span>
+                <span className="text-caption font-mono text-faint shrink-0">{t('story.portfolioPreviewText')}</span>
                 <div className="flex-1 h-px bg-stone-200" />
               </div>
             )}
 
-            {block.kind === 'side' && (
-              <div
-                style={{ display: 'flex', gap: `${BAR_GAP}px`, marginBottom: `${BAR_GAP}px`, height: `${BAR_HEIGHT}px` }}
-              >
+            {block.kind === 'side' && (() => {
+              // side-right: 텍스트가 block_type='side-right' → 사진이 왼쪽
+              const isPhotoRight = block.textItem?.block_type === 'side-left'
+
+              const photoCol = (
                 <div
                   className="rounded-sm bg-stone-200 overflow-hidden"
                   style={{ flex: 3, height: `${BAR_HEIGHT}px` }}
@@ -79,12 +81,23 @@ export default function PortfolioPreview({ blocks }: PortfolioPreviewProps) {
                     />
                   )}
                 </div>
+              )
+
+              const textCol = (
                 <div
-                  className="rounded-sm bg-stone-100 border border-stone-200"
+                  className="flex items-center justify-center rounded-sm bg-stone-100 border border-stone-200 text-eyebrow text-faint"
                   style={{ flex: 2, height: `${BAR_HEIGHT}px` }}
-                />
-              </div>
-            )}
+                >
+                  {t('story.portfolioPreviewText')}
+                </div>
+              )
+
+              return (
+                <div style={{ display: 'flex', gap: `${BAR_GAP}px`, marginBottom: `${BAR_GAP}px`, height: `${BAR_HEIGHT}px` }}>
+                  {isPhotoRight ? <>{textCol}{photoCol}</> : <>{photoCol}{textCol}</>}
+                </div>
+              )
+            })()}
 
             {block.kind === 'photo' && block.rows.map(row => (
               <div

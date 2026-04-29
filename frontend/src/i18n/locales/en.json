@@ -266,8 +266,11 @@
       "lastFullWidth": "Last photo is full-width"
     },
     "ghostMode": "Row guide",
-    "portfolioPreviewPanel": "Preview panel",
-    "portfolioPreviewTitle": "Portfolio Preview"
+    "portfolioPreviewPanel": "Mini Preview Panel",
+    "portfolioPreviewTitle": "Mini Preview",
+    "portfolioPreviewText": "Text",
+    "chapterPhotoCount_one": "{{count}} Photo",
+    "chapterPhotoCount_other": "{{count}} Photos"
   },
   "note": {
     "title": "Note",

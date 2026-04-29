@@ -821,10 +821,10 @@ export default function ProjectDetail({
                       setFilterFolder(filterFolder === folder ? null : folder!);
                       setPhotoSubTab(filterFolder === folder ? 'all' : 'folder');
                     }}
-                      className="flex-1 text-left px-2 py-1 text-xs flex items-center justify-between min-w-0">
+                      className="flex-1 text-left px-2 py-1 text-small flex items-center justify-between min-w-0">
                       <span className="flex items-center gap-1 min-w-0">
                         <Folder size={12} strokeWidth={1.5} className="shrink-0" />
-                        <span className="truncate text-caption">{getFolderDisplayName(folder!)}</span>
+                        <span className="truncate text-menu">{getFolderDisplayName(folder!)}</span>
                         {isLocalSyncFolder(folder!) && (
                           <Monitor size={10} strokeWidth={1.5} className={`shrink-0 ${filterFolder === folder ? 'text-faint' : 'text-muted'}`} />
                         )}

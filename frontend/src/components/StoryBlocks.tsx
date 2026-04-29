@@ -1,6 +1,7 @@
 import { useTranslation } from 'react-i18next'
-import { memo, useState, useMemo } from 'react'
-import { computePortfolioRows, colsForLayout } from '../utils/portfolioRows'
+// import { memo, useState, useMemo } from 'react'  // useState, useMemo: GhostFrameGrid 전용
+import { memo } from 'react'
+// import { computePortfolioRows } from '../utils/portfolioRows'  // GhostFrameGrid 전용
 import MarkdownRenderer from './MarkdownRenderer'
 import {
   DndContext,
@@ -245,6 +246,7 @@ export const SortableTextBlock = memo(function SortableTextBlock({
   )
 })
 
+{/*
 // ── GhostFrameGrid ─────────────────────────────────────────
 
 interface GhostFrameGridProps {
@@ -328,6 +330,7 @@ function GhostFrameGrid({
     </div>
   )
 }
+*/}
 
 // ── SortablePhotoBlock ──────────────────────────────────────
 
@@ -344,7 +347,7 @@ export interface SortablePhotoBlockProps {
   draggingItemBlockId: string | null
   otherBlocks: OtherBlock[]
   onRequestMove: (itemId: string, chapterId: string, sourceBlockId: string) => void
-  ghostMode?: boolean
+  //ghostMode?: boolean
 }
 
 export const SortablePhotoBlock = memo(function SortablePhotoBlock({
@@ -352,7 +355,7 @@ export const SortablePhotoBlock = memo(function SortablePhotoBlock({
   onRemoveItem, onPhotoClick, onInnerDragEnd, onLayoutChange,
   draggingItemId, draggingItemBlockId,
   otherBlocks, onRequestMove,
-  ghostMode = true,
+  //ghostMode = true,
 }: SortablePhotoBlockProps) {
   const { attributes, listeners, setNodeRef: setSortableRef, transform, transition, isDragging } = useSortable({ id: blockId })
   const style = { transform: CSS.Transform.toString(transform), transition, opacity: isDragging ? 0.5 : 1 }
@@ -374,13 +377,13 @@ export const SortablePhotoBlock = memo(function SortablePhotoBlock({
   const blockLayout = items[0]?.block_layout || 'grid'
   const layoutLabels: Record<string, string> = { grid: t('portfolio.columnGrid'), wide: t('portfolio.columnWide'), single: t('portfolio.columnSingle') }
 
-  const ghostRows = useMemo(
-    () => ghostMode ? computePortfolioRows(items, blockLayout) : [],
-    [ghostMode, items, blockLayout]
-  )
-  const hasLastFullWidth = ghostRows.some(r => r.isFullWidth)
-  const photoCount = items.filter(i => i.item_type === 'PHOTO').length
-  const cols = colsForLayout(blockLayout)
+  //const ghostRows = useMemo(
+  //  () => ghostMode ? computePortfolioRows(items, blockLayout) : [],
+  //  [ghostMode, items, blockLayout]
+  //)
+  //const hasLastFullWidth = ghostRows.some(r => r.isFullWidth)
+  //const photoCount = items.filter(i => i.item_type === 'PHOTO').length
+  //const cols = colsForLayout(blockLayout)
 
   return (
     <div
@@ -400,7 +403,35 @@ export const SortablePhotoBlock = memo(function SortablePhotoBlock({
         <DragHandleDots />
       </div>
 
-      {/* 레이아웃 툴바 */}
+      {/* 레이아웃 아이콘 — hover 아닐 때 상시 표시 */}
+      <div className="absolute top-2 left-1 opacity-100 group-hover/block:opacity-100 transition-opacity z-20 pointer-events-none">
+        {blockLayout === 'grid' && (
+          <svg width="16" height="12" viewBox="0 0 16 12" fill="none" className="text-faint">
+            <rect x="0" y="0" width="4.5" height="5" rx="0.8" fill="currentColor"/>
+            <rect x="5.75" y="0" width="4.5" height="5" rx="0.8" fill="currentColor"/>
+            <rect x="11.5" y="0" width="4.5" height="5" rx="0.8" fill="currentColor"/>
+            <rect x="0" y="6.5" width="4.5" height="5" rx="0.8" fill="currentColor"/>
+            <rect x="5.75" y="6.5" width="4.5" height="5" rx="0.8" fill="currentColor"/>
+            <rect x="11.5" y="6.5" width="4.5" height="5" rx="0.8" fill="currentColor"/>
+          </svg>
+        )}
+        {blockLayout === 'wide' && (
+          <svg width="16" height="12" viewBox="0 0 16 12" fill="none" className="text-faint">
+            <rect x="0" y="0" width="7" height="5" rx="0.8" fill="currentColor"/>
+            <rect x="8.5" y="0" width="7" height="5" rx="0.8" fill="currentColor"/>
+            <rect x="0" y="6.5" width="7" height="5" rx="0.8" fill="currentColor"/>
+            <rect x="8.5" y="6.5" width="7" height="5" rx="0.8" fill="currentColor"/>
+          </svg>
+        )}
+        {blockLayout === 'single' && (
+          <svg width="16" height="12" viewBox="0 0 16 12" fill="none" className="text-faint">
+            <rect x="0" y="0" width="16" height="5" rx="0.8" fill="currentColor"/>
+            <rect x="0" y="6.5" width="16" height="5" rx="0.8" fill="currentColor"/>
+          </svg>
+        )}
+      </div>
+
+      {/* 레이아웃 툴바 — hover 시 표시 */}
       <div className="absolute -top-1 left-6 opacity-0 group-hover/block:opacity-100 transition-opacity z-20 flex items-center gap-1 bg-white border border-gray-200 rounded shadow px-1.5 py-0.5">
         <span className="text-[10px] text-faint mr-1">{t('portfolio.column')}</span>
         {(['grid', 'wide', 'single'] as const).map(l => (
@@ -415,11 +446,13 @@ export const SortablePhotoBlock = memo(function SortablePhotoBlock({
           </button>
         ))}
         <span className="text-[10px] text-faint">{t('portfolio.layoutInPort')}</span>
+        {/*
         {ghostMode && photoCount > 0 && (
           <span className="text-[10px] text-stone-400 border-l border-stone-200 pl-1.5 ml-0.5">
             {cols}열 · {photoCount}장{hasLastFullWidth ? ` · ${t('story.blockHint.lastFullWidth')}` : ''}
           </span>
         )}
+        */}
       </div>
 
       <DndContext
@@ -428,6 +461,7 @@ export const SortablePhotoBlock = memo(function SortablePhotoBlock({
         onDragEnd={(e) => onInnerDragEnd(e, blockId, chapterId)}
       >
         <SortableContext items={items.map(i => i.id)} strategy={rectSortingStrategy}>
+          {/*
           {ghostMode ? (
             <GhostFrameGrid
               items={items}
@@ -439,6 +473,7 @@ export const SortablePhotoBlock = memo(function SortablePhotoBlock({
               onRequestMove={(itemId) => onRequestMove(itemId, chapterId, blockId)}
             />
           ) : (
+          */}
             <div className="grid grid-cols-3 gap-2">
               {items.map(item => (
                 <SortablePhotoChapter
@@ -454,7 +489,6 @@ export const SortablePhotoBlock = memo(function SortablePhotoBlock({
                 />
               ))}
             </div>
-          )}
         </SortableContext>
       </DndContext>
     </div>

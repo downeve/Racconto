@@ -1,7 +1,8 @@
 import { useEffect, useState, useMemo, useRef, memo, useCallback } from 'react'
 import axios from 'axios'
 import { useTranslation } from 'react-i18next'
-import { Eye, FileText, Sun, Moon, Rows3, PanelRight } from 'lucide-react'
+import { Eye, FileText, Sun, Moon, PanelRight } from 'lucide-react'
+//import { Rows3 } from 'lucide-react'
 import PhotoNotePanel from '../components/PhotoNotePanel'
 import { useElectronSidebar } from '../context/ElectronSidebarContext'
 import ConfirmModal from '../components/ConfirmModal'
@@ -136,10 +137,10 @@ function ProjectStory({
   const [previewDarkMode, setPreviewDarkMode] = useState(false)
 
   // Ghost Frame + Preview Panel 토글 (localStorage 영속화)
-  const [ghostMode, setGhostMode] = useState<boolean>(() => {
-    const saved = localStorage.getItem('story.ghostMode')
-    return saved === null ? true : saved === 'true'
-  })
+  //const [ghostMode, setGhostMode] = useState<boolean>(() => {
+  //  const saved = localStorage.getItem('story.ghostMode')
+  //  return saved === null ? true : saved === 'true'
+  //})
   const [showPortfolioPreview, setShowPortfolioPreview] = useState<boolean>(() => {
     const saved = localStorage.getItem('story.showPortfolioPreview')
     return saved === null ? true : saved === 'true'
@@ -173,7 +174,7 @@ function ProjectStory({
   // O(N²) 성능 저하를 막기 위한 Set(해시테이블) 캐싱
   const allPhotoIds = useMemo(() => new Set(allPhotos.map(p => p.id)), [allPhotos]);
 
-  useEffect(() => { localStorage.setItem('story.ghostMode', String(ghostMode)) }, [ghostMode])
+  //useEffect(() => { localStorage.setItem('story.ghostMode', String(ghostMode)) }, [ghostMode])
   useEffect(() => { localStorage.setItem('story.showPortfolioPreview', String(showPortfolioPreview)) }, [showPortfolioPreview])
 
   const blocksPerChapter = useMemo(() => {
@@ -890,7 +891,7 @@ function ProjectStory({
                   onRequestMove={(itemId, chapterId, sourceBlockId) =>
                     setMoveModalItem({ itemId, chapterId, sourceBlockId })
                   }
-                  ghostMode={ghostMode}
+                  //ghostMode={ghostMode}
                 />
               )
             })}
@@ -1176,6 +1177,7 @@ function ProjectStory({
 
           {/* Ghost Frame / Preview Panel 토글 */}
           <div className="flex gap-1.5 mb-3">
+            {/* Ghot Frame 토글 버튼 숨김 처리
             <button
               aria-pressed={ghostMode}
               onClick={() => setGhostMode(v => !v)}
@@ -1187,11 +1189,12 @@ function ProjectStory({
               <Rows3 size={11} strokeWidth={1.5} />
               {t('story.ghostMode')}
             </button>
+            */}
             <button
               aria-pressed={showPortfolioPreview}
               onClick={() => setShowPortfolioPreview(v => !v)}
-              className={`flex-1 inline-flex items-center justify-center gap-1 px-1.5 py-1 text-[10px] rounded-card border transition-[background,color,border] duration-150 ease-out ${
-                showPortfolioPreview ? 'bg-stone-800 text-white border-stone-800' : 'text-muted border-faint hover:border-muted'
+              className={`flex-1 inline-flex items-center justify-center gap-1 px-1.5 py-1 text-caption rounded-card border transition-[background,color,border] duration-150 ease-out ${
+                showPortfolioPreview ? 'bg-stone-800 text-card border-stone-800' : 'text-muted border-faint hover:border-muted'
               }`}
               title={t('story.portfolioPreviewPanel')}
             >
@@ -1218,7 +1221,7 @@ function ProjectStory({
                     {(() => {
                       const count = getChapterPhotoCount(chapter.id)
                       return count > 0 ? (
-                        <span className="ml-auto shrink-0 text-[9px] font-mono text-stone-400">{count}</span>
+                        <span className="ml-auto shrink-0 text-eyebrow font-mono text-muted">({count})</span>
                       ) : null
                     })()}
                   </button>
@@ -1241,14 +1244,14 @@ function ProjectStory({
                   <div key={sub.id} className="flex items-center gap-1 group rounded hover:bg-hair">
                     <button
                       onClick={() => scrollToChapter(sub.id)}
-                      className="flex-1 text-left pl-5 pr-1 py-1 text-menu flex items-center gap-1.5 min-w-0"
+                      className="flex-1 text-left pl-3 pr-1 py-1 text-menu flex items-center gap-1.5 min-w-0"
                     >
                       <span className="text-muted shrink-0">↳ {t('story.chapter')} {idx + 1}.{subIdx + 1}</span>
                       <span className="text-ink-2 hover:text-ink truncate">{sub.title}</span>
                       {(() => {
                         const count = getChapterPhotoCount(sub.id)
                         return count > 0 ? (
-                          <span className="ml-auto shrink-0 text-[9px] font-mono text-stone-400">{count}</span>
+                          <span className="ml-auto shrink-0 text-eyebrow font-mono text-muted">({count})</span>
                         ) : null
                       })()}
                     </button>
@@ -1356,11 +1359,11 @@ function ProjectStory({
                             const count = getChapterPhotoCount(chapter.id)
                             return count > 0 ? (
                               <span className="ml-1.5 inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-mono text-muted bg-stone-100 border border-stone-200 align-middle">
-                                {count}장
+                                {t('story.chapterPhotoCount', { count })}
                               </span>
                             ) : null
                           })()}
-                          {chapter.description && <p className="text-body text-faint mt-1">{chapter.description}</p>}
+                          {chapter.description && <p className="text-body text-muted mt-1">{chapter.description}</p>}
                         </div>
                         <div className="flex gap-2 shrink-0">
                           <button
@@ -1406,7 +1409,7 @@ function ProjectStory({
 
                   {/* 서브 챕터 추가 폼 */}
                   {addingSubChapterTo === chapter.id && (
-                    <div className="ml-8 mt-3 p-4 bg-card border border-faint rounded-card shadow">
+                    <div className="ml-4 mt-3 p-4 bg-card border border-faint rounded-card shadow">
                       <p className="text-muted mb-2">↳ {chapter.title}{t('story.addSubChapter')}</p>
                       <input
                         className="w-full border rounded-card px-3 py-2 text-body mb-2"
@@ -1454,7 +1457,7 @@ function ProjectStory({
                   <div
                     key={subChapter.id}
                     ref={el => { chapterRefs.current[subChapter.id] = el }}
-                    className="ml-8 border-l-2 border-blue-200 pl-4 bg-card rounded-card shadow overflow-hidden mt-3"
+                    className="ml-4 border-l-2 border-faint pl-4 bg-card rounded-card shadow overflow-hidden mt-3"
                   >
                     {/* 서브챕터 헤더 */}
                     <div className="p-4 border-b">
@@ -1489,11 +1492,11 @@ function ProjectStory({
                               const count = getChapterPhotoCount(subChapter.id)
                               return count > 0 ? (
                                 <span className="ml-1.5 inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-mono text-muted bg-stone-100 border border-stone-200 align-middle">
-                                  {count}장
+                                  {t('story.chapterPhotoCount', { count })}
                                 </span>
                               ) : null
                             })()}
-                            {subChapter.description && <p className="text-body text-faint mt-1">{subChapter.description}</p>}
+                            {subChapter.description && <p className="text-body text-muted mt-1">{subChapter.description}</p>}
                           </div>
                           <div className="flex gap-2 shrink-0">
                             <button

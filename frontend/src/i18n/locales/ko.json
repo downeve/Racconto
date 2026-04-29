@@ -217,7 +217,7 @@
   },
   "story": {
     "title": "스토리",
-    "preview": "미리보기",
+    "preview": "포트폴리오 미리보기",
     "chapter": "챕터",
     "chapters": "챕터 목록",
     "addChapter": "+ 챕터 추가",
@@ -262,8 +262,10 @@
       "lastFullWidth": "마지막 1장은 풀너비"
     },
     "ghostMode": "행 안내선",
-    "portfolioPreviewPanel": "미리보기 패널",
-    "portfolioPreviewTitle": "포트폴리오 미리보기"
+    "portfolioPreviewPanel": "미리보기 미니 패널",
+    "portfolioPreviewTitle": "배치 미리보기",
+    "portfolioPreviewText": "텍스트",
+    "chapterPhotoCount": "{{count}}장"
   },
   "note": {
     "title": "노트",
