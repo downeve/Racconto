@@ -295,11 +295,11 @@
   "portfolio": {
     "noChapters": "아직 챕터가 없어요",
     "createChapterFirst": "스토리 탭에서 챕터를 만들어 사진을 공개해보세요.",
-    "noPublicProjects": "공개된 프로젝트가 없어요",
+    "noPublicProjects": "공개한 프로젝트가 없어요",
     "startMessage": "나만의 포트폴리오를 만드세요.",
     "startMessage2": "아직 포트폴리오 주소를 설정하지 않았습니다. 설정에서 사용자 이름을 등록하세요.",
     "noUser": "의 포트폴리오를 찾을 수 없습니다.",
-    "column": "배열: ",
+    "column": "이미지 배치: ",
     "columnSingle": "1열",
     "columnWide": "2열",
     "columnGrid": "3열",
@@ -517,7 +517,7 @@
     "title2": "오늘도 당신의 이야기를 시작해볼까요?",
     "projectList": "전체 목록 보기 →",
     "projectOngoing": "진행 중인 프로젝트",
-    "totalStories": "전체 스토리",
+    "totalStories": "전체 프로젝트",
     "goToPortfolio": "포트폴리오 보기 →",
     "portSharing": "당신의 이야기가 펼쳐집니다.",
     "newProject": "새로운 이야기를 시작하세요.",
@@ -529,7 +529,7 @@
     "noProjects": "아직 시작한 이야기가 없습니다.",
     "emptyTitle": "아직 시작된 이야기가 없어요",
     "emptySubtitle": "당신의 첫 번째 페이지를 펼쳐볼까요?",
-    "noPublicProjects": "공개된 포트폴리오가 없어요",
-    "noPublicProjectsHint": "프로젝트를 공개하면 여기에 표시됩니다."
+    "noPublicProjects": "포트폴리오가 없어요",
+    "noPublicProjectsHint": "프로젝트를 공개하여 포트폴리오를 만드세요."
   }
 }

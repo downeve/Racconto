@@ -1000,6 +1000,16 @@ function ProjectStory({
       );
     };
 
+    // 챕터(및 하위 서브챕터 포함 여부 선택)의 사진 장수 반환
+    const getChapterPhotoCount = (chapterId: string, includeSubChapters = false): number => {
+      const own = (chapterPhotos[chapterId] || []).filter(item =>
+        item.item_type === 'PHOTO' && item.photo_id != null && allPhotoIds.has(item.photo_id)
+      ).length
+      if (!includeSubChapters) return own
+      const subs = chapters.filter(c => c.parent_id === chapterId)
+      return own + subs.reduce((sum, sub) => sum + getChapterPhotoCount(sub.id), 0)
+    }
+
     // 1. 화면에 보이는 순서대로 모든 사진을 연결하는 함수 (수정됨)
     const getFlattenedPhotos = () => {
       let flat: ChapterItem[] = [];
@@ -1205,6 +1215,12 @@ function ProjectStory({
                   >
                     <span className="text-muted shrink-0">{t('story.chapter')} {idx + 1}</span>
                     <span className="truncate text-ink-2 group-hover:text-ink">{chapter.title}</span>
+                    {(() => {
+                      const count = getChapterPhotoCount(chapter.id)
+                      return count > 0 ? (
+                        <span className="ml-auto shrink-0 text-[9px] font-mono text-stone-400">{count}</span>
+                      ) : null
+                    })()}
                   </button>
                   <div className="flex shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
                     <button
@@ -1229,6 +1245,12 @@ function ProjectStory({
                     >
                       <span className="text-muted shrink-0">↳ {t('story.chapter')} {idx + 1}.{subIdx + 1}</span>
                       <span className="text-ink-2 hover:text-ink truncate">{sub.title}</span>
+                      {(() => {
+                        const count = getChapterPhotoCount(sub.id)
+                        return count > 0 ? (
+                          <span className="ml-auto shrink-0 text-[9px] font-mono text-stone-400">{count}</span>
+                        ) : null
+                      })()}
                     </button>
                     <div className="flex shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
                       <button
@@ -1330,6 +1352,14 @@ function ProjectStory({
                         <div>
                           <span className="text-small text-muted mr-2">{t('story.chapter')} {idx + 1}</span>
                           <span className="text-body text-ink-2 font-semibold mb-2">{chapter.title}</span>
+                          {(() => {
+                            const count = getChapterPhotoCount(chapter.id)
+                            return count > 0 ? (
+                              <span className="ml-1.5 inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-mono text-muted bg-stone-100 border border-stone-200 align-middle">
+                                {count}장
+                              </span>
+                            ) : null
+                          })()}
                           {chapter.description && <p className="text-body text-faint mt-1">{chapter.description}</p>}
                         </div>
                         <div className="flex gap-2 shrink-0">
@@ -1455,6 +1485,14 @@ function ProjectStory({
                           <div>
                             <span className="text-small text-faint mr-2">{t('story.chapter')} {idx + 1}.{subIdx + 1}</span>
                             <span className="text-body text-ink-2 font-semibold">{subChapter.title}</span>
+                            {(() => {
+                              const count = getChapterPhotoCount(subChapter.id)
+                              return count > 0 ? (
+                                <span className="ml-1.5 inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-mono text-muted bg-stone-100 border border-stone-200 align-middle">
+                                  {count}장
+                                </span>
+                              ) : null
+                            })()}
                             {subChapter.description && <p className="text-body text-faint mt-1">{subChapter.description}</p>}
                           </div>
                           <div className="flex gap-2 shrink-0">

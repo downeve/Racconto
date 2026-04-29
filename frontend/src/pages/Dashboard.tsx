@@ -86,8 +86,8 @@ export default function Dashboard() {
                     { labelKey: 'status.archived',    value: 'archived',    color: 'bg-status-archived' },
                   ].map(({ labelKey, value, color }) => (
                     <div key={value} className="flex flex-col gap-0.5">
-                      <span className="flex items-center gap-1.5 text-xs tracking-wide uppercase text-muted">
-                        <span className={`w-1.5 h-1.5 rounded-full ${color}`} />
+                      <span className="flex items-center text-center gap-1.5 text-body tracking-wide uppercase text-muted">
+                        <span className={`w-2 h-2 rounded-full ${color}`} />
                         {t(labelKey)}
                       </span>
                       <span className="text-h3 font-semibold text-ink">
@@ -131,8 +131,8 @@ export default function Dashboard() {
             <div className="relative flex-1 min-h-0">
               {publicProjects.length === 0 ? (
                 <div className="absolute inset-0 flex flex-col items-center justify-center text-center gap-1">
-                  <p className="text-ink-2 text-h3 font-serif">{t('dashboard.noPublicProjects')}</p>
-                  <p className="text-faint text-body">{t('dashboard.noPublicProjectsHint')}</p>
+                  <p className="text-ink-2 text-h2 font-serif">{t('dashboard.noPublicProjects')}</p>
+                  <p className="text-muted text-h3">{t('dashboard.noPublicProjectsHint')}</p>
                 </div>
               ) : (
                 <div className="absolute inset-0 grid grid-cols-3 grid-rows-2 gap-2">

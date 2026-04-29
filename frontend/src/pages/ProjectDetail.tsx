@@ -1035,15 +1035,15 @@ export default function ProjectDetail({
             fetchPhotos(); 
             fetchChapterPhotoIds() 
           }}
-          className={`px-6 py-2 text-small tracking-wider ${activeTab === 'photos' ? 'border-b-2 border-black font-semibold' : 'text-gray-400'}`}>
+          className={`px-6 py-2 text-body tracking-wider ${activeTab === 'photos' ? 'border-b-2 border-ink font-bold' : 'text-muted'}`}>
           {t('photo.title')}
         </button>
         <button onClick={() => setActiveTab('story')}
-          className={`px-6 py-2 text-small tracking-wider ${activeTab === 'story' ? 'border-b-2 border-black font-semibold' : 'text-gray-400'}`}>
+          className={`px-6 py-2 text-body tracking-wider ${activeTab === 'story' ? 'border-b-2 border-ink font-bold' : 'text-muted'}`}>
           {t('story.title')}
         </button>
         <button onClick={() => setActiveTab('notes')}
-          className={`px-6 py-2 text-small tracking-wider ${activeTab === 'notes' ? 'border-b-2 border-black font-semibold' : 'text-gray-400'}`}>
+          className={`px-6 py-2 text-body tracking-wider ${activeTab === 'notes' ? 'border-b-2 border-ink font-bold' : 'text-muted'}`}>
           {t('note.title')}
         </button>
         {DELIVERY_ENABLED && (
