@@ -65,6 +65,9 @@ export default function Login() {
               {t('auth.noAccount')} {'  '}
               <Link to="/register" className="text-small underline text-ink-2 hover:text-accent">{t('auth.register')}</Link>
             </p>
+            <p className="text-center text-small">
+              <Link to="/forgot-password" className="text-small text-muted hover:text-ink-2">{t('auth.forgotPassword')}</Link>
+            </p>
           </div>
         </div>
       </div>

@@ -1127,7 +1127,7 @@ function ProjectStory({
         </div>
       </div>
     )
-  }, [activeTab, chapters, t])
+  }, [activeTab, chapters, t, showPortfolioPreview])
 
 
   const [moveModalItem, setMoveModalItem] = useState<{

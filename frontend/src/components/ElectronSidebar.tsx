@@ -96,7 +96,10 @@ export default function ElectronSidebar({ activeTab, onTabChange, showTabs }: Pr
 
       {/* Racconto 로고 */}
       <div className="shrink-0 px-2 pt-3 pb-2">
-        <span className="font-serif font-bold text-h3 text-ink-2 px-2">Racconto</span>
+        <span className="font-serif font-bold text-h3 text-ink-2 px-2"
+        style={{ fontWeight: 700, letterSpacing: '0.08em', transform: 'translateY(1px)' }}
+      >
+        Racconto</span>
       </div>
 
       <div className="mx-3 border-t border-faint/30 shrink-0" />

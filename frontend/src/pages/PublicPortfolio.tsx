@@ -226,7 +226,7 @@ export default function PublicPortfolio() {
     <div className={`min-h-screen ${bg} transition-[background,color,border] duration-150 ease-out`}>
       {!isAuthenticated && <PublicNavbar username={username} darkMode={darkMode} compact />}
 
-      <div className={`max-w-4xl mx-auto px-6 ${isElectron ? 'pt-4' : 'pt-space-md'} pb-space-xl`}>
+      <div className={`max-w-4xl mx-auto px-6 ${isElectron ? 'pt-4' : !isAuthenticated ? 'pt-20' : 'pt-space-md'} pb-space-xl`}>
 
         <div className="flex items-center justify-between mb-space-md">
           <div id="portfolio-print-start" className="flex items-center gap-4">

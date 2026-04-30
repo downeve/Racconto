@@ -6,7 +6,7 @@ from sqlalchemy.orm import Session
 from app import models
 from pydantic import BaseModel, EmailStr
 import uuid
-from app.email import send_verification_email
+from app.email import send_verification_email, send_password_reset_email
 from datetime import datetime, timedelta
 from typing import Optional
 from app.routers.photos import delete_cf_files_parallel
@@ -36,6 +36,14 @@ class UsernameUpdate(BaseModel):
 class WithdrawRequest(BaseModel):
     password: str
 
+class ForgotPasswordRequest(BaseModel):
+    email: EmailStr
+    lang: Optional[str] = 'ko'
+
+class ResetPasswordRequest(BaseModel):
+    token: str
+    new_password: str
+
 
 @router.post("/resend-verification")
 def resend_verification(body: ResendVerification, db: Session = Depends(get_db)):
@@ -53,6 +61,33 @@ def resend_verification(body: ResendVerification, db: Session = Depends(get_db))
     db.commit()
     send_verification_email(body.email, user.verify_token)
     return {"message": "VERIFICATION_SENT"}
+
+
+@router.post("/forgot-password")
+def forgot_password(body: ForgotPasswordRequest, db: Session = Depends(get_db)):
+    user = db.query(models.User).filter(models.User.email == body.email).first()
+    if user and user.is_verified:
+        user.reset_token = secrets.token_urlsafe(32)
+        user.reset_token_expires_at = datetime.utcnow() + timedelta(hours=1)
+        db.commit()
+        send_password_reset_email(body.email, user.reset_token, lang=body.lang)
+    return {"message": "RESET_EMAIL_SENT"}
+
+
+@router.post("/reset-password")
+def reset_password(body: ResetPasswordRequest, db: Session = Depends(get_db)):
+    if len(body.new_password) < 8:
+        raise HTTPException(status_code=400, detail="PASSWORD_TOO_SHORT")
+    user = db.query(models.User).filter(
+        models.User.reset_token == body.token
+    ).first()
+    if not user or not user.reset_token_expires_at or user.reset_token_expires_at < datetime.utcnow():
+        raise HTTPException(status_code=400, detail="INVALID_TOKEN")
+    user.password_hash = get_password_hash(body.new_password)
+    user.reset_token = None
+    user.reset_token_expires_at = None
+    db.commit()
+    return {"message": "PASSWORD_RESET"}
 
 
 @router.post("/register", status_code=201)
