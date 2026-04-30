@@ -47,7 +47,7 @@ export default function Dashboard() {
     .slice(0, 3)
 
   return (
-    <div className="min-h-screen bg-[#F7F4F0] text-stone-900 pb-20">
+    <div className="min-h-screen bg-canvas text-stone-900 pb-20">
       <div className={`max-w-7xl mx-auto px-6 ${isElectron ? 'pt-4' : 'pt-space-md'}`}>
         
         {/* 1. Welcome Section: LandingPage의 감성을 이어받음 */}

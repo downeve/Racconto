@@ -927,7 +927,7 @@ export default function ProjectDetail({
   )
 
   return (
-    <div className="w-full p-6">
+    <div className="p-6 max-w-7xl mx-auto px-6">
       {confirmModal && (
         <ConfirmModal
           message={confirmModal.message}
@@ -955,14 +955,6 @@ export default function ProjectDetail({
           onAddToChapter={handleAddToChapter}
         />
       )}
-
-      {/*
-      {!isElectron && (
-        <Link to="/projects" className="text-small text-faint hover:text-ink-2">
-          {t('nav.backToProjects')}
-        </Link>
-      )}
-      */}
 
       <div className="mb-4 flex items-start justify-between gap-6 max-w-5xl">
 
