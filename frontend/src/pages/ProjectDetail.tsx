@@ -964,7 +964,7 @@ export default function ProjectDetail({
       )}
       */}
 
-      <div className="mb-4 flex items-start justify-between gap-6">
+      <div className="mb-4 flex items-start justify-between gap-6 max-w-5xl">
 
         <div className="flex-1">
           <h3 className="font-serif text-h2 mb-2" style={{fontWeight:600}}>
@@ -1050,7 +1050,7 @@ export default function ProjectDetail({
               </button>
               {openDropdown === 'view' && (
                 <div className="absolute top-full left-0 mt-1 bg-card rounded-card shadow p-2 z-50 flex gap-1">
-                  {[2, 3, 4].map(cols => (
+                  {[2, 3, 4, 5].map(cols => (
                     <button key={cols} onClick={() => { setGridCols(cols); setOpenDropdown(null) }}
                       className={`w-8 h-8 text-xs rounded ${gridCols === cols ? 'bg-ink text-card' : 'bg-gray-100 hover:bg-faint/40'}`}>
                       {cols}
@@ -1135,7 +1135,8 @@ export default function ProjectDetail({
                   )}
                 <div className={`grid gap-4 ${
                   gridCols === 2 ? 'grid-cols-2' : 
-                  gridCols === 3 ? 'grid-cols-3' : 'grid-cols-4'
+                  gridCols === 3 ? 'grid-cols-3' :
+                  gridCols === 4 ? 'grid-cols-4' : 'grid-cols-5'
                 }`}>
                   {filteredPhotos.map(photo => (
                     <PhotoCard

@@ -14,8 +14,8 @@ interface PortfolioPreviewProps {
   blocks: PreviewBlock[]
 }
 
-const BAR_HEIGHT = 24
-const BAR_GAP = 3
+const BAR_HEIGHT = 28
+const BAR_GAP = 4
 const BLOCK_GAP = 8
 
 export default function PortfolioPreview({ blocks }: PortfolioPreviewProps) {

@@ -331,7 +331,7 @@ function ProjectNotes({
       />
     )}
 
-      <div>
+      <div className="max-w-5xl">
         {/* 새 노트 작성 */}
         <div className="bg-card rounded-card shadow p-4 mb-6">
           <div className="flex items-center gap-2 mb-3">

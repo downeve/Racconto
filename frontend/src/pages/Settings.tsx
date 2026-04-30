@@ -275,7 +275,7 @@ export default function Settings() {
               <div className="flex items-center gap-4">
                 <span className="text-sm text-gray-500">{t('settings.defaultGridCols')}</span>
                 <div className="flex gap-2">
-                  {['2', '3', '4'].map((cols) => (
+                  {['2', '3', '4', '5'].map((cols) => (
                     <button
                       key={cols}
                       onClick={() => setDefaultGridCols(cols)}

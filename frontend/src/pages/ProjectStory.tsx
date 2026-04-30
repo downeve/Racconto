@@ -1137,7 +1137,7 @@ function ProjectStory({
   } | null>(null)
 
   return (
-    <div className="relative">
+    <div className="relative flex flex-row items-start gap-6">
     
     {confirmModal && (
       <ConfirmModal
@@ -1175,9 +1175,9 @@ function ProjectStory({
           onCancel={() => setMoveModalItem(null)}
         />
       )
-    })()}
+      })()}
 
-      <div>
+      <div className="flex-1 max-w-5xl">
 
         {/* 챕터 추가 폼 — 사이드바 버튼 클릭 시 표시 */}
         {showAddChapter && !addingSubChapterTo && (
@@ -1455,7 +1455,9 @@ function ProjectStory({
 
       {/* 포트폴리오 미리보기 패널 */}
       {showPortfolioPreview && (
-        <PortfolioPreview blocks={allBlocksForPreview} />
+        <div className="sticky top-4 w-80 shrink-0">
+          <PortfolioPreview blocks={allBlocksForPreview} />
+        </div>
       )}
 
       {/* 라이트박스 */}

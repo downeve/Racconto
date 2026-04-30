@@ -94,6 +94,13 @@ export default function ElectronSidebar({ activeTab, onTabChange, showTabs }: Pr
   return (
     <div className="w-56 shrink-0 fixed left-0 top-0 bottom-0 bg-canvas border-r border-hair flex flex-col z-40 overflow-hidden">
 
+      {/* Racconto 로고 */}
+      <div className="shrink-0 px-2 pt-3 pb-2">
+        <span className="font-serif font-bold text-h3 text-ink-2 px-2">Racconto</span>
+      </div>
+
+      <div className="mx-3 border-t border-faint/30 shrink-0" />
+
       {/* 앱 네비게이션 */}
       <div className="shrink-0 px-2 pt-3 pb-2">
         {navItems.map(item => (
@@ -190,7 +197,7 @@ export default function ElectronSidebar({ activeTab, onTabChange, showTabs }: Pr
       <div ref={dropdownRef} className="shrink-0 mt-auto border-t border-faint/30 relative">
         <button
           onClick={() => setDropdownOpen(v => !v)}
-          className="w-full flex items-center gap-2 px-3 py-2.5 hover:bg-stone-100 transition-[background,color,border] duration-150 ease-out"
+          className="w-full flex items-center gap-2 px-3 py-2.5 bg-card hover:bg-stone-100 transition-[background,color,border] duration-150 ease-out"
         >
           <span className="w-6 h-6 rounded-full bg-ink-2 text-canvas text-[10px] font-bold flex items-center justify-center shrink-0">
             {avatarInitial}
