@@ -26,7 +26,7 @@ export default function PublicNavbar({ username, darkMode, compact }: { username
             </Link>
             {username && (
               <Link
-                to={`/p/${username}`}
+                to={`/${username}`}
                 state={{ resetToList: true }}
                 className={`text-body transition-[background,color,border] duration-150 ease-out ${dm ? 'text-faint hover:text-hair' : 'text-muted hover:text-ink'} hover:font-bold`}
               >
@@ -63,7 +63,7 @@ export default function PublicNavbar({ username, darkMode, compact }: { username
             </Link>
             {username && (
               <Link
-                to={`/p/${username}`}
+                to={`/${username}`}
                 state={{ resetToList: true }}
                 className={`texy-body md:text-h3 transition-[background,color,border] duration-150 ease-out ${dm ? 'text-faint hover:text-hair' : 'text-muted hover:text-ink'} hover:font-bold`}
               >

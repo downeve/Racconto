@@ -179,7 +179,6 @@ function ProjectNotes({
   const [filterPinned, setFilterPinned] = useState(false)
   const noteRefs = useRef<Record<string, HTMLDivElement | null>>({})
 
-  const isElectron = !!window.racconto
   const { setSidebarContent } = useElectronSidebar()
 
   const scrollToNote = (noteId: string) => {
@@ -270,7 +269,6 @@ function ProjectNotes({
   }
 
   useEffect(() => {
-    if (!isElectron) return
     if (activeTab !== 'notes') return
     setSidebarContent(
       <div className="p-4">
@@ -319,10 +317,10 @@ function ProjectNotes({
         )}
       </div>
     )
-  }, [isElectron, activeTab, notes, filterType, filterPinned, t])
+  }, [activeTab, notes, filterType, filterPinned, t])
 
   return (
-    <div className="flex gap-6">
+    <>
 
     {confirmModal && (
       <ConfirmModal
@@ -333,86 +331,7 @@ function ProjectNotes({
       />
     )}
 
-      {/* 사이드바 */}
-      <div className={`${isElectron ? 'hidden' : ''} w-48 shrink-0 sticky top-24 self-start`}>
-        <div className="bg-card rounded-card shadow p-4 max-h-[calc(100vh-8rem)] overflow-y-auto">
-          <p className="text-menu font-semibold text-muted mb-2">{t('note.filter')}</p>
-
-          {/* 전체 */}
-          <button
-            onClick={() => { setFilterType(null); setFilterPinned(false) }}
-            className={`w-full text-left px-2 py-1.5 text-menu rounded-card flex items-center justify-between mb-1 ${
-              !filterType && !filterPinned ? 'bg-ink text-card' : 'hover:bg-hair text-ink-2'
-            }`}
-          >
-            <span>{t('note.filterAll')}</span>
-            <span className={!filterType && !filterPinned ? 'text-faint' : 'text-muted'}>{notes.length}</span>
-          </button>
-
-          {/* 핀 고정 */}
-          <button
-            onClick={() => { setFilterPinned(!filterPinned); setFilterType(null) }}
-            className={`w-full text-left px-2 py-1.5 text-caption rounded flex items-center justify-between mb-3 ${
-              filterPinned ? 'bg-ink text-card' : 'hover:bg-hair text-ink-2'
-            }`}
-          >
-            <span className="flex items-center gap-1"><Pin size={12} strokeWidth={1.5} />{t('note.pinned')}</span>
-            <span className={filterPinned ? 'text-faint' : 'text-muted'}>{notes.filter(n => n.is_pinned).length}</span>
-          </button>
-
-          <div className="border-t border-hair/90 my-2" />
-
-          {/* 타입 필터 */}
-          <div className="space-y-1">
-            {NOTE_TYPES.map(type => {
-              const count = notes.filter(n => n.note_type === type.value).length
-              return (
-                <button
-                  key={type.value}
-                  onClick={() => { setFilterType(filterType === type.value ? null : type.value); setFilterPinned(false) }}
-                  className={`w-full text-left px-2 py-1.5 text-menu rounded flex items-center justify-between ${
-                    filterType === type.value ? 'bg-ink text-card' : 'hover:bg-hair text-ink-2'
-                  }`}
-                >
-                  <span className="flex items-center gap-1">
-                    <span className={`w-2 h-2 rounded-full text-menu ${
-                      type.value === 'memo' ? 'bg-stone-400' :
-                      type.value === 'concept' ? 'bg-blue-400' :
-                      type.value === 'research' ? 'bg-green-400' : 'bg-amber-400'
-                    }`} />
-                    {type.label}
-                  </span>
-                  <span className={filterType === type.value ? 'text-faint' : 'text-muted'}>{count}</span>
-                </button>
-              )
-            })}
-          </div>
-
-          <div className="border-t border-hair/90 my-2" />
-
-          {/* 핀 고정 노트 목록 */}
-          {notes.filter(n => n.is_pinned).length > 0 && (
-            <>
-              <div className="my-3" />
-              <p className="text-menu font-semibold text-muted mb-2 flex items-center gap-1"><Pin size={12} strokeWidth={1.5} />{t('note.pinned2')}</p>
-              <div className="space-y-1">
-                {notes.filter(n => n.is_pinned).map(note => (
-                  <button
-                    key={note.id}
-                    onClick={() => scrollToNote(note.id)}
-                    className="w-full text-left px-2 py-1.5 text-menu rounded hover:bg-hair text-muted hover:text-ink truncate"
-                  >
-                    {note.content.slice(0, 30)}{note.content.length > 30 ? '...' : ''}
-                  </button>
-                ))}
-              </div>
-            </>
-          )}
-        </div>
-      </div>
-
-      {/* 메인 영역 */}
-      <div className="flex-1 min-w-0">
+      <div>
         {/* 새 노트 작성 */}
         <div className="bg-card rounded-card shadow p-4 mb-6">
           <div className="flex items-center gap-2 mb-3">
@@ -507,7 +426,7 @@ function ProjectNotes({
           )}
         </div>
       </div>
-    </div>
+    </>
   )
 }
 

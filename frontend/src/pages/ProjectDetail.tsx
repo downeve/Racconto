@@ -46,7 +46,6 @@ export default function ProjectDetail({
   const [filterColor, setFilterColor] = useState<string | null>(null)
   const [filterFolder, setFilterFolder] = useState<string | null>(null)
   const [showExif, setShowExif] = useState(true)
-  const [showFilter, setShowFilter] = useState(true)
   const [chapterPhotoIds, setChapterPhotoIds] = useState<Set<string>>(new Set())
   const [photoChapterMap, setPhotoChapterMap] = useState<Map<string, string>>(new Map())
 
@@ -217,7 +216,7 @@ export default function ProjectDetail({
 
   // Electron일 때 사이드바 탭과 동기화
   useEffect(() => {
-    if (isElectron && electronTab) {
+    if (electronTab) {
       setActiveTab(electronTab)
       if (electronTab === 'photos') {
         setPhotoSubTab('all')
@@ -769,7 +768,6 @@ export default function ProjectDetail({
   }
 
   useEffect(() => {
-    if (!isElectron) return
     if (activeTab !== 'photos') return
 
     setSidebarContent(
@@ -919,7 +917,7 @@ export default function ProjectDetail({
         })()}
       </div>
     )
-  }, [isElectron, activeTab, photoSubTab, photos, trashedPhotos, uploading, filterRating, filterColor, filterFolder, filterHasNote, photoNoteIds, colorLabels, isAllActive, t])
+  }, [activeTab, photoSubTab, photos, trashedPhotos, uploading, filterRating, filterColor, filterFolder, filterHasNote, photoNoteIds, colorLabels, isAllActive, t])
 
 
   if (!project) return (
@@ -929,7 +927,7 @@ export default function ProjectDetail({
   )
 
   return (
-    <div className={`${isElectron ? 'w-full' : 'max-w-7xl mx-auto'} p-6`}>
+    <div className="w-full p-6">
       {confirmModal && (
         <ConfirmModal
           message={confirmModal.message}
@@ -1027,210 +1025,10 @@ export default function ProjectDetail({
         </div>
       )}
 
-      <div className={`flex border-b mb-6 sticky top-14 z-30 bg-canvas ${isElectron ? 'hidden' : ''}`}>
-        <button onClick={() => { 
-            setActiveTab('photos'); 
-            setPhotoSubTab('all');
-            setFilterFolder(null);
-            fetchPhotos(); 
-            fetchChapterPhotoIds() 
-          }}
-          className={`px-6 py-2 text-body tracking-wider ${activeTab === 'photos' ? 'border-b-2 border-ink font-bold' : 'text-muted'}`}>
-          {t('photo.title')}
-        </button>
-        <button onClick={() => setActiveTab('story')}
-          className={`px-6 py-2 text-body tracking-wider ${activeTab === 'story' ? 'border-b-2 border-ink font-bold' : 'text-muted'}`}>
-          {t('story.title')}
-        </button>
-        <button onClick={() => setActiveTab('notes')}
-          className={`px-6 py-2 text-body tracking-wider ${activeTab === 'notes' ? 'border-b-2 border-ink font-bold' : 'text-muted'}`}>
-          {t('note.title')}
-        </button>
-        {DELIVERY_ENABLED && (
-        <button onClick={() => setActiveTab('delivery')}
-          className={`px-6 py-2 text-small tracking-wider ${activeTab === 'delivery' ? 'border-b-2 border-black font-semibold' : 'text-gray-400'}`}>
-          {t('delivery.title')}
-        </button>
-        )}
-      </div>
-
-      {/* 사진 탭 */}
+      {/* 사진 탭 — 필터/업로드 패널은 사이드바(setSidebarContent)로 렌더 */}
       <div style={{ display: activeTab === 'photos' ? 'block' : 'none' }}>
-        <div className="flex gap-6 items-start">
-          
-          {/* 👈 좌측 사이드바 (필터 & 라이브러리 통합) */}
-          <div className={`${isElectron ? 'hidden' : ''} ${showFilter ? 'w-48' : 'w-6'} sticky top-24 shrink-0 transition-all duration-200`}>
-            <button onClick={() => setShowFilter(!showFilter)}
-              className="mb-2 text-faint hover:text-ink text-caption flex items-center gap-1">
-              {showFilter ? '◀ ' + t('filter.filter') : '▶'}
-            </button>
 
-            {showFilter && (
-              <div className="bg-card rounded-card shadow p-4 overflow-y-auto max-h-[calc(100vh-2rem)] min-h-[calc(100vh-8rem)] sticky top-4">
-                
-                {/* 💡 flex-col을 지워서 가로 배치(flex-row 기본값)로 변경했습니다 */}
-                <div className="mb-3 flex gap-2">
-                  <label className={`flex-1 cursor-pointer btn-secondary px-1.5 py-1.5 text-menu tracking-wider inline-flex items-center justify-center gap-1 rounded-card ${uploading ? 'opacity-60 cursor-not-allowed' : ''}`}>
-                    {uploading ? (
-                      <>
-                        <svg className="animate-spin w-3 h-3 shrink-0" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
-                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/>
-                        </svg>
-                        {t('photo.uploading')}
-                      </>
-                    ) : t('photo.uploadPhotos')}
-                    <input type="file" accept="image/jpeg, image/png, image/webp" multiple className="hidden" onChange={handleUpload} disabled={uploading} />
-                  </label>
-                  <label className={`flex-1 cursor-pointer btn-secondary-on-card px-1.5 py-1.5 text-menu tracking-wider inline-flex items-center justify-center gap-1 rounded-card ${uploading ? 'opacity-60 cursor-not-allowed' : ''}`}>
-                    {uploading ? (
-                      <>
-                        <svg className="animate-spin w-3 h-3 shrink-0" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
-                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/>
-                        </svg>
-                        {t('photo.uploading')}
-                      </>
-                    ) : t('photo.uploadFolder')}
-                    <input type="file" accept="image/jpeg, image/png, image/webp" multiple className="hidden" onChange={handleUpload} disabled={uploading} {...{ webkitdirectory: '' } as any} />
-                  </label>
-                </div>
-
-                {/* 📂 새로 추가된 라이브러리 (기존 상단 가로 탭을 이쪽으로 이동) */}
-                <div className="mb-2">
-                  <p className="text-menu font-semibold text-muted mb-1">{t('photo.library')}</p>
-                  <div className="flex flex-col gap-1">
-                    {/* 전체 사진 */}
-                    <button
-                      onClick={handleResetAll}
-                      className={`w-full text-left px-2 py-1.5 text-menu rounded-card flex items-center justify-between ${isAllActive ? 'bg-ink text-card font-semibold' : 'hover:bg-hair text-ink-2'}`}
-                    >
-                      <span>{t('photo.allPhotos')}</span>
-                      <span className={isAllActive ? 'text-card' : 'text-muted'}>
-                        {photos.filter(p => !p.deleted_at).length}
-                      </span>
-                    </button>
-                    {/* 서브 폴더 리스트 */}
-                    {photos.some(p => p.folder) && (
-                    <div>
-                        {[...new Set(photos.filter(p => p.folder).map(p => p.folder))].map(folder => (
-                        <div key={folder} className={`flex items-center rounded ${filterFolder === folder ? 'bg-ink-2 text-card' : 'hover:bg-hair'}`}>
-                          <button onClick={() => {
-                            setFilterFolder(filterFolder === folder ? null : folder!);
-                            setPhotoSubTab(filterFolder === folder ? 'all' : 'folder');
-                          }}
-                            className="flex-1 text-left px-2 py-1 text-xs flex items-center justify-between min-w-0">
-                            <span className="flex items-center gap-1 min-w-0">
-                              <Folder size={12} strokeWidth={1.5} className="shrink-0" />
-                              <span className="truncate text-caption">{getFolderDisplayName(folder!)}</span>
-                              {isLocalSyncFolder(folder!) && (
-                                <Monitor size={10} strokeWidth={1.5} className={`shrink-0 ${filterFolder === folder ? 'text-faint' : 'text-muted'}`} />
-                              )}
-                            </span>
-                            <span className={`shrink-0 ml-2 ${filterFolder === folder ? 'text-card' : 'text-muted'}`}>{photos.filter(p => p.folder === folder && !p.deleted_at).length}</span>
-                          </button>
-                          <button
-                            onClick={() => handleDeleteFolder(folder!)}
-                            className={`shrink-0 px-1.5 py-1 ${filterFolder === folder ? 'text-faint hover:text-card' : 'text-hair hover:text-red-500'}`}
-                            title={t('photo.trash')}
-                          ><Trash2 size={12} strokeWidth={1.5} /></button>
-                        </div>
-                      ))}
-                    </div>
-                    )}
-                    {/* 지운 사진 */}
-                    <button
-                      onClick={() => { handleResetAll(); setPhotoSubTab('trash'); fetchTrash(); }}
-                      className={`w-full text-left px-2 py-1 text-menu rounded-card flex items-center justify-between ${photoSubTab === 'trash' ? 'bg-red-500 text-card shadow' : 'hover:bg-red-100 text-ink-2'}`}
-                    >
-                      <span>{t('photo.trash')}</span>
-                      <span className={`${photoSubTab === 'trash' ? 'text-red-200' : 'text-faint'}`}>
-                        {trashedPhotos.length}
-                      </span>
-                    </button>
-                  </div>
-                </div>
-                
-                <div className="border-t border-hair/90 my-2"></div>
-
-                {/* 사진 다중 선택 - 챕터 추가 버튼 */}
-                <div className="mt-3 mb-3 flex items-center justify-between">
-                    <p className="text-menu font-semibold text-muted mr-3 shrink-0">{t('filter.addToChapter')}</p>
-                    <div className="gap-1">
-                      <button
-                        onClick={() => {
-                          setSelectionMode(v => !v)
-                          setSelectedPhotoIds(new Set()) // 끌 때 선택 초기화
-                          setShowBulkChapterMenu(false)
-                        }}
-                        className={`flex-1 py-1 text-caption btn-secondary ${selectionMode ? 'bg-ink-2 text-card' : ''}`}>
-                        {selectionMode ? t('common.cancel') : t('common.select')}
-                      </button>
-                    </div>
-                </div>
-                
-                <div className="border-t border-hair/90 my-2"></div>
-
-                {/* 노트 · 별점 · 컬러 필터 (폴더 선택 시 해당 폴더 내 카운트로 컨텍스트 반영) */}
-                {(() => {
-                  const base = photos.filter(p => !p.deleted_at && (filterFolder === null || p.folder === filterFolder))
-                  return (
-                    <>
-                      {/* 노트 필터 */}
-                      <button
-                        onClick={() => { exitTrash(); setFilterHasNote(!filterHasNote) }}
-                        className={`w-full text-left px-2 py-1 mb-1.5 text-menu rounded-card flex items-center justify-between ${filterHasNote ? 'bg-ink text-card' : 'hover:bg-hair text-ink-2'}`}
-                      >
-                        <span className="flex items-center gap-1"><FileText size={12} strokeWidth={1.5} />{t('photo.hasNote')}</span>
-                        <span className={filterHasNote ? '' : 'text-muted'}>
-                          {base.filter(p => photoNoteIds.has(p.id)).length}
-                        </span>
-                      </button>
-
-                      {/* 별점 필터 */}
-                      <div className="mb-4">
-                        <div className="flex items-center justify-between mb-2">
-                          <p className="text-menu font-semibold text-muted rounded-card">{t('filter.rating')}</p>
-                          <button onClick={handleClearRatings} className="text-caption text-faint hover:text-red-500">{t('common.reset')}</button>
-                        </div>
-                        {[5, 4, 3, 2, 1].map(star => (
-                          <button key={star} onClick={() => { exitTrash(); setFilterRating(filterRating === star ? null : star) }}
-                            className={`w-full text-left px-2 py-1 text-caption rounded-card flex items-center justify-between ${filterRating === star ? 'bg-ink text-card' : 'hover:bg-hair'}`}>
-                            <span>{'★'.repeat(star)}{'☆'.repeat(5 - star)}</span>
-                            <span className={filterRating === star ? '' : 'text-muted'}>{base.filter(p => p.rating === star).length}</span>
-                          </button>
-                        ))}
-                        <button onClick={() => { exitTrash(); setFilterRating(filterRating === 0 ? null : 0) }}
-                          className={`w-full text-left px-2 py-1 text-caption rounded flex items-center justify-between ${filterRating === 0 ? 'bg-ink text-card' : 'hover:bg-hair'}`}>
-                          <span>{t('filter.unrated')}</span>
-                          <span className={filterRating === 0 ? '' : 'text-muted'}>{base.filter(p => !p.rating).length}</span>
-                        </button>
-                      </div>
-
-                      {/* 컬러 레이블 필터 */}
-                      <div className="mb-2">
-                        <div className="flex items-center justify-between mb-2">
-                          <p className="text-menu font-semibold text-muted">{t('filter.colors')}</p>
-                          <button onClick={handleClearColorLabels} className="text-caption text-faint hover:text-red-500">{t('common.reset')}</button>
-                        </div>
-                        {colorLabels.map(label => (
-                          <button key={label.value} onClick={() => { exitTrash(); setFilterColor(filterColor === label.value ? null : label.value) }}
-                            className={`w-full text-left px-2 py-1 text-caption rounded-card flex items-center justify-between ${filterColor === label.value ? 'bg-ink text-card' : 'hover:bg-hair'}`}>
-                            <span className="flex items-center gap-2"><span className={`w-3 h-3 rounded-full ${label.color}`} />{label.label}</span>
-                            <span className={filterColor === label.value ? '' : 'text-muted'}>{base.filter(p => p.color_label === label.value).length}</span>
-                          </button>
-                        ))}
-                      </div>
-                    </>
-                  )
-                })()}
-
-              </div>
-            )}
-          </div>
-
-          {/* 👉 우측 메인 사진 갤러리 영역 */}
-          <div className="flex-1 min-w-0">
+          {/* 사진 갤러리 */}
 
             {/* ── 사진 탭 툴바 ── */}
             {photoSubTab !== 'trash' && (
@@ -1496,8 +1294,6 @@ export default function ProjectDetail({
                 )}
               </div>
             )}
-          </div>
-        </div>
       </div>
 
       <div style={{ display: activeTab === 'story' ? 'block' : 'none' }}>

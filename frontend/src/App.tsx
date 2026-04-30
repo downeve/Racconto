@@ -72,21 +72,22 @@ function AppRoutes() {
       } else if (action === 'portfolio') {
         const u = userRef.current
         if (u?.username) {
-          navigate(`/p/${u.username}`, { state: { resetToList: true } })
+          navigate(`/${u.username}`, { state: { resetToList: true } })
         } else {
-          navigate('/p/@setup')
+          navigate('/@setup')
         }
       }
     })
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
+  const isAppPage = ['/dashboard', '/projects', '/trash', '/settings', '/admin'].some(
+    p => location.pathname === p || location.pathname.startsWith(p + '/')
+  )
+
   return (
-    <div className={`min-h-screen bg-[#F7F4F0]${isElectron ? '' : ' pt-14'}`}>
+    <div className={`min-h-screen bg-[#F7F4F0]${isMobileDevice && isAuthenticated && !hideNavbar ? ' pt-14' : ''}`}>
       {/* 모바일 기기 차단 — UA 기반 감지 */}
-      {isMobileDevice &&
-      !['/', '/features', '/login', '/register', '/verify-email'].includes(location.pathname) &&
-      !location.pathname.startsWith('/p/') &&
-      !location.pathname.startsWith('/delivery/') && (
+      {isMobileDevice && isAuthenticated && isAppPage && (
         <div className="fixed inset-0 bg-[#F7F4F0] z-50 flex items-center justify-center p-8 text-center">
           <div>
             <div className="flex justify-center mb-4"><Camera size={36} strokeWidth={1.5} /></div>
@@ -114,10 +115,10 @@ function AppRoutes() {
         </div>
       )}
 
-      {!isElectron && isAuthenticated && !hideNavbar && <Navbar onLogout={logout} />}
+      {isMobileDevice && isAuthenticated && !hideNavbar && <Navbar onLogout={logout} />}
 
-      {/* Electron 사이드바 — 인증된 상태, 납품/공개 페이지 제외 */}
-      {isElectron && isAuthenticated && !hideNavbar && (
+      {/* 사이드바 — 인증된 상태, 모바일/납품 페이지 제외 */}
+      {!isMobileDevice && isAuthenticated && !hideNavbar && (
         <ElectronSidebar
           activeTab={electronTab}
           onTabChange={setElectronTab}
@@ -125,8 +126,8 @@ function AppRoutes() {
         />
       )}
 
-      {/* 메인 콘텐츠 — Electron일 때 사이드바 너비만큼 밀기 */}
-      <div className={isElectron && isAuthenticated && !hideNavbar ? 'ml-56' : ''}>
+      {/* 메인 콘텐츠 — 사이드바 너비만큼 밀기 */}
+      <div className={!isMobileDevice && isAuthenticated && !hideNavbar ? 'ml-56' : ''}>
         <ScrollToTop />
         <FeedbackWidget />
         <Routes>
@@ -147,7 +148,7 @@ function AppRoutes() {
           <Route path="/settings" element={<PrivateRoute><Settings /></PrivateRoute>} />
           <Route path="/admin" element={<AdminRoute><Admin /></AdminRoute>} />
           <Route path="/delivery/:linkId" element={<DeliveryPage />} />
-          <Route path="/p/:username" element={<PublicPortfolio />} />
+          <Route path="/:username" element={<PublicPortfolio />} />
         </Routes>
       </div>
       <UploadToast />

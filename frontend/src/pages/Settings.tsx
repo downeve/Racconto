@@ -404,7 +404,7 @@ export default function Settings() {
           {t('settings.publicPortfolioDesc')}
         </p>
         <div className="flex items-center gap-2">
-          <span className="text-sm text-gray-400 shrink-0">racconto.app/p/</span>
+          <span className="text-sm text-gray-400 shrink-0">racconto.app/</span>
           <input
             className="border rounded px-3 py-2 text-sm outline-none focus:border-black w-48"
             placeholder="username"
@@ -435,7 +435,7 @@ export default function Settings() {
         )}
         {username && usernameStatus === 'idle' && (
           <p className="text-xs text-gray-400 mt-1.5">
-            racconto.app/p/{username}
+            racconto.app/{username}
           </p>
         )}
       </div>

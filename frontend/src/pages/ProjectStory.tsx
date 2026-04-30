@@ -165,7 +165,6 @@ function ProjectStory({
   }
 
   const [showNotePanel, setShowNotePanel] = useState(false)
-  const isElectron = !!window.racconto
   const { setSidebarContent } = useElectronSidebar()
 
   // O(N²) 성능 저하를 막기 위한 Set(해시테이블) 캐싱
@@ -1043,7 +1042,6 @@ function ProjectStory({
     };
 
   useEffect(() => {
-    if (!isElectron) return
     if (activeTab !== 'story') return
     setSidebarContent(
       <div className="p-4">
@@ -1129,7 +1127,7 @@ function ProjectStory({
         </div>
       </div>
     )
-  }, [isElectron, activeTab, chapters, t])
+  }, [activeTab, chapters, t])
 
 
   const [moveModalItem, setMoveModalItem] = useState<{
@@ -1139,7 +1137,7 @@ function ProjectStory({
   } | null>(null)
 
   return (
-    <div className="flex gap-6 relative">
+    <div className="relative">
     
     {confirmModal && (
       <ConfirmModal
@@ -1179,130 +1177,7 @@ function ProjectStory({
       )
     })()}
 
-      {/* 사이드바 */}
-      <div className={`${isElectron ? 'hidden' : ''} w-48 shrink-0 sticky top-24 self-start`}>
-        <div className="bg-card rounded-card shadow p-4 max-h-[calc(100vh-8rem)] overflow-y-auto">
-          <p className="text-menu font-semibold text-muted mb-3">{t('story.chapters')}</p>
-
-          {/* 챕터 추가 버튼 */}
-          <button
-            onClick={() => { setShowAddChapter(true); setAddingSubChapterTo(null) }}
-            className="w-full mb-2 text-menu font-semibold btn-secondary px-2 py-1.5 rounded-card transition-[background,color,border] duration-150 ease-out tracking-wider"
-          >
-            {t('story.addChapter')}
-          </button>
-
-          {/* 미리보기 버튼 */}
-          <button
-            onClick={() => setShowPreview(true)}
-            className="w-full mb-3 text-menu btn-secondary-on-card px-2 py-1.5 rounded-card transition-[background,color,border] duration-150 ease-out tracking-wider inline-flex items-center justify-center gap-1.5"
-          >
-            <Eye size={14} strokeWidth={1.5} />{t('story.preview')}
-          </button>
-
-          {/* Ghost Frame / Preview Panel 토글 */}
-          <div className="flex gap-1.5 mb-3">
-            {/* Ghot Frame 토글 버튼 숨김 처리
-            <button
-              aria-pressed={ghostMode}
-              onClick={() => setGhostMode(v => !v)}
-              className={`flex-1 inline-flex items-center justify-center gap-1 px-1.5 py-1 text-[10px] rounded-card border transition-[background,color,border] duration-150 ease-out ${
-                ghostMode ? 'bg-stone-800 text-white border-stone-800' : 'text-muted border-faint hover:border-muted'
-              }`}
-              title={t('story.ghostMode')}
-            >
-              <Rows3 size={11} strokeWidth={1.5} />
-              {t('story.ghostMode')}
-            </button>
-            */}
-            <button
-              aria-pressed={showPortfolioPreview}
-              onClick={() => setShowPortfolioPreview(v => !v)}
-              className={`flex-1 inline-flex items-center justify-center gap-1 px-1.5 py-1 text-caption rounded-card border transition-[background,color,border] duration-150 ease-out ${
-                showPortfolioPreview ? 'bg-stone-800 text-card border-stone-800' : 'text-muted border-faint hover:border-muted'
-              }`}
-              title={t('story.portfolioPreviewPanel')}
-            >
-              <PanelRight size={11} strokeWidth={1.5} />
-              {t('story.portfolioPreviewPanel')}
-            </button>
-          </div>
-
-          {/* 챕터 네비게이션 목록 */}
-          <div className="space-y-1">
-          {chapters.filter(c => !c.parent_id).map((chapter, idx) => {
-            const mainChapters = chapters.filter(c => !c.parent_id)
-            const subChapters = chapters.filter(c => c.parent_id === chapter.id)
-            return (
-              <div key={chapter.id}>
-                {/* 부모 챕터 */}
-                <div className="flex items-center gap-1 group rounded hover:bg-hair">
-                  <button
-                    onClick={() => scrollToChapter(chapter.id)}
-                    className="flex-1 text-left px-2 py-1.5 text-menu flex items-center gap-1.5 min-w-0"
-                  >
-                    <span className="text-muted shrink-0">{t('story.chapter')} {idx + 1}</span>
-                    <span className="truncate text-ink-2 group-hover:text-ink">{chapter.title}</span>
-                    {(() => {
-                      const count = getChapterPhotoCount(chapter.id)
-                      return count > 0 ? (
-                        <span className="ml-auto shrink-0 text-eyebrow font-mono text-muted">({count})</span>
-                      ) : null
-                    })()}
-                  </button>
-                  <div className="flex shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
-                    <button
-                      onClick={() => handleMoveChapter(chapter.id, 'up')}
-                      disabled={idx === 0}
-                      className="text-muted hover:text-ink disabled:opacity-20 px-0.5 text-caption"
-                    >↑</button>
-                    <button
-                      onClick={() => handleMoveChapter(chapter.id, 'down')}
-                      disabled={idx === mainChapters.length - 1}
-                      className="text-muted hover:text-ink disabled:opacity-20 px-0.5 text-caption"
-                    >↓</button>
-                  </div>
-                </div>
-
-                {/* 서브챕터 */}
-                {subChapters.map((sub, subIdx) => (
-                  <div key={sub.id} className="flex items-center gap-1 group rounded hover:bg-hair">
-                    <button
-                      onClick={() => scrollToChapter(sub.id)}
-                      className="flex-1 text-left pl-3 pr-1 py-1 text-menu flex items-center gap-1.5 min-w-0"
-                    >
-                      <span className="text-muted shrink-0">↳ {t('story.chapter')} {idx + 1}.{subIdx + 1}</span>
-                      <span className="text-ink-2 hover:text-ink truncate">{sub.title}</span>
-                      {(() => {
-                        const count = getChapterPhotoCount(sub.id)
-                        return count > 0 ? (
-                          <span className="ml-auto shrink-0 text-eyebrow font-mono text-muted">({count})</span>
-                        ) : null
-                      })()}
-                    </button>
-                    <div className="flex shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
-                      <button
-                        onClick={() => handleMoveChapter(sub.id, 'up')}
-                        disabled={subIdx === 0}
-                        className="text-muted hover:text-ink disabled:opacity-20 px-0.5 text-caption"
-                      >↑</button>
-                      <button
-                        onClick={() => handleMoveChapter(sub.id, 'down')}
-                        disabled={subIdx === subChapters.length - 1}
-                        className="text-muted hover:text-ink disabled:opacity-20 px-0.5 text-caption"
-                      >↓</button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )
-          })}
-          </div>
-        </div>
-      </div>
-
-      {/* 메인 영역 */}
-      <div className="flex-1">
+      <div>
 
         {/* 챕터 추가 폼 — 사이드바 버튼 클릭 시 표시 */}
         {showAddChapter && !addingSubChapterTo && (

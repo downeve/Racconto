@@ -1,5 +1,5 @@
-import { useEffect, useState } from 'react'
-import { useNavigate, useParams, useLocation } from 'react-router-dom'
+import { useEffect, useRef, useState } from 'react'
+import { useNavigate, useParams, useLocation, Link } from 'react-router-dom'
 import axios from 'axios'
 import { useTranslation } from 'react-i18next'
 import { useElectronSidebar } from '../context/ElectronSidebarContext'
@@ -26,9 +26,30 @@ export default function ElectronSidebar({ activeTab, onTabChange, showTabs }: Pr
   const navigate = useNavigate()
   const { id: currentId } = useParams()
   const location = useLocation()
-  const { t } = useTranslation()
+  const { t, i18n } = useTranslation()
   const { sidebarContent, refreshTrigger } = useElectronSidebar()
-  const { user } = useAuth()
+  const { user, logout } = useAuth()
+  const [dropdownOpen, setDropdownOpen] = useState(false)
+  const dropdownRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    if (!dropdownOpen) return
+    const handler = (e: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
+        setDropdownOpen(false)
+      }
+    }
+    document.addEventListener('mousedown', handler)
+    return () => document.removeEventListener('mousedown', handler)
+  }, [dropdownOpen])
+
+  const toggleLanguage = () => {
+    const nextLang = i18n.language === 'ko' ? 'en' : 'ko'
+    i18n.changeLanguage(nextLang)
+    localStorage.setItem('app_language', nextLang)
+  }
+
+  const avatarInitial = user?.email ? user.email[0].toUpperCase() : '?'
 
   useEffect(() => {
     const token = localStorage.getItem('token')
@@ -52,12 +73,12 @@ export default function ElectronSidebar({ activeTab, onTabChange, showTabs }: Pr
       label: t('nav.portfolio') || 'Portfolio',
       Icon: Globe,
       path: '/p',
-      active: location.pathname.startsWith('/p/'),
+      active: user?.username ? location.pathname === `/${user.username}` : false,
       onClick: () => {
         if (user?.username) {
-          navigate(`/p/${user.username}`, { state: { resetToList: true } })
+          navigate(`/${user.username}`, { state: { resetToList: true } })
         } else {
-          navigate('/p/@setup')
+          navigate('/@setup')
         }
       },
     },
@@ -164,6 +185,43 @@ export default function ElectronSidebar({ activeTab, onTabChange, showTabs }: Pr
           {sidebarContent}
         </div>
       )}
+
+      {/* 사용자 */}
+      <div ref={dropdownRef} className="shrink-0 mt-auto border-t border-faint/30 relative">
+        <button
+          onClick={() => setDropdownOpen(v => !v)}
+          className="w-full flex items-center gap-2 px-3 py-2.5 hover:bg-stone-100 transition-[background,color,border] duration-150 ease-out"
+        >
+          <span className="w-6 h-6 rounded-full bg-ink-2 text-canvas text-[10px] font-bold flex items-center justify-center shrink-0">
+            {avatarInitial}
+          </span>
+          <span className="text-small text-muted truncate">{user?.email}</span>
+        </button>
+        {dropdownOpen && (
+          <div className="absolute bottom-full left-2 right-2 bg-card rounded-card shadow border border-hair py-1 z-50 mb-1">
+            <Link
+              to="/trash"
+              onClick={() => setDropdownOpen(false)}
+              className="w-full text-left px-3 py-2 text-small text-ink-2 hover:bg-hair/30 flex items-center gap-2"
+            >
+              {t('nav.trash')}
+            </Link>
+            <div className="border-t border-hair my-1" />
+            <button
+              onClick={() => { toggleLanguage(); setDropdownOpen(false) }}
+              className="w-full text-left px-3 py-2 text-small text-muted hover:bg-hair/30"
+            >
+              {i18n.language === 'ko' ? 'English' : '한국어'}
+            </button>
+            <button
+              onClick={() => { setDropdownOpen(false); logout() }}
+              className="w-full text-left px-3 py-2 text-small text-red-400 hover:bg-red-50"
+            >
+              {t('auth.logout')}
+            </button>
+          </div>
+        )}
+      </div>
     </div>
   )
 }

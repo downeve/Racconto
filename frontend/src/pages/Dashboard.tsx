@@ -156,7 +156,7 @@ export default function Dashboard() {
                 </div>
               )}
             </div>
-            <Link to={`/p/${user?.username}`} className="text-ink-2 text-body mt-2 font-semibold hover:underline underline-offset-4">
+            <Link to={`/${user?.username}`} className="text-ink-2 text-body mt-2 font-semibold hover:underline underline-offset-4">
               {t('dashboard.goToPortfolio')}
             </Link>
           </div>
