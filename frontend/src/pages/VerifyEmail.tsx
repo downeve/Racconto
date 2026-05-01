@@ -36,9 +36,9 @@ export default function VerifyEmail() {
         setMessage(t(`api.success.${res.data.message}`, '인증이 완료되었습니다.'))
       })
       .catch(e => {
+        const code = e.response?.data?.detail
         setStatus('error')
-        // 서버 에러 메시지가 있으면 우선 출력하고, 없으면 다국어 처리
-        setMessage(e.response?.data?.detail || t('verify.error.failed'))
+        setMessage(t(`api.error.${code}`, t('verify.error.failed')))
       })
   }, [t, searchParams, isAuthenticated, isLoading, navigate])
 
