@@ -66,7 +66,10 @@ export default function Register() {
         {success ? (
           // --- 회원가입 성공 (이메일 인증 대기) 화면 ---
           <div className="bg-card rounded-card shadow p-8 w-full max-w-sm text-center">
-            <h2 className="font-serif font-bold text-h2 tracking-widest mb-6">Racconto</h2>
+            <h2 className="font-serif font-bold text-h2 tracking-widest mb-8"
+            style={{ fontWeight: 700, letterSpacing: '0.08em', transform: 'translateY(1px)' }}
+            >Racconto
+            </h2>
             <p className="text-body text-ink-2 mb-2">{t('register.success.title')}</p>
             <p className="text-small text-ink-2 mb-6">{t('register.success.desc')}</p>
             {resendMessage && <p className="text-small text-muted mb-4">{resendMessage}</p>}

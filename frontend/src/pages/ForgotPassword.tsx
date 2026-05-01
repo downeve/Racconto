@@ -31,8 +31,9 @@ export default function ForgotPassword() {
       <AuthNavbar />
       <div className="flex-1 flex items-center justify-center px-4 py-20">
         <div className="bg-card rounded-card shadow p-8 w-full max-w-sm">
-          <h2 className="font-serif font-bold text-h2 text-center mb-2 tracking-widest">Racconto</h2>
-          <p className="text-center text-small text-muted mb-8">{t('auth.forgotPasswordTitle')}</p>
+          <h2 className="font-serif font-bold text-h2 text-center mb-8 tracking-widest"
+          style={{ fontWeight: 700, letterSpacing: '0.08em', transform: 'translateY(1px)' }}
+          >Racconto</h2>
 
           {sent ? (
             <div className="space-y-4">

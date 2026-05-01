@@ -209,7 +209,7 @@ export default function Settings() {
 
   return (
     <div className="max-w-2xl mx-auto p-6">
-      <Heading level={2} className="mb-2">
+      <Heading level={2} className="mb-4 font-serif font-semibold">
         {t('settings.title')}
       </Heading>
 

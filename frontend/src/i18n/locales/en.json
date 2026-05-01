@@ -28,7 +28,7 @@
     "register": "Register here!",
     "forgotPassword": "Forgot your password?",
     "forgotPasswordTitle": "Reset Password",
-    "forgotPasswordDesc": "Enter your email address and we'll send you a reset link.",
+    "forgotPasswordDesc": "Enter your email address and we'll send you a password reset link.",
     "forgotPasswordSend": "Send reset link",
     "forgotPasswordSending": "Sending...",
     "forgotPasswordSent": "We've sent a reset link to your email. Please check your inbox.",

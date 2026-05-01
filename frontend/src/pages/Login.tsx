@@ -34,7 +34,9 @@ export default function Login() {
 
       <div className="flex-1 flex items-center justify-center px-4 py-20">
         <div className="bg-card rounded-card shadow p-8 w-full max-w-sm">
-          <h2 className="font-serif font-bold text-h2 text-center mb-8 tracking-widest">Racconto</h2>
+          <h2 className="font-serif font-bold text-h2 text-center mb-8 tracking-widest"
+          style={{ fontWeight: 700, letterSpacing: '0.08em', transform: 'translateY(1px)' }}
+          >Racconto</h2>
 
           <div className="space-y-4">
             <input
@@ -65,8 +67,9 @@ export default function Login() {
               {t('auth.noAccount')} {'  '}
               <Link to="/register" className="text-small underline text-ink-2 hover:text-accent">{t('auth.register')}</Link>
             </p>
-            <p className="text-center text-small">
-              <Link to="/forgot-password" className="text-small text-muted hover:text-ink-2">{t('auth.forgotPassword')}</Link>
+            <p className="text-center text-small text-muted">
+              {t('auth.forgotPassword')} {'  '}
+              <Link to="/forgot-password" className="text-small underline text-ink-2 hover:text-accent">{t('auth.forgotPasswordTitle')}</Link>
             </p>
           </div>
         </div>

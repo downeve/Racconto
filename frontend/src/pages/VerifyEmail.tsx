@@ -42,15 +42,17 @@ export default function VerifyEmail() {
 
       <div className="flex-1 flex items-center justify-center px-4 py-20">
         <div className="bg-white rounded-card shadow p-8 w-full max-w-sm text-center">
-          <h1 className="text-2xl font-bold tracking-widest mb-6">Racconto</h1>
+          <h1 className="text-2xl font-bold tracking-widest mb-6"
+          style={{ fontWeight: 700, letterSpacing: '0.08em', transform: 'translateY(1px)' }}
+          >Racconto</h1>
           
           {status === 'loading' && (
-            <p className="text-sm text-gray-500">{t('verify.loading')}</p>
+            <p className="text-small text-muted">{t('verify.loading')}</p>
           )}
           
           {status === 'success' && (
             <>
-              <p className="text-sm text-gray-600 mb-6">{message}</p>
+              <p className="text-small text-gray-600 mb-6">{message}</p>
               <button
                 onClick={() => navigate('/login')}
                 className="w-full bg-stone-600 text-white px-4 py-2 text-sm tracking-wider hover:bg-stone-900 transition-[background,color,border] duration-150 ease-out rounded"
@@ -65,7 +67,7 @@ export default function VerifyEmail() {
               <p className="text-sm text-red-500 mb-6">{message}</p>
               <button
                 onClick={() => navigate('/login')}
-                className="w-full bg-black text-white py-2 text-sm tracking-wider hover:bg-gray-800"
+                className="w-full bg-ink text-card py-2 text-small tracking-wider hover:bg-gray-800"
               >
                 {t('verify.goToLogin')}
               </button>
