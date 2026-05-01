@@ -187,18 +187,18 @@ export default function FeaturesPage() {
       <PublicNavbar />
 
       <section className="pt-32 pb-16 px-6 text-center">
-        <p className="text-xs tracking-[0.35em] text-stone-400 uppercase mb-4">
+        <p className="text-body tracking-[0.35em] text-faint uppercase mb-4">
           What Racconto does
         </p>
         <h1
-          className="text-4xl md:text-6xl font-bold text-stone-900 mb-5 leading-tight"
+          className="text-h1 md:text-6xl font-bold text-ink mb-5 leading-tight font-serif"
           style={{ letterSpacing: '-0.02em' }}
         >
           {t('landing.feature.featureDetailTitle')}
         </h1>
         <p
-          className="text-lg text-stone-500 max-w-xl mx-auto leading-relaxed"
-          style={{ fontStyle: 'italic' }}
+          className="text-h3 text-muted max-w-xl mx-auto leading-relaxed"
+          //style={{ fontStyle: 'italic' }}
         >
           {t('landing.feature.featureDetailDesc')}
         </p>

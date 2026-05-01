@@ -6,7 +6,7 @@ import PublicNavbar from '../components/PublicNavbar'
 export default function LandingPage() {
   const { t, i18n } = useTranslation()
   const lang = i18n.language.startsWith('ko') ? 'ko' : 'en'
-  const ss = (name: string) => `./screenshots/${name}_${lang}.webp`
+  const ss = (name: string, ext: string = 'webp') => `./screenshots/${name}_${lang}.${ext}`
   const [scrollY, setScrollY] = useState(0)
   const featuresRef = useRef<HTMLDivElement>(null)
 
@@ -25,7 +25,7 @@ export default function LandingPage() {
         <div className="w-full aspect-[3/4] rounded overflow-hidden shadow-md relative">
           <div
             className="absolute inset-x-0 top-0"
-            style={{ animation: 'slowScroll 8s ease-in-out infinite alternate' }}
+            //style={{ animation: 'slowScroll 8s ease-in-out infinite alternate' }}
           >
             <img
               src={ss('screenshot-story')}
@@ -43,7 +43,7 @@ export default function LandingPage() {
       visual: (
         <div className="w-full aspect-[16/9] rounded overflow-hidden shadow-md">
           <img
-            src={ss('screenshot-electron-1')}
+            src={ss('screenshot-electron-1', 'gif')}
             alt="Desktop app"
             className="w-full h-full object-cover object-top"
           />
@@ -85,9 +85,9 @@ export default function LandingPage() {
       visual: (
         <div className="w-full aspect-[3/4] rounded overflow-hidden shadow-md">
           <img
-            src={ss('screenshot-portfolio')}
+            src={ss('screenshot-portfolio', 'gif')}
             alt="Public portfolio"
-            className="w-full h-full object-cover object-top"
+            className="w-full h-full object-contain object-top"
           />
         </div>
       ),

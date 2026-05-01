@@ -63,6 +63,12 @@ export default function ProjectDetail({
   const [confirmModal, setConfirmModal] = useState<{ message: string; onConfirm: () => void } | null>(null)
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' | 'warning' } | null>(null)
   const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const pendingDeleteBatchRef = useRef<{
+    ids: string[]
+    snapshotPhotos: Photo[]
+    snapshotTrash: Photo[]
+    timer: ReturnType<typeof setTimeout> | null
+  }>({ ids: [], snapshotPhotos: [], snapshotTrash: [], timer: null })
   const [chapterPhotoVersion, setChapterPhotoVersion] = useState(0)
 
   const showToast = (message: string, type: 'success' | 'error' | 'warning') => {
@@ -459,41 +465,50 @@ export default function ProjectDetail({
     triggerRefresh()
   }
 
-  const handleDeletePhoto = async (photoId: string) => {
-    // 1. 에러 시 롤백을 위한 상태 백업
-    const prevPhotos = [...photos];
-    const prevTrash = [...trashedPhotos];
-    const photoToDelete = photos.find(p => p.id === photoId);
+  const handleDeletePhoto = (photoId: string) => {
+    const batch = pendingDeleteBatchRef.current
+    const photoToDelete = photos.find(p => p.id === photoId)
 
-    // 2. ⚡️ 낙관적 업데이트: 서버 대기 없이 화면부터 즉시 변경 (딜레이 제로)
-    if (lightboxPhoto?.id === photoId) setLightboxPhoto(null);
-    
-    setPhotos(prev => prev.filter(p => p.id !== photoId));
-    
+    // 배치 첫 삭제 시 롤백용 스냅샷 캡처
+    if (batch.ids.length === 0) {
+      batch.snapshotPhotos = [...photos]
+      batch.snapshotTrash = [...trashedPhotos]
+    }
+
+    // ⚡️ 낙관적 업데이트: 즉시 화면 반영
+    if (lightboxPhoto?.id === photoId) setLightboxPhoto(null)
+    setPhotos(prev => prev.filter(p => p.id !== photoId))
     if (photoToDelete) {
       setTrashedPhotos(prev => [
-        ...prev, 
+        ...prev,
         { ...photoToDelete, deleted_at: new Date().toISOString() }
-      ]);
+      ])
     }
-    
-    try {
-      // 3. 서버에 삭제 요청
-      await axios.delete(`${API}/photos/${photoId}`);
 
-      // 백그라운드 데이터 동기화
-      Promise.all([
-        axios.get(`${API}/projects/${numericId}`).then(res => setProject(res.data)),
-        fetchChapterPhotoIds(),
-        fetchPhotoNoteIds()
-      ]);
+    batch.ids.push(photoId)
 
-    } catch (error) {
-      console.error("사진 삭제 실패:", error);
-      setPhotos(prevPhotos);
-      setTrashedPhotos(prevTrash);
-      // (선택) showToast(t('common.error'), 'error'); 
-    }
+    if (batch.timer) clearTimeout(batch.timer)
+    batch.timer = setTimeout(async () => {
+      const ids = [...batch.ids]
+      const { snapshotPhotos, snapshotTrash } = batch
+      batch.ids = []
+      batch.timer = null
+
+      try {
+        await axios.delete(`${API}/photos/bulk-delete`, { data: { photo_ids: ids } })
+        fetchPhotos()
+        fetchTrash()
+        Promise.all([
+          axios.get(`${API}/projects/${numericId}`).then(res => setProject(res.data)),
+          fetchChapterPhotoIds(),
+          fetchPhotoNoteIds()
+        ])
+      } catch (error) {
+        console.error('사진 삭제 실패:', error)
+        setPhotos(snapshotPhotos)
+        setTrashedPhotos(snapshotTrash)
+      }
+    }, 400)
   }
 
   const handleSetRating = async (photo: Photo, rating: number) => {
@@ -633,7 +648,7 @@ export default function ProjectDetail({
 
   const canHardDelete = (photo: Photo): boolean => {
     if (photo.source !== 'electron') return true
-    if (!isElectron) return false
+    if (!isElectron) return true
     if (!isProjectFolderLinked) return true
     return !!photo.local_missing
   }

@@ -78,10 +78,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       })
     }
 
+    const onUsernameChanged = (e: Event) => {
+      const username = (e as CustomEvent<string>).detail
+      setUser(prev => prev ? { ...prev, username } : prev)
+    }
+    window.addEventListener('usernameChanged', onUsernameChanged)
+
     return () => {
       if (interceptorRef.current !== null) {
         axios.interceptors.response.eject(interceptorRef.current)
       }
+      window.removeEventListener('usernameChanged', onUsernameChanged)
     }
   }, [])
 
