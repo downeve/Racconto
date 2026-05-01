@@ -4,7 +4,9 @@ import { useEffect, useRef, useState } from 'react'
 import PublicNavbar from '../components/PublicNavbar'
 
 export default function LandingPage() {
-  const { t } = useTranslation()
+  const { t, i18n } = useTranslation()
+  const lang = i18n.language.startsWith('ko') ? 'ko' : 'en'
+  const ss = (name: string) => `./screenshots/${name}_${lang}.webp`
   const [scrollY, setScrollY] = useState(0)
   const featuresRef = useRef<HTMLDivElement>(null)
 
@@ -26,7 +28,7 @@ export default function LandingPage() {
             style={{ animation: 'slowScroll 8s ease-in-out infinite alternate' }}
           >
             <img
-              src="./screenshots/screenshot-story.webp"
+              src={ss('screenshot-story')}
               alt="Story structure"
               className="w-full"
             />
@@ -41,7 +43,7 @@ export default function LandingPage() {
       visual: (
         <div className="w-full aspect-[16/9] rounded overflow-hidden shadow-md">
           <img
-            src="./screenshots/screenshot-electron-1.webp"
+            src={ss('screenshot-electron-1')}
             alt="Desktop app"
             className="w-full h-full object-cover object-top"
           />
@@ -55,7 +57,7 @@ export default function LandingPage() {
       visual: (
         <div className="w-full aspect-[3/4] rounded overflow-hidden shadow-md">
           <img
-            src="./screenshots/screenshot-notes.webp"
+            src={ss('screenshot-notes')}
             alt="Project notes"
             className="w-full h-full object-cover object-top"
           />
@@ -69,7 +71,7 @@ export default function LandingPage() {
       visual: (
         <div className="w-full aspect-[16/9] rounded overflow-hidden shadow-md">
           <img
-            src="./screenshots/screenshot-photos.webp"
+            src={ss('screenshot-photos')}
             alt="Photo curation workflow"
             className="w-full h-full object-cover object-top"
           />
@@ -83,7 +85,7 @@ export default function LandingPage() {
       visual: (
         <div className="w-full aspect-[3/4] rounded overflow-hidden shadow-md">
           <img
-            src="./screenshots/screenshot-portfolio.webp"
+            src={ss('screenshot-portfolio')}
             alt="Public portfolio"
             className="w-full h-full object-cover object-top"
           />
@@ -137,8 +139,7 @@ export default function LandingPage() {
           >
             {t('landing.heroTitle2')}
           </h1>
-          <p className="text-h3 md:text-h2 text-muted leading-relaxed mb-10 max-w-xl mx-auto break-keep"
-            style={{ fontStyle: 'italic' }}>
+          <p className="text-h3 md:text-h2 text-muted leading-relaxed mb-10 max-w-xl mx-auto break-keep">
             {t('landing.heroSubtitle')}
           </p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
@@ -179,7 +180,7 @@ export default function LandingPage() {
           {/* 메인 스크린샷 */}
           <div className="rounded-card overflow-hidden shadow border border-hair mb-6">
             <img
-              src="./screenshots/screenshot-main.webp"
+              src={ss('screenshot-main')}
               alt="Racconto app"
               className="w-full object-cover object-top"
             />
@@ -189,14 +190,14 @@ export default function LandingPage() {
           <div className="grid grid-cols-2 gap-4">
             <div className="rounded-card overflow-hidden shadow border border-hair">
               <img
-                src="./screenshots/screenshot-lightbox.webp"
+                src={ss('screenshot-lightbox')}
                 alt="Lightbox view"
                 className="w-full object-cover"
               />
             </div>
             <div className="rounded-card overflow-hidden shadow border border-hair">
               <img
-                src="./screenshots/screenshot-note-panel.webp"
+                src={ss('screenshot-note-panel')}
                 alt="Note panel"
                 className="w-full object-cover"
               />

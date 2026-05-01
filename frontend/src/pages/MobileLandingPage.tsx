@@ -3,42 +3,44 @@ import { useTranslation } from 'react-i18next'
 import PublicNavbar from '../components/PublicNavbar'
 
 export default function MobileLandingPage() {
-  const { t } = useTranslation()
+  const { t, i18n } = useTranslation()
+  const lang = i18n.language.startsWith('ko') ? 'ko' : 'en'
+  const ss = (name: string) => `./screenshots/${name}_${lang}.webp`
 
   const features = [
     {
       number: '01',
       title: t('landing.feature1Title'),
       desc: t('landing.feature1Desc'),
-      src: './screenshots/screenshot-story.webp',
+      src: ss('screenshot-story'),
       alt: 'Story structure',
     },
     {
       number: '02',
       title: t('landing.feature5Title'),
       desc: t('landing.feature5Desc'),
-      src: './screenshots/screenshot-electron-1.webp',
+      src: ss('screenshot-electron-1'),
       alt: 'Desktop app',
     },
     {
       number: '03',
       title: t('landing.feature4Title'),
       desc: t('landing.feature4Desc'),
-      src: './screenshots/screenshot-notes.webp',
+      src: ss('screenshot-notes'),
       alt: 'Project notes',
     },
     {
       number: '04',
       title: t('landing.feature2Title'),
       desc: t('landing.feature2Desc'),
-      src: './screenshots/screenshot-photos.webp',
+      src: ss('screenshot-photos'),
       alt: 'Photo curation',
     },
     {
       number: '05',
       title: t('landing.feature3Title'),
       desc: t('landing.feature3Desc'),
-      src: './screenshots/screenshot-portfolio.webp',
+      src: ss('screenshot-portfolio'),
       alt: 'Public portfolio',
     },
   ]
@@ -103,7 +105,7 @@ export default function MobileLandingPage() {
         </p>
         <div className="rounded-lg overflow-hidden shadow border border-stone-200">
           <img
-            src="./screenshots/screenshot-main.webp"
+            src={ss('screenshot-main')}
             alt="Racconto app"
             className="w-full object-cover object-top"
           />

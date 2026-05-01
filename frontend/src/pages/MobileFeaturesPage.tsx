@@ -83,7 +83,9 @@ function MobileFeatureCard({ feature, index }: { feature: FeatureData; index: nu
 }
 
 export default function MobileFeaturesPage() {
-  const { t } = useTranslation()
+  const { t, i18n } = useTranslation()
+  const lang = i18n.language.startsWith('ko') ? 'ko' : 'en'
+  const ss = (name: string) => `./screenshots/${name}_${lang}.webp`
 
   const FEATURES: FeatureData[] = [
     {
@@ -92,7 +94,7 @@ export default function MobileFeaturesPage() {
       title: t('landing.feature.feature1DetailTitle'),
       desc: t('landing.feature.feature1DetailDesc'),
       screenshotAlt: 'Story structure screenshot',
-      screenshotSrc: './screenshots/screenshot-story.webp',
+      screenshotSrc: ss('screenshot-story'),
     },
     {
       number: '02',
@@ -100,7 +102,7 @@ export default function MobileFeaturesPage() {
       title: t('landing.feature.feature2DetailTitle'),
       desc: t('landing.feature.feature2DetailDesc'),
       screenshotAlt: 'Desktop app screenshot',
-      screenshotSrc: './screenshots/screenshot-electron-2.webp',
+      screenshotSrc: ss('screenshot-electron-2'),
       isDesktop: true,
     },
     {
@@ -109,7 +111,7 @@ export default function MobileFeaturesPage() {
       title: t('landing.feature.feature3DetailTitle'),
       desc: t('landing.feature.feature3DetailDesc'),
       screenshotAlt: 'Notes screenshot',
-      screenshotSrc: './screenshots/screenshot-notes.webp',
+      screenshotSrc: ss('screenshot-notes'),
     },
     {
       number: '04',
@@ -117,7 +119,7 @@ export default function MobileFeaturesPage() {
       title: t('landing.feature.feature4DetailTitle'),
       desc: t('landing.feature.feature4DetailDesc'),
       screenshotAlt: 'Photo curation screenshot',
-      screenshotSrc: './screenshots/screenshot-photos.webp',
+      screenshotSrc: ss('screenshot-photos'),
     },
     {
       number: '05',
@@ -125,7 +127,7 @@ export default function MobileFeaturesPage() {
       title: t('landing.feature.feature5DetailTitle'),
       desc: t('landing.feature.feature5DetailDesc'),
       screenshotAlt: 'Portfolio screenshot',
-      screenshotSrc: './screenshots/screenshot-portfolio.webp',
+      screenshotSrc: ss('screenshot-portfolio'),
     },
   ]
 
