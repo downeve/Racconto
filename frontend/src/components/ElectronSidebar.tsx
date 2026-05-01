@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
-import { useNavigate, useParams, useLocation, Link } from 'react-router-dom'
+import { useNavigate, useLocation, Link } from 'react-router-dom'
+//import { useParams } from 'react-router-dom'
 import axios from 'axios'
 import { useTranslation } from 'react-i18next'
 import { useElectronSidebar } from '../context/ElectronSidebarContext'
@@ -8,11 +9,11 @@ import { Camera, BookOpen, FileText, LayoutDashboard, Globe, Settings } from 'lu
 
 const API = import.meta.env.VITE_API_URL
 
-interface Project {
-  id: string
-  title: string
-  cover_image_url: string | null
-}
+//interface Project {
+//  id: string
+//  title: string
+//  cover_image_url: string | null
+//}
 
 interface Props {
   activeTab: 'photos' | 'story' | 'notes'
@@ -21,13 +22,13 @@ interface Props {
 }
 
 export default function ElectronSidebar({ activeTab, onTabChange, showTabs }: Props) {
-  const [projects, setProjects] = useState<Project[]>([])
-  const [showProjects, setShowProjects] = useState(true)
+  //const [projects, setProjects] = useState<Project[]>([])
+  //const [showProjects, setShowProjects] = useState(true)
   const navigate = useNavigate()
-  const { id: currentId } = useParams()
+  //const { id: currentId } = useParams()
   const location = useLocation()
   const { t, i18n } = useTranslation()
-  const { sidebarContent, refreshTrigger } = useElectronSidebar()
+  const { sidebarContent } = useElectronSidebar()
   const { user, logout } = useAuth()
   const [dropdownOpen, setDropdownOpen] = useState(false)
   const dropdownRef = useRef<HTMLDivElement>(null)
@@ -51,23 +52,30 @@ export default function ElectronSidebar({ activeTab, onTabChange, showTabs }: Pr
 
   const avatarInitial = user?.email ? user.email[0].toUpperCase() : '?'
 
-  useEffect(() => {
-    const token = localStorage.getItem('token')
-    axios.get(`${API}/projects/`, {
-      headers: { Authorization: `Bearer ${token}` }
-    }).then(res => setProjects(res.data))
-  }, [refreshTrigger])
+  // useEffect(() => {
+  //   const token = localStorage.getItem('token')
+  //   axios.get(`${API}/projects/`, {
+  //     headers: { Authorization: `Bearer ${token}` }
+  //   }).then(res => setProjects(res.data))
+  // }, [refreshTrigger])
 
   const isOnProjectDetail = location.pathname.startsWith('/projects/') &&
     !location.pathname.endsWith('/edit')
 
   const navItems = [
+    //{
+    //  label: t('nav.dashboard') || 'Dashboard',
+    //  Icon: LayoutDashboard,
+    //  path: '/dashboard',
+    //  active: location.pathname === '/dashboard',
+    //  onClick: () => navigate('/dashboard'),
+    //},
     {
-      label: t('nav.dashboard') || 'Dashboard',
+      label: t('nav.projects') || 'Projects',
       Icon: LayoutDashboard,
-      path: '/dashboard',
-      active: location.pathname === '/dashboard',
-      onClick: () => navigate('/dashboard'),
+      path: '/projects]',
+      active: location.pathname === '/projects',
+      onClick: () => navigate('/projects'),
     },
     {
       label: t('nav.portfolio') || 'Portfolio',
@@ -95,11 +103,16 @@ export default function ElectronSidebar({ activeTab, onTabChange, showTabs }: Pr
     <div className="w-56 shrink-0 fixed left-0 top-0 bottom-0 bg-canvas border-r border-hair flex flex-col z-40 overflow-hidden">
 
       {/* Racconto 로고 */}
-      <div className="shrink-0 px-2 pt-3 pb-2">
-        <span className="font-serif font-bold text-h3 text-ink-2 px-2"
-        style={{ fontWeight: 700, letterSpacing: '0.08em', transform: 'translateY(1px)' }}
+      <div 
+        className="shrink-0 px-2 pt-3 pb-2 cursor-pointer transition-opacity duration-150 ease-out"
+        onClick={() => navigate('/dashboard')}
       >
-        Racconto</span>
+        <span 
+          className="font-serif font-bold text-h3 text-ink-2 px-2"
+          style={{ fontWeight: 700, letterSpacing: '0.08em', transform: 'translateY(1px)' }}
+        >
+          Racconto
+        </span>
       </div>
 
       <div className="mx-3 border-t border-faint/30 shrink-0" />
@@ -125,6 +138,7 @@ export default function ElectronSidebar({ activeTab, onTabChange, showTabs }: Pr
       <div className="mx-3 border-t border-faint/30 shrink-0" />
 
       {/* 프로젝트 목록 */}
+      {/*
       <div className="flex flex-col min-h-0 pt-0">
         <div className="flex items-center justify-between px-2 shrink-0">
           <button
@@ -164,10 +178,11 @@ export default function ElectronSidebar({ activeTab, onTabChange, showTabs }: Pr
           </div>
         )}
       </div>
+      */}
 
       {/* 탭 전환 — ProjectDetail에서만 */}
       {showTabs && isOnProjectDetail && (
-        <div className="border-t border-faint/30 shrink-0 flex px-1 gap-1 py-1">
+        <div className="shrink-0 flex px-1 gap-1 py-1">
           {([
             { key: 'photos' as const, Icon: Camera, label: t('photo.title') },
             { key: 'story'  as const, Icon: BookOpen, label: t('story.title') },

@@ -1,0 +1,96 @@
+name: Build Racconto
+
+on:
+  push:
+    tags:
+      - 'v*'          # v1.0.0 같은 태그를 push할 때 실행
+
+jobs:
+  build-mac:
+    runs-on: macos-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install frontend deps
+        working-directory: frontend
+        run: npm ci
+
+      - name: Build frontend
+        working-directory: frontend
+        run: ELECTRON_BUILD=1 npm run build
+
+      - name: Install electron deps
+        working-directory: electron
+        run: npm ci
+
+      - name: Package (mac)
+        working-directory: electron
+        run: npx electron-builder --mac
+
+      - name: Upload
+        uses: actions/upload-artifact@v4
+        with:
+          name: racconto-mac
+          path: electron/dist/*.dmg
+          retention-days: 7
+
+  build-win:
+    runs-on: windows-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install frontend deps
+        working-directory: frontend
+        run: npm ci
+
+      - name: Build frontend
+        working-directory: frontend
+        run: npm run build          # Windows runner는 env로 주입
+        env:
+          ELECTRON_BUILD: 1
+
+      - name: Install electron deps
+        working-directory: electron
+        run: npm ci
+
+      - name: Package (win)
+        working-directory: electron
+        run: npx electron-builder --win
+
+      - name: Upload
+        uses: actions/upload-artifact@v4
+        with:
+          name: racconto-win
+          path: electron/dist/*.exe
+          retention-days: 7
+
+  release:
+    needs: [build-mac, build-win]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Download artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: dist-all
+          merge-multiple: true
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: dist-all/**
+          generate_release_notes: true
