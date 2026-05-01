@@ -74,13 +74,14 @@ interface LightboxProps {
   onAddToChapter: (photoId: string, chapterId: string) => void
   projectId: string
   onNoteChange: () => void
+  onRotate: (photo: Photo, direction: 'left' | 'right') => Promise<void>
 }
 
 export function Lightbox({
   photo, photos, colorLabels, chapterPhotoIds,
   onClose, onNavigate, onSetRating, onSetColorLabel,
   showExif, chapters, onAddToChapter, projectId, onNoteChange,
-  photoChapterMap
+  photoChapterMap, onRotate
 }: LightboxProps) {
   const idx = photos.findIndex(p => p.id === photo.id)
   const [showChapterMenu, setShowChapterMenu] = useState(false)
@@ -91,10 +92,12 @@ export function Lightbox({
   const inChapter = chapterPhotoIds.has(photo.id)
 
   const [hoverRating, setHoverRating] = useState<{ id: string; star: number } | null>(null)
+  const [rotating, setRotating] = useState(false)
 
   useEffect(() => {
     setShowNotePanel(false)
     setShowChapterMenu(false)
+    setRotating(false)
   }, [photo.id])
 
   useEffect(() => {
@@ -227,6 +230,46 @@ export function Lightbox({
           >
             <FileText size={13} strokeWidth={1.5} />{t('note.title')}
           </button>
+
+          <div className="w-px h-3 bg-card/30" />
+
+          {/* 회전 버튼 */}
+          <div className="flex items-center gap-1">
+            <button
+              onClick={async () => {
+                if (rotating) return
+                setRotating(true)
+                try { await onRotate(photo, 'left') } finally { setRotating(false) }
+              }}
+              disabled={rotating}
+              title="왼쪽으로 90° 회전"
+              className={`flex items-center gap-1 text-small px-2.5 py-1.5 border rounded-card transition-[background,color,border] duration-150 ease-out ${
+                rotating ? 'border-card/10 text-card/20 cursor-not-allowed' : 'border-card/20 text-card/60 hover:text-card hover:border-card/50'
+              }`}
+            >
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/>
+                <path d="M3 3v5h5"/>
+              </svg>
+            </button>
+            <button
+              onClick={async () => {
+                if (rotating) return
+                setRotating(true)
+                try { await onRotate(photo, 'right') } finally { setRotating(false) }
+              }}
+              disabled={rotating}
+              title="오른쪽으로 90° 회전"
+              className={`flex items-center gap-1 text-small px-2.5 py-1.5 border rounded-card transition-[background,color,border] duration-150 ease-out ${
+                rotating ? 'border-card/10 text-card/20 cursor-not-allowed' : 'border-card/20 text-card/60 hover:text-card hover:border-card/50'
+              }`}
+            >
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M21 12a9 9 0 1 1-9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/>
+                <path d="M21 3v5h-5"/>
+              </svg>
+            </button>
+          </div>
         </div>
 
         {/* 3. 오른쪽: 닫기 버튼 (flex-1로 남는 공간 차지하며 우측 정렬) */}

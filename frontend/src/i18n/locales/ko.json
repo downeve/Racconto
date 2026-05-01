@@ -191,6 +191,8 @@
       "MissingWarning": "로컬 파일 없음: {{count}}개",
       "deleteMissingConfirm": "로컬 파일 없는 사진 {{count}}개를 모두 삭제할까요?"
     },
+    "rotateSuccess": "사진이 회전되었습니다.",
+    "rotateFail": "사진 회전에 실패했습니다.",
     "error": {
       "OriginalNotFound": "원본 사진 데이터를 찾을 수 없습니다.",
       "SaveCaptionFailed": "캡션 저장 실패:",

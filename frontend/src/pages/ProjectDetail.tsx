@@ -545,6 +545,26 @@ export default function ProjectDetail({
     }
   }
 
+  const handleRotatePhoto = async (photo: Photo, direction: 'left' | 'right') => {
+    try {
+      const res = await axios.post(`${API}/photos/${photo.id}/rotate`, { direction })
+      const updatedPhoto: Photo = res.data
+      setPhotos(prev => prev.map(p => p.id === photo.id ? { ...p, image_url: updatedPhoto.image_url } : p))
+      if (lightboxPhoto?.id === photo.id) {
+        setLightboxPhoto(prev => prev ? { ...prev, image_url: updatedPhoto.image_url } : null)
+      }
+      if (project?.cover_image_url === photo.image_url) {
+        const projectRes = await axios.get(`${API}/projects/${numericId}`)
+        setProject(projectRes.data)
+        triggerRefresh()
+      }
+      showToast(t('photo.rotateSuccess'), 'success')
+    } catch (error) {
+      console.error('사진 회전 실패:', error)
+      showToast(t('photo.rotateFail'), 'error')
+    }
+  }
+
   const handleClearRatings = () => {
     setConfirmModal({
       message: t('actions.resetRatingsConfirm'),
@@ -953,6 +973,7 @@ export default function ProjectDetail({
           photoChapterMap={photoChapterMap}
           onNoteChange={() => { setNotesVersion(v => v + 1); fetchPhotoNoteIds() }}
           onAddToChapter={handleAddToChapter}
+          onRotate={handleRotatePhoto}
         />
       )}
 

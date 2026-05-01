@@ -193,6 +193,8 @@
       "MissingWarning_other": "{{count}} local files missing",
       "deleteMissingConfirm": "Are you sure you want to delete all {{count}} missing local photos?"
     },
+    "rotateSuccess": "Photo rotated successfully.",
+    "rotateFail": "Failed to rotate photo.",
     "error": {
       "OriginalNotFound": "Original photo data could not be found.",
       "SaveCaptionFailed": "Failed to save caption:",
