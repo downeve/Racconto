@@ -1,13 +1,13 @@
 import { useEffect, useRef, useState } from 'react'
 import { useNavigate, useLocation, Link } from 'react-router-dom'
 //import { useParams } from 'react-router-dom'
-import axios from 'axios'
+//import axios from 'axios'
 import { useTranslation } from 'react-i18next'
 import { useElectronSidebar } from '../context/ElectronSidebarContext'
 import { useAuth } from '../context/AuthContext'
 import { Camera, BookOpen, FileText, LayoutDashboard, Globe, Settings } from 'lucide-react'
 
-const API = import.meta.env.VITE_API_URL
+//const API = import.meta.env.VITE_API_URL
 
 //interface Project {
 //  id: string
