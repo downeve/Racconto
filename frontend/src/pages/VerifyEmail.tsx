@@ -3,6 +3,7 @@ import { useSearchParams, useNavigate } from 'react-router-dom'
 import axios from 'axios'
 import { useTranslation } from 'react-i18next'
 import AuthNavbar from '../components/AuthNavbar'
+import { useAuth } from '../context/AuthContext'
 
 const API = import.meta.env.VITE_API_URL
 
@@ -13,8 +14,14 @@ export default function VerifyEmail() {
   const navigate = useNavigate()
 
   const { t } = useTranslation()
+  const { isAuthenticated, isLoading } = useAuth()
 
   useEffect(() => {
+    if (isLoading) return
+    if (isAuthenticated) {
+      navigate('/dashboard', { replace: true })
+      return
+    }
     const token = searchParams.get('token')
     if (!token) {
       setStatus('error')
@@ -33,10 +40,10 @@ export default function VerifyEmail() {
         // 서버 에러 메시지가 있으면 우선 출력하고, 없으면 다국어 처리
         setMessage(e.response?.data?.detail || t('verify.error.failed'))
       })
-  }, [t, searchParams])
+  }, [t, searchParams, isAuthenticated, isLoading, navigate])
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#F7F4F0]">
+    <div className="min-h-screen flex flex-col bg-canvas">
 
       <AuthNavbar />
 
