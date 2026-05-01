@@ -210,7 +210,7 @@ export default function Projects() {
       )}
       {toast && <ToastNotification message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
       <div className="flex items-center justify-between mb-space-sm">
-          <h2 className="font-body font-serif font-medium text-h2">
+          <h2 className="font-body font-serif font-semibold text-h2">
             {t('nav.projectsList')}
           </h2>
         <button
@@ -222,7 +222,7 @@ export default function Projects() {
       </div>
 
       {showForm && (
-        <div className="max-w-3xl bg-card rounded-card shadow p-6 mb-8">
+        <div className="max-w-2xl bg-card rounded-card shadow p-6 mb-8">
           <h3 className="text-h3 font-serif font-semibold mb-4">{t('project.createProject')}</h3>
           <div className="grid grid-cols-2 gap-4 mb-4">
             <input className="text-body text-ink-2 border rounded-card px-3 py-2" placeholder={t('project.projectName')} value={title} onChange={e => setTitle(e.target.value)} />

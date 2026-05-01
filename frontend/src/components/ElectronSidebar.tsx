@@ -5,7 +5,7 @@ import { useNavigate, useLocation, Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { useElectronSidebar } from '../context/ElectronSidebarContext'
 import { useAuth } from '../context/AuthContext'
-import { Camera, BookOpen, FileText, LayoutDashboard, Globe, Settings } from 'lucide-react'
+import { Camera, BookOpen, FileText, LayoutDashboard, Aperture, Settings } from 'lucide-react'
 
 //const API = import.meta.env.VITE_API_URL
 
@@ -79,7 +79,7 @@ export default function ElectronSidebar({ activeTab, onTabChange, showTabs }: Pr
     },
     {
       label: t('nav.portfolio') || 'Portfolio',
-      Icon: Globe,
+      Icon: Aperture,
       path: '/p',
       active: user?.username ? location.pathname === `/${user.username}` : false,
       onClick: () => {

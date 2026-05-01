@@ -58,33 +58,33 @@ export default function ProjectEdit() {
 
   return (
     <div className="max-w-2xl mx-auto p-6">
-      <Heading level={2} className="mb-2">
+      <Heading level={2} className="mb-4 font-serif font-semibold">
         {t('project.editProject')}
       </Heading>
 
-      <div className="bg-white rounded-card shadow p-6">
+      <div className="bg-card rounded-card shadow p-6">
         <div className="grid grid-cols-2 gap-4 mb-4">
           <input
-            className="border rounded px-3 py-2"
+            className="border rounded-card px-3 py-2"
             placeholder={t('project.projectName')}
             value={title}
             onChange={e => setTitle(e.target.value)}
           />
           <textarea
-            className="border rounded px-3 py-2 col-span-2"
+            className="border rounded-card px-3 py-2 col-span-2"
             placeholder={t('project.description')}
             rows={3}
             value={description}
             onChange={e => setDescription(e.target.value)}
           />
           <input
-            className="border rounded px-3 py-2"
+            className="border rounded-card px-3 py-2"
             placeholder={t('project.location')}
             value={location}
             onChange={e => setLocation(e.target.value)}
           />
           <select
-            className="border rounded px-3 py-2"
+            className="border rounded-card px-3 py-2"
             value={status}
             onChange={e => setStatus(e.target.value)}
           >
@@ -94,7 +94,7 @@ export default function ProjectEdit() {
             <option value="archived">{t('project.statusArchived')}</option>
           </select>
           <select
-            className="border rounded px-3 py-2 col-span-2"
+            className="border rounded-card px-3 py-2 col-span-2"
             value={isPublic}
             onChange={e => setIsPublic(e.target.value)}
           >
