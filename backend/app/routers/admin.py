@@ -14,11 +14,16 @@ from app.email import send_notice_email
 from datetime import datetime, timedelta
 import os
 
-router = APIRouter(prefix="/admin", tags=["admin"])
+router = APIRouter(prefix="/racconto-admin", tags=["admin"])
 
 LINODE_TOKEN = os.getenv("LINODE_API_TOKEN")
 CF_TOKEN = os.getenv("CF_API_TOKEN")
 CF_ACCOUNT_ID = os.getenv("CF_ACCOUNT_ID")
+
+# 관리자 이메일 화이트리스트 (쉼표 구분, 환경변수)
+# 예: ADMIN_EMAILS=admin@racconto.app,backup@racconto.app
+_raw = os.getenv("ADMIN_EMAILS", "")
+ADMIN_WHITELIST: set[str] = {e.strip() for e in _raw.split(",") if e.strip()}
 
 class OrphanScanResult(BaseModel):
     orphan_ids: List[str]
@@ -56,6 +61,20 @@ class NoticeRequest(BaseModel):
 
 def require_admin(current_user: models.User = Depends(get_current_user)):
     if not current_user.is_admin:
+        print(
+            f"[SECURITY] Unauthorized admin access attempt | "
+            f"user_id={current_user.id} | "
+            f"email={current_user.email} | "
+            f"at={datetime.utcnow().isoformat()}"
+        )
+        raise HTTPException(status_code=403, detail="FORBIDDEN")
+    if ADMIN_WHITELIST and current_user.email not in ADMIN_WHITELIST:
+        print(
+            f"[SECURITY] Admin whitelist rejected | "
+            f"user_id={current_user.id} | "
+            f"email={current_user.email} | "
+            f"at={datetime.utcnow().isoformat()}"
+        )
         raise HTTPException(status_code=403, detail="FORBIDDEN")
     return current_user
 

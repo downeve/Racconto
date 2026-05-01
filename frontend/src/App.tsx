@@ -85,7 +85,7 @@ function AppRoutes() {
     })
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
-  const isAppPage = ['/dashboard', '/projects', '/trash', '/settings', '/admin'].some(
+  const isAppPage = ['/dashboard', '/projects', '/trash', '/settings', '/racconto-admin'].some(
     p => location.pathname === p || location.pathname.startsWith(p + '/')
   )
 
@@ -158,7 +158,7 @@ function AppRoutes() {
           <Route path="/projects/:id/edit" element={<PrivateRoute><ProjectEdit /></PrivateRoute>} />
           <Route path="/trash" element={<PrivateRoute><Trash /></PrivateRoute>} />
           <Route path="/settings" element={<PrivateRoute><Settings /></PrivateRoute>} />
-          <Route path="/admin" element={<AdminRoute><Admin /></AdminRoute>} />
+          <Route path="/racconto-admin" element={<AdminRoute><Admin /></AdminRoute>} />
           <Route path="/delivery/:linkId" element={<DeliveryPage />} />
           <Route path="/:username" element={<PublicPortfolio />} />
         </Routes>

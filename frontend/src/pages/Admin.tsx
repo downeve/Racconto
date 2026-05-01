@@ -5,6 +5,13 @@ import { Search, Trash2, X, Pencil } from 'lucide-react'
 
 const API = import.meta.env.VITE_API_URL
 
+const adminAxios = axios.create()
+adminAxios.interceptors.request.use(config => {
+  const token = localStorage.getItem('token')
+  if (token) config.headers.Authorization = `Bearer ${token}`
+  return config
+})
+
 interface User {
   id: string
   email: string
@@ -71,10 +78,7 @@ const OrphanSection = () => {
     setScanLoading(true)
     setResult(null)
     try {
-      const token = localStorage.getItem('token')
-      const res = await axios.get(`${API}/admin/orphan-images/scan`, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
+      const res = await adminAxios.get(`${API}/racconto-admin/orphan-images/scan`)
       setResult(res.data)
     } catch {
       showToast('Scan failed.', false)
@@ -88,11 +92,9 @@ const OrphanSection = () => {
     if (!confirm(`Delete ${result.count} orphan image(s) from Cloudflare? This cannot be undone.`)) return
     setCleanupLoading(true)
     try {
-      const token = localStorage.getItem('token')
-      await axios.post(
-        `${API}/admin/orphan-images/cleanup`,
+      await adminAxios.post(
+        `${API}/racconto-admin/orphan-images/cleanup`,
         { image_ids: result.orphan_ids },
-        { headers: { Authorization: `Bearer ${token}` } },
       )
       showToast(`Queued deletion of ${result.count} orphan image(s).`, true)
       setResult(null)
@@ -174,10 +176,7 @@ const ExternalStatsSection = () => {
   useEffect(() => {
     const fetchStats = async () => {
       try {
-        const token = localStorage.getItem('token')
-        const res = await axios.get(`${API}/admin/external-stats`, {
-          headers: { Authorization: `Bearer ${token}` }
-        })
+        const res = await adminAxios.get(`${API}/racconto-admin/external-stats`)
         setData(res.data)
       } catch (err) {
         console.error('통계 조회 실패', err)
@@ -485,7 +484,7 @@ export default function Admin() {
 
   const fetchUsers = async () => {
     try {
-      const res = await axios.get(`${API}/admin/users`)
+      const res = await adminAxios.get(`${API}/racconto-admin/users`)
       setUsers(res.data)
     } catch (e: any) {
       if (e.response?.status === 403) navigate('/projects')
@@ -496,7 +495,7 @@ export default function Admin() {
   }
 
   const fetchStats = async () => {
-    const res = await axios.get(`${API}/admin/stats`)
+    const res = await adminAxios.get(`${API}/racconto-admin/stats`)
     setStats(res.data)
   }
 
@@ -515,7 +514,7 @@ export default function Admin() {
     if (!selectedUser) return
     setPanelSaving(true)
     try {
-      await axios.put(`${API}/admin/users/${selectedUser.id}`, panelValues)
+      await adminAxios.put(`${API}/racconto-admin/users/${selectedUser.id}`, panelValues)
       await fetchUsers()
       setSelectedUser(null)
     } finally {
@@ -527,7 +526,7 @@ export default function Admin() {
     if (!selectedUser) return
     setPanelDeleting(true)
     try {
-      await axios.delete(`${API}/admin/users/${selectedUser.id}`)
+      await adminAxios.delete(`${API}/racconto-admin/users/${selectedUser.id}`)
       await fetchUsers()
       setSelectedUser(null)
       setShowDeleteConfirm(false)
@@ -548,7 +547,7 @@ export default function Admin() {
     if (Object.keys(payload).length === 0) return
     setBulkApplying(true)
     try {
-      await Promise.all([...selectedIds].map(id => axios.put(`${API}/admin/users/${id}`, payload)))
+      await Promise.all([...selectedIds].map(id => adminAxios.put(`${API}/racconto-admin/users/${id}`, payload)))
       await fetchUsers()
       setSelectedIds(new Set())
       setBulkPhotoLimit('')
@@ -567,7 +566,7 @@ export default function Admin() {
     setNotifying(true)
     setNotifyResult(null)
     try {
-      const res = await axios.post(`${API}/admin/notify`, {
+      const res = await adminAxios.post(`${API}/racconto-admin/notify`, {
         subject: notifySubject,
         content: notifyContent,
         verified_only: notifyVerifiedOnly,
