@@ -12,6 +12,7 @@ interface Project {
   id: string
   title: string
   cover_image_url: string | null
+  updated_at: string
 }
 
 const MIN_WIDTH = 160
@@ -27,7 +28,9 @@ interface Props {
 
 export default function ElectronSidebar({ activeTab, onTabChange, showTabs, width, onWidthChange }: Props) {
   const [projects, setProjects] = useState<Project[]>([])
-  const [showProjects, setShowProjects] = useState(true)
+  const [showProjects, setShowProjects] = useState(
+    () => localStorage.getItem('sidebar_projects_open') !== 'false'
+  )
   const navigate = useNavigate()
   //const { id: currentId } = useParams()
   const location = useLocation()
@@ -84,7 +87,13 @@ export default function ElectronSidebar({ activeTab, onTabChange, showTabs, widt
     const token = localStorage.getItem('token')
     axios.get(`${API}/projects/`, {
       headers: { Authorization: `Bearer ${token}` }
-    }).then(res => setProjects(res.data))
+    }).then(res => {
+      const sorted = [...res.data].sort(
+        (a: Project, b: Project) =>
+          new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime()
+      )
+      setProjects(sorted)
+    })
   }, [])
 
   const isOnProjectDetail = location.pathname.startsWith('/projects/') &&
@@ -160,7 +169,10 @@ export default function ElectronSidebar({ activeTab, onTabChange, showTabs, widt
             <span>{t('nav.projects') || 'Projects'}</span>
           </button>
           <button
-            onClick={() => setShowProjects(v => !v)}
+            onClick={() => setShowProjects(v => {
+              localStorage.setItem('sidebar_projects_open', String(!v))
+              return !v
+            })}
             className="px-1 py-1.5 text-stone-400 hover:text-stone-600 shrink-0 transition-colors duration-150"
           >
             {showProjects
