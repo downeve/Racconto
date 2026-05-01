@@ -55,6 +55,9 @@ function AppRoutes() {
   const isElectron = typeof window !== 'undefined' && !!window.racconto
   const isMobileDevice = /Android.*Mobile|webOS|iPhone|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)
   const [electronTab, setElectronTab] = useState<'photos' | 'story' | 'notes'>('photos')
+  const [sidebarWidth, setSidebarWidth] = useState(() =>
+    parseInt(localStorage.getItem('electron_sidebar_width') ?? '224', 10)
+  )
 
   const userRef = useRef(user)
   useEffect(() => { userRef.current = user }, [user])
@@ -125,11 +128,16 @@ function AppRoutes() {
           activeTab={electronTab}
           onTabChange={setElectronTab}
           showTabs={true}
+          width={sidebarWidth}
+          onWidthChange={(w) => {
+            setSidebarWidth(w)
+            localStorage.setItem('electron_sidebar_width', String(w))
+          }}
         />
       )}
 
       {/* 메인 콘텐츠 — 사이드바 너비만큼 밀기 */}
-      <div className={!isMobileDevice && isAuthenticated && !hideNavbar ? 'ml-56' : ''}>
+      <div style={!isMobileDevice && isAuthenticated && !hideNavbar ? { marginLeft: sidebarWidth } : {}}>
         <ScrollToTop />
         <FeedbackWidget />
         <Routes>
