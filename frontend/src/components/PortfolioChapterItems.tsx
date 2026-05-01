@@ -30,6 +30,7 @@ interface Props {
   items: PortfolioChapterItem[]
   allLightboxItems?: { photo: PortfolioPhoto; title: string }[]
   darkMode: boolean
+  containerWidth?: number          // 기본값: PORTFOLIO_WIDTH - 48
   gap?: number                     // 기본값: PORTFOLIO_GAP
   onLightbox?: (photo: PortfolioPhoto, items: { photo: PortfolioPhoto; title: string }[]) => void
 }
@@ -38,11 +39,13 @@ export default function PortfolioChapterItems({
   items,
   allLightboxItems = [],
   darkMode,
+  containerWidth,
   gap,
   onLightbox,
 }: Props) {
   const [imageRatios, setImageRatios] = useState<Record<string, number>>({})
 
+  const effectiveWidth = containerWidth ?? PORTFOLIO_WIDTH - 48
   const effectiveGap = gap ?? PORTFOLIO_GAP
 
   const handleImageLoad = (url: string, e: React.SyntheticEvent<HTMLImageElement>) => {
@@ -55,19 +58,22 @@ export default function PortfolioChapterItems({
     })
   }
 
-  // 한 행 렌더 — CSS flex + aspect-ratio로 컨테이너 100% 채움
+  // 한 행 렌더 — 비율 합으로 행 높이 계산
   const renderRow = (
     rowPhotos: PortfolioChapterItem[],
     rowKey: string
   ): React.ReactNode => {
     const ratios = rowPhotos.map(p => imageRatios[p.image_url || ''] ?? 1.5)
+    const totalGap = effectiveGap * (rowPhotos.length - 1)
+    const sumRatios = ratios.reduce((a, r) => a + r, 0)
+    const rowHeight = (effectiveWidth - totalGap) / sumRatios
 
     return (
       <div key={rowKey} style={{ display: 'flex', gap: `${effectiveGap}px`, marginBottom: `${effectiveGap}px` }}>
         {rowPhotos.map((photo, j) => (
           <div
             key={photo.id}
-            style={{ flex: ratios[j], aspectRatio: String(ratios[j]), minWidth: 0 }}
+            style={{ width: `${rowHeight * ratios[j]}px`, height: `${rowHeight}px`, flexShrink: 0 }}
             className="overflow-hidden cursor-pointer"
             onClick={() => onLightbox?.(photo as PortfolioPhoto, allLightboxItems)}
           >
@@ -180,7 +186,7 @@ export default function PortfolioChapterItems({
       ) : null
 
       result.push(
-        <div key={`side-${bid}`} className="flex my-space-md items-center" style={{ gap: '28px', maxWidth: '100%' }}>
+        <div key={`side-${bid}`} className="flex my-space-md items-center" style={{ gap: '28px', width: `${effectiveWidth}px` }}>
           {group.blockType === 'side-right' ? <>{photoCol}{textCol}</> : <>{textCol}{photoCol}</>}
         </div>
       )
@@ -193,7 +199,8 @@ export default function PortfolioChapterItems({
 
     if (layout === 'single') {
       result.push(
-        <div key={`block-${bid}`} className="mb-space-sm space-y-4">
+        <div key={`block-${bid}`} className="mb-space-sm space-y-4"
+          style={{ width: `${effectiveWidth}px` }}>
           {photos.map(photo => (
             <div key={photo.id} className="break-inside-avoid rounded-photo">
               <img

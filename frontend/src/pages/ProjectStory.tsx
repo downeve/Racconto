@@ -308,9 +308,18 @@ function ProjectStory({
   }, [selectedPhotoIndex, currentChapterPhotos]);
 
   useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key !== 'Escape') return
+      if (previewLbIndex !== null) { setPreviewLbIndex(null); return }
+      if (showPortfolioPreview) { setShowPortfolioPreview(false); return }
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [previewLbIndex, showPortfolioPreview])
+
+  useEffect(() => {
     if (previewLbIndex === null) return
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') { setPreviewLbIndex(null); return }
       if (e.key === 'ArrowRight' && previewLbIndex < previewLbItems.length - 1)
         setPreviewLbIndex(v => v! + 1)
       if (e.key === 'ArrowLeft' && previewLbIndex > 0)
