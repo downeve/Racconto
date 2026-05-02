@@ -5,43 +5,68 @@ import PublicNavbar from '../components/PublicNavbar'
 export default function MobileLandingPage() {
   const { t, i18n } = useTranslation()
   const lang = i18n.language.startsWith('ko') ? 'ko' : 'en'
-  const ss = (name: string) => `./screenshots/${name}_${lang}.webp`
+  const ss = (name: string, ext: string = 'webp') => `./screenshots/${name}_${lang}.${ext}`
 
   const features = [
     {
       number: '01',
       title: t('landing.feature1Title'),
       desc: t('landing.feature1Desc'),
-      src: ss('screenshot-story'),
-      alt: 'Story structure',
+      visual: (
+        <img
+          src={ss('screenshot-story', 'gif')}
+          alt="Story structure"
+          className="w-full object-cover object-top"
+        />
+      ),
     },
     {
       number: '02',
-      title: t('landing.feature5Title'),
-      desc: t('landing.feature5Desc'),
-      src: ss('screenshot-electron-1'),
-      alt: 'Desktop app',
+      title: t('landing.feature2Title'),
+      desc: t('landing.feature2Desc'),
+      visual: (
+        <img
+          src={ss('screenshot-electron-1', 'gif')}
+          alt="Desktop app"
+          className="w-full object-cover object-top"
+        />
+      ),
     },
     {
       number: '03',
-      title: t('landing.feature4Title'),
-      desc: t('landing.feature4Desc'),
-      src: ss('screenshot-notes'),
-      alt: 'Project notes',
+      title: t('landing.feature3Title'),
+      desc: t('landing.feature3Desc'),
+      visual: (
+        <img
+          src={ss('screenshot-notes')}
+          alt="Project notes"
+          className="w-full object-cover object-top"
+        />
+      ),
     },
     {
       number: '04',
-      title: t('landing.feature2Title'),
-      desc: t('landing.feature2Desc'),
-      src: ss('screenshot-photos'),
-      alt: 'Photo curation',
+      title: t('landing.feature4Title'),
+      desc: t('landing.feature4Desc'),
+      visual: (
+        <img
+          src={ss('screenshot-photos')}
+          alt="Photo curation"
+          className="w-full object-cover object-top"
+        />
+      ),
     },
     {
       number: '05',
-      title: t('landing.feature3Title'),
-      desc: t('landing.feature3Desc'),
-      src: ss('screenshot-portfolio'),
-      alt: 'Public portfolio',
+      title: t('landing.feature5Title'),
+      desc: t('landing.feature5Desc'),
+      visual: (
+        <img
+          src={ss('screenshot-portfolio', 'gif')}
+          alt="Public portfolio"
+          className="w-full object-cover object-top"
+        />
+      ),
     },
   ]
 
@@ -127,11 +152,7 @@ export default function MobileLandingPage() {
           {features.map((feature) => (
             <div key={feature.number}>
               <div className="rounded-lg overflow-hidden shadow border border-stone-200 mb-4">
-                <img
-                  src={feature.src}
-                  alt={feature.alt}
-                  className="w-full object-cover object-top"
-                />
+                {feature.visual}
               </div>
               <div className="flex items-baseline gap-2 mb-1">
                 <span className="text-xs text-stone-300 font-mono tracking-widest">

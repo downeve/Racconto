@@ -18,9 +18,9 @@ EMAIL_TEMPLATES = {
         'subject': 'Racconto 이메일 인증',
         'title': '이메일 인증',
         'desc': '아래 버튼을 클릭하여 이메일 인증을 완료해주세요.',
-        'validity': '링크는 24시간 동안 유효합니다.',
+        'validity': '인증 링크는 24시간 동안 유효합니다.',
         'button': '이메일 인증하기',
-        'ignore': '본인이 요청하지 않은 경우 이 이메일을 무시해주세요.',
+        'ignore': '본인이 요청하지 않은 경우에는 이 이메일을 무시해주세요.',
     },
     'en': {
         'subject': 'Racconto Email Verification',
@@ -39,7 +39,7 @@ RESET_TEMPLATES = {
         'desc': '아래 버튼을 클릭하여 새 비밀번호를 설정해주세요.',
         'validity': '링크는 1시간 동안 유효합니다.',
         'button': '비밀번호 재설정하기',
-        'ignore': '본인이 요청하지 않은 경우 이 이메일을 무시해주세요.',
+        'ignore': '본인이 요청하지 않은 경우에는 이 이메일을 무시해주세요.',
     },
     'en': {
         'subject': 'Racconto Password Reset',
@@ -62,22 +62,23 @@ def send_password_reset_email(to_email: str, reset_token: str, lang: str = 'ko')
         sender={"email": FROM_EMAIL, "name": FROM_NAME},
         subject=t['subject'],
         html_content=f"""
-        <div style="font-family: sans-serif; max-width: 480px; margin: 0 auto;
+        <div style="font-family: Pretendard, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+                    max-width: 480px; margin: 0 auto;
                     background-color: #F7F4F0; padding: 40px 32px; color: #1c1917;">
             <div style="margin-bottom: 32px;">
-                <span style="font-family: Georgia, 'Times New Roman', serif;
+                <span style="font-family: 'Noto Serif KR', Georgia, serif;
                             font-size: 22px; font-weight: bold;
                             letter-spacing: 0.15em; color: #1c1917;">
                     Racconto
                 </span>
             </div>
-            <div style="background-color: #ffffff; border-radius: 8px;
+            <div style="background-color: #ffffff; border-radius: 3px;
                         padding: 32px; margin-bottom: 24px;">
                 <h2 style="font-size: 16px; font-weight: 600; margin: 0 0 16px 0;
                         letter-spacing: 0.05em; color: #1c1917;">
                     {t['title']}
                 </h2>
-                <p style="font-size: 14px; line-height: 1.7; color: #44403c; margin: 0 0 8px 0;">
+                <p style="font-size: 14px; line-height: 1.65; color: #44403c; margin: 0 0 8px 0;">
                     {t['desc']}
                 </p>
                 <p style="font-size: 13px; color: #78716c; margin: 0 0 24px 0;">
@@ -87,7 +88,7 @@ def send_password_reset_email(to_email: str, reset_token: str, lang: str = 'ko')
                 style="display: inline-block; padding: 12px 28px;
                         background-color: #1c1917; color: #ffffff !important;
                         text-decoration: none; font-size: 13px;
-                        letter-spacing: 0.08em; border-radius: 4px;
+                        letter-spacing: 0.08em; border-radius: 2px;
                         -webkit-text-fill-color: #ffffff;">
                     {t['button']}
                 </a>
@@ -117,48 +118,49 @@ def send_verification_email(to_email: str, verify_token: str, lang: str = 'ko'):
         to=[{"email": to_email}],
         sender={"email": FROM_EMAIL, "name": FROM_NAME},
         subject=t['subject'],
-            html_content=f"""
-            <div style="font-family: sans-serif; max-width: 480px; margin: 0 auto;
-                        background-color: #F7F4F0; padding: 40px 32px; color: #1c1917;">
+        html_content=f"""
+        <div style="font-family: Pretendard, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+                    max-width: 480px; margin: 0 auto;
+                    background-color: #F7F4F0; padding: 40px 32px; color: #1c1917;">
 
-                <!-- 로고 -->
-                <div style="margin-bottom: 32px;">
-                    <span style="font-family: Georgia, 'Times New Roman', serif;
-                                font-size: 22px; font-weight: bold;
-                                letter-spacing: 0.15em; color: #1c1917;">
-                        Racconto
-                    </span>
-                </div>
-
-                <!-- 본문 -->
-                <div style="background-color: #ffffff; border-radius: 8px;
-                            padding: 32px; margin-bottom: 24px;">
-                    <h2 style="font-size: 16px; font-weight: 600; margin: 0 0 16px 0;
-                            letter-spacing: 0.05em; color: #1c1917;">
-                        {t['title']}
-                    </h2>
-                    <p style="font-size: 14px; line-height: 1.7; color: #44403c; margin: 0 0 8px 0;">
-                        {t['desc']}
-                    </p>
-                    <p style="font-size: 13px; color: #78716c; margin: 0 0 24px 0;">
-                        {t['validity']}
-                    </p>
-                    <a href="{verify_url}"
-                    style="display: inline-block; padding: 12px 28px;
-                            background-color: #1c1917; color: #ffffff !important;
-                            text-decoration: none; font-size: 13px;
-                            letter-spacing: 0.08em; border-radius: 4px;
-                            -webkit-text-fill-color: #ffffff;">
-                        {t['button']}
-                    </a>
-                </div>
-
-                <!-- 하단 -->
-                <p style="font-size: 12px; color: #a8a29e; line-height: 1.6; margin: 0;">
-                    {t['ignore']}
-                </p>
+            <!-- 로고 -->
+            <div style="margin-bottom: 32px;">
+                <span style="font-family: 'Noto Serif KR', Georgia, serif;
+                            font-size: 22px; font-weight: bold;
+                            letter-spacing: 0.15em; color: #1c1917;">
+                    Racconto
+                </span>
             </div>
-            """
+
+            <!-- 본문 -->
+            <div style="background-color: #ffffff; border-radius: 3px;
+                        padding: 32px; margin-bottom: 24px;">
+                <h2 style="font-size: 16px; font-weight: 600; margin: 0 0 16px 0;
+                        letter-spacing: 0.05em; color: #1c1917;">
+                    {t['title']}
+                </h2>
+                <p style="font-size: 14px; line-height: 1.65; color: #44403c; margin: 0 0 8px 0;">
+                    {t['desc']}
+                </p>
+                <p style="font-size: 13px; color: #78716c; margin: 0 0 24px 0;">
+                    {t['validity']}
+                </p>
+                <a href="{verify_url}"
+                style="display: inline-block; padding: 12px 28px;
+                        background-color: #1c1917; color: #ffffff !important;
+                        text-decoration: none; font-size: 13px;
+                        letter-spacing: 0.08em; border-radius: 2px;
+                        -webkit-text-fill-color: #ffffff;">
+                    {t['button']}
+                </a>
+            </div>
+
+            <!-- 하단 -->
+            <p style="font-size: 12px; color: #a8a29e; line-height: 1.6; margin: 0;">
+                {t['ignore']}
+            </p>
+        </div>
+        """
     )
 
     try:
@@ -173,11 +175,11 @@ def send_verification_email(to_email: str, verify_token: str, lang: str = 'ko'):
 WELCOME_TEMPLATES = {
     'ko': {
         'subject': 'Racconto에 오신 것을 환영합니다',
-        'title': '이메일 인증이 완료되었습니다',
+        'title': '이메일 인증에 성공하였습니다.',
         'body': (
             '이메일 인증이 성공적으로 완료되었습니다.<br><br>'
-            '이제 Racconto에서 사진 이야기를 시작할 준비가 되었습니다.<br>'
-            '프로젝트를 만들고, 사진에 스토리를 담아보세요.'
+            '이제 Racconto와 함께 이야기를 시작할 모든 준비가 끝났습니다.<br>'
+            '프로젝트를 만들고, 당신의 사진에 스토리를 담아보세요.'
         ),
         'button': 'Racconto 시작하기',
         'closing': 'Racconto와 함께 멋진 이야기를 만들어가세요.',
@@ -207,29 +209,30 @@ def send_welcome_email(to_email: str, lang: str = 'ko'):
         sender={"email": FROM_EMAIL, "name": FROM_NAME},
         subject=t['subject'],
         html_content=f"""
-        <div style="font-family: sans-serif; max-width: 480px; margin: 0 auto;
+        <div style="font-family: Pretendard, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+                    max-width: 480px; margin: 0 auto;
                     background-color: #F7F4F0; padding: 40px 32px; color: #1c1917;">
             <div style="margin-bottom: 32px;">
-                <span style="font-family: Georgia, 'Times New Roman', serif;
+                <span style="font-family: 'Noto Serif KR', Georgia, serif;
                             font-size: 22px; font-weight: bold;
                             letter-spacing: 0.15em; color: #1c1917;">
                     Racconto
                 </span>
             </div>
-            <div style="background-color: #ffffff; border-radius: 8px;
+            <div style="background-color: #ffffff; border-radius: 3px;
                         padding: 32px; margin-bottom: 24px;">
                 <h2 style="font-size: 16px; font-weight: 600; margin: 0 0 16px 0;
                         letter-spacing: 0.05em; color: #1c1917;">
                     {t['title']}
                 </h2>
-                <p style="font-size: 14px; line-height: 1.8; color: #44403c; margin: 0 0 24px 0;">
+                <p style="font-size: 14px; line-height: 1.65; color: #44403c; margin: 0 0 24px 0;">
                     {t['body']}
                 </p>
                 <a href="{login_url}"
                 style="display: inline-block; padding: 12px 28px;
                         background-color: #1c1917; color: #ffffff !important;
                         text-decoration: none; font-size: 13px;
-                        letter-spacing: 0.08em; border-radius: 4px;
+                        letter-spacing: 0.08em; border-radius: 2px;
                         -webkit-text-fill-color: #ffffff;">
                     {t['button']}
                 </a>
@@ -254,9 +257,9 @@ FAREWELL_TEMPLATES = {
         'subject': 'Racconto 회원 탈퇴가 완료되었습니다',
         'title': '그동안 함께해 주셔서 감사합니다',
         'body': (
-            '회원 탈퇴가 정상적으로 처리되었습니다.<br><br>'
+            '요청하신 회원 탈퇴가 정상적으로 처리되었습니다.<br><br>'
             '업로드하신 사진과 모든 개인 데이터는 즉시 삭제되었습니다.<br>'
-            '언제든지 다시 돌아오시면 환영합니다.'
+            '언제든 다시 돌아오셔서 새로운 이야기를 시작해 보시길 바랍니다.'
         ),
         'closing': '지금까지 Racconto를 이용해 주셔서 진심으로 감사드립니다.',
     },
@@ -281,22 +284,23 @@ def send_farewell_email(to_email: str, lang: str = 'ko'):
         sender={"email": FROM_EMAIL, "name": FROM_NAME},
         subject=t['subject'],
         html_content=f"""
-        <div style="font-family: sans-serif; max-width: 480px; margin: 0 auto;
+        <div style="font-family: Pretendard, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+                    max-width: 480px; margin: 0 auto;
                     background-color: #F7F4F0; padding: 40px 32px; color: #1c1917;">
             <div style="margin-bottom: 32px;">
-                <span style="font-family: Georgia, 'Times New Roman', serif;
+                <span style="font-family: 'Noto Serif KR', Georgia, serif;
                             font-size: 22px; font-weight: bold;
                             letter-spacing: 0.15em; color: #1c1917;">
                     Racconto
                 </span>
             </div>
-            <div style="background-color: #ffffff; border-radius: 8px;
+            <div style="background-color: #ffffff; border-radius: 3px;
                         padding: 32px; margin-bottom: 24px;">
                 <h2 style="font-size: 16px; font-weight: 600; margin: 0 0 16px 0;
                         letter-spacing: 0.05em; color: #1c1917;">
                     {t['title']}
                 </h2>
-                <p style="font-size: 14px; line-height: 1.8; color: #44403c; margin: 0 0 20px 0;">
+                <p style="font-size: 14px; line-height: 1.65; color: #44403c; margin: 0 0 20px 0;">
                     {t['body']}
                 </p>
                 <p style="font-size: 13px; color: #78716c; margin: 0;">
@@ -326,12 +330,13 @@ def send_notice_email(to_email: str, subject: str, content: str):
             sender={"email": FROM_EMAIL, "name": FROM_NAME},
             subject=subject,
             html_content=f"""
-            <div style="font-family: sans-serif; max-width: 480px; margin: 0 auto;
+            <div style="font-family: Pretendard, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+                        max-width: 480px; margin: 0 auto;
                         background-color: #F7F4F0; padding: 40px 32px; color: #1c1917;">
 
                 <!-- 로고 -->
                 <div style="margin-bottom: 32px;">
-                    <span style="font-family: Georgia, 'Times New Roman', serif;
+                    <span style="font-family: 'Noto Serif KR', Georgia, serif;
                                 font-size: 22px; font-weight: bold;
                                 letter-spacing: 0.15em; color: #1c1917;">
                         Racconto
@@ -339,16 +344,16 @@ def send_notice_email(to_email: str, subject: str, content: str):
                 </div>
 
                 <!-- 본문 -->
-                <div style="background-color: #ffffff; border-radius: 8px;
+                <div style="background-color: #ffffff; border-radius: 3px;
                             padding: 32px; margin-bottom: 24px;">
-                    <div style="font-size: 14px; line-height: 1.8; color: #44403c;">
+                    <div style="font-size: 14px; line-height: 1.65; color: #44403c;">
                         {content.replace(chr(10), '<br>')}
                     </div>
                 </div>
 
                 <!-- 하단 -->
                 <p style="font-size: 12px; color: #a8a29e; line-height: 1.6; margin: 0;
-                        border-top: 1px solid #e7e3de; padding-top: 16px;">
+                        border-top: 1px solid #E7E0D7; padding-top: 16px;">
                     This email was sent from Racconto (racconto.app).<br>
                     If you have any questions, please contact us at {FROM_EMAIL}.
                 </p>

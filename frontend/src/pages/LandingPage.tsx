@@ -241,25 +241,25 @@ export default function LandingPage() {
       {/* Beta CTA */}
       <section className="py-24 px-6 bg-ink text-white">
         <div className="max-w-2xl mx-auto text-center">
-          <p className="text-base tracking-[0.3em] text-faint uppercase mb-4">{t('landing.betaEyebrow')}</p>
+          <p className="text-small tracking-[0.3em] text-faint uppercase mb-4">{t('landing.betaEyebrow')}</p>
           <h2 className="text-2xl md:text-4xl font-semibold mb-4">
             {t('landing.betaTitle')}
           </h2>
-          <p className="text-faint mb-2 text-sm leading-relaxed">
+          <p className="text-faint mb-2 text-small leading-relaxed">
             {t('landing.betaDesc')}
           </p>
-          <p className="text-faint mb-10 text-xs">
+          <p className="text-faint mb-10 text-menu">
             {t('landing.betaLimit')}
           </p>
           <Link
             to="/register"
-            className="inline-block px-10 py-4 bg-card text-ink-2 text-sm tracking-widest font-semibold hover:bg-ink-2 hover:text-hair transition-[background,color,border] duration-150 ease-out rounded"
+            className="inline-block px-10 py-4 bg-card text-ink-2 text-body font-serif font-semibold tracking-widest hover:bg-ink-2 hover:text-hair transition-[background,color,border] duration-150 ease-out rounded"
           >
             {t('landing.ctaPrimary')}
           </Link>
-          <p className="mt-6 text-xs text-faint">
+          <p className="mt-6 text-menu text-faint">
             {t('landing.alreadyHaveAccount')}{' '}
-            <Link to="/login" className="text-hair hover:text-muted underline underline-offset-2">
+            <Link to="/login" className="text-menu hover:text-muted underline underline-offset-2">
               {t('auth.login')}
             </Link>
           </p>
