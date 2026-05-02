@@ -232,7 +232,7 @@ export default function LandingPage() {
                   <h3 className="text-h2 font-semibold text-ink mb-3">{feature.title}</h3>
                   <p className="text-h3 text-muted [word-break:keep-all] leading-relaxed">{feature.desc}</p>
                   {feature.number === '02' && (
-                  <div className="mt-6 rounded border border-stone-200 bg-canvas px-6 py-5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                  <div className="mt-6 rounded border border-stone-200 bg-canvas px-6 py-5 flex flex-col sm:items-center sm:justify-between gap-4">
                   <div>
                     <p className="text-xs tracking-[0.2em] text-stone-400 uppercase mb-1">Desktop App · Beta</p>
                     <p className="text-sm text-stone-600 leading-relaxed">
