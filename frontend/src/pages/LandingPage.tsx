@@ -238,8 +238,6 @@ export default function LandingPage() {
                     <p className="text-sm text-stone-600 leading-relaxed">
                       Free Download for macOS(.dmg) & Windows(.exe) install file.
                     </p>
-                  </div>
-                  <div className="flex gap-3 shrink-0">
                     <a
                       href="/downloads/Racconto.dmg"
                       className="inline-flex items-center gap-2 px-4 py-2 bg-stone-900 text-white text-xs tracking-widest rounded hover:bg-stone-700 transition-[background,color,border] duration-150 ease-out"
