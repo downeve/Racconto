@@ -34,12 +34,14 @@ export default function PublicNavbar({ username, darkMode, compact }: { username
               </Link>
             )}
           </div>
+          {/* 기능 소개 페이지 일시 숨김 처리
           <Link
             to="/features"
             className={`text-body sm:text-h3 tracking-wider transition-[background,color,border] duration-150 ease-out hover:font-bold ${dm ? 'text-faint hover:text-hair' : 'text-ink-2 hover:text-ink'}`}
           >
             {t('nav.features')}
           </Link>
+          */}
         </div>
       </nav>
     )
@@ -72,12 +74,14 @@ export default function PublicNavbar({ username, darkMode, compact }: { username
             )}
           </div>
         <div className="flex items-center gap-3 sm:gap-6">
+          {/* 기능 소개 페이지 일시 숨김 처리
           <Link
             to="/features"
             className={`text-body md:text-h3 tracking-wider hover:font-bold transition-[background,color,border] duration-150 ease-out ${dm ? 'text-faint hover:text-hair' : 'text-ink-2 hover:text-ink'}`}
           >
             {t('nav.features')}
           </Link>
+          */}
           <button
             onClick={toggleLanguage}
             className={`text-body md:text-h3 font-semibold tracking-widest hover:font-bold transition-[background,color,border] duration-150 ease-out ${dm ? 'text-faint hover:text-hair' : 'text-faint hover:text-ink-2'}`}

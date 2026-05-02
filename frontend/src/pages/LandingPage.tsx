@@ -22,7 +22,7 @@ export default function LandingPage() {
       title: t('landing.feature1Title'),
       desc: t('landing.feature1Desc'),
       visual: (
-        <div className="w-full aspect-[3/4] rounded overflow-hidden shadow-md relative">
+        <div className="w-full aspect-[16/9] rounded overflow-hidden shadow-md relative">
           <div
             className="absolute inset-x-0 top-0"
             //style={{ animation: 'slowScroll 8s ease-in-out infinite alternate' }}
@@ -55,7 +55,7 @@ export default function LandingPage() {
       title: t('landing.feature3Title'),
       desc: t('landing.feature3Desc'),
       visual: (
-        <div className="w-full aspect-[3/4] rounded overflow-hidden shadow-md">
+        <div className="w-full aspect-[16/9] rounded overflow-hidden shadow-md">
           <img
             src={ss('screenshot-notes')}
             alt="Project notes"
@@ -83,11 +83,11 @@ export default function LandingPage() {
       title: t('landing.feature5Title'),
       desc: t('landing.feature5Desc'),
       visual: (
-        <div className="w-full aspect-[3/4] rounded overflow-hidden shadow-md">
+        <div className="w-full aspect-[16/9] rounded overflow-hidden shadow-md">
           <img
             src={ss('screenshot-portfolio', 'gif')}
             alt="Public portfolio"
-            className="w-full h-full object-contain object-top"
+            className="w-full h-full object-cover object-top"
           />
         </div>
       ),
@@ -210,53 +210,27 @@ export default function LandingPage() {
       <section ref={featuresRef} className="py-24 px-6 bg-canvas-2">
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-16">
-            <p className="text-sm tracking-[0.3em] text-faint uppercase mb-3">{t('landing.featuresEyebrow')}</p>
+            <p className="text-sm tracking-[0.3em] text-faint uppercase mb-3">
+              {t('landing.featuresEyebrow')}
+            </p>
             <h2 className="text-3xl md:text-4xl font-bold text-ink">
               {t('landing.featuresTitle')}
             </h2>
           </div>
 
-          {/* Row 1: 01 portrait 3:4 + 02 landscape 16:9 */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-16">
-            {[features[0], features[1]].map((feature) => (
-              <div key={feature.number} className="group">
-                {feature.visual}
-                <div className="mt-5">
-                  <div className="flex items-baseline gap-3 mb-2">
-                    <span className="text-xs text-faint font-mono tracking-widest">{feature.number}</span>
-                    <h3 className="text-lg font-semibold text-ink">{feature.title}</h3>
-                  </div>
-                  <p className="text-sm text-muted leading-relaxed pl-7">{feature.desc}</p>
+          <div className="flex flex-col gap-20">
+            {features.map((feature, index) => (
+              <div
+                key={feature.number}
+                className={`flex flex-col md:flex-row md:items-center gap-10 md:gap-16 ${index % 2 === 1 ? 'md:flex-row-reverse' : ''}`}
+              >
+                <div className="w-full md:w-3/5 shrink-0 shadow">
+                  {feature.visual}
                 </div>
-              </div>
-            ))}
-          </div>
-
-          {/* Row 2: 03 big card — image left, text right */}
-          <div className="group mb-16 md:flex md:gap-12 md:items-start">
-            <div className="md:w-2/5 shrink-0 mb-6 md:mb-0">
-              {features[2].visual}
-            </div>
-            <div className="md:pt-6">
-              <div className="flex items-baseline gap-3 mb-3">
-                <span className="text-xs text-faint font-mono tracking-widest">{features[2].number}</span>
-                <h3 className="text-xl font-semibold text-ink">{features[2].title}</h3>
-              </div>
-              <p className="text-sm text-muted leading-relaxed pl-7">{features[2].desc}</p>
-            </div>
-          </div>
-
-          {/* Row 3: 04 landscape 16:9 + 05 portrait 3:4 */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            {[features[3], features[4]].map((feature) => (
-              <div key={feature.number} className="group">
-                {feature.visual}
-                <div className="mt-5">
-                  <div className="flex items-baseline gap-3 mb-2">
-                    <span className="text-xs text-faint font-mono tracking-widest">{feature.number}</span>
-                    <h3 className="text-lg font-semibold text-ink">{feature.title}</h3>
-                  </div>
-                  <p className="text-sm text-muted leading-relaxed pl-7">{feature.desc}</p>
+                <div className="w-full md:w-2/5">
+                  <span className="text-menu text-faint font-mono tracking-widest block mb-3">{feature.number}</span>
+                  <h3 className="text-h2 font-semibold text-ink mb-3">{feature.title}</h3>
+                  <p className="text-h3 text-muted [word-break:keep-all] leading-relaxed">{feature.desc}</p>
                 </div>
               </div>
             ))}

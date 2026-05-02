@@ -170,6 +170,75 @@ def send_verification_email(to_email: str, verify_token: str, lang: str = 'ko'):
         return False
 
 
+FAREWELL_TEMPLATES = {
+    'ko': {
+        'subject': 'Racconto 회원 탈퇴가 완료되었습니다',
+        'title': '그동안 함께해 주셔서 감사합니다',
+        'body': (
+            '회원 탈퇴가 정상적으로 처리되었습니다.<br><br>'
+            '업로드하신 사진과 모든 개인 데이터는 즉시 삭제되었습니다.<br>'
+            '언제든지 다시 돌아오시면 환영합니다.'
+        ),
+        'closing': '지금까지 Racconto를 이용해 주셔서 진심으로 감사드립니다.',
+    },
+    'en': {
+        'subject': 'Your Racconto account has been deleted',
+        'title': 'Thank you for being with us',
+        'body': (
+            'Your account has been successfully deleted.<br><br>'
+            'All your photos and personal data have been permanently removed.<br>'
+            'You are always welcome to come back.'
+        ),
+        'closing': 'Thank you sincerely for using Racconto.',
+    },
+}
+
+
+def send_farewell_email(to_email: str, lang: str = 'ko'):
+    t = FAREWELL_TEMPLATES.get(lang, FAREWELL_TEMPLATES['ko'])
+
+    send_smtp_email = sib_api_v3_sdk.SendSmtpEmail(
+        to=[{"email": to_email}],
+        sender={"email": FROM_EMAIL, "name": FROM_NAME},
+        subject=t['subject'],
+        html_content=f"""
+        <div style="font-family: sans-serif; max-width: 480px; margin: 0 auto;
+                    background-color: #F7F4F0; padding: 40px 32px; color: #1c1917;">
+            <div style="margin-bottom: 32px;">
+                <span style="font-family: Georgia, 'Times New Roman', serif;
+                            font-size: 22px; font-weight: bold;
+                            letter-spacing: 0.15em; color: #1c1917;">
+                    Racconto
+                </span>
+            </div>
+            <div style="background-color: #ffffff; border-radius: 8px;
+                        padding: 32px; margin-bottom: 24px;">
+                <h2 style="font-size: 16px; font-weight: 600; margin: 0 0 16px 0;
+                        letter-spacing: 0.05em; color: #1c1917;">
+                    {t['title']}
+                </h2>
+                <p style="font-size: 14px; line-height: 1.8; color: #44403c; margin: 0 0 20px 0;">
+                    {t['body']}
+                </p>
+                <p style="font-size: 13px; color: #78716c; margin: 0;">
+                    {t['closing']}
+                </p>
+            </div>
+            <p style="font-size: 12px; color: #a8a29e; line-height: 1.6; margin: 0;">
+                racconto.app
+            </p>
+        </div>
+        """
+    )
+
+    try:
+        api_instance.send_transac_email(send_smtp_email)
+        return True
+    except ApiException as e:
+        print(f"탈퇴 안내 이메일 발송 실패: {e}")
+        return False
+
+
 def send_notice_email(to_email: str, subject: str, content: str):
     """관리자 공지 이메일 발송"""
     try:

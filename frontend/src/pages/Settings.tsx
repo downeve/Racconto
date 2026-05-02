@@ -61,7 +61,7 @@ export default function Settings() {
   const [showWithdraw, setShowWithdraw] = useState(false)
 
   const { logout } = useAuth()
-  const { t } = useTranslation()
+  const { t, i18n } = useTranslation()
 
   const handlePasswordChange = async () => {
     setPasswordError('')
@@ -193,7 +193,7 @@ export default function Settings() {
       formData.append('username', '') // 임시
       await axios.delete(`${API}/auth/withdraw`, {
         headers: { Authorization: `Bearer ${token}` },
-        data: { password: withdrawPassword }
+        data: { password: withdrawPassword, lang: i18n.language.startsWith('ko') ? 'ko' : 'en' }
       })
       logout()
     } catch (err: any) {

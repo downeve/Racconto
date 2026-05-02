@@ -6,7 +6,7 @@ from sqlalchemy.orm import Session
 from app import models
 from pydantic import BaseModel, EmailStr
 import uuid
-from app.email import send_verification_email, send_password_reset_email
+from app.email import send_verification_email, send_password_reset_email, send_farewell_email
 from datetime import datetime, timedelta
 from typing import Optional
 from app.routers.photos import delete_cf_files_parallel
@@ -35,6 +35,7 @@ class UsernameUpdate(BaseModel):
 
 class WithdrawRequest(BaseModel):
     password: str
+    lang: str = 'ko'
 
 class ForgotPasswordRequest(BaseModel):
     email: EmailStr
@@ -272,6 +273,10 @@ def withdraw(
         ).all()
     ]
 
+    # 탈퇴 전 이메일·언어 저장 (DB 삭제 후엔 참조 불가)
+    user_email = current_user.email
+    user_lang = body.lang
+
     # CF 이미지 백그라운드 삭제
     if photo_urls:
         background_tasks.add_task(delete_cf_files_parallel, photo_urls)
@@ -279,5 +284,7 @@ def withdraw(
     # CASCADE로 모든 관련 데이터 자동 삭제
     db.delete(current_user)
     db.commit()
+
+    background_tasks.add_task(send_farewell_email, user_email, user_lang)
 
     return {"message": "WITHDRAWN"}
