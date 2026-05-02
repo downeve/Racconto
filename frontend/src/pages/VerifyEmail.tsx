@@ -13,7 +13,7 @@ export default function VerifyEmail() {
   const [message, setMessage] = useState('')
   const navigate = useNavigate()
 
-  const { t } = useTranslation()
+  const { t, i18n } = useTranslation()
   const { isAuthenticated, isLoading } = useAuth()
 
   useEffect(() => {
@@ -28,7 +28,8 @@ export default function VerifyEmail() {
       setMessage(t('verify.error.invalidToken', '유효하지 않은 인증 링크입니다.'))
       return
     }
-    axios.get(`${API}/auth/verify-email?token=${token}`)
+    const lang = i18n.language?.startsWith('ko') ? 'ko' : 'en'
+    axios.get(`${API}/auth/verify-email?token=${token}&lang=${lang}`)
       .then(res => {
         setStatus('success')
         // 성공 시 서버에서 내려주는 메시지 그대로 출력

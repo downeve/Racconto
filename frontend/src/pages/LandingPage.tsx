@@ -28,9 +28,9 @@ export default function LandingPage() {
             //style={{ animation: 'slowScroll 8s ease-in-out infinite alternate' }}
           >
             <img
-              src={ss('screenshot-story')}
+              src={ss('screenshot-story', 'gif')}
               alt="Story structure"
-              className="w-full"
+              className="w-full h-full object-cover object-top"
             />
           </div>
         </div>

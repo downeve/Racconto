@@ -1379,15 +1379,15 @@ export default function ProjectDetail({
 
             {/* 챕터 목록 드롭다운 (위로 열림) */}
             {showBulkChapterMenu && selectedPhotoIds.size > 0 && (
-              <div className="absolute bottom-full left-0 mb-3 bg-card rounded-card shadow text-ink py-2 max-h-64 overflow-y-auto">
+              <div className="absolute bottom-full left-0 mb-3 bg-card rounded-card shadow text-ink py-2 max-h-64 overflow-y-auto w-max">
                 {chapters.length === 0 ? (
-                  <p className="text-menu text-muted px-3 py-1.5">{t('story.noChapter')}</p>
+                  <p className="text-menu text-muted px-3 py-1.5 whitespace-nowrap">{t('story.noChapter')}</p>
                 ) : (
                   chapters.filter(c => !c.parent_id).map((parent, pIdx) => (
                     <div key={parent.id}>
                       <button
                         onClick={() => handleBulkAddToChapter(parent.id)}
-                        className="w-full text-left px-3 py-1.5 rounded-card hover:bg-hair text-menu font-semibold text-ink-2"
+                        className="w-full text-left px-3 py-1.5 rounded-card hover:bg-hair text-menu font-semibold text-ink-2 whitespace-nowrap"
                       >
                         {t('story.chapter')} {pIdx + 1}. {parent.title}
                       </button>
@@ -1395,7 +1395,7 @@ export default function ProjectDetail({
                         <button
                           key={child.id}
                           onClick={() => handleBulkAddToChapter(child.id)}
-                          className="w-full text-left px-3 py-1.5 rounded-card hover:bg-hair text-menu text-muted pl-8"
+                          className="w-full text-left px-3 py-1.5 rounded-card hover:bg-hair text-menu text-muted pl-8 whitespace-nowrap"
                         >
                           ↳ {pIdx + 1}.{cIdx + 1}. {child.title}
                         </button>

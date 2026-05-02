@@ -329,18 +329,21 @@ export function Lightbox({
           onClick={e => { e.stopPropagation(); setShowChapterMenu(false) }}
         >
           <div
-            className="absolute bg-white rounded shadow z-50 min-w-[180px] py-1"
+            // min-w-[180px]를 제거하고 w-max를 추가했습니다.
+            className="absolute bg-white rounded shadow z-50 py-1 w-max"
             style={{ top: '4rem', left: '50%', transform: 'translateX(-50%)' }}
             onClick={e => e.stopPropagation()}
           >
             {chapters.length === 0 ? (
-              <p className="text-small text-faint px-3 py-2">{t('story.noChapters')}</p>
+              // whitespace-nowrap 추가
+              <p className="text-small text-faint px-3 py-2 whitespace-nowrap">{t('story.noChapters')}</p>
             ) : (
               chapters.filter(c => !c.parent_id).map((parent, parentIdx) => (
                 <div key={parent.id}>
                   <button
                     onClick={() => { onAddToChapter(photo.id, parent.id); setShowChapterMenu(false) }}
-                    className="w-full text-left text-small px-3 py-2 hover:bg-hair text-ink-2 font-base"
+                    // whitespace-nowrap 추가
+                    className="w-full text-left text-small px-3 py-2 hover:bg-hair text-ink-2 font-base whitespace-nowrap"
                   >
                     {t('story.chapter')} {parentIdx + 1}. {parent.title}
                   </button>
@@ -348,7 +351,8 @@ export function Lightbox({
                     <button
                       key={child.id}
                       onClick={() => { onAddToChapter(photo.id, child.id); setShowChapterMenu(false) }}
-                      className="w-full text-left text-small px-3 py-2 hover:bg-hair/60 text-muted pl-6"
+                      // whitespace-nowrap 추가
+                      className="w-full text-left text-small px-3 py-2 hover:bg-hair/60 text-muted pl-6 whitespace-nowrap"
                     >
                       ↳ {t('story.chapter')} {parentIdx + 1}.{childIdx + 1}. {child.title}
                     </button>

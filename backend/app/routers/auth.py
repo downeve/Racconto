@@ -6,7 +6,7 @@ from sqlalchemy.orm import Session
 from app import models
 from pydantic import BaseModel, EmailStr
 import uuid
-from app.email import send_verification_email, send_password_reset_email, send_farewell_email
+from app.email import send_verification_email, send_password_reset_email, send_farewell_email, send_welcome_email
 from datetime import datetime, timedelta
 from typing import Optional
 from app.routers.photos import delete_cf_files_parallel
@@ -184,22 +184,24 @@ def change_password(
 
 
 @router.get("/verify-email")
-def verify_email(token: str, db: Session = Depends(get_db)):
+def verify_email(token: str, background_tasks: BackgroundTasks, lang: str = 'ko', db: Session = Depends(get_db)):
     user = db.query(models.User).filter(
         models.User.verify_token == token
     ).first()
-    
+
     if not user:
         raise HTTPException(status_code=400, detail="INVALID_TOKEN")
-    
+
     if not user.verify_token_expires_at or user.verify_token_expires_at < datetime.utcnow():
         raise HTTPException(status_code=400, detail="INVALID_TOKEN")
-    
+
     user.is_verified = True
     user.verify_token = None
     user.verify_token_expires_at = None
     db.commit()
-    
+
+    background_tasks.add_task(send_welcome_email, user.email, lang)
+
     return {"message": "EMAIL_VERIFIED"}
 
 
