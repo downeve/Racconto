@@ -140,6 +140,12 @@ def get_next_order_num(chapter_id: str, db: Session) -> int:
     return (last.order_num + 1) if last else 0
 
 
+def touch_project(project_id: str, db: Session):
+    db.query(models.Project).filter(models.Project.id == project_id).update(
+        {"updated_at": datetime.utcnow()}, synchronize_session=False
+    )
+
+
 def build_item_response(item: models.ChapterItem) -> dict:
     """ChapterItem ORM 객체를 응답 딕셔너리로 변환."""
     base = {
@@ -217,6 +223,7 @@ def create_chapter(
         parent_id=chapter.parent_id
     )
     db.add(db_chapter)
+    touch_project(chapter.project_id, db)
     db.commit()
     db.refresh(db_chapter)
     return db_chapter
@@ -364,6 +371,7 @@ def delete_chapter(
         models.ChapterItem.chapter_id == chapter_id
     ).delete(synchronize_session=False)
 
+    touch_project(db_chapter.project_id, db)
     db.delete(db_chapter)
     db.commit()
     return {"message": "챕터와 관련된 하위 데이터가 모두 안전하게 삭제되었습니다."}
@@ -396,7 +404,7 @@ def add_photo_to_chapter(
     db: Session = Depends(get_db),
     current_user: models.User = Depends(get_current_user)
 ):
-    get_owned_chapter_or_404(chapter_id, current_user.id, db)
+    db_chapter = get_owned_chapter_or_404(chapter_id, current_user.id, db)
 
     # 동일 챕터에 동일 사진 중복 방지
     existing = db.query(models.ChapterItem).filter(
@@ -424,6 +432,7 @@ def add_photo_to_chapter(
         block_layout='grid'  # 단건 추가 기본값
     )
     db.add(db_item)
+    touch_project(db_chapter.project_id, db)
     db.commit()
     db.refresh(db_item)
     return build_item_response(db_item)
@@ -437,7 +446,7 @@ def add_text_to_chapter(
     db: Session = Depends(get_db),
     current_user: models.User = Depends(get_current_user)
 ):
-    get_owned_chapter_or_404(chapter_id, current_user.id, db)
+    db_chapter = get_owned_chapter_or_404(chapter_id, current_user.id, db)
 
     if not body.text_content.strip():
         raise HTTPException(status_code=400, detail="TEXT_CONTENT_EMPTY")
@@ -452,6 +461,7 @@ def add_text_to_chapter(
         order_num=order
     )
     db.add(db_item)
+    touch_project(db_chapter.project_id, db)
     db.commit()
     db.refresh(db_item)
     return build_item_response(db_item)
@@ -492,7 +502,7 @@ def delete_chapter_item(
     db: Session = Depends(get_db),
     current_user: models.User = Depends(get_current_user)
 ):
-    get_owned_chapter_or_404(chapter_id, current_user.id, db)
+    db_chapter = get_owned_chapter_or_404(chapter_id, current_user.id, db)
 
     item = db.query(models.ChapterItem).filter(
         models.ChapterItem.id == item_id,
@@ -502,6 +512,7 @@ def delete_chapter_item(
         raise HTTPException(status_code=404, detail="ITEM_NOT_FOUND")
 
     db.delete(item)
+    touch_project(db_chapter.project_id, db)
     db.commit()
     return {"message": "삭제되었습니다"}
 
@@ -627,7 +638,7 @@ def bulk_add_photos_to_chapter(
     db: Session = Depends(get_db),
     current_user: models.User = Depends(get_current_user)
 ):
-    get_owned_chapter_or_404(chapter_id, current_user.id, db)
+    db_chapter = get_owned_chapter_or_404(chapter_id, current_user.id, db)
 
     if not body.photo_ids:
         raise HTTPException(status_code=400, detail="PHOTO_IDS_EMPTY")
@@ -666,6 +677,7 @@ def bulk_add_photos_to_chapter(
     # next_order는 블록 하나이므로 1만 증가
     next_order += 1
 
+    touch_project(db_chapter.project_id, db)
     db.commit()
     return {"message": f"{added}장이 추가되었습니다.", "added": added, "skipped": len(body.photo_ids) - added}
 

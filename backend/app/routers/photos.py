@@ -181,6 +181,12 @@ def delete_cf_files_parallel(urls: list[str]):
     with ThreadPoolExecutor(max_workers=10) as executor:
         executor.map(delete_from_cloudflare, urls)
 
+
+def touch_project(project_id: str, db: Session):
+    db.query(models.Project).filter(models.Project.id == project_id).update(
+        {"updated_at": datetime.utcnow()}, synchronize_session=False
+    )
+
 def clear_cover_if_deleted(project_id: str, image_url: str, db: Session):
     """삭제된 사진이 커버이면 커버 초기화"""
     project = db.query(models.Project).filter(
@@ -445,6 +451,8 @@ def delete_photos_by_folder(
             models.Note.deleted_at == None
         ).update({"deleted_at": now}, synchronize_session=False)
 
+    if photos:
+        touch_project(project_id, db)
     db.commit()
     return {"deleted": len(photos)}
 
@@ -460,6 +468,7 @@ def bulk_delete_photos(
         models.Photo.deleted_at == None,
         models.Project.user_id == current_user.id
     ).all()
+    project_ids = {p.project_id for p in photos}
     for photo in photos:
         photo.deleted_at = datetime.utcnow()
         clear_cover_if_deleted(photo.project_id, photo.image_url, db)
@@ -468,6 +477,8 @@ def bulk_delete_photos(
             models.Note.photo_id == photo.id,
             models.Note.deleted_at == None
         ).update({"deleted_at": datetime.utcnow()}, synchronize_session=False)
+    for pid in project_ids:
+        touch_project(pid, db)
     db.commit()
     return {"deleted": len(body.photo_ids)}
 
@@ -532,6 +543,9 @@ def bulk_permanent_delete_photos(
     db.query(models.Photo).filter(
         models.Photo.id.in_(body.photo_ids)
     ).delete(synchronize_session=False)
+    project_ids = {p.project_id for p in photos}
+    for pid in project_ids:
+        touch_project(pid, db)
     db.commit()
 
     if cf_urls:
@@ -632,6 +646,7 @@ def create_photo(
         gps_lng=photo.gps_lng,
     )
     db.add(db_photo)
+    touch_project(photo.project_id, db)
     db.commit()
     db.refresh(db_photo)
     return db_photo
@@ -669,6 +684,7 @@ def delete_photo(
         models.Note.deleted_at == None
     ).update({"deleted_at": datetime.utcnow()}, synchronize_session=False)
 
+    touch_project(photo.project_id, db)
     db.commit()
     return {"message": "Moved to trash"}
 
@@ -746,6 +762,7 @@ async def upload_photo(
         original_filename=original_filename
     )
     db.add(db_photo)
+    touch_project(project_id, db)
     db.commit()
     db.refresh(db_photo)
     return db_photo
@@ -800,6 +817,7 @@ def restore_photo(
         models.Note.photo_id == photo_id,
         models.Note.deleted_at != None
     ).update({"deleted_at": None}, synchronize_session=False)
+    touch_project(photo.project_id, db)
     db.commit()
     db.refresh(photo)
     return photo
