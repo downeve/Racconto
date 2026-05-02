@@ -341,8 +341,28 @@ function ProjectStory({
   }, [previewLbIndex, previewLbItems])
 
   useEffect(() => {
-    document.body.style.overflow = chapterPreviewOpen ? 'hidden' : ''
-    return () => { document.body.style.overflow = '' }
+    if (chapterPreviewOpen) {
+      const scrollY = window.scrollY
+      document.body.style.overflow = 'hidden'
+      document.body.style.position = 'fixed'
+      document.body.style.top = `-${scrollY}px`
+      document.body.style.width = '100%'
+    } else {
+      const top = document.body.style.top
+      document.body.style.overflow = ''
+      document.body.style.position = ''
+      document.body.style.top = ''
+      document.body.style.width = ''
+      if (top) window.scrollTo(0, parseInt(top) * -1)
+    }
+    return () => {
+      const top = document.body.style.top
+      document.body.style.overflow = ''
+      document.body.style.position = ''
+      document.body.style.top = ''
+      document.body.style.width = ''
+      if (top) window.scrollTo(0, parseInt(top) * -1)
+    }
   }, [chapterPreviewOpen])
 
   useEffect(() => {
@@ -1022,9 +1042,9 @@ function ProjectStory({
   // 배열의 .some() 대신 O(1) 해시 검색인 .has()를 사용하여 성능 최적화
     // 변경 후 — TEXT 타입은 photo_id 없으므로 PHOTO만 필터, TEXT는 무조건 통과
     const getVisibleChapterItems = (chapterId: string) => {
-      return (chapterPhotos[chapterId] || []).filter(item =>
-        item.item_type === 'TEXT' || (item.photo_id != null && allPhotoIds.has(item.photo_id))
-      );
+      return (chapterPhotos[chapterId] || [])
+        .filter(item => item.item_type === 'TEXT' || (item.photo_id != null && allPhotoIds.has(item.photo_id)))
+        .sort((a, b) => a.order_num !== b.order_num ? a.order_num - b.order_num : a.order_in_block - b.order_in_block)
     };
 
     // 챕터(및 하위 서브챕터 포함 여부 선택)의 사진 장수 반환

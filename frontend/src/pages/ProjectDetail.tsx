@@ -841,7 +841,7 @@ export default function ProjectDetail({
           <div className="flex flex-col gap-1">
             {/* 전체 사진 */}
             <button onClick={handleResetAll}
-              className={`w-full text-left px-2 py-1.5 text-menu rounded-card flex items-center justify-between ${isAllActive ? 'bg-ink text-card font-semibold' : 'hover:bg-hair text-ink-2'}`}>
+              className={`w-full text-left px-2 py-1.5 pr-6 text-menu rounded-card flex items-center justify-between ${isAllActive ? 'bg-ink text-card font-semibold' : 'hover:bg-hair text-ink-2'}`}>
               <span>{t('photo.allPhotos')}</span>
               <span className={isAllActive ? 'text-card' : 'text-muted'}>{photos.filter(p => !p.deleted_at).length}</span>
             </button>
@@ -849,12 +849,12 @@ export default function ProjectDetail({
               {photos.some(p => p.folder) && (
               <div>
                   {[...new Set(photos.filter(p => p.folder).map(p => p.folder))].map(folder => (
-                  <div key={folder} className={`flex items-center rounded ${filterFolder === folder ? 'bg-ink-2 text-card' : 'hover:bg-hair'}`}>
+                  <div key={folder} className={`relative group/folder rounded ${filterFolder === folder ? 'bg-ink-2 text-card' : 'hover:bg-hair'}`}>
                     <button onClick={() => {
                       setFilterFolder(filterFolder === folder ? null : folder!);
                       setPhotoSubTab(filterFolder === folder ? 'all' : 'folder');
                     }}
-                      className="flex-1 text-left px-2 py-1 text-small flex items-center justify-between min-w-0">
+                      className="w-full text-left px-2 py-1 pr-6 text-small flex items-center justify-between min-w-0">
                       <span className="flex items-center gap-1 min-w-0">
                         <Folder size={12} strokeWidth={1.5} className="shrink-0" />
                         <span className="truncate text-menu">{getFolderDisplayName(folder!)}</span>
@@ -866,7 +866,7 @@ export default function ProjectDetail({
                     </button>
                     <button
                       onClick={() => handleDeleteFolder(folder!)}
-                      className={`shrink-0 px-1.5 py-1 ${filterFolder === folder ? 'text-faint hover:text-card' : 'text-hair hover:text-red-500'}`}
+                      className={`absolute right-0 top-0 bottom-0 px-1.5 rounded-r ${filterFolder === folder ? 'text-faint hover:text-card' : 'text-hair hover:text-red-500'}`}
                       title={t('photo.trash')}
                     ><Trash2 size={12} strokeWidth={1.5} /></button>
                   </div>
@@ -875,7 +875,7 @@ export default function ProjectDetail({
               )}
             {/* 지운 사진 */}
             <button onClick={() => { handleResetAll(); setPhotoSubTab('trash'); fetchTrash() }}
-              className={`w-full text-left px-2 py-1 text-menu rounded-card flex items-center justify-between ${photoSubTab === 'trash' ? 'bg-red-500 text-card shadow' : 'hover:bg-red-100 text-ink-2'}`}>
+              className={`w-full text-left px-2 py-1 pr-6 text-menu rounded-card flex items-center justify-between ${photoSubTab === 'trash' ? 'bg-red-500 text-card shadow' : 'hover:bg-red-100 text-ink-2'}`}>
               <span>{t('photo.trash')}</span>
               <span className={photoSubTab === 'trash' ? 'text-red-200' : 'text-faint'}>{trashedPhotos.length}</span>
             </button>

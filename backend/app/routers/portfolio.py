@@ -140,7 +140,7 @@ def get_portfolio(db: Session = Depends(get_db)):
     projects = db.query(models.Project).filter(
         models.Project.is_public == "true",
         models.Project.deleted_at == None
-    ).order_by(models.Project.order_num.asc()).all()
+    ).order_by(models.Project.order_num.asc(), models.Project.created_at.desc()).all()
 
     return [_build_project_result(p, db) for p in projects]
 
@@ -166,7 +166,7 @@ def get_public_portfolio(username: str, db: Session = Depends(get_db)):
         models.Project.user_id == user.id,
         models.Project.is_public == "true",
         models.Project.deleted_at == None
-    ).order_by(models.Project.order_num.asc()).all()
+    ).order_by(models.Project.order_num.asc(), models.Project.created_at.desc()).all()
 
     # 💡 2. 리턴 데이터에 theme 추가
     return {

@@ -10,6 +10,7 @@ const API = import.meta.env.VITE_API_URL
 
 interface Project {
   id: string
+  slug: string | null
   title: string
   cover_image_url: string | null
   updated_at: string
@@ -185,7 +186,7 @@ export default function ElectronSidebar({ activeTab, onTabChange, showTabs, widt
             {projects.map(project => (
               <button
                 key={project.id}
-                onClick={() => navigate(`/projects/${project.id}`)}
+                onClick={() => navigate(`/projects/${project.slug ?? project.id}`)}
                 className={`w-full text-left pl-6 pr-2 py-1 rounded-btn flex items-center gap-2 text-small transition-[background,color,border] duration-150 ease-out ${
                   currentProjectId === project.id
                     ? 'bg-stone-300/70 text-ink font-bold'
