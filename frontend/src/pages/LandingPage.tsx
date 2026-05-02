@@ -38,8 +38,8 @@ export default function LandingPage() {
     },
     {
       number: '02',
-      title: t('landing.feature5Title'),
-      desc: t('landing.feature5Desc'),
+      title: t('landing.feature2Title'),
+      desc: t('landing.feature2Desc'),
       visual: (
         <div className="w-full aspect-[16/9] rounded overflow-hidden shadow-md">
           <img
@@ -52,8 +52,8 @@ export default function LandingPage() {
     },
     {
       number: '03',
-      title: t('landing.feature4Title'),
-      desc: t('landing.feature4Desc'),
+      title: t('landing.feature3Title'),
+      desc: t('landing.feature3Desc'),
       visual: (
         <div className="w-full aspect-[3/4] rounded overflow-hidden shadow-md">
           <img
@@ -66,8 +66,8 @@ export default function LandingPage() {
     },
     {
       number: '04',
-      title: t('landing.feature2Title'),
-      desc: t('landing.feature2Desc'),
+      title: t('landing.feature4Title'),
+      desc: t('landing.feature4Desc'),
       visual: (
         <div className="w-full aspect-[16/9] rounded overflow-hidden shadow-md">
           <img
@@ -80,8 +80,8 @@ export default function LandingPage() {
     },
     {
       number: '05',
-      title: t('landing.feature3Title'),
-      desc: t('landing.feature3Desc'),
+      title: t('landing.feature5Title'),
+      desc: t('landing.feature5Desc'),
       visual: (
         <div className="w-full aspect-[3/4] rounded overflow-hidden shadow-md">
           <img

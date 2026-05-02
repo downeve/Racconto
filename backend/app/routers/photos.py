@@ -486,10 +486,36 @@ def bulk_permanent_delete_photos(
 
     cf_urls = []
     for photo in photos:
+        # side-by-side 블록 block_id 수집 (ChapterItem 삭제 전)
+        side_block_ids = {
+            row.block_id
+            for row in db.query(models.ChapterItem.block_id).filter(
+                models.ChapterItem.photo_id == photo.id,
+                models.ChapterItem.block_type.in_(('side-left', 'side-right')),
+                models.ChapterItem.block_id != None
+            ).all()
+            if row.block_id
+        }
+
         db.query(models.ChapterItem).filter(
             models.ChapterItem.photo_id == photo.id
         ).delete(synchronize_session=False)
-        clear_cover_if_deleted(photo.project_id, photo.image_url, db)  # ← 추가
+
+        # PHOTO 없는 side-by-side 블록의 TEXT 아이템을 단독 블록으로 전환
+        for block_id in side_block_ids:
+            remaining = db.query(models.ChapterItem).filter(
+                models.ChapterItem.block_id == block_id,
+                models.ChapterItem.item_type == 'PHOTO'
+            ).count()
+            if remaining == 0:
+                for text_item in db.query(models.ChapterItem).filter(
+                    models.ChapterItem.block_id == block_id,
+                    models.ChapterItem.item_type == 'TEXT'
+                ).all():
+                    text_item.block_id = text_item.id
+                    text_item.block_type = 'default'
+
+        clear_cover_if_deleted(photo.project_id, photo.image_url, db)
         if photo.image_url and "imagedelivery.net" in photo.image_url:
             cf_urls.append(photo.image_url)
         elif photo.image_url:

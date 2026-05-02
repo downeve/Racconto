@@ -1225,14 +1225,16 @@ export default function ProjectDetail({
                     <p className="mb-2">{t('photo.trashEmpty')}</p>
                   </div>
                 ) : (
-                  <div className="grid grid-cols-3 gap-4">
-                    {trashedPhotos.map(photo => {
+                  <div className={`grid grid-cols-${gridCols} gap-4`}>
+                      {[...trashedPhotos]
+                        .sort((a, b) => new Date(b.deleted_at!).getTime() - new Date(a.deleted_at!).getTime())
+                        .map(photo => {
                       const deletedDate = new Date(photo.deleted_at!)
                       const daysLeft = 30 - Math.floor((Date.now() - deletedDate.getTime()) / (1000 * 60 * 60 * 24))
                       const isLocal = !canHardDelete(photo)
 
                       return (
-                        <div key={photo.id} className="rounded overflow-hidden bg-transparent group relative shadow border border-hair">
+                        <div key={photo.id} className="rounded overflow-hidden bg-transparent group relative shadow">
                           <div className="relative">
                             <img
                               src={photo.image_url}

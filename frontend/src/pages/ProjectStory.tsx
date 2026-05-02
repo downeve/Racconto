@@ -1,13 +1,13 @@
 import { useEffect, useState, useMemo, useRef, memo, useCallback } from 'react'
 import axios from 'axios'
 import { useTranslation } from 'react-i18next'
-import { Eye, FileText, Sun, Moon, PanelRight } from 'lucide-react'
+import { Eye, FileText, Sun, Moon } from 'lucide-react'
 //import { Rows3 } from 'lucide-react'
 import PhotoNotePanel from '../components/PhotoNotePanel'
 import { useElectronSidebar } from '../context/ElectronSidebarContext'
 import ConfirmModal from '../components/ConfirmModal'
 import PortfolioChapterItems, { type PortfolioChapterItem, type PortfolioPhoto } from '../components/PortfolioChapterItems'
-import PortfolioPreview from '../components/PortfolioPreview'
+// import PortfolioPreview from '../components/PortfolioPreview'
 import {
   SortablePhotoBlock,
   SortableTextBlock,
@@ -92,7 +92,15 @@ function groupIntoBlocks(items: ChapterItem[]): ChapterBlock[] {
       }
     }
   })
-  return blocks
+
+  // PHOTO 없는 SIDE 블록(사진 소프트 삭제 후 고스트) → 단독 TEXT 블록으로 변환
+  return blocks.map(block => {
+    if (block.type !== 'SIDE') return block
+    if (block.items.some(i => i.item_type === 'PHOTO')) return block
+    const textItem = block.items.find(i => i.item_type === 'TEXT')
+    if (!textItem) return block
+    return { type: 'TEXT' as const, blockId: textItem.id, items: [textItem], order_num: block.order_num }
+  })
 }
 
 function ProjectStory({
@@ -135,13 +143,15 @@ function ProjectStory({
   // 포트폴리오 미리보기 (모달)
   const [showPreview, setShowPreview] = useState(false)
   const [previewDarkMode, setPreviewDarkMode] = useState(false)
+  const [chapterPreviewId, setChapterPreviewId] = useState<string | null>(null)
+  const [chapterPreviewOpen, setChapterPreviewOpen] = useState(false)
 
   // Ghost Frame + Preview Panel 토글 (localStorage 영속화)
   //const [ghostMode, setGhostMode] = useState<boolean>(() => {
   //  const saved = localStorage.getItem('story.ghostMode')
   //  return saved === null ? true : saved === 'true'
   //})
-  const [showPortfolioPreview, setShowPortfolioPreview] = useState(false)
+  // const [showPortfolioPreview, setShowPortfolioPreview] = useState(false)
   const [previewLbIndex, setPreviewLbIndex] = useState<number | null>(null)
   const [previewLbItems, setPreviewLbItems] = useState<{ photo: PortfolioPhoto; title: string }[]>([])
 
@@ -188,21 +198,21 @@ function ProjectStory({
     return map
   }, [chapterPhotos, allPhotoIds])
 
-  const allBlocksForPreview = useMemo(() => {
-    type PreviewBlock = { blockId: string; blockLayout: 'grid'|'wide'|'single'; items: ChapterItem[]; blockType: 'PHOTO'|'TEXT'|'SIDE' }
-    const result: PreviewBlock[] = []
-    chapters.filter(c => !c.parent_id).forEach(ch => {
-      ;(blocksPerChapter[ch.id] || []).forEach(b =>
-        result.push({ blockId: b.blockId, blockLayout: b.items[0]?.block_layout || 'grid', items: b.items, blockType: b.type })
-      )
-      chapters.filter(c => c.parent_id === ch.id).forEach(sub => {
-        ;(blocksPerChapter[sub.id] || []).forEach(b =>
-          result.push({ blockId: b.blockId, blockLayout: b.items[0]?.block_layout || 'grid', items: b.items, blockType: b.type })
-        )
-      })
-    })
-    return result
-  }, [chapters, blocksPerChapter])
+  // const allBlocksForPreview = useMemo(() => {
+  //   type PreviewBlock = { blockId: string; blockLayout: 'grid'|'wide'|'single'; items: ChapterItem[]; blockType: 'PHOTO'|'TEXT'|'SIDE' }
+  //   const result: PreviewBlock[] = []
+  //   chapters.filter(c => !c.parent_id).forEach(ch => {
+  //     ;(blocksPerChapter[ch.id] || []).forEach(b =>
+  //       result.push({ blockId: b.blockId, blockLayout: b.items[0]?.block_layout || 'grid', items: b.items, blockType: b.type })
+  //     )
+  //     chapters.filter(c => c.parent_id === ch.id).forEach(sub => {
+  //       ;(blocksPerChapter[sub.id] || []).forEach(b =>
+  //         result.push({ blockId: b.blockId, blockLayout: b.items[0]?.block_layout || 'grid', items: b.items, blockType: b.type })
+  //       )
+  //     })
+  //   })
+  //   return result
+  // }, [chapters, blocksPerChapter])
 
   // 드래그 센서
   const sensors = useSensors(
@@ -311,11 +321,12 @@ function ProjectStory({
     const onKey = (e: KeyboardEvent) => {
       if (e.key !== 'Escape') return
       if (previewLbIndex !== null) { setPreviewLbIndex(null); return }
-      if (showPortfolioPreview) { setShowPortfolioPreview(false); return }
+      if (chapterPreviewOpen) { closeChapterPreview(); return }
+      if (showPreview) { setShowPreview(false); (document.activeElement as HTMLElement)?.blur(); return }
     }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
-  }, [previewLbIndex, showPortfolioPreview])
+  }, [previewLbIndex, chapterPreviewOpen, showPreview])
 
   useEffect(() => {
     if (previewLbIndex === null) return
@@ -328,6 +339,11 @@ function ProjectStory({
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
   }, [previewLbIndex, previewLbItems])
+
+  useEffect(() => {
+    document.body.style.overflow = chapterPreviewOpen ? 'hidden' : ''
+    return () => { document.body.style.overflow = '' }
+  }, [chapterPreviewOpen])
 
   useEffect(() => {
     if (activeTab !== 'story') return
@@ -373,6 +389,12 @@ function ProjectStory({
         fetchChapters(true)
       }
     })
+  }
+
+  const closeChapterPreview = () => {
+    setChapterPreviewOpen(false)
+    setPreviewLbIndex(null)
+    setTimeout(() => setChapterPreviewId(null), 300)
   }
 
   const handleCancelSideBySide = useCallback(async (chapterId: string, textItemId: string) => {
@@ -939,7 +961,7 @@ function ProjectStory({
               <div className="bg-card border border-hair rounded-card p-3 my-2 shadow animate-in fade-in zoom-in-95">
                 <div className="flex flex-col gap-3">
                   <textarea
-                    className="w-full h-32 p-3 text-body rounded-card border border-hair focus:ring-1 focus:ring-faint/80 focus:outline-none resize-none bg-stone-50/50"
+                    className="w-full h-32 p-3 text-body rounded-card border border-hair focus:ring-1 focus:ring-faint/80 focus:outline-none resize-none bg-stone-50/50 whitespace-pre-wrap overflow-x-hidden break-words"
                     value={textDraft}
                     onChange={(e) => setTextDraft(e.target.value)}
                     placeholder={t('story.textBlockPlaceholder')}
@@ -1083,6 +1105,7 @@ function ProjectStory({
               {t('story.ghostMode')}
             </button>
             */}
+            {/* 포트폴리오 미리보기 패널 버튼 숨김 처리
             <button
               aria-pressed={showPortfolioPreview}
               onClick={() => setShowPortfolioPreview(v => !v)}
@@ -1094,6 +1117,7 @@ function ProjectStory({
               <PanelRight size={11} strokeWidth={1.5} />
               {t('story.portfolioPreviewPanel')}
             </button>
+            */}
           </div>
 
         <div className="space-y-1">
@@ -1136,7 +1160,7 @@ function ProjectStory({
         </div>
       </div>
     )
-  }, [activeTab, chapters, t, showPortfolioPreview])
+  }, [activeTab, chapters, t])
 
 
   const [moveModalItem, setMoveModalItem] = useState<{
@@ -1277,6 +1301,16 @@ function ProjectStory({
                         <div className="flex gap-2 shrink-0">
                           <button
                             onClick={() => {
+                              setChapterPreviewId(chapter.id)
+                              setChapterPreviewOpen(true)
+                            }}
+                            className="text-menu text-faint hover:text-ink inline-flex items-center gap-0.5"
+                            title="Chapter Preview"
+                          >
+                            <Eye size={13} strokeWidth={1.5} />
+                          </button>
+                          <button
+                            onClick={() => {
                               setShowAddChapter(true)
                               setAddingSubChapterTo(chapter.id)
                               setNewTitle('') 
@@ -1409,6 +1443,16 @@ function ProjectStory({
                           </div>
                           <div className="flex gap-2 shrink-0">
                             <button
+                              onClick={() => {
+                                setChapterPreviewId(subChapter.id)
+                                setChapterPreviewOpen(true)
+                              }}
+                              className="text-menu text-faint hover:text-ink inline-flex items-center gap-0.5"
+                              title="Chapter Preview"
+                            >
+                              <Eye size={13} strokeWidth={1.5} />
+                            </button>
+                            <button
                               onClick={() => handleMoveChapter(subChapter.id, 'up')}
                               disabled={subIdx === 0}
                               className="text-menu text-faint hover:text-ink disabled:opacity-30"
@@ -1462,12 +1506,13 @@ function ProjectStory({
         )}
       </div>
 
-      {/* 포트폴리오 미리보기 패널 */}
+      {/* 포트폴리오 미리보기 패널 숨김 처리
       {showPortfolioPreview && (
         <div className="sticky top-4 w-80 shrink-0">
           <PortfolioPreview blocks={allBlocksForPreview} />
         </div>
       )}
+      */}
 
       {/* 라이트박스 */}
       {selectedPhotoIndex !== null && currentChapterPhotos[selectedPhotoIndex] && (
@@ -1708,6 +1753,165 @@ function ProjectStory({
               ) : null
             })()}
           </div>
+        )
+      })()}
+
+      {/* ── 챕터별 슬라이드오버 Preview ─────────────────────── */}
+      {chapterPreviewId && (() => {
+        const dm = previewDarkMode
+        const bg = dm ? 'bg-ink text-hair' : 'bg-canvas text-ink'
+        const headerBg = dm ? 'bg-ink/90 border-hair/10' : 'bg-canvas/90 border-faint'
+        const subText = dm ? 'text-faint' : 'text-muted'
+        //const divider = dm ? 'bg-muted' : 'bg-faint'
+        const accent = dm ? 'bg-card/30' : 'bg-faint'
+        const toggleClass = dm
+          ? 'border-muted text-faint hover:text-hair'
+          : 'border-faint text-muted hover:text-ink'
+
+        const targetChapter = chapters.find(c => c.id === chapterPreviewId)
+        if (!targetChapter) return null
+
+        const isSubChapter = !!targetChapter.parent_id
+        const parentChapter = isSubChapter
+          ? chapters.find(c => c.id === targetChapter.parent_id)
+          : null
+
+        const chapterLbItems: { photo: PortfolioPhoto; title: string }[] = (() => {
+          if (isSubChapter) {
+            return getVisibleChapterItems(chapterPreviewId)
+              .filter(i => i.item_type !== 'TEXT')
+              .map(i => ({ photo: i as PortfolioPhoto, title: targetChapter.title }))
+          } else {
+            const subs = chapters.filter(c => c.parent_id === chapterPreviewId)
+            const mainItems = getVisibleChapterItems(chapterPreviewId)
+              .filter(i => i.item_type !== 'TEXT')
+              .map(i => ({ photo: i as PortfolioPhoto, title: targetChapter.title }))
+            const subItems = subs.flatMap(sub =>
+              getVisibleChapterItems(sub.id)
+                .filter(i => i.item_type !== 'TEXT')
+                .map(i => ({ photo: i as PortfolioPhoto, title: sub.title }))
+            )
+            return [...mainItems, ...subItems]
+          }
+        })()
+
+        const openChapterLb = (photo: PortfolioPhoto) => {
+          const idx = chapterLbItems.findIndex(i => i.photo === photo)
+          setPreviewLbItems(chapterLbItems)
+          setPreviewLbIndex(idx !== -1 ? idx : 0)
+        }
+
+        const mainChapters = chapters.filter(c => !c.parent_id)
+        const chapterIdx = isSubChapter
+          ? mainChapters.findIndex(c => c.id === targetChapter.parent_id)
+          : mainChapters.findIndex(c => c.id === chapterPreviewId)
+        const subIdx = isSubChapter
+          ? chapters.filter(c => c.parent_id === targetChapter.parent_id).findIndex(c => c.id === chapterPreviewId)
+          : -1
+
+        const chapterLabel = isSubChapter
+          ? `${chapterIdx + 1}.${subIdx + 1}`
+          : `${chapterIdx + 1 < 10 ? `0${chapterIdx + 1}` : chapterIdx + 1}`
+
+        return (
+          <>
+            {/* 딤 배경 */}
+            <div
+              className={`fixed inset-0 z-[85] bg-black/30 backdrop-blur-[2px] transition-opacity duration-300 ${chapterPreviewOpen ? 'opacity-100' : 'opacity-0'}`}
+              onClick={closeChapterPreview}
+            />
+
+            {/* 슬라이드오버 패널 */}
+            <div
+              className={`fixed top-0 right-0 h-full z-[86] w-[min(600px,100vw)] ${bg} shadow-2xl flex flex-col
+                transition-transform duration-300 ease-out
+                ${chapterPreviewOpen ? 'translate-x-0' : 'translate-x-full'}`}
+            >
+              {/* 패널 헤더 */}
+              <div className={`shrink-0 sticky top-0 z-10 backdrop-blur-sm border-b ${headerBg}`}>
+                <div className="px-5 h-12 flex items-center justify-between">
+                  <div className="flex items-center gap-2 min-w-0">
+                    <span className={`text-xs tracking-widest uppercase shrink-0 ${subText}`}>
+                      {isSubChapter ? `Ch ${chapterLabel}` : `Chapter ${chapterLabel}`}
+                    </span>
+                    <span className="text-sm font-semibold truncate">{targetChapter.title}</span>
+                    {isSubChapter && parentChapter && (
+                      <span className={`text-xs shrink-0 ${subText}`}>↑ {parentChapter.title}</span>
+                    )}
+                  </div>
+                  <div className="flex items-center gap-2 shrink-0">
+                    <button
+                      onClick={() => setPreviewDarkMode(v => !v)}
+                      className={`inline-flex items-center gap-1 text-xs px-2.5 py-1 rounded-btn border transition-[background,color,border] duration-150 ease-out ${toggleClass}`}
+                    >
+                      {dm
+                        ? <><Sun size={11} strokeWidth={1.5} />Beige</>
+                        : <><Moon size={11} strokeWidth={1.5} />Dark</>}
+                    </button>
+                    <button
+                      onClick={closeChapterPreview}
+                      className={`text-lg p-1.5 rounded-btn transition-[background,color,border] duration-150 ease-out ${subText} hover:text-ink`}
+                    >✕</button>
+                  </div>
+                </div>
+              </div>
+
+              {/* 패널 본문 */}
+              <div className="flex-1 overflow-y-auto px-8 pt-6 pb-12">
+                <div className="mb-8">
+                  {targetChapter.description && (
+                    <p className={`text-body font-serif max-w-full [word-break:keep-all] mb-6 ${subText}`}>
+                      {targetChapter.description}
+                    </p>
+                  )}
+                  <div className={`mb-6 h-px w-10 ${accent}`} />
+                  <PortfolioChapterItems
+                    items={getVisibleChapterItems(chapterPreviewId) as PortfolioChapterItem[]}
+                    allLightboxItems={chapterLbItems}
+                    darkMode={dm}
+                    containerWidth={536}
+                    onLightbox={openChapterLb}
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* 슬라이드오버 내 라이트박스 */}
+            {previewLbIndex !== null && (() => {
+              const activeLbItem = previewLbItems[previewLbIndex]
+              return activeLbItem ? (
+                <div
+                  className="fixed inset-0 bg-lightbox/[.97] z-[100] flex items-center justify-center"
+                  onClick={() => setPreviewLbIndex(null)}
+                >
+                  <button
+                    className="absolute top-6 right-6 text-h2 z-10 p-3 text-hair hover:opacity-50"
+                    onClick={() => setPreviewLbIndex(null)}
+                  >✕</button>
+                  {previewLbIndex > 0 && (
+                    <button
+                      className="absolute left-6 text-display z-10 select-none text-hair hover:opacity-50"
+                      onClick={e => { e.stopPropagation(); setPreviewLbIndex(v => v! - 1) }}
+                    >‹</button>
+                  )}
+                  <div className="w-full h-full p-4 flex flex-col items-center">
+                    <img
+                      src={activeLbItem.photo.image_url}
+                      alt={activeLbItem.photo.caption || ''}
+                      className="h-full w-auto object-contain"
+                      onClick={e => e.stopPropagation()}
+                    />
+                  </div>
+                  {previewLbIndex < previewLbItems.length - 1 && (
+                    <button
+                      className="absolute right-6 text-display z-10 select-none text-hair hover:opacity-50"
+                      onClick={e => { e.stopPropagation(); setPreviewLbIndex(v => v! + 1) }}
+                    >›</button>
+                  )}
+                </div>
+              ) : null
+            })()}
+          </>
         )
       })()}
     </div>

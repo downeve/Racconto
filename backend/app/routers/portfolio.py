@@ -22,7 +22,7 @@ def _preload_project_data(project_id: str, db: Session) -> tuple[dict, dict]:
         # 변경 후
         cps = db.query(models.ChapterItem).filter(
             models.ChapterItem.chapter_id.in_(chapter_ids)
-        ).order_by(models.ChapterItem.order_num).all()
+        ).order_by(models.ChapterItem.order_num, models.ChapterItem.order_in_block).all()
         for cp in cps:
             chapter_photos_map.setdefault(cp.chapter_id, []).append(cp)
 

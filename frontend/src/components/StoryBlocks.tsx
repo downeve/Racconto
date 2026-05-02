@@ -178,12 +178,12 @@ export const SortableTextBlock = memo(function SortableTextBlock({
   const isEditing = editingTextItemId === itemId;
 
   return (
-    <div ref={setNodeRef} style={style} className="col-span-3 group relative bg-stone-50 border border-stone-200 rounded-card px-5 py-4 my-1">
+    <div ref={setNodeRef} style={style} className="w-full group relative bg-stone-50 border border-stone-200 rounded-card px-5 py-4 my-1 min-w-0 overflow-x-hidden break-words">
       {isEditing ? (
         /* 👇 편집 모드일 때: 단독 텍스트 인라인 편집창 */
         <div className="flex flex-col gap-2">
           <textarea
-            className="w-full h-32 p-3 text-sm rounded-card border border-stone-100 focus:ring-2 focus:ring-stone-200 focus:outline-none resize-none bg-white"
+            className="w-full h-32 p-3 text-small rounded-card border border-stone-100 focus:ring-2 focus:ring-stone-200 focus:outline-none resize-none bg-card overflow-x-hidden whitespace-pre-wrap break-words"
             value={textDraft}
             onChange={(e) => onTextDraftChange?.(e.target.value)}
             autoFocus
@@ -191,13 +191,13 @@ export const SortableTextBlock = memo(function SortableTextBlock({
           <div className="flex gap-2 justify-end mt-1">
             <button 
               onClick={(e) => { e.stopPropagation(); onCancelEdit?.(); }}
-              className="px-3 py-1.5 text-xs text-stone-500 border border-stone-300 rounded bg-white hover:bg-stone-50"
+              className="px-3 py-1.5 text-xs text-muted border border-stone-300 rounded bg-card hover:bg-stone-50"
             >
               {t('common.cancel')}
             </button>
             <button 
               onClick={(e) => { e.stopPropagation(); onSaveText?.(); }}
-              className="px-3 py-1.5 text-xs bg-stone-900 text-white rounded hover:bg-stone-800 font-medium"
+              className="px-3 py-1.5 text-xs bg-ink text-card rounded hover:bg-stone-800 font-medium"
             >
               {t('common.save')}
             </button>
@@ -563,12 +563,12 @@ export const SortableSideBySideBlock = memo(function SortableSideBySideBlock({
   )
 
   const textCol = textItem ? (
-    <div className="flex-1 min-w-0 group/text relative bg-stone-50 border border-stone-200 rounded-card px-4 py-4">
+    <div className="flex-1 min-w-0 overflow-x-hidden break-words group/text relative bg-stone-50 border border-stone-200 rounded-card px-4 py-4">
       {editingTextItemId === textItem.id ? (
         /* 👇 편집 모드일 때: 텍스트 영역만 편집창으로 전환 */
         <div className="flex flex-col gap-2">
           <textarea
-            className="w-full h-32 p-2 text-sm rounded border border-stone-100 focus:ring-2 focus:ring-stone-200 outline-none resize-none bg-white"
+            className="w-full h-32 p-2 text-small rounded border border-stone-100 focus:ring-2 focus:ring-stone-200 outline-none resize-none bg-card overflow-x-hidden whitespace-pre-wrap break-words"
             value={textDraft}
             onChange={(e) => onTextDraftChange?.(e.target.value)}
             autoFocus
@@ -576,7 +576,7 @@ export const SortableSideBySideBlock = memo(function SortableSideBySideBlock({
           <div className="flex gap-2 justify-end">
             <button 
               onClick={(e) => { e.stopPropagation(); onCancelEdit?.(); }}
-              className="px-2 py-1 text-[11px] text-stone-500 border border-stone-300 rounded bg-white hover:bg-stone-50"
+              className="px-2 py-1 text-[11px] text-muted border border-stone-300 rounded bg-card hover:bg-stone-50"
             >
               {t('common.cancel')}
             </button>
@@ -592,18 +592,20 @@ export const SortableSideBySideBlock = memo(function SortableSideBySideBlock({
         /* 👇 일반 모드: 기존 텍스트 표시 */
         <>
           <MarkdownRenderer content={textItem.text_content || ''} />
-          <button
-            onClick={() => onEdit(textItem.id, textItem.text_content || '')}
-            className="absolute top-2 right-[52px] text-xs px-2 py-0.5 rounded border border-gray-300 text-gray-400 hover:text-gray-700 bg-white opacity-0 group-hover/text:opacity-100 transition-opacity"
-          >
-            {t('common.edit')}
-          </button>
-          <button
-            onClick={() => onCancelSideBySide(chapterId, textItem.id)}
-            className="absolute top-2 right-2 text-xs px-2 py-0.5 rounded border border-gray-300 text-gray-400 hover:text-gray-700 bg-white opacity-0 group-hover/text:opacity-100 transition-opacity"
-          >
-            {t('story.detach')}
-          </button>
+          <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover/text:opacity-100 transition-opacity">
+            <button
+              onClick={() => onEdit(textItem.id, textItem.text_content || '')}
+              className="text-xs px-2 py-0.5 rounded border border-gray-300 text-gray-400 hover:text-gray-700 bg-white"
+            >
+              {t('common.edit')}
+            </button>
+            <button
+              onClick={() => onCancelSideBySide(chapterId, textItem.id)}
+              className="text-xs px-2 py-0.5 rounded border border-gray-300 text-gray-400 hover:text-gray-700 bg-white"
+            >
+              {t('story.detach')}
+            </button>
+          </div>
         </>
       )}
     </div>

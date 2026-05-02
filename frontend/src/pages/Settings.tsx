@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import axios from 'axios'
 import { useTranslation } from 'react-i18next'
 import Heading from '../components/Heading' //
@@ -47,6 +47,7 @@ export default function Settings() {
   const [username, setUsername] = useState('')
   const [usernameStatus, setUsernameStatus] = useState<'idle' | 'checking' | 'available' | 'taken' | 'invalid'>('idle')
   const [usernameSaved, setUsernameSaved] = useState(false)
+  const originalUsername = useRef('')
 
   const [tier, setTier] = useState('')
   const [projectCount, setProjectCount] = useState(0)
@@ -112,6 +113,7 @@ export default function Settings() {
         headers: { Authorization: `Bearer ${token}` }
       }).then(res => {
         setUsername(res.data.username || '')
+        originalUsername.current = res.data.username || ''
         setEmail(res.data.email || '')
         setTier(res.data.tier || '')
         setProjectCount(res.data.project_count ?? 0)
@@ -142,6 +144,10 @@ export default function Settings() {
 
   const handleUsernameCheck = async (value: string) => {
     setUsername(value)
+    if (value === originalUsername.current) {   // ← 추가
+      setUsernameStatus('idle')
+      return
+    }
     if (value.length < 3) { setUsernameStatus('idle'); return }
     if (!/^[a-zA-Z0-9_-]+$/.test(value)) { setUsernameStatus('invalid'); return }
     setUsernameStatus('checking')
@@ -216,8 +222,10 @@ export default function Settings() {
       {/* 사용자 정보 */}
       <div className="mb-5 p-4 bg-stone-50 rounded-card border border-stone-200 shadow">
         <div className="flex items-center gap-3 mb-3">
-          <div className="bg-canvas p-2 rounded-full shadow">
-            <UserCircleIcon className="w-8 h-8 text-stone-400" />
+          <div className="w-9 h-9 rounded-full bg-stone-600 shadow flex items-center justify-center">
+            <span className="text-card text-h3 font-bold">
+              {email ? email[0].toUpperCase() : '?'}
+            </span>
           </div>
           <div>
             <p className="text-xs text-stone-500 font-bold uppercase tracking-widest mb-0.5">
@@ -544,10 +552,10 @@ export default function Settings() {
           </button>
         ) : (
           <div className="bg-red-50 border border-red-200 rounded-card p-5">
-            <h3 className="text-sm font-semibold text-red-700 mb-1">
+            <h3 className="text-small font-semibold text-red-700 mb-1">
               {t('settings.withdrawTitle')}
             </h3>
-            <p className="text-xs text-red-500 mb-4">
+            <p className="text-menu text-red-500 mb-4">
               {t('settings.withdrawDesc')}
             </p>
             <input
@@ -558,13 +566,13 @@ export default function Settings() {
               onChange={e => setWithdrawPassword(e.target.value)}
             />
             {withdrawError && (
-              <p className="text-xs text-red-500 mb-3">{withdrawError}</p>
+              <p className="text-menu text-red-500 mb-3">{withdrawError}</p>
             )}
             <div className="flex gap-2">
               <button
                 onClick={handleWithdraw}
                 disabled={withdrawing}
-                className="flex items-center gap-1.5 px-4 py-2 text-xs bg-red-600 text-white rounded hover:bg-red-700 disabled:opacity-50"
+                className="flex items-left gap-1.5 px-4 py-2 text-menu bg-red-600 text-white rounded hover:bg-red-700 disabled:opacity-50"
               >
                 {withdrawing ? (
                   <>
@@ -578,7 +586,7 @@ export default function Settings() {
               </button>
               <button
                 onClick={() => { setShowWithdraw(false); setWithdrawPassword(''); setWithdrawError('') }}
-                className="px-4 py-2 text-xs border rounded hover:bg-gray-50"
+                className="px-4 py-2 text-menu border rounded hover:bg-gray-50"
               >
                 {t('common.cancel')}
               </button>

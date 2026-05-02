@@ -17,7 +17,7 @@ export default function MarkdownRenderer({ content, className = '', darkMode = f
       //remarkPlugins={[remarkBreaks]}
       components={{
         p: ({ children }) => (
-        <p className={`text-body mb-4 last:mb-0 whitespace-pre-wrap ${baseText}`}>
+        <p className={`text-body mb-4 last:mb-0 whitespace-pre-wrap break-words ${baseText}`}>
           {children}
         </p>),
         strong: ({ children }) => <strong className="font-bold">{children}</strong>,
@@ -38,7 +38,7 @@ export default function MarkdownRenderer({ content, className = '', darkMode = f
         ),
         // 코드블록은 포트폴리오에 불필요하므로 plain text로 fallback
         code: ({ children }) => <span className="font-mono text-small">{children}</span>,
-        pre:  ({ children }) => <div className="font-mono text-small">{children}</div>,
+        pre:  ({ children }) => <div className="font-mono text-small overflow-x-hidden break-words">{children}</div>,
       }}
     >
       {content}
