@@ -234,10 +234,11 @@ export default function LandingPage() {
                   {feature.number === '02' && (
                   <div className="mt-6 rounded border border-stone-200 bg-canvas px-6 py-5 flex flex-col sm:items-center sm:justify-between gap-4">
                   <div>
-                    <p className="text-xs tracking-[0.2em] text-stone-400 uppercase mb-1">Desktop App · Beta</p>
-                    <p className="text-sm text-stone-600 leading-relaxed">
-                      Free Download for macOS(.dmg) & Windows(.exe) install file.
+                    <p className="text-small tracking-[0.2em] text-faint uppercase mb-2">Desktop App · Beta</p>
+                    <p className="text-small text-stone-muted leading-relaxed mb-4">
+                      Free Download for macOS(.dmg) & Windows(.exe).
                     </p>
+                    <div className="flex flex-wrap gap-3">
                     <a
                       href="/downloads/Racconto.dmg"
                       className="inline-flex items-center gap-2 px-4 py-2 bg-stone-900 text-white text-xs tracking-widest rounded hover:bg-stone-700 transition-[background,color,border] duration-150 ease-out"
@@ -256,9 +257,10 @@ export default function LandingPage() {
                       </svg>
                       Windows
                     </a>
+                    </div>
                   </div>
-                </div>
-                )}
+                  </div>
+                  )}
                 </div>
               </div>
             ))}
