@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { useParams, Link, useNavigate, useLocation } from 'react-router-dom'
+import { useParams, useNavigate, useLocation } from 'react-router-dom'
 import axios from 'axios'
 import { useTranslation } from 'react-i18next'
 import { useAuth } from '../context/AuthContext'
@@ -201,18 +201,8 @@ export default function PublicPortfolio() {
   if (notFound) {
     return (
       <div className={`fixed inset-0 z-[100] flex flex-col ${darkMode ? 'bg-ink text-hair' : 'bg-canvas text-ink'}`}>
-        {/* 단순화된 헤더 (로고만 표시) */}
-        <nav className="w-full bg-canvas border-b border-hair text-ink shrink-0">
-          <div className="max-w-4xl mx-auto px-6 h-14 flex items-center justify-between">
-            <Link 
-              to="/" 
-              className="text-xl font-bold tracking-widest" 
-              style={{ letterSpacing: '0.15em' }}
-            >
-              Racconto
-            </Link>
-          </div>
-        </nav>
+      <PublicNavbar />
+      
         <main className="flex-1 flex items-center justify-center px-6 pb-32">
           <div className="text-center">
             <p className="text-muted">@{username}{t('portfolio.noUser')}</p>
