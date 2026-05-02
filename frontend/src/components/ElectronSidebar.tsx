@@ -36,7 +36,7 @@ export default function ElectronSidebar({ activeTab, onTabChange, showTabs, widt
   //const { id: currentId } = useParams()
   const location = useLocation()
   const { t, i18n } = useTranslation()
-  const { sidebarContent } = useElectronSidebar()
+  const { sidebarContent, refreshTrigger } = useElectronSidebar()
   const { user, logout } = useAuth()
   const [dropdownOpen, setDropdownOpen] = useState(false)
   const dropdownRef = useRef<HTMLDivElement>(null)
@@ -89,13 +89,9 @@ export default function ElectronSidebar({ activeTab, onTabChange, showTabs, widt
     axios.get(`${API}/projects/`, {
       headers: { Authorization: `Bearer ${token}` }
     }).then(res => {
-      const sorted = [...res.data].sort(
-        (a: Project, b: Project) =>
-          new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime()
-      )
-      setProjects(sorted)
+      setProjects(res.data)
     })
-  }, [])
+  }, [refreshTrigger])
 
   const isOnProjectDetail = location.pathname.startsWith('/projects/') &&
     !location.pathname.endsWith('/edit')
