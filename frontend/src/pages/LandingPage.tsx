@@ -232,7 +232,7 @@ export default function LandingPage() {
                   <h3 className="text-h2 font-semibold text-ink mb-3">{feature.title}</h3>
                   <p className="text-h3 text-muted [word-break:keep-all] leading-relaxed">{feature.desc}</p>
                   {feature.number === '02' && (
-                  <div className="mt-6 rounded border border-stone-200 bg-canvas px-6 py-5 flex flex-col sm:items-center sm:justify-between gap-4">
+                  <div className="mt-4 rounded border border-stone-200 bg-canvas px-6 py-5 flex flex-col sm:items-center sm:justify-between gap-4">
                   <div>
                     <p className="text-small tracking-[0.2em] text-faint uppercase mb-2">Desktop App · Beta</p>
                     <p className="text-small text-stone-muted leading-relaxed mb-4">
@@ -240,7 +240,7 @@ export default function LandingPage() {
                     </p>
                     <div className="flex flex-wrap gap-3">
                     <a
-                      href="/downloads/Racconto.dmg"
+                      href="https://github.com/downeve/Racconto/releases/download/v0.1.1/Racconto-beta-universal.dmg"
                       className="inline-flex items-center gap-2 px-4 py-2 bg-stone-900 text-white text-xs tracking-widest rounded hover:bg-stone-700 transition-[background,color,border] duration-150 ease-out"
                     >
                       <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="currentColor">
@@ -249,7 +249,7 @@ export default function LandingPage() {
                       macOS
                     </a>
                     <a
-                      href="/downloads/Racconto-Setup.exe"
+                      href="https://github.com/downeve/Racconto/releases/download/v0.1.1/Racconto-beta-Setup.exe"
                       className="inline-flex items-center gap-2 px-4 py-2 border border-stone-300 text-stone-700 text-xs tracking-widest rounded hover:border-stone-500 hover:text-stone-900 transition-[background,color,border] duration-150 ease-out"
                     >
                       <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="currentColor">
@@ -299,7 +299,7 @@ export default function LandingPage() {
       {/* Footer */}
       <footer className="py-8 px-6 bg-ink border-t border-hair">
         <div className="max-w-6xl mx-auto flex items-center justify-between">
-          <span className="text-ink text-small font-serif tracking-widest">
+          <span className="text-muted text-small font-serif tracking-widest">
             Racconto
           </span>
           <p className="text-muted text-caption">© 2026 Racconto. All rights reserved.</p>

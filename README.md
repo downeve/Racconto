@@ -26,7 +26,7 @@ Built for everyone who loves photography.
 ### 🗂 Story Builder
 Organize photos into projects with chapters and sub-chapters. Drag to reorder. Filter by star rating or color label.
 
-![Story Builder](./screenshots/screenshot-story.webp)
+![Story Builder](./screenshots/screenshot-story.gif)
 
 ### 🖼 Notes support Markdown
 Concept, idea and any memo notes with Markdown support related to projects and photos.
