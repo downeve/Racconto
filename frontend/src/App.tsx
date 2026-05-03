@@ -86,6 +86,12 @@ function AppRoutes() {
     })
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
+  useEffect(() => {
+    if (!isElectron) return
+    const lang = i18n.language.startsWith('ko') ? 'ko' : 'en'
+    window.racconto!.setMenuLanguage(lang)
+  }, [i18n.language, isElectron])
+
   const isAppPage = ['/dashboard', '/projects', '/trash', '/settings', '/racconto-admin'].some(
     p => location.pathname === p || location.pathname.startsWith(p + '/')
   )

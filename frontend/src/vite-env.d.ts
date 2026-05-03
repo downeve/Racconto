@@ -26,5 +26,6 @@ interface Window {
     folderExists: (folderPath: string) => Promise<boolean>
     onMenuNavigate: (callback: (path: string) => void) => void
     onMenuAction: (callback: (action: string) => void) => void
+    setMenuLanguage: (lang: string) => void
   }
 }

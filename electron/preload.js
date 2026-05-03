@@ -25,4 +25,5 @@ contextBridge.exposeInMainWorld('racconto', {
   folderExists: (folderPath) => ipcRenderer.invoke('fs:folderExists', folderPath),
   onMenuNavigate: (callback) => ipcRenderer.on('menu:navigate', (_, path) => callback(path)),
   onMenuAction: (callback) => ipcRenderer.on('menu:action', (_, action) => callback(action)),
+  setMenuLanguage: (lang) => ipcRenderer.send('change-language', lang),
 })

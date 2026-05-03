@@ -14,6 +14,36 @@ let watchers = {} // 폴더별 watcher 관리 (단일 → 복수로 변경)
 let authToken = null
 let currentUserId = null
 
+// 1. 번역 데이터 준비
+const menuTranslations = {
+  en: {
+    navigate: 'Navigate',
+    dashboard: 'Dashboard',
+    projects: 'Projects',
+    portfolio: 'Portfolio',
+    account: 'Account',
+    settings: 'Settings',
+    trash: 'Trash',
+    toggleLanguage: 'Toggle Language',
+    signOut: 'Sign Out',
+    window: 'Window'
+  },
+  ko: {
+    navigate: '이동',
+    dashboard: '대시보드',
+    projects: '프로젝트',
+    portfolio: '포트폴리오',
+    account: '계정',
+    settings: '설정',
+    trash: '휴지통',
+    toggleLanguage: '언어 변경',
+    signOut: '로그아웃',
+    window: '창'
+  }
+};
+
+let currentLocale = 'ko'; // 기본 언어 설정
+
 function getUserIdFromToken(token) {
   try {
     const payload = JSON.parse(Buffer.from(token.split('.')[1], 'base64url').toString('utf-8'))
@@ -41,6 +71,13 @@ ipcMain.handle('auth:setToken', (event, token) => {
     processQueue()
   }
 })
+
+// -- 언어 변경 ---
+// 렌더러(프론트엔드)에서 언어 변경 신호를 받으면 실행
+ipcMain.on('change-language', (event, newLocale) => {
+  currentLocale = newLocale; // 'ko' 또는 'en'
+  buildAppMenu(); // 👈 여기서 메뉴를 다시 빌드해서 덮어씌웁니다!
+});
 
 // ── 로그아웃 ────────────────────────────────────────────
 ipcMain.handle('auth:logout', async () => {
@@ -598,10 +635,14 @@ function createWindow() {
 }
 
 // ── 앱 메뉴 ──────────────────────────────────────────
+// ── 앱 메뉴 ──────────────────────────────────────────
 function buildAppMenu() {
+  // 현재 언어에 맞는 텍스트를 반환하는 간단한 헬퍼 함수
+  const t = (key) => menuTranslations[currentLocale][key] || key;
+
   const template = [
     {
-      label: 'Racconto',
+      label: 'Racconto', // 앱 이름은 보통 번역하지 않음
       submenu: [
         { role: 'about' },
         { type: 'separator' },
@@ -613,47 +654,47 @@ function buildAppMenu() {
       ],
     },
     {
-      label: 'Navigate',
+      label: t('navigate'),
       submenu: [
         {
-          label: 'Dashboard',
+          label: t('dashboard'),
           click: () => mainWindow?.webContents.send('menu:navigate', '/dashboard'),
         },
         {
-          label: 'Projects',
+          label: t('projects'),
           click: () => mainWindow?.webContents.send('menu:navigate', '/projects'),
         },
         {
-          label: 'Portfolio',
+          label: t('portfolio'),
           click: () => mainWindow?.webContents.send('menu:action', 'portfolio'),
         },
       ],
     },
     {
-      label: 'Account',
+      label: t('account'),
       submenu: [
         {
-          label: 'Settings',
+          label: t('settings'),
           click: () => mainWindow?.webContents.send('menu:navigate', '/settings'),
         },
         {
-          label: 'Trash',
+          label: t('trash'),
           click: () => mainWindow?.webContents.send('menu:navigate', '/trash'),
         },
         { type: 'separator' },
         {
-          label: 'Toggle Language',
+          label: t('toggleLanguage'),
           click: () => mainWindow?.webContents.send('menu:action', 'toggleLanguage'),
         },
         { type: 'separator' },
         {
-          label: 'Sign Out',
+          label: t('signOut'),
           click: () => mainWindow?.webContents.send('menu:action', 'logout'),
         },
       ],
     },
     {
-      label: 'Window',
+      label: t('window'),
       submenu: [
         { role: 'minimize' },
         { role: 'zoom' },
