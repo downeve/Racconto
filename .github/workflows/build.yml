@@ -64,10 +64,9 @@ jobs:
         run: npm run build          # Windows runner는 env로 주입
         env:
           ELECTRON_BUILD: 1
-          env:
-            VITE_API_URL: ${{ secrets.VITE_API_URL }}
-            VITE_ENABLE_DELIVERY: ${{ secrets.VITE_ENABLE_DELIVERY }}
-            VITE_DISCORD_WEB_HOOK_URL: ${{ secrets.VITE_DISCORD_WEB_HOOK_URL }}
+          VITE_API_URL: ${{ secrets.VITE_API_URL }}
+          VITE_ENABLE_DELIVERY: ${{ secrets.VITE_ENABLE_DELIVERY }}
+          VITE_DISCORD_WEB_HOOK_URL: ${{ secrets.VITE_DISCORD_WEB_HOOK_URL }}
 
       - name: Install electron deps
         working-directory: electron
