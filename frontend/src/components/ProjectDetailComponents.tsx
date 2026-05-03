@@ -81,7 +81,7 @@ export function Lightbox({
   photo, photos, colorLabels, chapterPhotoIds,
   onClose, onNavigate, onSetRating, onSetColorLabel,
   showExif, chapters, onAddToChapter, projectId, onNoteChange,
-  photoChapterMap, onRotate
+  photoChapterMap, onRotate,
 }: LightboxProps) {
   const idx = photos.findIndex(p => p.id === photo.id)
   const [showChapterMenu, setShowChapterMenu] = useState(false)
