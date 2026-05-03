@@ -49,42 +49,42 @@ export default function AppDownload() {
 
   const macSteps: Step[] = [
     {
-      title: t('download.mac.step1Title'), // 'DMG 파일 다운로드'
-      desc: t('download.mac.step1Desc'), // '아래 버튼을 눌러 .dmg 파일을 다운로드합니다.'
+      title: t('download.mac.step1Title'),
+      desc: t('download.mac.step1Desc'),
     },
     {
-      title: t('download.mac.step2Title'), // 'Applications 폴더로 드래그'
-      desc: t('download.mac.step2Desc'), // 'DMG를 열고 Racconto 아이콘을 Applications 폴더로 드래그합니다.'
+      title: t('download.mac.step2Title'),
+      desc: t('download.mac.step2Desc'),
     },
     {
-      title: t('download.mac.step3Title'), // '처음 실행 시 경고창 처리'
-      desc: t('download.mac.step3Desc'), // 'Racconto는 아직 Apple 공식 인증(Notarization) 전 단계입니다. 처음 실행 시 "확인할 수 없는 개발자" 경고가 뜰 수 있습니다.'
-      detail: t('download.mac.step3Detail'), // '시스템 설정 → 개인 정보 보호 및 보안으로 이동한 후 아래쪽의 '그래도 열기'를 클릭하여 프로그램을 열 수 있습니다.'
+      title: t('download.mac.step3Title'),
+      desc: t('download.mac.step3Desc'),
+      detail: t('download.mac.step3Detail'),
       code: 'xattr -cr /Applications/Racconto.app',
     },
     {
-      title: t('download.mac.step4Title'), // '실행 및 로그인'
-      desc: t('download.mac.step4Desc'), // 'Racconto를 실행하고 racconto.app 계정으로 로그인하면 폴더 감시 및 자동 업로드가 시작됩니다.'
+      title: t('download.mac.step4Title'),
+      desc: t('download.mac.step4Desc'),
     },
   ]
 
   const winSteps: Step[] = [
     {
-      title: t('download.win.step1Title'), // 'Setup.exe 파일 다운로드'
-      desc: t('download.win.step1Desc'), // '아래 버튼을 눌러 Setup.exe 파일을 다운로드합니다.'
+      title: t('download.win.step1Title'),
+      desc: t('download.win.step1Desc'),
     },
     {
-      title: t('download.win.step2Title'), // 'SmartScreen 경고 처리'
-      desc: t('download.win.step2Desc'), // '처음 실행 시 "Windows에서 PC를 보호했습니다" 경고가 뜰 수 있습니다.'
-      detail: t('download.win.step2Detail'), // '"추가 정보"를 클릭한 후 "실행" 버튼을 누르면 설치가 시작됩니다.'
+      title: t('download.win.step2Title'),
+      desc: t('download.win.step2Desc'),
+      detail: t('download.win.step2Detail'),
     },
     {
-      title: t('download.win.step3Title'), // '설치 완료 후 실행'
-      desc: t('download.win.step3Desc'), // '설치가 완료되면 바탕화면의 Racconto 아이콘을 실행합니다.'
+      title: t('download.win.step3Title'),
+      desc: t('download.win.step3Desc'),
     },
     {
-      title: t('download.win.step4Title'), // '실행 및 로그인'
-      desc: t('download.win.step4Desc'), // 'racconto.app 계정으로 로그인하면 폴더 감시 및 자동 업로드가 시작됩니다.'
+      title: t('download.win.step4Title'),
+      desc: t('download.win.step4Desc'),
     },
   ]
 
@@ -307,8 +307,8 @@ export default function AppDownload() {
                     <path d="M16.72 11.06A10.94 10.94 0 0119 12.55M5 12.55a10.94 10.94 0 015.17-2.39M10.71 5.05A16 16 0 0122.56 9M1.42 9a15.91 15.91 0 014.7-2.88M12 20h.01" />
                   </svg>
                 ),
-                title: t('download.feat2Title'), // '오프라인 큐'
-                desc: t('download.feat2Desc'), // '인터넷이 없어도 업로드 대기열에 저장되고, 연결되면 자동 처리됩니다.'
+                title: t('download.feat2Title'),
+                desc: t('download.feat2Desc'),
               },
               {
                 icon: (
@@ -317,7 +317,7 @@ export default function AppDownload() {
                     <path d="M3.51 15a9 9 0 102.13-9.36L1 10" />
                   </svg>
                 ),
-                title: t('download.feat3Title'), // '양방향 동기화'
+                title: t('download.feat3Title'),
                 desc: t('download.feat3Desc'), // '로컬 폴더와 서버가 자동으로 동기화됩니다.'
               },
             ].map((f, i) => (

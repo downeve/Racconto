@@ -570,10 +570,13 @@
     "feat1Title": "Local Folder Monitoring",
     "feat1Desc": "Photos added to your linked project folder are automatically uploaded.",
     "feat2Title": "Offline Queue",
+    "feat2Desc": "Automatically detects and resumes failed uploads the next time you launch the app.",
+    "feat3Title": "Two-way Sync",
+    "feat3Desc": "Images uploaded from both the web and desktop are seamlessly synced via Cloudflare.",
     "ctaDesc": "Don't have an account yet? Start on the web first.",
     "mac": {
       "step1Title": "Download DMG File",
-      "step1Desc": "Click the button below to download the .dmg file.",
+      "step1Desc": "Click the button to download the .dmg file.",
       "step2Title": "Drag to Applications",
       "step2Desc": "Open the DMG file and drag the Racconto icon into the Applications folder.",
       "step3Title": "Handle First-launch Warning",
@@ -584,7 +587,7 @@
     },
     "win": {
       "step1Title": "Download Setup.exe File",
-      "step1Desc": "Click the button below to download the Setup.exe file.",
+      "step1Desc": "Click the button to download the Setup.exe file.",
       "step2Title": "Handle SmartScreen Warning",
       "step2Desc": "A 'Windows protected your PC' warning may appear when you first launch the installer.",
       "step2Detail": "Click 'More info' and then select the 'Run anyway' button to start the installation.",

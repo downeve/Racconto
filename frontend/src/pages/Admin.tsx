@@ -205,10 +205,10 @@ const ExternalStatsSection = () => {
           <div className="w-full bg-gray-100 h-2 rounded-card overflow-hidden">
             <div
               className="bg-orange-400 h-full"
-              style={{ width: `${(data.cloudflare?.current ?? 0 / (data.cloudflare?.limit || 1)) * 100}%` }}
+              style={{ width: `${((data.cloudflare?.current ?? 0) / (data.cloudflare?.limit || 1)) * 100}%` }}
             />
           </div>
-          <p className="text-xs text-right text-gray-400">한도: {data.cloudflare?.limit?.toLocaleString()}</p>
+          <p className="text-menu text-right text-ink-2">한도: {data.cloudflare?.limit?.toLocaleString()}</p>
         </div>
       </div>
       <div className="bg-white p-6 rounded-card shadow border border-gray-100">
@@ -230,7 +230,7 @@ const ExternalStatsSection = () => {
           <div className="col-span-2 pt-2 border-t">
             <p className="text-xs text-gray-400">사양 (Storage / RAM)</p>
             <p className="font-medium text-gray-700">
-              {data.linode?.specs?.disk ?? 0 / 1024}GB / {data.linode?.specs?.memory ?? 0 / 1024}GB
+              {(data.linode?.specs?.disk ?? 0) / 1024}GB / {(data.linode?.specs?.memory ?? 0) / 1024}GB
             </p>
           </div>
           <div className="col-span-2 pt-2 border-t mt-1">
@@ -653,8 +653,9 @@ export default function Admin() {
             <tbody>
               {[
                 { service: 'Linode',            plan: 'Nanode 1GB',  cost: '$5.50 / mo',   note: '유저 확대 시 플랜 업그레이드 예정' },
-                { service: 'Cloudflare Images', plan: 'Images Basic', cost: '$5.50 / mo',  note: '유저 확대 시 플랜 업그레이드 예정' },
+                { service: 'Cloudflare Images', plan: 'Images Basic', cost: '$5.50 / mo',  note: '유저 확대 시 $5.50 / 10만 장 기준 추가 비용 소요' },
                 { service: 'Brevo',             plan: 'Free',         cost: '—',            note: '서비스 확대 시 AWS SES 이전 검토 예정' },
+                { service: 'Apple 디벨로퍼 프로그램', plan: 'Basic',         cost: '$99 / yr',  note: `≈ $${(99 / 12).toFixed(2)} / mo`},
                 { service: 'racconto.app',       plan: 'Domain',       cost: '$14.20 / yr', note: `≈ $${(14.20 / 12).toFixed(2)} / mo` },
                 { service: 'Claude AI 구독',    plan: 'Pro 요금제',   cost: '$22 / mo',    note: '향후 클로드 코드 사용 검토 / 연간 구독 검토 ($19/mo)' },
               ].map((row, i, arr) => (
@@ -668,9 +669,9 @@ export default function Admin() {
               <tr className="bg-gray-50 border-t">
                 <td className="px-4 py-2.5 text-xs font-semibold text-gray-500" colSpan={2}>Monthly Total (approx.)</td>
                 <td className="px-4 py-2.5 font-mono text-sm font-bold text-stone-800">
-                  ${(5.50 + 5.50 + 14.20 / 12 + 22).toFixed(2)} / mo
+                  ${(5.50 + 5.50 + 99 / 12 + 14.20 / 12 + 22).toFixed(2)} / mo
                 </td>
-                <td className="px-4 py-2.5 text-xs text-gray-400">도메인 월할 포함</td>
+                <td className="px-4 py-2.5 text-xs text-gray-400">Apple 디벨로퍼 프로그램 및 도메인 월 가격 포함</td>
               </tr>
             </tbody>
           </table>
