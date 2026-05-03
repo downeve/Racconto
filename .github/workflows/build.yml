@@ -24,6 +24,10 @@ jobs:
       - name: Build frontend
         working-directory: frontend
         run: ELECTRON_BUILD=1 npm run build
+        env:
+          VITE_API_URL: ${{ secrets.VITE_API_URL }}
+          VITE_ENABLE_DELIVERY: ${{ secrets.VITE_ENABLE_DELIVERY }}
+          VITE_DISCORD_WEB_HOOK_URL: ${{ secrets.VITE_DISCORD_WEB_HOOK_URL }}
 
       - name: Install electron deps
         working-directory: electron
@@ -31,7 +35,7 @@ jobs:
 
       - name: Package (mac)
         working-directory: electron
-        run: npx electron-builder --mac --universal
+        run: npx electron-builder --mac
 
       - name: Upload
         uses: actions/upload-artifact@v4
@@ -68,6 +72,11 @@ jobs:
       - name: Package (win)
         working-directory: electron
         run: npx electron-builder --win
+        env:
+          VITE_API_URL: ${{ secrets.VITE_API_URL }}
+          VITE_ENABLE_DELIVERY: ${{ secrets.VITE_ENABLE_DELIVERY }}
+          VITE_DISCORD_WEB_HOOK_URL: ${{ secrets.VITE_DISCORD_WEB_HOOK_URL }}
+
 
       - name: Upload
         uses: actions/upload-artifact@v4
