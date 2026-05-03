@@ -22,6 +22,7 @@ import LandingPage from './pages/LandingPage'
 import FeaturesPage from './pages/FeaturesPage'
 import MobileLandingPage from './pages/MobileLandingPage'
 import MobileFeaturesPage from './pages/MobileFeaturesPage'
+import AppDownload from './pages/AppDownload'
 import ScrollToTop from './components/ScrollToTop';
 import UploadToast from './components/UploadToast'
 import ElectronSidebar from './components/ElectronSidebar'
@@ -159,6 +160,7 @@ function AppRoutes() {
           <Route path="/trash" element={<PrivateRoute><Trash /></PrivateRoute>} />
           <Route path="/settings" element={<PrivateRoute><Settings /></PrivateRoute>} />
           <Route path="/racconto-admin" element={<AdminRoute><Admin /></AdminRoute>} />
+          <Route path="/download" element={<AppDownload />} />
           <Route path="/delivery/:linkId" element={<DeliveryPage />} />
           <Route path="/:username" element={<PublicPortfolio />} />
         </Routes>

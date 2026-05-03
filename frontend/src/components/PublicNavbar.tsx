@@ -89,6 +89,12 @@ export default function PublicNavbar({ username, darkMode, compact }: { username
             {i18n.language === 'ko' ? 'EN' : 'KO'}
           </button>
           <Link
+            to="/download"
+            className={`hidden sm:inline-flex texty-body md:text-h3 tracking-wider hover:font-bold transition-[background,color,border] duration-150 ease-out ${dm ? 'text-faint hover:text-hair' : 'text-ink-2 hover:text-ink'}`}
+          >
+            {t('download.menu')}
+          </Link>
+          <Link
             to="/login"
             className={`hidden sm:inline-flex texty-body md:text-h3 tracking-wider hover:font-bold transition-[background,color,border] duration-150 ease-out ${dm ? 'text-faint hover:text-hair' : 'text-ink-2 hover:text-ink'}`}
           >

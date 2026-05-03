@@ -555,5 +555,43 @@
     "emptySubtitle": "Shall we open your first page?",
     "noPublicProjects": "No public portfolio yet",
     "noPublicProjectsHint": "Make a project public and it will appear here."
-  }
+  },
+  "download": {
+    "menu": "Download",
+    "title": "Racconto for Desktop",
+    "subtitle": "Work more efficiently on your desktop.",
+    "eyebrow": "Faster with the Native Desktop App",
+    "macArm64btn": "Download for Mac (M1 ~ M4)",
+    "macIntelbtn": "Download for Mac (Intel)",
+    "winbtn": "Download for Windows",
+    "notarizationNote": "Racconto is currently in open beta. You may see a security warning during installation or the first launch. Please follow the instructions below to run the app.",
+    "installGuide": "Installation Guide",
+    "featuresEyebrow": "Desktop App Key Features",
+    "feat1Title": "Local Folder Monitoring",
+    "feat1Desc": "Photos added to your linked project folder are automatically uploaded.",
+    "feat2Title": "Offline Queue",
+    "ctaDesc": "Don't have an account yet? Start on the web first.",
+    "mac": {
+      "step1Title": "Download DMG File",
+      "step1Desc": "Click the button below to download the .dmg file.",
+      "step2Title": "Drag to Applications",
+      "step2Desc": "Open the DMG file and drag the Racconto icon into the Applications folder.",
+      "step3Title": "Handle First-launch Warning",
+      "step3Desc": "An 'Unidentified Developer' warning may appear when you first launch the app.",
+      "step3Detail": "Go to System Settings → Privacy & Security, then click 'Open Anyway' at the bottom to launch the program.",
+      "step4Title": "Launch and Log in",
+      "step4Desc": "Launch Racconto and log in with your racconto.app account."
+    },
+    "win": {
+      "step1Title": "Download Setup.exe File",
+      "step1Desc": "Click the button below to download the Setup.exe file.",
+      "step2Title": "Handle SmartScreen Warning",
+      "step2Desc": "A 'Windows protected your PC' warning may appear when you first launch the installer.",
+      "step2Detail": "Click 'More info' and then select the 'Run anyway' button to start the installation.",
+      "step3Title": "Complete Installation",
+      "step3Desc": "Once the installation is complete, launch Racconto from your desktop.",
+      "step4Title": "Launch and Log in",
+      "step4Desc": "Log in with your racconto.app account to start folder monitoring and auto-upload."
+    }
+  }  
 }
