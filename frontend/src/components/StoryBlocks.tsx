@@ -406,7 +406,7 @@ export const SortablePhotoBlock = memo(function SortablePhotoBlock({
       {/* 레이아웃 아이콘 — hover 아닐 때 상시 표시 */}
       <div className="absolute top-2 left-1 opacity-100 group-hover/block:opacity-100 transition-opacity z-20 pointer-events-none">
         {blockLayout === 'grid' && (
-          <svg width="16" height="12" viewBox="0 0 16 12" fill="none" className="text-faint">
+          <svg width="16" height="12" viewBox="0 0 16 12" fill="none" className="text-muted">
             <rect x="0" y="0" width="4.5" height="5" rx="0.8" fill="currentColor"/>
             <rect x="5.75" y="0" width="4.5" height="5" rx="0.8" fill="currentColor"/>
             <rect x="11.5" y="0" width="4.5" height="5" rx="0.8" fill="currentColor"/>
@@ -416,7 +416,7 @@ export const SortablePhotoBlock = memo(function SortablePhotoBlock({
           </svg>
         )}
         {blockLayout === 'wide' && (
-          <svg width="16" height="12" viewBox="0 0 16 12" fill="none" className="text-faint">
+          <svg width="16" height="12" viewBox="0 0 16 12" fill="none" className="text-muted">
             <rect x="0" y="0" width="7" height="5" rx="0.8" fill="currentColor"/>
             <rect x="8.5" y="0" width="7" height="5" rx="0.8" fill="currentColor"/>
             <rect x="0" y="6.5" width="7" height="5" rx="0.8" fill="currentColor"/>
@@ -424,7 +424,7 @@ export const SortablePhotoBlock = memo(function SortablePhotoBlock({
           </svg>
         )}
         {blockLayout === 'single' && (
-          <svg width="16" height="12" viewBox="0 0 16 12" fill="none" className="text-faint">
+          <svg width="16" height="12" viewBox="0 0 16 12" fill="none" className="text-muted">
             <rect x="0" y="0" width="16" height="5" rx="0.8" fill="currentColor"/>
             <rect x="0" y="6.5" width="16" height="5" rx="0.8" fill="currentColor"/>
           </svg>
