@@ -61,7 +61,8 @@ def _build_chapter_photos(
                 "caption": photo.caption,
                 "block_id": cp.block_id,
                 "block_type": cp.block_type,
-                "block_layout": cp.block_layout
+                "block_layout": cp.block_layout,
+                "edit_params": photo.edit_params,
             })
             chapter_photo_ids.add(photo.id)
     return result

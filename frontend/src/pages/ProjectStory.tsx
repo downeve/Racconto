@@ -2,6 +2,8 @@ import { useEffect, useState, useMemo, useRef, memo, useCallback } from 'react'
 import axios from 'axios'
 import { useTranslation } from 'react-i18next'
 import { Eye, FileText, Sun, Moon } from 'lucide-react'
+import { getEditStyle } from '../utils/editStyle'
+import { RotatedCanvas } from '../components/RotatedCanvas'
 //import { Rows3 } from 'lucide-react'
 import PhotoNotePanel from '../components/PhotoNotePanel'
 import { useElectronSidebar } from '../context/ElectronSidebarContext'
@@ -1573,12 +1575,30 @@ function ProjectStory({
                 onClick={e => { e.stopPropagation(); setSelectedPhotoIndex(prev => prev! - 1) }}
               >‹</button>
             )}
-            <img
-              src={currentChapterPhotos[selectedPhotoIndex].image_url || undefined}
-              alt={currentChapterPhotos[selectedPhotoIndex].caption || undefined}
-              className="max-w-[calc(100%-8rem)] max-h-full object-contain"
-              onClick={e => e.stopPropagation()}
-            />
+            {(() => {
+              const p = currentChapterPhotos[selectedPhotoIndex]
+              const rotation = p.edit_params?.rotation ?? 0
+              if (rotation === 90 || rotation === 270) {
+                return (
+                  <RotatedCanvas
+                    src={p.image_url || ''}
+                    rotation={rotation}
+                    brightness={p.edit_params?.brightness}
+                    style={{ maxWidth: 'calc(100% - 8rem)', maxHeight: '100%' }}
+                    onClick={e => e.stopPropagation()}
+                  />
+                )
+              }
+              return (
+                <img
+                  src={p.image_url || undefined}
+                  alt={p.caption || undefined}
+                  className="max-w-[calc(100%-8rem)] max-h-full object-contain"
+                  style={p.edit_params ? getEditStyle(p.edit_params) : undefined}
+                  onClick={e => e.stopPropagation()}
+                />
+              )
+            })()}
             {selectedPhotoIndex < currentChapterPhotos.length - 1 && (
               <button
                 className="absolute right-4 z-10 text-white/70 hover:text-white text-5xl select-none"
@@ -1755,13 +1775,30 @@ function ProjectStory({
                       onClick={e => { e.stopPropagation(); setPreviewLbIndex(v => v! - 1) }}
                     >‹</button>
                   )}
-                  <div className="w-full h-full p-4 flex flex-col items-center">
-                    <img
-                      src={activeLbItem.photo.image_url}
-                      alt={activeLbItem.photo.caption || ''}
-                      className="h-full w-auto object-contain"
-                      onClick={e => e.stopPropagation()}
-                    />
+                  <div className="w-full h-full p-4 flex flex-col items-center overflow-hidden">
+                    {(() => {
+                      const p = activeLbItem.photo
+                      const rotation = p.edit_params?.rotation ?? 0
+                      if (rotation === 90 || rotation === 270) {
+                        return (
+                          <RotatedCanvas
+                            src={p.image_url}
+                            rotation={rotation}
+                            brightness={p.edit_params?.brightness}
+                            onClick={e => e.stopPropagation()}
+                          />
+                        )
+                      }
+                      return (
+                        <img
+                          src={p.image_url}
+                          alt={p.caption || ''}
+                          className="h-full w-auto object-contain"
+                          style={p.edit_params ? getEditStyle(p.edit_params) : undefined}
+                          onClick={e => e.stopPropagation()}
+                        />
+                      )
+                    })()}
                   </div>
                   {previewLbIndex < previewLbItems.length - 1 && (
                     <button
@@ -1914,13 +1951,30 @@ function ProjectStory({
                       onClick={e => { e.stopPropagation(); setPreviewLbIndex(v => v! - 1) }}
                     >‹</button>
                   )}
-                  <div className="w-full h-full p-4 flex flex-col items-center">
-                    <img
-                      src={activeLbItem.photo.image_url}
-                      alt={activeLbItem.photo.caption || ''}
-                      className="h-full w-auto object-contain"
-                      onClick={e => e.stopPropagation()}
-                    />
+                  <div className="w-full h-full p-4 flex flex-col items-center overflow-hidden">
+                    {(() => {
+                      const p = activeLbItem.photo
+                      const rotation = p.edit_params?.rotation ?? 0
+                      if (rotation === 90 || rotation === 270) {
+                        return (
+                          <RotatedCanvas
+                            src={p.image_url}
+                            rotation={rotation}
+                            brightness={p.edit_params?.brightness}
+                            onClick={e => e.stopPropagation()}
+                          />
+                        )
+                      }
+                      return (
+                        <img
+                          src={p.image_url}
+                          alt={p.caption || ''}
+                          className="h-full w-auto object-contain"
+                          style={p.edit_params ? getEditStyle(p.edit_params) : undefined}
+                          onClick={e => e.stopPropagation()}
+                        />
+                      )
+                    })()}
                   </div>
                   {previewLbIndex < previewLbItems.length - 1 && (
                     <button

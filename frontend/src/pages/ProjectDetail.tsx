@@ -3,6 +3,7 @@ import { useParams } from 'react-router-dom'
 import axios from 'axios'
 import exifr from 'exifr'
 import { Folder, Monitor, Trash2, FileText, MapPin, AlertTriangle, BookOpen } from 'lucide-react'
+import { nextRotation, prevRotation, type EditParams } from '../utils/editStyle'
 
 import ProjectStory from './ProjectStory'
 import DeliveryManager from '../components/DeliveryManager'
@@ -560,24 +561,83 @@ export default function ProjectDetail({
     }
   }
 
-  const handleRotatePhoto = async (photo: Photo, direction: 'left' | 'right') => {
+  // ── 비파괴 편집 상태 ────────────────────────────────────────
+  const [editMode, setEditMode] = useState<'crop' | 'brightness' | null>(null)
+  const [pendingCrop, setPendingCrop] = useState<{ x: number; y: number }>({ x: 0, y: 0 })
+  const [pendingCropArea, setPendingCropArea] = useState<{ x: number; y: number; width: number; height: number } | null>(null)
+  const [pendingBrightness, setPendingBrightness] = useState<number>(1.0)
+  const [editSaving, setEditSaving] = useState(false)
+
+  const saveEditParams = async (params: EditParams | null) => {
+    if (!lightboxPhoto) return
+    setEditSaving(true)
     try {
-      const res = await axios.post(`${API}/photos/${photo.id}/rotate`, { direction })
-      const updatedPhoto: Photo = res.data
-      setPhotos(prev => prev.map(p => p.id === photo.id ? { ...p, image_url: updatedPhoto.image_url } : p))
-      if (lightboxPhoto?.id === photo.id) {
-        setLightboxPhoto(prev => prev ? { ...prev, image_url: updatedPhoto.image_url } : null)
-      }
-      if (project?.cover_image_url === photo.image_url) {
-        const projectRes = await axios.get(`${API}/projects/${numericId}`)
-        setProject(projectRes.data)
-        triggerRefresh()
-      }
-      showToast(t('photo.rotateSuccess'), 'success')
-    } catch (error) {
-      console.error('사진 회전 실패:', error)
-      showToast(t('photo.rotateFail'), 'error')
+      const res = await axios.put(`${API}/photos/${lightboxPhoto.id}/edit-params`, { edit_params: params })
+      setPhotos(prev => prev.map(p => p.id === lightboxPhoto.id ? res.data : p))
+      setLightboxPhoto(res.data)
+      setEditMode(null)
+    } catch (err) {
+      console.error('편집 저장 실패', err)
+    } finally {
+      setEditSaving(false)
     }
+  }
+
+  const handleRotateLeft = async () => {
+    if (!lightboxPhoto) return
+    const newParams: EditParams = {
+      ...lightboxPhoto.edit_params,
+      rotation: prevRotation(lightboxPhoto.edit_params),
+      crop: null,
+    }
+    await saveEditParams(newParams)
+  }
+
+  const handleRotateRight = async () => {
+    if (!lightboxPhoto) return
+    const newParams: EditParams = {
+      ...lightboxPhoto.edit_params,
+      rotation: nextRotation(lightboxPhoto.edit_params),
+      crop: null,
+    }
+    await saveEditParams(newParams)
+  }
+
+  const enterEditMode = (mode: 'crop' | 'brightness') => {
+    const ep = lightboxPhoto?.edit_params
+    if (mode === 'brightness') setPendingBrightness(ep?.brightness ?? 1.0)
+    if (mode === 'crop') { setPendingCrop({ x: 0, y: 0 }); setPendingCropArea(null) }
+    setEditMode(mode)
+  }
+
+  const handleCropComplete = (
+    croppedArea: { x: number; y: number; width: number; height: number },
+    _croppedAreaPixels: any
+  ) => {
+    setPendingCropArea({
+      x: croppedArea.x / 100,
+      y: croppedArea.y / 100,
+      width: croppedArea.width / 100,
+      height: croppedArea.height / 100,
+    })
+  }
+
+  const handleSaveEdit = async () => {
+    const ep = lightboxPhoto?.edit_params ?? {}
+    const newParams: EditParams = { ...ep }
+    if (editMode === 'crop' && pendingCropArea) newParams.crop = pendingCropArea
+    if (editMode === 'brightness') newParams.brightness = pendingBrightness
+    const isDefault =
+      (newParams.rotation == null || newParams.rotation === 0) &&
+      newParams.crop == null &&
+      (newParams.brightness == null || newParams.brightness === 1.0)
+    await saveEditParams(isDefault ? null : newParams)
+  }
+
+  const handleResetEdit = async () => {
+    await saveEditParams(null)
+    setPendingCropArea(null)
+    setPendingBrightness(1.0)
   }
 
   const handleClearRatings = () => {
@@ -978,8 +1038,8 @@ export default function ProjectDetail({
           photos={filteredPhotos}
           colorLabels={colorLabels}
           chapterPhotoIds={chapterPhotoIds}
-          onClose={() => setLightboxPhoto(null)}
-          onNavigate={setLightboxPhoto}
+          onClose={() => { setEditMode(null); setLightboxPhoto(null) }}
+          onNavigate={(p) => { setEditMode(null); setLightboxPhoto(p) }}
           onSetRating={handleSetRating}
           onSetColorLabel={handleSetColorLabel}
           showExif={showExif}
@@ -988,7 +1048,19 @@ export default function ProjectDetail({
           photoChapterMap={photoChapterMap}
           onNoteChange={() => { setNotesVersion(v => v + 1); fetchPhotoNoteIds() }}
           onAddToChapter={handleAddToChapter}
-          onRotate={handleRotatePhoto}
+          editMode={editMode}
+          pendingCrop={pendingCrop}
+          pendingBrightness={pendingBrightness}
+          editSaving={editSaving}
+          onRotateLeft={handleRotateLeft}
+          onRotateRight={handleRotateRight}
+          onEnterEditMode={enterEditMode}
+          onCropChange={setPendingCrop}
+          onCropComplete={handleCropComplete}
+          onBrightnessChange={setPendingBrightness}
+          onSaveEdit={handleSaveEdit}
+          onResetEdit={handleResetEdit}
+          onCancelEdit={() => setEditMode(null)}
         />
       )}
 

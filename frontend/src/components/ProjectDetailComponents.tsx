@@ -1,7 +1,10 @@
-import { useEffect, useState, memo } from 'react'
+import { useEffect, useState, useRef, memo } from 'react'
 import { useTranslation } from 'react-i18next'
+import Cropper from 'react-easy-crop'
 import PhotoNotePanel from './PhotoNotePanel'
 import { BookOpen, FileText, AlertTriangle, Check } from 'lucide-react'
+import { getEditStyle, type EditParams } from '../utils/editStyle'
+import { RotatedCanvas } from './RotatedCanvas'
 
 // ── 공통 타입 ──────────────────────────────────────────────
 
@@ -49,6 +52,7 @@ export interface Photo {
   source?: string | null
   local_missing?: boolean
   deleted_at?: string | null
+  edit_params?: EditParams | null
 }
 
 export interface ColorLabel {
@@ -74,43 +78,58 @@ interface LightboxProps {
   onAddToChapter: (photoId: string, chapterId: string) => void
   projectId: string
   onNoteChange: () => void
-  onRotate: (photo: Photo, direction: 'left' | 'right') => Promise<void>
+  // 비파괴 편집 props
+  editMode: 'crop' | 'brightness' | null
+  pendingCrop: { x: number; y: number }
+  pendingBrightness: number
+  editSaving: boolean
+  onRotateLeft: () => void
+  onRotateRight: () => void
+  onEnterEditMode: (mode: 'crop' | 'brightness') => void
+  onCropChange: (crop: { x: number; y: number }) => void
+  onCropComplete: (croppedArea: { x: number; y: number; width: number; height: number }, croppedAreaPixels: any) => void
+  onBrightnessChange: (value: number) => void
+  onSaveEdit: () => void
+  onResetEdit: () => void
+  onCancelEdit: () => void
 }
 
 export function Lightbox({
   photo, photos, colorLabels, chapterPhotoIds,
   onClose, onNavigate, onSetRating, onSetColorLabel,
   showExif, chapters, onAddToChapter, projectId, onNoteChange,
-  photoChapterMap, onRotate,
+  photoChapterMap,
+  editMode, pendingCrop, pendingBrightness, editSaving,
+  onRotateLeft, onRotateRight, onEnterEditMode,
+  onCropChange, onCropComplete, onBrightnessChange,
+  onSaveEdit, onResetEdit, onCancelEdit,
 }: LightboxProps) {
   const idx = photos.findIndex(p => p.id === photo.id)
   const [showChapterMenu, setShowChapterMenu] = useState(false)
 
   const [showNotePanel, setShowNotePanel] = useState(false)
   const { t, i18n } = useTranslation()
-
   const inChapter = chapterPhotoIds.has(photo.id)
 
   const [hoverRating, setHoverRating] = useState<{ id: string; star: number } | null>(null)
-  const [rotating, setRotating] = useState(false)
 
   useEffect(() => {
     setShowNotePanel(false)
     setShowChapterMenu(false)
-    setRotating(false)
   }, [photo.id])
 
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
       const tag = (e.target as HTMLElement).tagName
       if (tag === 'INPUT' || tag === 'TEXTAREA') return
-      if (e.key === 'Escape') onClose()
+      if (e.key === 'Escape') { if (editMode) { onCancelEdit(); return } onClose() }
+      if (editMode) return
       if ((e.key === 'ArrowRight' || e.key === 'd' || e.key === 'D') && idx < photos.length - 1) onNavigate(photos[idx + 1])
       if ((e.key === 'ArrowLeft' || e.key === 'a' || e.key === 'A') && idx > 0) onNavigate(photos[idx - 1])
     }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
-  }, [photo, photos, onClose, onNavigate, idx])
+  }, [photo, photos, onClose, onNavigate, idx, editMode, onCancelEdit])
 
   useEffect(() => {
     const preload = (url: string) => {
@@ -233,43 +252,80 @@ export function Lightbox({
 
           <div className="w-px h-3 bg-card/30" />
 
-          {/* 회전 버튼 */}
-          <div className="flex items-center gap-1">
-            <button
-              onClick={async () => {
-                if (rotating) return
-                setRotating(true)
-                try { await onRotate(photo, 'left') } finally { setRotating(false) }
-              }}
-              disabled={rotating}
-              title="왼쪽으로 90° 회전"
-              className={`flex items-center gap-1 text-small px-2.5 py-1.5 border rounded-card transition-[background,color,border] duration-150 ease-out ${
-                rotating ? 'border-card/10 text-card/20 cursor-not-allowed' : 'border-card/20 text-card/60 hover:text-card hover:border-card/50'
-              }`}
-            >
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/>
-                <path d="M3 3v5h5"/>
-              </svg>
-            </button>
-            <button
-              onClick={async () => {
-                if (rotating) return
-                setRotating(true)
-                try { await onRotate(photo, 'right') } finally { setRotating(false) }
-              }}
-              disabled={rotating}
-              title="오른쪽으로 90° 회전"
-              className={`flex items-center gap-1 text-small px-2.5 py-1.5 border rounded-card transition-[background,color,border] duration-150 ease-out ${
-                rotating ? 'border-card/10 text-card/20 cursor-not-allowed' : 'border-card/20 text-card/60 hover:text-card hover:border-card/50'
-              }`}
-            >
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M21 12a9 9 0 1 1-9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/>
-                <path d="M21 3v5h-5"/>
-              </svg>
-            </button>
-          </div>
+          {/* 회전 / 편집 버튼 */}
+          {!editMode && (
+            <div className="flex items-center gap-1">
+              <button
+                onClick={onRotateLeft}
+                title={t('photo.rotateLeft')}
+                className="flex items-center gap-1 text-small px-2.5 py-1.5 border rounded-card border-card/20 text-card/60 hover:text-card hover:border-card/50 transition-[background,color,border] duration-150 ease-out"
+              >
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/>
+                  <path d="M3 3v5h5"/>
+                </svg>
+              </button>
+              <button
+                onClick={onRotateRight}
+                title={t('photo.rotateRight')}
+                className="flex items-center gap-1 text-small px-2.5 py-1.5 border rounded-card border-card/20 text-card/60 hover:text-card hover:border-card/50 transition-[background,color,border] duration-150 ease-out"
+              >
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M21 12a9 9 0 1 1-9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/>
+                  <path d="M21 3v5h-5"/>
+                </svg>
+              </button>
+
+              <div className="w-px h-3 bg-card/30 mx-0.5" />
+
+              <button
+                onClick={() => onEnterEditMode('crop')}
+                className="flex items-center gap-1 text-small px-2.5 py-1.5 border rounded-card border-card/20 text-card/60 hover:text-card hover:border-card/50 transition-[background,color,border] duration-150 ease-out"
+              >
+                {t('photo.crop')}
+              </button>
+              <button
+                onClick={() => onEnterEditMode('brightness')}
+                className="flex items-center gap-1 text-small px-2.5 py-1.5 border rounded-card border-card/20 text-card/60 hover:text-card hover:border-card/50 transition-[background,color,border] duration-150 ease-out"
+              >
+                {t('photo.brightness')}
+              </button>
+
+              {photo.edit_params && (
+                <>
+                  <div className="w-px h-3 bg-card/30 mx-0.5" />
+                  <button
+                    onClick={onResetEdit}
+                    className="text-small px-2.5 py-1.5 text-red-400 hover:text-red-300 transition-colors"
+                  >
+                    {t('photo.resetToOriginal')}
+                  </button>
+                </>
+              )}
+            </div>
+          )}
+
+          {/* 편집 모드 저장/취소 */}
+          {editMode && (
+            <div className="flex items-center gap-2">
+              <span className="text-small text-card/50">
+                {editMode === 'crop' ? t('photo.crop') : t('photo.brightness')}
+              </span>
+              <button
+                onClick={onSaveEdit}
+                disabled={editSaving}
+                className="text-small px-3 py-1.5 bg-white text-black rounded-card font-medium hover:opacity-80 disabled:opacity-40 transition-opacity"
+              >
+                {editSaving ? t('photo.savingEdit') : t('photo.saveEdit')}
+              </button>
+              <button
+                onClick={onCancelEdit}
+                className="text-small px-3 py-1.5 border border-card/20 text-card/60 hover:text-card rounded-card transition-colors"
+              >
+                {t('photo.cancelEdit')}
+              </button>
+            </div>
+          )}
         </div>
 
         {/* 3. 오른쪽: 닫기 버튼 (flex-1로 남는 공간 차지하며 우측 정렬) */}
@@ -278,21 +334,66 @@ export function Lightbox({
         </div>
       </div>
 
-      {/* 중앙 이미지 */}
-      <div className="flex-1 flex items-center justify-center mt-0 relative min-h-0">
-        {idx > 0 && (
+      {/* 중앙 이미지 / 크롭 영역 */}
+      <div className={`flex-1 flex items-center justify-center mt-0 relative min-h-0${photo.edit_params?.crop && editMode !== 'crop' ? ' overflow-hidden' : ''}`}>
+        {!editMode && idx > 0 && (
           <button
             className="absolute left-4 z-10 text-card/70 hover:text-card text-h1 select-none p-4"
             onClick={e => { e.stopPropagation(); onNavigate(photos[idx - 1]) }}
           >‹</button>
         )}
-        <img
-          src={photo.image_url}
-          alt={photo.caption || ''}
-          className="max-w-[calc(100%-8rem)] max-h-full object-contain cursor-default"
-          onClick={e => e.stopPropagation()}
-        />
-        {idx < photos.length - 1 && (
+
+        {/* 크롭 모드 */}
+        {editMode === 'crop' && (
+          <div className="absolute inset-0" onClick={e => e.stopPropagation()}>
+            <Cropper
+              image={photo.image_url}
+              crop={pendingCrop}
+              zoom={1}
+              aspect={undefined}
+              onCropChange={onCropChange}
+              onCropComplete={onCropComplete}
+              style={{ containerStyle: { background: '#000' } }}
+            />
+          </div>
+        )}
+
+        {/* 일반 이미지 */}
+        {editMode !== 'crop' && (() => {
+          const rotation = photo.edit_params?.rotation ?? 0
+          const brightnessVal = editMode === 'brightness' ? pendingBrightness : (photo.edit_params?.brightness ?? null)
+          if (rotation === 90 || rotation === 270) {
+            return (
+              <RotatedCanvas
+                src={photo.image_url}
+                rotation={rotation}
+                brightness={brightnessVal}
+                style={{ maxWidth: 'calc(100% - 8rem)', maxHeight: '100%' }}
+                onClick={e => e.stopPropagation()}
+              />
+            )
+          }
+          return (
+            <img
+              src={photo.image_url}
+              alt={photo.caption || ''}
+              className="object-contain cursor-default"
+              style={{
+                maxWidth: 'calc(100% - 8rem)',
+                maxHeight: '100%',
+                ...getEditStyle(
+                  photo.edit_params,
+                  undefined,
+                  undefined,
+                  editMode === 'brightness' ? pendingBrightness : undefined,
+                ),
+              }}
+              onClick={e => e.stopPropagation()}
+            />
+          )
+        })()}
+
+        {!editMode && idx < photos.length - 1 && (
           <button
             className="absolute right-4 z-10 text-card/70 hover:text-card text-h1 select-none p-4"
             onClick={e => { e.stopPropagation(); onNavigate(photos[idx + 1]) }}
@@ -303,20 +404,37 @@ export function Lightbox({
       {/* 하단 정보 바 */}
       <div className="shrink-0 bg-black/30 border-t border-white/10 px-6 py-4" onClick={e => e.stopPropagation()}>
         <div className="max-w-[calc(100%-8rem)] mx-auto space-y-3">
+          {/* 밝기 슬라이더 */}
+          {editMode === 'brightness' && (
+            <div className="flex items-center gap-3 w-full max-w-sm mx-auto">
+              <span className="text-xs text-card/50 whitespace-nowrap">{t('photo.darker')}</span>
+              <input
+                type="range"
+                min={0.5}
+                max={2.0}
+                step={0.05}
+                value={pendingBrightness}
+                onChange={e => onBrightnessChange(parseFloat(e.target.value))}
+                className="flex-1"
+              />
+              <span className="text-xs text-card/50 whitespace-nowrap">{t('photo.brighter')}</span>
+              <span className="text-xs font-mono min-w-[36px] text-right text-card/70">
+                {pendingBrightness.toFixed(2)}
+              </span>
+            </div>
+          )}
           <div className="flex items-center justify-center gap-4 flex-wrap">
             {/* EXIF */}
-            {showExif && (photo.camera || photo.focal_length || photo.taken_at) && (
-              <>
-                <span className="text-small text-card/40">
-                  {[
-                    photo.taken_at
-                      ? new Date(photo.taken_at).toLocaleDateString(i18n.language === 'ko' ? 'ko-KR' : 'en-US')
-                      : null,
-                    photo.camera, photo.lens, photo.focal_length,
-                    photo.aperture, photo.shutter_speed, photo.iso,
-                  ].filter(Boolean).join(' · ')}
-                </span>
-              </>
+            {!editMode && showExif && (photo.camera || photo.focal_length || photo.taken_at) && (
+              <span className="text-small text-card/40">
+                {[
+                  photo.taken_at
+                    ? new Date(photo.taken_at).toLocaleDateString(i18n.language === 'ko' ? 'ko-KR' : 'en-US')
+                    : null,
+                  photo.camera, photo.lens, photo.focal_length,
+                  photo.aperture, photo.shutter_speed, photo.iso,
+                ].filter(Boolean).join(' · ')}
+              </span>
             )}
           </div>
         </div>
@@ -421,6 +539,7 @@ export const PhotoCard = memo(function PhotoCard({
               ? 'opacity-70 scale-[0.98] cursor-pointer'
               : 'hover:opacity-95 cursor-pointer'
           }`}
+          style={photo.edit_params ? getEditStyle(photo.edit_params) : undefined}
           onClick={() => {
             if (selectionMode) {
               if (isAlreadyInStory) return

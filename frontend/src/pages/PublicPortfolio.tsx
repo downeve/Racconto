@@ -6,6 +6,8 @@ import { useAuth } from '../context/AuthContext'
 import PortfolioChapterItems, { type PortfolioPhoto } from '../components/PortfolioChapterItems'
 import PublicNavbar from '../components/PublicNavbar'
 import { Sun, Moon, MapPin } from 'lucide-react'
+import { getEditStyle, type EditParams } from '../utils/editStyle'
+import { RotatedCanvas } from '../components/RotatedCanvas'
 //import { Download } from 'lucide-react'
 //import { exportToPDF } from '../utils/exportToPDF'
 
@@ -16,6 +18,7 @@ interface Photo {
   id: string
   image_url: string
   caption?: string | null
+  edit_params?: EditParams | null
 }
 
 interface ChapterItem {
@@ -27,6 +30,7 @@ interface ChapterItem {
   text_content?: string | null
   block_id?: string | null
   block_type?: string
+  edit_params?: EditParams | null
 }
 
 interface Chapter {
@@ -399,13 +403,30 @@ export default function PublicPortfolio() {
             >‹</button>
           )}
 
-          <div className="w-full h-full p-4 flex flex-col items-center">
-            <img
-              src={activeLightboxItem.photo.image_url}
-              alt={activeLightboxItem.photo.caption || ''}
-              className="h-full w-auto object-contain"
-              onClick={e => e.stopPropagation()}
-            />
+          <div className="w-full h-full p-4 flex flex-col items-center overflow-hidden">
+            {(() => {
+              const p = activeLightboxItem.photo
+              const rotation = p.edit_params?.rotation ?? 0
+              if (rotation === 90 || rotation === 270) {
+                return (
+                  <RotatedCanvas
+                    src={p.image_url}
+                    rotation={rotation}
+                    brightness={p.edit_params?.brightness}
+                    onClick={e => e.stopPropagation()}
+                  />
+                )
+              }
+              return (
+                <img
+                  src={p.image_url}
+                  alt={p.caption || ''}
+                  className="h-full w-auto object-contain"
+                  style={p.edit_params ? getEditStyle(p.edit_params) : undefined}
+                  onClick={e => e.stopPropagation()}
+                />
+              )
+            })()}
           </div>
 
           {/* 마지막 사진이 아닐 때만 오른쪽 화살표 표시 */}

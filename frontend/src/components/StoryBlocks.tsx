@@ -1,6 +1,7 @@
 import { useTranslation } from 'react-i18next'
 // import { memo, useState, useMemo } from 'react'  // useState, useMemo: GhostFrameGrid 전용
 import { memo } from 'react'
+import { getEditStyle, type EditParams } from '../utils/editStyle'
 // import { computePortfolioRows } from '../utils/portfolioRows'  // GhostFrameGrid 전용
 import MarkdownRenderer from './MarkdownRenderer'
 import {
@@ -33,6 +34,7 @@ export interface ChapterItem {
   image_url: string | null
   caption: string | null
   text_content: string | null
+  edit_params?: EditParams | null
 }
 
 // ── DragHandle SVG (공통) ──────────────────────────────────
@@ -62,6 +64,7 @@ export interface OtherBlock {
 export interface SortablePhotoChapterProps {
   id: string
   imageUrl: string | null
+  editParams?: EditParams | null
   chapterId: string
   caption: string | null
   onRemove: (chapterId: string, itemId: string) => void
@@ -72,7 +75,7 @@ export interface SortablePhotoChapterProps {
 }
 
 export function SortablePhotoChapter({
-  id, imageUrl, chapterId, caption, onRemove, onClick, onRequestMove, fullWidthHint
+  id, imageUrl, editParams, chapterId, caption, onRemove, onClick, onRequestMove, fullWidthHint
 }: SortablePhotoChapterProps) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id })
   // useState import 필요
@@ -93,6 +96,7 @@ export function SortablePhotoChapter({
           src={imageUrl || undefined}
           alt={caption || undefined}
           className="absolute inset-0 w-full h-full object-contain cursor-pointer"
+          style={editParams ? getEditStyle(editParams) : undefined}
           onClick={onClick}
         />
         <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity z-10 pointer-events-none" />
@@ -294,6 +298,7 @@ function GhostFrameGrid({
                   <SortablePhotoChapter
                     id={rowItems[0].id}
                     imageUrl={rowItems[0].image_url}
+                    editParams={rowItems[0].edit_params}
                     chapterId={chapterId}
                     caption={rowItems[0].caption}
                     onRemove={onRemoveItem}
@@ -310,6 +315,7 @@ function GhostFrameGrid({
                       key={item.id}
                       id={item.id}
                       imageUrl={item.image_url}
+                      editParams={item.edit_params}
                       chapterId={chapterId}
                       caption={item.caption}
                       onRemove={onRemoveItem}
@@ -480,6 +486,7 @@ export const SortablePhotoBlock = memo(function SortablePhotoBlock({
                   key={item.id}
                   id={item.id}
                   imageUrl={item.image_url}
+                  editParams={item.edit_params}
                   chapterId={chapterId}
                   caption={item.caption}
                   onRemove={onRemoveItem}
@@ -544,6 +551,7 @@ export const SortableSideBySideBlock = memo(function SortableSideBySideBlock({
             <img
               src={item.image_url ?? ''}
               className="absolute inset-0 w-full h-full object-contain cursor-pointer"
+              style={item.edit_params ? getEditStyle(item.edit_params) : undefined}
               onClick={() => onPhotoClick(item)}
             />
             <button

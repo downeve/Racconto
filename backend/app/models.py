@@ -1,4 +1,5 @@
 from sqlalchemy import Column, String, Text, DateTime, Enum, ForeignKey, Integer, Boolean, UniqueConstraint
+from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import relationship
 from app.database import Base
 from datetime import datetime
@@ -79,6 +80,7 @@ class Photo(Base):
     original_filename = Column(String, nullable=True)
     local_missing = Column(Boolean, default=False, nullable=False)
     source = Column(String, nullable=True, default='web')
+    edit_params = Column(JSONB, nullable=True)
 
 class Pitch(Base):
     __tablename__ = "pitches"

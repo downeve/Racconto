@@ -166,6 +166,7 @@ def build_item_response(item: models.ChapterItem) -> dict:
         base["photo_id"] = item.photo_id
         base["image_url"] = item.photo.image_url
         base["caption"] = item.photo.caption
+        base["edit_params"] = item.photo.edit_params
     elif item.item_type == "TEXT":
         base["text_content"] = item.text_content
     return base

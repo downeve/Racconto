@@ -140,28 +140,6 @@ def upload_to_cloudflare(file_path: str, filename: str) -> str:
     return data["result"]["variants"][0]  # CF 이미지 URL 반환
 
 
-def rotate_and_upload_to_cloudflare(image_bytes: bytes, filename: str, direction: str) -> str:
-    """이미지 바이트를 받아 회전 후 CF Images에 업로드, 새 CF URL 반환. exif_transpose 적용 없음."""
-    img = PilImage.open(io.BytesIO(image_bytes))
-    if direction == "left":
-        img = img.rotate(90, expand=True)
-    elif direction == "right":
-        img = img.rotate(-90, expand=True)
-    else:
-        raise ValueError(f"Invalid direction: {direction}")
-    buf = io.BytesIO()
-    img.convert('RGB').save(buf, format='JPEG', quality=88, optimize=True)
-    buf.seek(0)
-    res = requests.post(
-        CF_UPLOAD_URL,
-        headers={"Authorization": f"Bearer {CF_API_TOKEN}"},
-        files={"file": (filename, buf, "image/jpeg")},
-    )
-    data = res.json()
-    if not data.get("success"):
-        raise Exception(f"CF 업로드 실패: {data}")
-    return data["result"]["variants"][0]
-
 
 def delete_from_cloudflare(image_url: str):
     """CF Images에서 이미지 삭제"""
@@ -269,6 +247,7 @@ class PhotoResponse(BaseModel):
     source: Optional[str] = 'web'
     local_missing: bool = False
     deleted_at: Optional[datetime] = None
+    edit_params: Optional[dict] = None
 
     class Config:
         from_attributes = True
@@ -287,8 +266,8 @@ class RestoreByFilenameRequest(BaseModel):
 class BulkPermanentDeleteRequest(BaseModel):
     photo_ids: list[str]
 
-class RotateRequest(BaseModel):
-    direction: str  # "left" 또는 "right"
+class EditParamsUpdate(BaseModel):
+    edit_params: Optional[dict] = None
 
 class LocalMissingUpdate(BaseModel):
     local_missing: bool
@@ -856,45 +835,17 @@ def permanent_delete_photo(
     return {"message": "PERMANENTLY_DELETED"}
 
 
-@router.post("/{photo_id}/rotate", response_model=PhotoResponse)
-def rotate_photo(
+@router.put("/{photo_id}/edit-params", response_model=PhotoResponse)
+def update_edit_params(
     photo_id: str,
-    body: RotateRequest,
-    background_tasks: BackgroundTasks,
+    body: EditParamsUpdate,
     db: Session = Depends(get_db),
     current_user: models.User = Depends(get_current_user)
 ):
     photo = get_owned_photo_or_404(photo_id, current_user.id, db)
-
-    if body.direction not in ("left", "right"):
-        raise HTTPException(status_code=400, detail="INVALID_DIRECTION")
-
-    try:
-        response = requests.get(photo.image_url, timeout=30)
-        response.raise_for_status()
-        image_bytes = response.content
-    except Exception as e:
-        raise HTTPException(status_code=502, detail=f"이미지 다운로드 실패: {e}")
-
-    old_image_url = photo.image_url
-    filename = f"{photo_id}_rotated.jpg"
-    try:
-        new_image_url = rotate_and_upload_to_cloudflare(image_bytes, filename, body.direction)
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"회전 업로드 실패: {e}")
-
-    photo.image_url = new_image_url
-
-    project = db.query(models.Project).filter(models.Project.id == photo.project_id).first()
-    if project and project.cover_image_url == old_image_url:
-        project.cover_image_url = new_image_url
-
+    photo.edit_params = body.edit_params
     db.commit()
     db.refresh(photo)
-
-    if "imagedelivery.net" in old_image_url:
-        background_tasks.add_task(delete_from_cloudflare, old_image_url)
-
     return photo
 
 

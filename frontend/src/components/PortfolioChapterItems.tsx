@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import MarkdownRenderer from './MarkdownRenderer'
+import { getEditStyle, type EditParams } from '../utils/editStyle'
 
 export const PORTFOLIO_WIDTH = 896  // max-w-4xl. 폭 변경 시 이 값과 className 함께 수정
 export const PORTFOLIO_GAP = 6      // px — 사진 사이 간격
@@ -10,6 +11,7 @@ export interface PortfolioPhoto {
   id?: string
   image_url?: string
   caption?: string | null
+  edit_params?: EditParams | null
 }
 
 export interface PortfolioChapterItem {
@@ -22,6 +24,7 @@ export interface PortfolioChapterItem {
   block_id?: string | null
   block_type?: string
   order_in_block?: number
+  edit_params?: EditParams | null
 }
 
 // ── PortfolioChapterItems 컴포넌트 ─────────────────────────
@@ -81,6 +84,7 @@ export default function PortfolioChapterItems({
               src={photo.image_url}
               loading="lazy"
               className="w-full h-full rounded-photo object-cover hover:opacity-90 transition-opacity block"
+              style={photo.edit_params ? getEditStyle(photo.edit_params) : undefined}
               onLoad={(e) => handleImageLoad(photo.image_url || '', e)}
             />
           </div>
@@ -160,6 +164,7 @@ export default function PortfolioChapterItems({
                 src={photo.image_url}
                 loading="lazy"
                 className="w-full rounded-photo cursor-pointer hover:opacity-90 transition-opacity block"
+                style={photo.edit_params ? getEditStyle(photo.edit_params) : undefined}
                 onClick={() => onLightbox?.(photo as PortfolioPhoto, allLightboxItems)}
               />
             </div>
@@ -207,6 +212,7 @@ export default function PortfolioChapterItems({
                 src={photo.image_url}
                 loading="lazy"
                 className="w-full rounded-photo cursor-pointer hover:opacity-90 transition-opacity"
+                style={photo.edit_params ? getEditStyle(photo.edit_params) : undefined}
                 onClick={() => onLightbox?.(photo as PortfolioPhoto, allLightboxItems)}
               />
             </div>
