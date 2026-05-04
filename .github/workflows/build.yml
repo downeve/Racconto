@@ -33,34 +33,20 @@ jobs:
         working-directory: electron
         run: npm ci
 
-      - name: Install Apple Certificate
-        env:
-          BUILD_CERTIFICATE_BASE64: ${{ secrets.CSC_LINK }}
-          P12_PASSWORD: ${{ secrets.CSC_KEY_PASSWORD }}
-          KEYCHAIN_PASSWORD: "temporary-password"
-        run: |
-          CERTIFICATE_PATH=$RUNNER_TEMP/build_certificate.p12
-          echo -n "$BUILD_CERTIFICATE_BASE64" | base64 --decode > $CERTIFICATE_PATH  # ✅ 수정
-
-          KEYCHAIN_PATH=$RUNNER_TEMP/app-signing.keychain-db
-          security create-keychain -p "$KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
-          security set-keychain-settings -lut 21600 $KEYCHAIN_PATH
-          security unlock-keychain -p "$KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
-
-          security import $CERTIFICATE_PATH -P "$P12_PASSWORD" -A -t cert -f pkcs12 -k $KEYCHAIN_PATH
-          security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k "$KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
-
-          security list-keychains -d user -s $KEYCHAIN_PATH
-          security default-keychain -s $KEYCHAIN_PATH  # ✅ 추가
+      # ❌ 기존의 'Install Apple Certificate' 수동 설정 단계는 삭제합니다.
 
       - name: Package (mac)
         working-directory: electron
         run: npx electron-builder --mac
         env:
+          # ✅ electron-builder가 자동으로 서명(Code Sign)을 처리하도록 돕는 환경변수
+          CSC_LINK: ${{ secrets.CSC_LINK }}
+          CSC_KEY_PASSWORD: ${{ secrets.CSC_KEY_PASSWORD }}
+          # ✅ notarize.js에서 사용하는 공증(Notarization) 환경변수
           APPLE_ID: ${{ secrets.APPLE_ID }}
           APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_APP_PASSWORD }}
           APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
-          DEBUG: electron-osx-sign* # 문제가 생길 경우 원인 파악을 위한 상세 로그 출력
+          DEBUG: electron-osx-sign*
 
       - name: Upload
         uses: actions/upload-artifact@v4
