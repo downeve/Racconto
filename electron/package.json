@@ -60,7 +60,6 @@
       "icon": "icons/icon.ico",
       "artifactName": "Racconto-beta-Setup.${ext}",
       "target": "nsis"
-    },
-    "afterSign": "scripts/notarize.js" 
+    }
   }
 }

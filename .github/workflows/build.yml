@@ -40,14 +40,13 @@ jobs:
         working-directory: electron
         run: npx electron-builder --mac
         env:
-          # ✅ electron-builder가 자동으로 서명(Code Sign)을 처리하도록 돕는 환경변수
           CSC_LINK: ${{ secrets.CSC_LINK }}
           CSC_KEY_PASSWORD: ${{ secrets.CSC_KEY_PASSWORD }}
-          # ✅ notarize.js에서 사용하는 공증(Notarization) 환경변수
           APPLE_ID: ${{ secrets.APPLE_ID }}
           APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_APP_PASSWORD }}
           APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
-          DEBUG: electron-osx-sign*
+          # 🌟 수정된 부분: 빌더와 공증 도구의 모든 로그를 출력하도록 변경
+          DEBUG: "electron-builder,electron-notarize*"
 
       - name: Upload
         uses: actions/upload-artifact@v4
