@@ -33,15 +33,22 @@ jobs:
         working-directory: electron
         run: npm ci
 
+      # ✅ 추가된 부분: Mac 시스템 키체인에 애플 인증서를 안전하게 미리 설치합니다.
+      - name: Install Apple Certificate
+        uses: apple-actions/import-codesigning-certs@v1
+        with:
+          p12-file-base64: ${{ secrets.CSC_LINK }}
+          p12-password: ${{ secrets.CSC_KEY_PASSWORD }}
+
       - name: Package (mac)
         working-directory: electron
         run: npx electron-builder --mac
         env:
+          # ✅ 변경된 부분: CSC_LINK 관련 변수는 위에서 처리했으므로 제거합니다.
           APPLE_ID: ${{ secrets.APPLE_ID }}
           APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_APP_PASSWORD }}
           APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
-          CSC_LINK: ${{ secrets.CSC_LINK }}
-          CSC_KEY_PASSWORD: ${{ secrets.CSC_KEY_PASSWORD }}
+          DEBUG: electron-osx-sign* # 만약 또 멈추면 원인을 파악하기 위해 상세 로그를 출력합니다.
 
       - name: Upload
         uses: actions/upload-artifact@v4
