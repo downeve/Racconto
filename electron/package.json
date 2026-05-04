@@ -63,9 +63,9 @@
       "hardenedRuntime": true,
       "gatekeeperAssess": false,
       "entitlements": "entitlements.mac.plist",
-      "entitlementsInherit": "entitlements.mac.plist"
+      "entitlementsInherit": "entitlements.mac.plist",
+      "afterSign": "scripts/notarize.js"
     },
-    "afterSign": "scripts/notarize.js",
     "win": {
       "icon": "icons/icon.ico",
       "artifactName": "Racconto-beta-Setup.${ext}",
