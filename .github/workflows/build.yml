@@ -52,21 +52,22 @@ jobs:
 
           security list-keychains -d user -s $KEYCHAIN_PATH
           security default-keychain -s $KEYCHAIN_PATH  # ✅ 추가
-            - name: Package (mac)
-              working-directory: electron
-              run: npx electron-builder --mac
-              env:
-                APPLE_ID: ${{ secrets.APPLE_ID }}
-                APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_APP_PASSWORD }}
-                APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
-                DEBUG: electron-osx-sign* # 문제가 생길 경우 원인 파악을 위한 상세 로그 출력
 
-            - name: Upload
-              uses: actions/upload-artifact@v4
-              with:
-                name: racconto-mac
-                path: electron/dist/*.dmg
-                retention-days: 7
+      - name: Package (mac)
+        working-directory: electron
+        run: npx electron-builder --mac
+        env:
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_APP_PASSWORD }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+          DEBUG: electron-osx-sign* # 문제가 생길 경우 원인 파악을 위한 상세 로그 출력
+
+      - name: Upload
+        uses: actions/upload-artifact@v4
+        with:
+          name: racconto-mac
+          path: electron/dist/*.dmg
+          retention-days: 7
 
   build-win:
     runs-on: windows-latest
