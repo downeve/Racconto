@@ -7,7 +7,7 @@ on:
 
 jobs:
   build-mac:
-    timeout-minutes: 20
+    timeout-minutes: 45 #깃허브 맥 빌드 타임 아웃 45분으로 수정
     runs-on: macos-latest
     steps:
       - name: Checkout
