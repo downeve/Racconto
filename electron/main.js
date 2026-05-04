@@ -29,7 +29,7 @@ const menuTranslations = {
     window: 'Window'
   },
   ko: {
-    navigate: '이동',
+    navigate: '메뉴',
     dashboard: '대시보드',
     projects: '프로젝트',
     portfolio: '포트폴리오',
@@ -38,7 +38,7 @@ const menuTranslations = {
     trash: '휴지통',
     toggleLanguage: '언어 변경',
     signOut: '로그아웃',
-    window: '창'
+    window: 'Window'
   }
 };
 
@@ -635,7 +635,6 @@ function createWindow() {
 }
 
 // ── 앱 메뉴 ──────────────────────────────────────────
-// ── 앱 메뉴 ──────────────────────────────────────────
 function buildAppMenu() {
   // 현재 언어에 맞는 텍스트를 반환하는 간단한 헬퍼 함수
   const t = (key) => menuTranslations[currentLocale][key] || key;
@@ -644,13 +643,22 @@ function buildAppMenu() {
     {
       label: 'Racconto', // 앱 이름은 보통 번역하지 않음
       submenu: [
-        { role: 'about' },
+        { 
+          label: 'About Racconto', // 🌟 이 부분을 추가하여 이름을 강제 고정합니다!
+          role: 'about'
+        },
         { type: 'separator' },
-        { role: 'hide' },
+        { 
+          label: 'Hide Racconto', // 🌟 이 부분을 추가하여 이름을 강제 고정합니다!
+          role: 'hide'
+        },
         { role: 'hideOthers' },
         { role: 'unhide' },
         { type: 'separator' },
-        { role: 'quit' },
+        { 
+          label: 'quit Racconto', // 🌟 이 부분을 추가하여 이름을 강제 고정합니다!
+          role: 'quit'
+        },
       ],
     },
     {
