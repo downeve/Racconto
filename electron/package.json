@@ -41,10 +41,6 @@
         "to": "frontend/dist"
       }
     ],
-    "extraMetadata": {
-      "main": "main.js"
-    },
-    "afterSign": "scripts/notarize.js",
     "mac": {
       "category": "public.app-category.photography",
       "icon": "icons/icon.icns",
@@ -52,25 +48,19 @@
       "target": [
         {
           "target": "dmg",
-          "arch": [
-            "arm64",
-            "x64"
-          ]
+          "arch": ["arm64", "x64"]
         }
-      ],
-      "asarUnpack": [
-        "node_modules/fsevents/**/*"
       ],
       "hardenedRuntime": true,
       "gatekeeperAssess": false,
       "entitlements": "entitlements.mac.plist",
-      "entitlementsInherit": "entitlements.mac.plist",
-      "afterSign": "scripts/notarize.js"
+      "entitlementsInherit": "entitlements.mac.plist"
     },
     "win": {
       "icon": "icons/icon.ico",
       "artifactName": "Racconto-beta-Setup.${ext}",
       "target": "nsis"
-    }
+    },
+    "afterSign": "scripts/notarize.js" 
   }
 }
