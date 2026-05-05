@@ -2,7 +2,6 @@ import { BrowserRouter, HashRouter, Routes, Route, Navigate, useLocation, useNav
 import { AuthProvider, useAuth } from './context/AuthContext'
 import { useTranslation } from 'react-i18next'
 import { useEffect, useRef } from 'react';
-import { Camera } from 'lucide-react'
 import Navbar from './components/Navbar'
 import Login from './pages/Login'
 import Dashboard from './pages/Dashboard'
@@ -27,6 +26,7 @@ import ScrollToTop from './components/ScrollToTop';
 import UploadToast from './components/UploadToast'
 import ElectronSidebar from './components/ElectronSidebar'
 import FeedbackWidget from './components/FeedbackWidget'
+import { getDeviceType } from './utils/deviceDetect'
 import { useState } from 'react'
 import { ElectronSidebarProvider } from './context/ElectronSidebarContext'
 
@@ -46,7 +46,7 @@ function AdminRoute({ children }: { children: React.ReactNode }) {
 
 function AppRoutes() {
   const { isAuthenticated, logout, user } = useAuth()
-  const {t, i18n} = useTranslation()
+  const { i18n } = useTranslation()
   const location = useLocation()
   const navigate = useNavigate()
 
@@ -54,7 +54,7 @@ function AppRoutes() {
   const hideNavbar = location.pathname.startsWith('/delivery/')
 
   const isElectron = typeof window !== 'undefined' && !!window.racconto
-  const isMobileDevice = /Android.*Mobile|webOS|iPhone|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)
+  const isMobileDevice = getDeviceType() === 'mobile'
   const [electronTab, setElectronTab] = useState<'photos' | 'story' | 'notes'>('photos')
   const [sidebarWidth, setSidebarWidth] = useState(() =>
     parseInt(localStorage.getItem('electron_sidebar_width') ?? '224', 10)
@@ -92,40 +92,8 @@ function AppRoutes() {
     window.racconto!.setMenuLanguage(lang)
   }, [i18n.language, isElectron])
 
-  const isAppPage = ['/dashboard', '/projects', '/trash', '/settings', '/racconto-admin'].some(
-    p => location.pathname === p || location.pathname.startsWith(p + '/')
-  )
-
   return (
     <div className={`min-h-screen bg-[#F7F4F0]${isMobileDevice && isAuthenticated && !hideNavbar ? ' pt-14' : ''}`}>
-      {/* 모바일 기기 차단 — UA 기반 감지 */}
-      {isMobileDevice && isAuthenticated && isAppPage && (
-        <div className="fixed inset-0 bg-[#F7F4F0] z-50 flex items-center justify-center p-8 text-center">
-          <div>
-            <div className="flex justify-center mb-4"><Camera size={36} strokeWidth={1.5} /></div>
-            <p className="text-lg font-bold text-stone-900 mb-2">
-              {t('landing.desktopOptimizationInfo')}
-            </p>
-            <p className="text-sm text-stone-500 leading-relaxed mb-6">
-              {t('landing.desktopOptimizationDesc')}
-            </p>
-            <div className="flex flex-col gap-3 items-center mb-6">
-              <a
-                href="https://racconto.app"
-                className="text-sm font-medium text-stone-700 border border-stone-300 rounded-card px-5 py-2 hover:bg-stone-100 transition-[background,color,border] duration-150 ease-out"
-              >
-                {t('landing.openInBrowser')}
-              </a>
-              <a
-                href="https://racconto.app#download"
-                className="text-sm font-medium text-white bg-stone-800 rounded-card px-5 py-2 hover:bg-stone-700 transition-[background,color,border] duration-150 ease-out"
-              >
-                {t('landing.downloadDesktopApp')}
-              </a>
-            </div>
-          </div>
-        </div>
-      )}
 
       {isMobileDevice && isAuthenticated && !hideNavbar && <Navbar onLogout={logout} />}
 
