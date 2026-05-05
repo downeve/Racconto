@@ -25,6 +25,18 @@ const COLOR_KEYS = [
   { key: 'color_label_purple', color: 'bg-purple-500', value: 'purple', meaningKey: 'finalSelect' },
 ]
 
+const RESERVED_WORDS = [
+  // App.tsx에 등록된 경로들
+  'login', 'dashboard', 'register', 'verify-email', 
+  'forgot-password', 'reset-password', 'features', 
+  'projects', 'trash', 'settings', 'racconto-admin', 
+  'download', 'delivery', 
+  
+  // 추가로 막아두면 좋은 범용 예약어 (선택)
+  'admin', 'api', 'support', 'help', 'root', 'user', 'portfolio'
+];
+
+
 export default function Settings() {
   const { user } = useAuth()
   const [email, setEmail] = useState(user?.email || '')
@@ -150,6 +162,13 @@ export default function Settings() {
     }
     if (value.length < 3) { setUsernameStatus('idle'); return }
     if (!/^[a-zA-Z0-9_-]+$/.test(value)) { setUsernameStatus('invalid'); return }
+
+    // 🚨 [추가] 예약어인지 먼저 검사!
+    if (RESERVED_WORDS.includes(value.toLowerCase())) {
+      setUsernameStatus('taken'); // 이미 사용 중인 이름으로 취급하여 차단
+      return;
+    }
+
     setUsernameStatus('checking')
     try {
       const res = await axios.get(`${API}/auth/check-username/${value}`)
