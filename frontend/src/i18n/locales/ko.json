@@ -220,10 +220,10 @@
     "addToChapter": "챕터에 사진 추가"
   },
   "colors": {
-    "reject": "거절",
+    "reject": "제외",
     "hold": "보류",
-    "select": "선택",
-    "clientShare": "클라이언트 공유",
+    "select": "1차 선택",
+    "clientShare": "외부 공유",
     "finalSelect": "최종 선택"
   },
   "colorLabels": {
@@ -584,8 +584,8 @@
     "feat3Desc": "웹과 데스크톱에서 업로드한 이미지를 클라우드 플레어로 동기화합니다.",
     "ctaDesc": "아직 계정이 없으신가요? 웹에서 먼저 시작해보세요.",
     "mac": {
-      "step1Title": "DMG 파일 다운로드",
-      "step1Desc": "버튼을 클릭하여 .dmg 파일을 다운로드합니다.",
+      "step1Title": "DMG 파일 다운로드 및 설치",
+      "step1Desc": ".dmg 파일을 받은 후 Racconto 아이콘을 응용 프로그램 폴더로 드래그합니다.",
       "step2Title": "Applications 폴더로 드래그",
       "step2Desc": "DMG 파일을 열고, Racconto 아이콘을 Applications(응용 프로그램) 폴더로 드래그합니다.",
       "step3Title": "처음 실행 시 경고창 처리",
@@ -603,7 +603,7 @@
       "step3Title": "설치 완료 후 실행",
       "step3Desc": "설치가 완료되면 바탕화면의 Racconto 아이콘을 실행합니다.",
       "step4Title": "실행 및 로그인",
-      "step4Desc": "racconto.app 계정으로 로그인하면 폴더 감시 및 자동 업로드가 시작됩니다."
+      "step4Desc": "racconto.app 계정으로 로그인합니다. 프로젝트와 폴더를 연결하면 자동 업로드가 시작됩니다."
     }
   }
 }

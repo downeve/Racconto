@@ -52,20 +52,20 @@ export default function AppDownload() {
       title: t('download.mac.step1Title'),
       desc: t('download.mac.step1Desc'),
     },
-    {
-      title: t('download.mac.step2Title'),
-      desc: t('download.mac.step2Desc'),
-    },
-    {
-      title: t('download.mac.step3Title'),
-      desc: t('download.mac.step3Desc'),
-      detail: t('download.mac.step3Detail'),
-      code: 'xattr -cr /Applications/Racconto.app',
-    },
-    {
-      title: t('download.mac.step4Title'),
-      desc: t('download.mac.step4Desc'),
-    },
+    //{
+    //  title: t('download.mac.step2Title'),
+    //  desc: t('download.mac.step2Desc'),
+    //},
+    //{
+    //  title: t('download.mac.step3Title'),
+    //  desc: t('download.mac.step3Desc'),
+    // detail: t('download.mac.step3Detail'),
+    //  code: 'xattr -cr /Applications/Racconto.app',
+    //},
+    //{
+    //  title: t('download.mac.step4Title'),
+    //  desc: t('download.mac.step4Desc'),
+    //},
   ]
 
   const winSteps: Step[] = [

@@ -372,7 +372,7 @@ export default function Settings() {
               {/* flex-1을 w-40(고정 너비)으로 변경 */}
               <input
                 className="w-40 border rounded px-3 py-1.5 text-sm outline-none focus:border-black transition-[background,color,border] duration-150 ease-out"
-                value={settings[key] || ''}
+                value={settings[colorName(color)] || ''}
                 onChange={e => handleChange(key, e.target.value)}
               />
             </div>

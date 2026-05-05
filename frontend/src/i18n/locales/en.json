@@ -224,7 +224,7 @@
   "colors": {
     "reject": "Reject",
     "hold": "Hold",
-    "select": "Select",
+    "select": "1st Select",
     "clientShare": "Client Share",
     "finalSelect": "Final Select"
   },

@@ -15,12 +15,12 @@ api_instance = sib_api_v3_sdk.TransactionalEmailsApi(
 
 EMAIL_TEMPLATES = {
     'ko': {
-        'subject': 'Racconto 이메일 인증',
-        'title': '이메일 인증',
-        'desc': '아래 버튼을 클릭하여 이메일 인증을 완료해주세요.',
-        'validity': '인증 링크는 24시간 동안 유효합니다.',
+        'subject': 'Racconto 가입 이메일 인증',
+        'title': '이메일 인증하기',
+        'desc': '안녕하세요! Racconto에 오신 것을 환영합니다! 아래 버튼을 클릭하여 이메일 인증을 해주세요.',
+        'validity': '보내 드린 인증 링크는 24시간 동안 유효합니다.',
         'button': '이메일 인증하기',
-        'ignore': '본인이 요청하지 않은 경우에는 이 이메일을 무시해주세요.',
+        'ignore': '만약 본인이 요청하지 않은 경우에는 이 이메일을 무시해주세요.',
     },
     'en': {
         'subject': 'Racconto Email Verification',
@@ -37,9 +37,9 @@ RESET_TEMPLATES = {
         'subject': 'Racconto 비밀번호 재설정',
         'title': '비밀번호 재설정',
         'desc': '아래 버튼을 클릭하여 새 비밀번호를 설정해주세요.',
-        'validity': '링크는 1시간 동안 유효합니다.',
+        'validity': '보내 드린 링크는 1시간 동안 유효합니다.',
         'button': '비밀번호 재설정하기',
-        'ignore': '본인이 요청하지 않은 경우에는 이 이메일을 무시해주세요.',
+        'ignore': '만약 본인이 요청하지 않은 경우에는 이 이메일을 무시해주세요.',
     },
     'en': {
         'subject': 'Racconto Password Reset',
@@ -214,8 +214,8 @@ def send_welcome_email(to_email: str, lang: str = 'ko'):
                     background-color: #F7F4F0; padding: 40px 32px; color: #1c1917;">
             <div style="margin-bottom: 32px;">
                 <span style="font-family: 'Noto Serif KR', Georgia, serif;
-                            font-size: 22px; font-weight: bold;
-                            letter-spacing: 0.15em; color: #1c1917;">
+                            font-size: 22px; font-weight: 700;
+                            letter-spacing: 0.08em; color: #1c1917;">
                     Racconto
                 </span>
             </div>
@@ -229,7 +229,8 @@ def send_welcome_email(to_email: str, lang: str = 'ko'):
                     {t['body']}
                 </p>
                 <a href="{login_url}"
-                style="display: inline-block; padding: 12px 28px;
+                style="font-family: 'Noto Serif KR', Georgia, serif;
+                        display: inline-block; padding: 12px 28px;
                         background-color: #1c1917; color: #ffffff !important;
                         text-decoration: none; font-size: 13px;
                         letter-spacing: 0.08em; border-radius: 2px;
