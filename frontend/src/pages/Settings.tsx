@@ -18,11 +18,11 @@ const API = import.meta.env.VITE_API_URL
 const DELIVERY_ENABLED = import.meta.env.VITE_ENABLE_DELIVERY === 'true'
 
 const COLOR_KEYS = [
-  { key: 'color_label_red',    color: 'bg-red-500',    value: 'red' },
-  { key: 'color_label_yellow', color: 'bg-yellow-400', value: 'yellow' },
-  { key: 'color_label_green',  color: 'bg-green-500',  value: 'green' },
-  { key: 'color_label_blue',   color: 'bg-blue-500',   value: 'blue' },
-  { key: 'color_label_purple', color: 'bg-purple-500', value: 'purple' },
+  { key: 'color_label_red',    color: 'bg-red-500',    value: 'red', meaningKey: 'reject' },
+  { key: 'color_label_yellow', color: 'bg-yellow-400', value: 'yellow', meaningKey: 'hold' },
+  { key: 'color_label_green',  color: 'bg-green-500',  value: 'green', meaningKey: 'select' },
+  { key: 'color_label_blue',   color: 'bg-blue-500',   value: 'blue', meaningKey: 'clientShare' },
+  { key: 'color_label_purple', color: 'bg-purple-500', value: 'purple', meaningKey: 'finalSelect' },
 ]
 
 export default function Settings() {
@@ -98,10 +98,7 @@ export default function Settings() {
   }
 
   useEffect(() => {
-    axios.get(`${API}/settings/`).then(res => {
-
-      console.log('설정 API 응답 데이터:', res.data)
-      
+    axios.get(`${API}/settings/`).then(res => {      
       setSettings(res.data)
       setPortfolioTheme(res.data['portfolio_theme'] || 'light')
       setDeliveryTagColor(res.data['delivery_tag_color'] || 'purple')
@@ -368,7 +365,7 @@ export default function Settings() {
         </h3>
         {/* 아까 넣었던 pr-8은 빼셔도 됩니다 */}
         <div className="grid grid-cols-2 gap-x-8 gap-y-4">
-          {COLOR_KEYS.map(({ key, color, value }) => (
+          {COLOR_KEYS.map(({ key, color, value, meaningKey }) => (
             <div key={key} className="flex items-center gap-3">
               <div className={`w-4 h-4 rounded-card ${color} shrink-0`} />
               <span className="text-sm text-gray-500 w-12 shrink-0">{t(`colorLabels.${value}`)}</span>
@@ -376,6 +373,7 @@ export default function Settings() {
               <input
                 className="w-40 border rounded px-3 py-1.5 text-sm outline-none focus:border-black transition-[background,color,border] duration-150 ease-out"
                 value={settings[key] || ''}
+                placeholder={t(`colors.${meaningKey}`)}
                 onChange={e => handleChange(key, e.target.value)}
               />
             </div>
