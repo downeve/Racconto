@@ -149,21 +149,22 @@ export default function MobileProjectDetail() {
   }), [photos, filterRating, filterColor, sortBy, sortOrder])
 
   const resizeImage = (file: File): Promise<Blob> => {
-    const MAX_SIZE = 2400
+    const MAX_SIZE = 3200
     return new Promise((resolve, reject) => {
       const img = new Image()
       const url = URL.createObjectURL(file)
       img.onload = () => {
         URL.revokeObjectURL(url)
         const { width, height } = img
-        if (Math.max(width, height) <= MAX_SIZE) { resolve(file); return }
         let newW = width, newH = height
-        if (width >= height) { newW = MAX_SIZE; newH = Math.round(height * MAX_SIZE / width) }
-        else { newH = MAX_SIZE; newW = Math.round(width * MAX_SIZE / height) }
+        if (Math.max(width, height) > MAX_SIZE) {
+          if (width >= height) { newW = MAX_SIZE; newH = Math.round(height * MAX_SIZE / width) }
+          else { newH = MAX_SIZE; newW = Math.round(width * MAX_SIZE / height) }
+        }
         const canvas = document.createElement('canvas')
         canvas.width = newW; canvas.height = newH
         canvas.getContext('2d')!.drawImage(img, 0, 0, newW, newH)
-        canvas.toBlob(blob => blob ? resolve(blob) : reject(new Error('toBlob failed')), 'image/jpeg', 0.95)
+        canvas.toBlob(blob => blob ? resolve(blob) : reject(new Error('toBlob failed')), 'image/jpeg', 0.88)
       }
       img.onerror = reject
       img.src = url

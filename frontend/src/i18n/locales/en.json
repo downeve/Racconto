@@ -560,6 +560,15 @@
     "noPublicProjects": "No public portfolio yet",
     "noPublicProjectsHint": "Make a project public and it will appear here."
   },
+  "mobileAppInfo": {
+    "eyebrow": "Desktop-Only App",
+    "title": "Please open Racconto\non a desktop",
+    "subtitle": "Racconto is a desktop app for photographers.\nVisit on a PC or Mac, or download the app.",
+    "downloadBtn": "Download Desktop App",
+    "openDesktop": "Open on PC / Mac",
+    "portfolioNote": "Received a portfolio link?",
+    "portfolioLink": "You can view portfolios on mobile too"
+  },
   "download": {
     "menu": "Download",
     "title": "Racconto for Desktop",

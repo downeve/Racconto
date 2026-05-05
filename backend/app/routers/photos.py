@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, BackgroundTasks
+from fastapi import APIRouter, Depends, HTTPException, BackgroundTasks
 from sqlalchemy.orm import Session
 from app.database import get_db
 from app import models
@@ -7,7 +7,6 @@ from typing import Optional
 from datetime import datetime
 import uuid
 import os
-import shutil
 import requests
 from PIL import Image as PilImage
 from app.auth import get_current_user
@@ -100,45 +99,6 @@ def extract_exif(file_path: str) -> dict:
 
     return exif_data
 
-def upload_to_cloudflare(file_path: str, filename: str) -> str:
-    """이미지를 장변 3200px로 리사이즈 후 CF Images에 업로드, CF URL 반환"""
-    # PIL로 리사이즈
-    img = PilImage.open(file_path)
-
-    # EXIF orientation 보정
-    try:
-        from PIL import ImageOps
-        img = ImageOps.exif_transpose(img)
-    except:
-        pass
-
-    # 장변 3200px 리사이즈
-    max_size = 3200
-    w, h = img.size
-    if max(w, h) > max_size:
-        if w >= h:
-            new_w, new_h = max_size, int(h * max_size / w)
-        else:
-            new_w, new_h = int(w * max_size / h), max_size
-        img = img.resize((new_w, new_h), PilImage.LANCZOS)
-    
-    # 메모리 버퍼에 JPEG로 저장
-    buf = io.BytesIO()
-    img.convert('RGB').save(buf, format='JPEG', quality=88, optimize=True)
-    buf.seek(0)
-    
-    # CF Images API 업로드
-    res = requests.post(
-        CF_UPLOAD_URL,
-        headers={"Authorization": f"Bearer {CF_API_TOKEN}"},
-        files={"file": (filename, buf, "image/jpeg")},
-    )
-    data = res.json()
-    if not data.get("success"):
-        raise Exception(f"CF 업로드 실패: {data}")
-    
-    return data["result"]["variants"][0]  # CF 이미지 URL 반환
-
 
 def rotate_and_upload_to_cloudflare(image_bytes: bytes, filename: str, direction: str) -> str:
     """이미지 바이트를 받아 회전 후 CF Images에 업로드, 새 CF URL 반환. exif_transpose 적용 없음."""
@@ -230,8 +190,6 @@ def get_owned_photo_or_404(
 
 router = APIRouter(prefix="/photos", tags=["photos"])
 
-UPLOAD_DIR = "app/uploads"
-os.makedirs(UPLOAD_DIR, exist_ok=True)
 
 class PhotoCreate(BaseModel):
     project_id: str
@@ -697,85 +655,6 @@ def delete_photo(
     touch_project(photo.project_id, db)
     db.commit()
     return {"message": "Moved to trash"}
-
-@router.post("/upload")
-async def upload_photo(
-    project_id: str,
-    file: UploadFile = File(...),
-    folder: Optional[str] = None,
-    db: Session = Depends(get_db),
-    current_user: models.User = Depends(get_current_user)
-):
-    # 💡 유저 계정당 총 사진 업로드 제한 체크 (Project와 Join)
-    photo_count = db.query(models.Photo).join(models.Project).filter(
-        models.Project.user_id == current_user.id,
-        models.Photo.deleted_at == None
-    ).count()
-    
-    if photo_count >= current_user.photo_limit:
-        raise HTTPException(
-            status_code=403,
-            detail={"code": "PHOTO_LIMIT_EXCEEDED", "limit": current_user.photo_limit}
-        )
-    
-    ext = file.filename.split(".")[-1].lower()
-    if ext not in ["jpg", "jpeg", "png", "webp"]:
-        # 💡 [수정] 400 에러를 던지면 업로드가 멈추므로, 무시할 수 있는 메시지로 처리하거나 프론트엔드에서 필터링해야 합니다.
-        # 일단 백엔드에서는 에러를 던지되, 프론트에서 이 파일을 걸러서 올리는 것이 가장 좋습니다.
-        raise HTTPException(status_code=400, detail="UNSUPPORTED_FILE_FORMAT")
-
-    file_id = str(uuid.uuid4())
-    original_filename = file.filename
-    filename = f"{file_id}.{ext}"
-    file_path = f"{UPLOAD_DIR}/{filename}"
-
-    with open(file_path, "wb") as buffer:
-        shutil.copyfileobj(file.file, buffer)
-
-    try:
-        # 💡 1. 파일을 지우기 전에 EXIF 데이터를 가장 먼저 추출합니다!
-        exif = extract_exif(file_path)
-
-        # 💡 2. CF에 업로드하고 URL 받기
-        image_url = upload_to_cloudflare(file_path, filename)
-        
-    finally:
-        # 💡 3. 로컬 임시 파일 삭제 (성공하든 에러가 나든 무조건 마지막에 지우도록 finally로 감쌈)
-        if os.path.exists(file_path):
-            try:
-                os.remove(file_path)
-            except Exception as e:
-                print(f"⚠️ 임시 파일 삭제 실패: {file_path} - {e}")
-
-    # 현재 프로젝트의 마지막 order 값 + 1
-    last_photo = db.query(models.Photo).filter(
-        models.Photo.project_id == project_id
-    ).order_by(models.Photo.order.desc()).first()
-    next_order = (last_photo.order + 1) if last_photo else 0
-
-    db_photo = models.Photo(
-        id=file_id,
-        project_id=project_id,
-        image_url=image_url,
-        order=next_order,
-        folder=folder,
-        source='web',
-        taken_at=exif.get('taken_at'),
-        camera=exif.get('camera'),
-        lens=exif.get('lens'),
-        iso=exif.get('iso'),
-        shutter_speed=exif.get('shutter_speed'),
-        aperture=exif.get('aperture'),
-        focal_length=exif.get('focal_length'),
-        gps_lat=exif.get('gps_lat'),
-        gps_lng=exif.get('gps_lng'),
-        original_filename=original_filename
-    )
-    db.add(db_photo)
-    touch_project(project_id, db)
-    db.commit()
-    db.refresh(db_photo)
-    return db_photo
 
 
 @router.get("/trash/{project_id}")
