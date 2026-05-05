@@ -283,7 +283,11 @@
     "portfolioPreviewPanel": "미리보기 미니 패널",
     "portfolioPreviewTitle": "배치 미리보기",
     "portfolioPreviewText": "텍스트",
-    "chapterPhotoCount": "{{count}}장"
+    "chapterPhotoCount": "{{count}}장",
+    "mobileReadOnly": "편집은 데스크톱에서 가능합니다",
+    "editMode": "편집",
+    "previewMode": "미리보기",
+    "deleteBlock": "블록 삭제"
   },
   "note": {
     "title": "노트",

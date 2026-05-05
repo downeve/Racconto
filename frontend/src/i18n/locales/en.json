@@ -288,7 +288,11 @@
     "portfolioPreviewTitle": "Mini Preview",
     "portfolioPreviewText": "Text",
     "chapterPhotoCount_one": "{{count}} Photo",
-    "chapterPhotoCount_other": "{{count}} Photos"
+    "chapterPhotoCount_other": "{{count}} Photos",
+    "mobileReadOnly": "Editing is available on desktop",
+    "editMode": "Edit",
+    "previewMode": "Preview",
+    "deleteBlock": "Delete Block"
   },
   "note": {
     "title": "Note",
