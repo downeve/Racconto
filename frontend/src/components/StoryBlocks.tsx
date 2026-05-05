@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next'
 import { memo } from 'react'
 // import { computePortfolioRows } from '../utils/portfolioRows'  // GhostFrameGrid 전용
 import MarkdownRenderer from './MarkdownRenderer'
+import { cfUrl } from '../utils/cfImage'
 import {
   DndContext,
   closestCorners,
@@ -90,7 +91,7 @@ export function SortablePhotoChapter({
     <div ref={setNodeRef} style={style} className="flex flex-col w-full h-full">
       <div className="relative group rounded overflow-hidden aspect-[3/2] shadow">
         <img
-          src={imageUrl || undefined}
+          src={cfUrl(imageUrl, 'grid')}
           alt={caption || undefined}
           className="absolute inset-0 w-full h-full object-contain cursor-pointer"
           onClick={onClick}
@@ -542,7 +543,7 @@ export const SortableSideBySideBlock = memo(function SortableSideBySideBlock({
         {photoItems.map(item => (
           <div key={item.id} className="relative group rounded overflow-hidden h-56 shadow">
             <img
-              src={item.image_url ?? ''}
+              src={cfUrl(item.image_url, 'grid')}
               className="absolute inset-0 w-full h-full object-contain cursor-pointer"
               onClick={() => onPhotoClick(item)}
             />

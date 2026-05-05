@@ -101,19 +101,19 @@ def extract_exif(file_path: str) -> dict:
     return exif_data
 
 def upload_to_cloudflare(file_path: str, filename: str) -> str:
-    """이미지를 장변 2400px로 리사이즈 후 CF Images에 업로드, CF URL 반환"""
+    """이미지를 장변 3200px로 리사이즈 후 CF Images에 업로드, CF URL 반환"""
     # PIL로 리사이즈
     img = PilImage.open(file_path)
-    
+
     # EXIF orientation 보정
     try:
         from PIL import ImageOps
         img = ImageOps.exif_transpose(img)
     except:
         pass
-    
-    # 장변 2400px 리사이즈
-    max_size = 2400
+
+    # 장변 3200px 리사이즈
+    max_size = 3200
     w, h = img.size
     if max(w, h) > max_size:
         if w >= h:
@@ -149,6 +149,16 @@ def rotate_and_upload_to_cloudflare(image_bytes: bytes, filename: str, direction
         img = img.rotate(-90, expand=True)
     else:
         raise ValueError(f"Invalid direction: {direction}")
+
+    max_size = 3200
+    w, h = img.size
+    if max(w, h) > max_size:
+        if w >= h:
+            new_w, new_h = max_size, int(h * max_size / w)
+        else:
+            new_w, new_h = int(w * max_size / h), max_size
+        img = img.resize((new_w, new_h), PilImage.LANCZOS)
+
     buf = io.BytesIO()
     img.convert('RGB').save(buf, format='JPEG', quality=88, optimize=True)
     buf.seek(0)

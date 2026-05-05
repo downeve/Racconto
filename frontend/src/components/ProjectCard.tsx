@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { MapPin } from 'lucide-react'
+import { cfUrl } from '../utils/cfImage'
 
 interface Project {
   id: string
@@ -31,7 +32,7 @@ export default function ProjectCard({ project }: { project: Project }) {
         <div className="h-48 bg-hair flex items-center justify-center">
           {project.cover_image_url ? (
             <img
-              src={project.cover_image_url}
+              src={cfUrl(project.cover_image_url, 'thumb')}
               alt={project.title}
               className="w-full h-full object-cover"
             />

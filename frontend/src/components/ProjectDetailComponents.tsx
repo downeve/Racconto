@@ -2,6 +2,7 @@ import { useEffect, useState, memo } from 'react'
 import { useTranslation } from 'react-i18next'
 import PhotoNotePanel from './PhotoNotePanel'
 import { BookOpen, FileText, AlertTriangle, Check } from 'lucide-react'
+import { cfUrl } from '../utils/cfImage'
 
 // ── 공통 타입 ──────────────────────────────────────────────
 
@@ -287,7 +288,7 @@ export function Lightbox({
           >‹</button>
         )}
         <img
-          src={photo.image_url}
+          src={cfUrl(photo.image_url, 'public')}
           alt={photo.caption || ''}
           className="max-w-[calc(100%-8rem)] max-h-full object-contain cursor-default"
           onClick={e => e.stopPropagation()}
@@ -412,7 +413,7 @@ export const PhotoCard = memo(function PhotoCard({
 
         {/* 이미지 */}
         <img
-          src={photo.image_url}
+          src={cfUrl(photo.image_url, 'grid')}
           alt={photo.caption || 'photo'}
           className={`w-full aspect-[3/2] object-contain transition-all ${
             selectionMode && isAlreadyInStory

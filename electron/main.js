@@ -167,8 +167,8 @@ async function uploadFile(item) {
 
   const { uploadURL } = await urlRes.json()
 
-  // 2. 장변 2400px 리사이즈 후 CF에 직접 업로드
-  const MAX_SIZE = 2400
+  // 2. 장변 3200px 리사이즈 후 CF에 직접 업로드
+  const MAX_SIZE = 3200
   const img = nativeImage.createFromPath(item.filePath)
   const { width, height } = img.getSize()
   let imageBuffer

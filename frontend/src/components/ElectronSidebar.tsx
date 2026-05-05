@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next'
 import { useElectronSidebar } from '../context/ElectronSidebarContext'
 import { useAuth } from '../context/AuthContext'
 import { Camera, BookOpen, FileText, LayoutDashboard, Aperture, Settings, ChevronDown, ChevronRight } from 'lucide-react'
+import { cfUrl } from '../utils/cfImage'
 
 const API = import.meta.env.VITE_API_URL
 
@@ -190,7 +191,7 @@ export default function ElectronSidebar({ activeTab, onTabChange, showTabs, widt
                 }`}
               >
                 {project.cover_image_url ? (
-                  <img src={project.cover_image_url} className="w-4 h-4 rounded object-cover shrink-0" />
+                  <img src={cfUrl(project.cover_image_url, 'thumb')} className="w-4 h-4 rounded object-cover shrink-0" />
                 ) : (
                   <span className="w-4 h-4 rounded bg-stone-300 shrink-0" />
                 )}

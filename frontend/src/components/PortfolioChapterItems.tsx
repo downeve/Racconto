@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import MarkdownRenderer from './MarkdownRenderer'
+import { cfUrl } from '../utils/cfImage'
 
 export const PORTFOLIO_WIDTH = 896  // max-w-4xl. 폭 변경 시 이 값과 className 함께 수정
 export const PORTFOLIO_GAP = 6      // px — 사진 사이 간격
@@ -78,7 +79,7 @@ export default function PortfolioChapterItems({
             onClick={() => onLightbox?.(photo as PortfolioPhoto, allLightboxItems)}
           >
             <img
-              src={photo.image_url}
+              src={cfUrl(photo.image_url, 'grid')}
               loading="lazy"
               className="w-full h-full rounded-photo object-cover hover:opacity-90 transition-opacity block"
               onLoad={(e) => handleImageLoad(photo.image_url || '', e)}
@@ -157,7 +158,7 @@ export default function PortfolioChapterItems({
           {sidePhotos.map(photo => (
             <div key={photo.id} className="break-inside-avoid rounded-photo">
               <img
-                src={photo.image_url}
+                src={cfUrl(photo.image_url, 'grid')}
                 loading="lazy"
                 className="w-full rounded-photo cursor-pointer hover:opacity-90 transition-opacity block"
                 onClick={() => onLightbox?.(photo as PortfolioPhoto, allLightboxItems)}
@@ -204,7 +205,7 @@ export default function PortfolioChapterItems({
           {photos.map(photo => (
             <div key={photo.id} className="break-inside-avoid rounded-photo">
               <img
-                src={photo.image_url}
+                src={cfUrl(photo.image_url, 'public')}
                 loading="lazy"
                 className="w-full rounded-photo cursor-pointer hover:opacity-90 transition-opacity"
                 onClick={() => onLightbox?.(photo as PortfolioPhoto, allLightboxItems)}

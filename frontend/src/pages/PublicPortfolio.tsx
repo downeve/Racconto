@@ -6,6 +6,7 @@ import { useAuth } from '../context/AuthContext'
 import PortfolioChapterItems, { type PortfolioPhoto } from '../components/PortfolioChapterItems'
 import PublicNavbar from '../components/PublicNavbar'
 import { Sun, Moon, MapPin } from 'lucide-react'
+import { cfUrl } from '../utils/cfImage'
 //import { Download } from 'lucide-react'
 //import { exportToPDF } from '../utils/exportToPDF'
 
@@ -259,7 +260,7 @@ export default function PublicPortfolio() {
                 <div className={`h-48 flex items-center justify-center ${darkMode ? 'bg-stone-800' : 'bg-hair'}`}>
                   {project.cover_image_url ? (
                     <img
-                      src={project.cover_image_url}
+                      src={cfUrl(project.cover_image_url, 'thumb')}
                       alt={project.title}
                       className="w-full h-full object-cover group-hover:opacity-95 transition-opacity"
                     />
@@ -401,7 +402,7 @@ export default function PublicPortfolio() {
 
           <div className="w-full h-full p-4 flex flex-col items-center">
             <img
-              src={activeLightboxItem.photo.image_url}
+              src={cfUrl(activeLightboxItem.photo.image_url, 'public')}
               alt={activeLightboxItem.photo.caption || ''}
               className="h-full w-auto object-contain"
               onClick={e => e.stopPropagation()}
