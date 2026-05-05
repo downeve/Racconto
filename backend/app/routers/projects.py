@@ -306,7 +306,7 @@ def permanent_delete(
     chapters = db.query(models.Chapter).filter(models.Chapter.project_id == project_id).all()
     chapter_ids = [c.id for c in chapters]
     if chapter_ids:
-        db.query(models.ChapterPhoto).filter(models.ChapterPhoto.chapter_id.in_(chapter_ids)).delete(synchronize_session=False)
+        db.query(models.ChapterItem).filter(models.ChapterItem.chapter_id.in_(chapter_ids)).delete(synchronize_session=False)
         
     db.query(models.Chapter).filter(models.Chapter.project_id == project_id).delete(synchronize_session=False)
 

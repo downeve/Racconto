@@ -4,7 +4,8 @@ import axios from 'axios'
 import { useTranslation } from 'react-i18next'
 import { useAuth } from '../../context/AuthContext'
 import { Sun, Moon, MapPin, X, ChevronLeft, ChevronRight } from 'lucide-react'
-import MobilePortfolioChapterItems from '../../components/mobile/MobilePortfolioChapterItems'
+import MarkdownRenderer from '../../components/MarkdownRenderer'
+import { cfUrl } from '../../utils/cfImage'
 
 const API = import.meta.env.VITE_API_URL
 
@@ -20,6 +21,98 @@ interface PortfolioProject {
   location: string | null; photos: Photo[]; chapters: Chapter[]; extra_photos: Photo[]
 }
 
+// ── 심플 아이템 렌더러 ────────────────────────────────────────
+// side-by-side, grid 등 없이 텍스트·사진을 순서대로 렌더링
+interface SimpleItemsProps {
+  items: ChapterItem[]
+  darkMode: boolean
+  allLightboxItems: { photo: Photo; title: string }[]
+  onLightbox: (photo: Photo, items: { photo: Photo; title: string }[]) => void
+}
+
+function SimpleMobileItems({ items, darkMode, allLightboxItems, onLightbox, photoPadding = 'px-2' }: SimpleItemsProps & { photoPadding?: string }) {
+  // block_id 기준으로 사진을 그룹핑해서 순서대로 렌더링
+  // 텍스트 아이템은 그냥 바로 출력, 사진은 block 단위로 묶어서 세로로 나열
+  const rendered = new Set<string>()
+
+  const elements: React.ReactNode[] = []
+
+  items.forEach((item, i) => {
+    if (item.item_type === 'TEXT') {
+      // side-by-side 텍스트도 여기선 그냥 독립 텍스트로 처리
+      elements.push(
+        <div key={`text-${i}`} className="my-5">
+          <MarkdownRenderer
+            content={item.text_content || ''}
+            darkMode={darkMode}
+            className="leading-[2.1] [word-break:keep-all] font-serif text-sm"
+          />
+        </div>
+      )
+      return
+    }
+
+    // PHOTO
+    const bid = item.block_id
+    if (bid) {
+      if (rendered.has(bid)) return
+      rendered.add(bid)
+
+      // 같은 block_id의 사진을 모아서 순서대로 세로 나열
+      const blockPhotos = items
+        .filter(p => p.item_type === 'PHOTO' && p.block_id === bid)
+        .sort((a, b) => (a.order_in_block ?? 0) - (b.order_in_block ?? 0))
+
+      elements.push(
+        <div key={`block-${bid}`} className={`space-y-2 mb-2 ${photoPadding}`}>
+          {blockPhotos.map(photo => (
+            <div
+              key={photo.id}
+              className="w-full overflow-hidden rounded-photo cursor-pointer"
+              onClick={() => onLightbox(photo as Photo, allLightboxItems)}
+            >
+              <img
+                src={cfUrl(photo.image_url, 'grid')}
+                loading="lazy"
+                className="w-full object-cover hover:opacity-90 transition-opacity block"
+              />
+              {photo.caption && (
+                <p className={`text-xs mt-1 px-0.5 ${darkMode ? 'text-stone-400' : 'text-stone-400'}`}>
+                  {photo.caption}
+                </p>
+              )}
+            </div>
+          ))}
+        </div>
+      )
+    } else {
+      // block_id 없는 단독 사진
+      elements.push(
+        <div
+          key={`photo-${item.id ?? i}`}
+          className="w-full overflow-hidden rounded-photo cursor-pointer mb-2"
+          onClick={() => onLightbox(item as Photo, allLightboxItems)}
+        >
+          <img
+            src={cfUrl(item.image_url, 'grid')}
+            loading="lazy"
+            className="w-full object-cover hover:opacity-90 transition-opacity block"
+          />
+          {item.caption && (
+            <p className={`text-xs mt-1 px-0.5 ${darkMode ? 'text-stone-400' : 'text-stone-400'}`}>
+              {item.caption}
+            </p>
+          )}
+        </div>
+      )
+    }
+  })
+
+  return <>{elements}</>
+}
+
+// ── 메인 컴포넌트 ─────────────────────────────────────────────
+
 export default function MobilePublicPortfolio() {
   const { username } = useParams()
   const { t } = useTranslation()
@@ -33,7 +126,6 @@ export default function MobilePublicPortfolio() {
   const [notFound, setNotFound] = useState(false)
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null)
   const [lightboxItems, setLightboxItems] = useState<{ photo: Photo; title: string }[]>([])
-  const [containerWidth, setContainerWidth] = useState(0)
   const containerRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -54,14 +146,6 @@ export default function MobilePublicPortfolio() {
       .catch(err => { if (err.response?.status === 404) setNotFound(true) })
   }, [username])
 
-  useEffect(() => {
-    const observer = new ResizeObserver(entries => {
-      setContainerWidth(entries[0].contentRect.width)
-    })
-    if (containerRef.current) observer.observe(containerRef.current)
-    return () => observer.disconnect()
-  }, [])
-
   const getAllChapterItems = (project: PortfolioProject) => {
     const items: { photo: Photo; title: string }[] = []
     project.chapters?.forEach((ch, idx) => {
@@ -76,12 +160,14 @@ export default function MobilePublicPortfolio() {
   }
 
   const openLightbox = (photo: Photo, items: { photo: Photo; title: string }[]) => {
-    const idx = items.findIndex(item => item.photo === photo)
+    const idx = items.findIndex(item => item.photo.id === photo.id)
     setLightboxItems(items)
     setLightboxIndex(idx !== -1 ? idx : 0)
   }
 
   const bg = darkMode ? 'bg-stone-900 text-white' : 'bg-[#F7F4F0] text-stone-900'
+  const subText = darkMode ? 'text-stone-400' : 'text-stone-500'
+  const divider = darkMode ? 'bg-stone-700' : 'bg-stone-200'
 
   if (notFound) {
     return (
@@ -96,7 +182,10 @@ export default function MobilePublicPortfolio() {
       {/* 상단 바 */}
       <div className="flex items-center justify-between px-4 py-3">
         {selectedProject ? (
-          <button onClick={() => setSelectedProject(null)} className="min-w-[44px] min-h-[44px] flex items-center justify-center">
+          <button
+            onClick={() => { setSelectedProject(null); window.scrollTo(0, 0) }}
+            className="min-w-[44px] min-h-[44px] flex items-center justify-center"
+          >
             <ChevronLeft size={22} strokeWidth={1.5} />
           </button>
         ) : (
@@ -113,7 +202,7 @@ export default function MobilePublicPortfolio() {
 
       <div ref={containerRef} className="px-4">
         {!selectedProject ? (
-          // 프로젝트 목록
+          // ── 프로젝트 목록 ──────────────────────────────────
           <div className="flex flex-col gap-4 pb-8">
             {projects.map(project => (
               <div
@@ -129,71 +218,124 @@ export default function MobilePublicPortfolio() {
                 <div className="p-3">
                   <p className="font-semibold text-sm">{project.title}</p>
                   {project.location && (
-                    <p className={`flex items-center gap-1 text-xs mt-1 ${darkMode ? 'text-stone-400' : 'text-stone-400'}`}>
+                    <p className={`flex items-center gap-1 text-xs mt-1 ${subText}`}>
                       <MapPin size={11} strokeWidth={1.5} />{project.location}
                     </p>
                   )}
                 </div>
               </div>
             ))}
+            {projects.length === 0 && (
+              <div className="text-center py-20">
+                <p className={`text-sm ${subText}`}>{t('portfolio.noPublicProjects')}</p>
+              </div>
+            )}
           </div>
         ) : (
-          // 선택된 프로젝트 상세
-          <div className="pb-8">
+          // ── 프로젝트 상세 ──────────────────────────────────
+          <div className="pb-12">
+            {/* 프로젝트 헤더 */}
             <h1 className="text-2xl font-serif font-semibold mb-1">{selectedProject.title}</h1>
             {selectedProject.location && (
-              <p className={`flex items-center gap-1 text-xs mb-4 ${darkMode ? 'text-stone-400' : 'text-stone-400'}`}>
+              <p className={`flex items-center gap-1 text-xs mb-3 ${subText}`}>
                 <MapPin size={12} strokeWidth={1.5} />{selectedProject.location}
               </p>
             )}
-            {selectedProject.chapters.map((chapter) => {
-              const allChapterItems = getAllChapterItems(selectedProject)
-              return (
-                <div key={chapter.id} className="mb-8">
-                  <h2 className="text-lg font-semibold mb-1">{chapter.title}</h2>
-                  {chapter.description && <p className={`text-sm mb-3 ${darkMode ? 'text-stone-300' : 'text-stone-500'}`}>{chapter.description}</p>}
-                  {containerWidth > 0 && (
-                    <MobilePortfolioChapterItems
-                      items={chapter.items as any}
-                      allLightboxItems={allChapterItems as any}
-                      darkMode={darkMode}
-                      containerWidth={containerWidth}
-                      onLightbox={(photo, items) => openLightbox(photo as Photo, items as any)}
-                    />
-                  )}
-                  {chapter.sub_chapters?.map((sub) => (
-                    <div key={sub.id} className="mt-4">
-                      <h3 className="text-base font-medium mb-1">{sub.title}</h3>
-                      {sub.description && <p className={`text-xs mb-2 ${darkMode ? 'text-stone-400' : 'text-stone-400'}`}>{sub.description}</p>}
-                      {containerWidth > 0 && (
-                        <MobilePortfolioChapterItems
-                          items={sub.items as any}
-                          allLightboxItems={allChapterItems as any}
-                          darkMode={darkMode}
-                          containerWidth={containerWidth}
-                          onLightbox={(photo, items) => openLightbox(photo as Photo, items as any)}
-                        />
-                      )}
+            {selectedProject.description && (
+              <p className={`text-sm font-serif mb-6 [word-break:keep-all] leading-relaxed ${subText}`}>
+                {selectedProject.description}
+              </p>
+            )}
+
+            {/* 챕터 목록 */}
+            {selectedProject.chapters.length > 0 ? (
+              <div>
+                {selectedProject.chapters.map((chapter, idx) => {
+                  const allChapterItems = getAllChapterItems(selectedProject)
+                  return (
+                    <div key={chapter.id}>
+                      {/* 챕터 구분선 — 첫 챕터 제외 */}
+                      {idx > 0 && <div className={`h-px my-8 ${divider}`} />}
+
+                      {/* 챕터 헤더 */}
+                      <div className="mb-5">
+                        <div className="flex items-baseline gap-2 mb-1">
+                          <span className={`text-xs uppercase ${subText}`}>
+                            {idx + 1 < 10 ? `0${idx + 1}` : idx + 1}
+                          </span>
+                          <h2 className="text-xl font-serif font-bold tracking-tight">{chapter.title}</h2>
+                        </div>
+                        {chapter.description && (
+                          <p className={`text-sm font-serif [word-break:keep-all] leading-relaxed ${subText}`}>
+                            {chapter.description}
+                          </p>
+                        )}
+                        <div className={`mt-4 h-px w-10 ${divider}`} />
+                      </div>
+
+                      {/* 챕터 아이템 */}
+                      <SimpleMobileItems
+                        items={chapter.items || []}
+                        darkMode={darkMode}
+                        allLightboxItems={allChapterItems}
+                        onLightbox={openLightbox}
+                      />
+
+                      {/* 서브챕터 */}
+                      {chapter.sub_chapters?.map((sub, subIdx) => (
+                        <div key={sub.id} className="mt-8">
+                          <div className={`h-px mb-6 w-1/3 ${divider}`} />
+                          <div className="mb-4">
+                            <div className="flex items-baseline gap-2 mb-1">
+                              <span className={`text-xs ${subText}`}>{idx + 1}.{subIdx + 1}</span>
+                              <h3 className="text-base font-serif font-semibold">{sub.title}</h3>
+                            </div>
+                            {sub.description && (
+                              <p className={`text-xs font-serif [word-break:keep-all] leading-relaxed ${subText}`}>
+                                {sub.description}
+                              </p>
+                            )}
+                          </div>
+                          <SimpleMobileItems
+                            items={sub.items || []}
+                            darkMode={darkMode}
+                            allLightboxItems={allChapterItems}
+                            onLightbox={openLightbox}
+                          />
+                        </div>
+                      ))}
                     </div>
-                  ))}
-                </div>
-              )
-            })}
+                  )
+                })}
+              </div>
+            ) : (
+              <div className={`text-center py-20 ${subText}`}>
+                <p className="text-sm">{t('portfolio.noChapters')}</p>
+              </div>
+            )}
           </div>
         )}
       </div>
 
       {/* Lightbox */}
       {lightboxIndex !== null && lightboxItems[lightboxIndex] && (
-        <div className="fixed inset-0 bg-black/95 z-50 flex flex-col" style={{ paddingTop: 'env(safe-area-inset-top)', paddingBottom: 'env(safe-area-inset-bottom)' }}>
+        <div
+          className="fixed inset-0 bg-black/95 z-50 flex flex-col"
+          style={{ paddingTop: 'env(safe-area-inset-top)', paddingBottom: 'env(safe-area-inset-bottom)' }}
+        >
           <div className="flex items-center justify-between px-4 py-2 shrink-0">
-            <button onClick={() => setLightboxIndex(null)} className="min-w-[44px] min-h-[44px] flex items-center justify-center">
+            <button
+              onClick={() => setLightboxIndex(null)}
+              className="min-w-[44px] min-h-[44px] flex items-center justify-center"
+            >
               <X size={22} strokeWidth={1.5} className="text-white" />
             </button>
             <span className="text-white/60 text-sm">{lightboxIndex + 1} / {lightboxItems.length}</span>
             <div className="w-[44px]" />
           </div>
-          <div className="flex-1 flex items-center justify-center relative"
+
+          <div
+            className="flex-1 flex items-center justify-center relative"
             onTouchStart={e => { (e.currentTarget as any)._tx = e.touches[0].clientX }}
             onTouchEnd={e => {
               const startX = (e.currentTarget as any)._tx ?? 0
@@ -202,18 +344,29 @@ export default function MobilePublicPortfolio() {
               if (delta > 50 && lightboxIndex > 0) setLightboxIndex(v => v! - 1)
             }}
           >
-            <img src={lightboxItems[lightboxIndex].photo.image_url} style={{ width: '100%', height: '100dvh', objectFit: 'contain' }} draggable={false} />
+            <img
+              src={lightboxItems[lightboxIndex].photo.image_url}
+              style={{ width: '100%', height: '100dvh', objectFit: 'contain' }}
+              draggable={false}
+            />
             {lightboxIndex > 0 && (
-              <button onClick={() => setLightboxIndex(v => v! - 1)} className="absolute left-2 min-w-[44px] min-h-[44px] flex items-center justify-center bg-black/30 rounded-full">
+              <button
+                onClick={() => setLightboxIndex(v => v! - 1)}
+                className="absolute left-2 min-w-[44px] min-h-[44px] flex items-center justify-center bg-black/30 rounded-full"
+              >
                 <ChevronLeft size={22} strokeWidth={1.5} className="text-white" />
               </button>
             )}
             {lightboxIndex < lightboxItems.length - 1 && (
-              <button onClick={() => setLightboxIndex(v => v! + 1)} className="absolute right-2 min-w-[44px] min-h-[44px] flex items-center justify-center bg-black/30 rounded-full">
+              <button
+                onClick={() => setLightboxIndex(v => v! + 1)}
+                className="absolute right-2 min-w-[44px] min-h-[44px] flex items-center justify-center bg-black/30 rounded-full"
+              >
                 <ChevronRight size={22} strokeWidth={1.5} className="text-white" />
               </button>
             )}
           </div>
+
           {lightboxItems[lightboxIndex].photo.caption && (
             <div className="shrink-0 px-4 py-2 text-white/60 text-sm text-center">
               {lightboxItems[lightboxIndex].photo.caption}

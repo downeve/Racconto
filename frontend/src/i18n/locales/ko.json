@@ -557,9 +557,9 @@
     "noPublicProjectsHint": "프로젝트를 공개하여 포트폴리오를 만드세요."
   },
   "mobileAppInfo": {
-    "eyebrow": "데스크톱 전용 앱",
-    "title": "Racconto는\n데스크톱에서 열어주세요",
-    "subtitle": "Racconto는 사진작가를 위한 데스크톱 앱입니다.\nPC나 Mac에서 접속하거나, 앱을 다운로드해 사용하세요.",
+    "eyebrow": "모바일 작업 환경 공지",
+    "title": "Raccoto for Mobile은 오픈 베타 종료 후에 예정되어 있습니다.",
+    "subtitle": "지금 Racconto를 이용하시려면, \nPC나 Mac에서 접속하거나, 앱을 다운로드해 사용하세요.",
     "downloadBtn": "데스크톱 앱 다운로드",
     "openDesktop": "PC / Mac에서 열기",
     "portfolioNote": "포트폴리오 링크를 받으셨나요?",
