@@ -285,7 +285,7 @@ async def google_login(request: Request):
 
 
 @router.get("/google/callback")
-async def google_callback(request: Request, state: str, code: Optional[str] = None, error: Optional[str] = None, db: Session = Depends(get_db)):
+async def google_callback(request: Request, background_tasks: BackgroundTasks, state: str, code: Optional[str] = None, error: Optional[str] = None, db: Session = Depends(get_db)):
     if error:
         return RedirectResponse(f"{FRONTEND_URL}/login?error=cancelled")
     saved_state = request.session.get("oauth_state")
@@ -321,6 +321,7 @@ async def google_callback(request: Request, state: str, code: Optional[str] = No
         models.User.oauth_id == google_id
     ).first()
 
+    is_new_user = False
     if not user:
         user = db.query(models.User).filter(models.User.email == email).first()
         if user:
@@ -342,8 +343,12 @@ async def google_callback(request: Request, state: str, code: Optional[str] = No
                 is_verified=True,
             )
             db.add(user)
+            is_new_user = True
         db.commit()
         db.refresh(user)
+
+    if is_new_user and email:
+        background_tasks.add_task(send_welcome_email, email)
 
     access_token = create_access_token(data={"sub": user.id, "is_admin": user.is_admin})
     return RedirectResponse(f"{FRONTEND_URL}/auth/social-callback?token={access_token}")
@@ -400,7 +405,7 @@ async def apple_login(request: Request):
 
 
 @router.post("/apple/callback")
-async def apple_callback(request: Request, db: Session = Depends(get_db)):
+async def apple_callback(request: Request, background_tasks: BackgroundTasks, db: Session = Depends(get_db)):
     form = await request.form()
     code = form.get("code")
     state = form.get("state")
@@ -449,6 +454,7 @@ async def apple_callback(request: Request, db: Session = Depends(get_db)):
 
     refresh_token = token_data.get("refresh_token")
 
+    is_new_user = False
     if not user:
         if email:
             user = db.query(models.User).filter(models.User.email == email).first()
@@ -473,11 +479,15 @@ async def apple_callback(request: Request, db: Session = Depends(get_db)):
                 is_verified=True,
             )
             db.add(user)
+            is_new_user = True
 
     if refresh_token:
         user.apple_refresh_token = refresh_token
     db.commit()
     db.refresh(user)
+
+    if is_new_user and email and not email.endswith("@privaterelay.appleid.apple.com"):
+        background_tasks.add_task(send_welcome_email, email)
 
     access_token = create_access_token(data={"sub": user.id, "is_admin": user.is_admin})
     return RedirectResponse(f"{FRONTEND_URL}/auth/social-callback?token={access_token}", status_code=303)
@@ -501,6 +511,7 @@ async def naver_login(request: Request):
 @router.get("/naver/callback")
 async def naver_callback(
     request: Request,
+    background_tasks: BackgroundTasks,
     state: str,
     code: Optional[str] = None,
     error: Optional[str] = None,
@@ -553,6 +564,7 @@ async def naver_callback(
         models.User.oauth_id == naver_id
     ).first()
 
+    is_new_user = False
     if not user:
         if email:
             user = db.query(models.User).filter(models.User.email == email).first()
@@ -577,9 +589,13 @@ async def naver_callback(
                 is_verified=True,
             )
             db.add(user)
+            is_new_user = True
 
         db.commit()
         db.refresh(user)
+
+    if is_new_user and email:
+        background_tasks.add_task(send_welcome_email, email)
 
     access_token_jwt = create_access_token(data={"sub": user.id, "is_admin": user.is_admin})
     return RedirectResponse(f"{FRONTEND_URL}/auth/social-callback?token={access_token_jwt}")
