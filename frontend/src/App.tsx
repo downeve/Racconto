@@ -29,6 +29,7 @@ import FeedbackWidget from './components/FeedbackWidget'
 import { getDeviceType } from './utils/deviceDetect'
 import { useState } from 'react'
 import { ElectronSidebarProvider } from './context/ElectronSidebarContext'
+import SocialCallback from './pages/auth/SocialCallback'
 
 function PrivateRoute({ children }: { children: React.ReactNode }) {
   const { isAuthenticated, isLoading } = useAuth()
@@ -117,6 +118,7 @@ function AppRoutes() {
         <FeedbackWidget />
         <Routes>
           <Route path="/login" element={<Login />} />
+          <Route path="/auth/social-callback" element={<SocialCallback />} />
           <Route path="/dashboard" element={<PrivateRoute><Dashboard /></PrivateRoute>} />
           <Route path="/register" element={<Register />} />
           <Route path="/verify-email" element={<VerifyEmail />} />

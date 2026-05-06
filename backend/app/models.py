@@ -8,7 +8,9 @@ class User(Base):
     __tablename__ = "users"
     id = Column(String, primary_key=True)
     email = Column(String, unique=True, nullable=False, index=True)
-    password_hash = Column(String, nullable=False)
+    password_hash = Column(String, nullable=True)
+    oauth_provider = Column(String, nullable=True)
+    oauth_id = Column(String, nullable=True)
     projects = relationship("Project", back_populates="owner", cascade="all, delete-orphan")
     settings = relationship("Setting", back_populates="owner", cascade="all, delete-orphan")
     is_verified = Column(Boolean, default=False)

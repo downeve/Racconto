@@ -2,10 +2,13 @@ annotated-doc==0.0.4
 annotated-types==0.7.0
 anyio==4.13.0
 APScheduler==3.11.2
+Authlib==1.7.2
 bcrypt==5.0.0
 certifi==2026.2.25
+cffi==2.0.0
 charset-normalizer==3.4.7
 click==8.3.1
+cryptography==48.0.0
 dnspython==2.8.0
 email-validator==2.3.0
 exceptiongroup==1.3.1
@@ -15,9 +18,12 @@ h11==0.16.0
 httpcore==1.0.9
 httpx==0.28.1
 idna==3.11
+itsdangerous==2.2.0
+joserfc==1.6.5
 passlib==1.7.4
 pillow==12.1.1
 psycopg2-binary==2.9.11
+pycparser==3.0
 pydantic==2.12.5
 pydantic_core==2.41.5
 PyJWT==2.12.1

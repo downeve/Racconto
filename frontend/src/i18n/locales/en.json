@@ -40,7 +40,13 @@
     "resetPasswordSubmit": "Change password",
     "resetPasswordSuccess": "Password changed successfully. Please log in with your new password.",
     "resetPasswordInvalidToken": "This link has expired or is invalid. Please request a new one.",
-    "forgotPasswordUserNotFound": "No account found with that email address."
+    "forgotPasswordUserNotFound": "No account found with that email address.",
+    "or": "or",
+    "google": "Continue with Google",
+    "apple": "Continue with Apple",
+    "social": {
+      "processing": "Signing you in..."
+    }
   },
   "register": {
     "email": "Email",

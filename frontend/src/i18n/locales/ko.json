@@ -40,7 +40,13 @@
     "resetPasswordSubmit": "비밀번호 변경하기",
     "resetPasswordSuccess": "비밀번호가 변경되었습니다. 새 비밀번호로 로그인해주세요.",
     "resetPasswordInvalidToken": "링크가 만료되었거나 유효하지 않습니다. 다시 요청해주세요.",
-    "forgotPasswordUserNotFound": "가입되지 않은 이메일 주소입니다."
+    "forgotPasswordUserNotFound": "가입되지 않은 이메일 주소입니다.",
+    "or": "또는",
+    "google": "Google로 로그인",
+    "apple": "Apple로 로그인",
+    "social": {
+      "processing": "로그인 처리 중..."
+    }
   },
   "register": {
     "email": "이메일",

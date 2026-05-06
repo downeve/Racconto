@@ -1,5 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from starlette.middleware.sessions import SessionMiddleware
 from fastapi.staticfiles import StaticFiles
 from app.database import engine, SessionLocal
 from sqlalchemy import text
@@ -22,6 +23,11 @@ with engine.connect() as conn:
     conn.commit()
 
 app = FastAPI(title="Racconto API")
+
+app.add_middleware(
+    SessionMiddleware,
+    secret_key=os.getenv("SECRET_KEY", "change-this-in-production")
+)
 
 app.add_middleware(
     CORSMiddleware,

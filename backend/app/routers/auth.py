@@ -11,6 +11,23 @@ from datetime import datetime, timedelta
 from typing import Optional
 from app.routers.photos import delete_cf_files_parallel
 import secrets
+import httpx
+import jwt as pyjwt
+import time
+import os
+from starlette.requests import Request
+from starlette.responses import RedirectResponse
+
+GOOGLE_CLIENT_ID = os.getenv("GOOGLE_CLIENT_ID")
+GOOGLE_CLIENT_SECRET = os.getenv("GOOGLE_CLIENT_SECRET")
+
+APPLE_CLIENT_ID = os.getenv("APPLE_CLIENT_ID")
+APPLE_TEAM_ID = os.getenv("APPLE_TEAM_ID")
+APPLE_KEY_ID = os.getenv("APPLE_KEY_ID")
+APPLE_PRIVATE_KEY = os.getenv("APPLE_PRIVATE_KEY", "")
+
+BACKEND_URL = os.getenv("BACKEND_URL", "https://racconto.app")
+FRONTEND_URL = os.getenv("BASE_URL", "https://racconto.app")
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
@@ -245,6 +262,194 @@ def update_username(
     db.commit()
     
     return {"message": "USERNAME_UPDATED", "username": body.username}
+
+
+@router.get("/google/login")
+async def google_login(request: Request):
+    state = secrets.token_urlsafe(16)
+    request.session["oauth_state"] = state
+    redirect_uri = f"{BACKEND_URL}/api/auth/google/callback"
+    google_auth_url = (
+        "https://accounts.google.com/o/oauth2/v2/auth"
+        f"?client_id={GOOGLE_CLIENT_ID}"
+        f"&redirect_uri={redirect_uri}"
+        "&response_type=code"
+        "&scope=openid email profile"
+        f"&state={state}"
+    )
+    return RedirectResponse(google_auth_url)
+
+
+@router.get("/google/callback")
+async def google_callback(request: Request, code: str, state: str, db: Session = Depends(get_db)):
+    saved_state = request.session.get("oauth_state")
+    if not saved_state or saved_state != state:
+        raise HTTPException(status_code=400, detail="INVALID_STATE")
+
+    redirect_uri = f"{BACKEND_URL}/api/auth/google/callback"
+
+    async with httpx.AsyncClient() as client:
+        token_resp = await client.post(
+            "https://oauth2.googleapis.com/token",
+            data={
+                "code": code,
+                "client_id": GOOGLE_CLIENT_ID,
+                "client_secret": GOOGLE_CLIENT_SECRET,
+                "redirect_uri": redirect_uri,
+                "grant_type": "authorization_code",
+            }
+        )
+        token_data = token_resp.json()
+
+    if "error" in token_data:
+        raise HTTPException(status_code=400, detail="GOOGLE_TOKEN_ERROR")
+
+    id_token = token_data.get("id_token")
+    payload = pyjwt.decode(id_token, options={"verify_signature": False})
+
+    google_id = payload["sub"]
+    email = payload.get("email")
+
+    user = db.query(models.User).filter(
+        models.User.oauth_provider == "google",
+        models.User.oauth_id == google_id
+    ).first()
+
+    if not user:
+        user = db.query(models.User).filter(models.User.email == email).first()
+        if user:
+            user.oauth_provider = "google"
+            user.oauth_id = google_id
+            user.is_verified = True
+        else:
+            username = email.split("@")[0] if email else f"user_{google_id[:8]}"
+            existing = db.query(models.User).filter(models.User.username == username).first()
+            if existing:
+                username = f"{username}_{secrets.token_hex(3)}"
+            user = models.User(
+                id=str(uuid.uuid4()),
+                email=email,
+                username=username,
+                password_hash=None,
+                oauth_provider="google",
+                oauth_id=google_id,
+                is_verified=True,
+            )
+            db.add(user)
+        db.commit()
+        db.refresh(user)
+
+    access_token = create_access_token(data={"sub": user.id, "is_admin": user.is_admin})
+    return RedirectResponse(f"{FRONTEND_URL}/auth/social-callback?token={access_token}")
+
+
+def _generate_apple_client_secret() -> str:
+    now = int(time.time())
+    payload = {
+        "iss": APPLE_TEAM_ID,
+        "iat": now,
+        "exp": now + 86400 * 180,
+        "aud": "https://appleid.apple.com",
+        "sub": APPLE_CLIENT_ID,
+    }
+    headers = {"kid": APPLE_KEY_ID, "alg": "ES256"}
+    return pyjwt.encode(payload, APPLE_PRIVATE_KEY, algorithm="ES256", headers=headers)
+
+
+@router.get("/apple/login")
+async def apple_login(request: Request):
+    state = secrets.token_urlsafe(16)
+    request.session["oauth_state"] = state
+    redirect_uri = f"{BACKEND_URL}/api/auth/apple/callback"
+    apple_auth_url = (
+        "https://appleid.apple.com/auth/authorize"
+        f"?client_id={APPLE_CLIENT_ID}"
+        f"&redirect_uri={redirect_uri}"
+        "&response_type=code"
+        "&scope=name email"
+        "&response_mode=form_post"
+        f"&state={state}"
+    )
+    return RedirectResponse(apple_auth_url)
+
+
+@router.post("/apple/callback")
+async def apple_callback(request: Request, db: Session = Depends(get_db)):
+    form = await request.form()
+    code = form.get("code")
+    state = form.get("state")
+    user_info_str = form.get("user")
+
+    saved_state = request.session.get("oauth_state")
+    if not saved_state or saved_state != state:
+        raise HTTPException(status_code=400, detail="INVALID_STATE")
+
+    redirect_uri = f"{BACKEND_URL}/api/auth/apple/callback"
+    client_secret = _generate_apple_client_secret()
+
+    async with httpx.AsyncClient() as client:
+        token_resp = await client.post(
+            "https://appleid.apple.com/auth/token",
+            data={
+                "client_id": APPLE_CLIENT_ID,
+                "client_secret": client_secret,
+                "code": code,
+                "grant_type": "authorization_code",
+                "redirect_uri": redirect_uri,
+            },
+            headers={"Content-Type": "application/x-www-form-urlencoded"}
+        )
+        token_data = token_resp.json()
+
+    if "error" in token_data:
+        raise HTTPException(status_code=400, detail="APPLE_TOKEN_ERROR")
+
+    id_token = token_data.get("id_token")
+    payload = pyjwt.decode(id_token, options={"verify_signature": False})
+
+    apple_id = payload["sub"]
+    email = payload.get("email")
+
+    if user_info_str:
+        import json as _json
+        user_data = _json.loads(user_info_str)
+        first = user_data.get("name", {}).get("firstName", "")
+        last = user_data.get("name", {}).get("lastName", "")
+
+    user = db.query(models.User).filter(
+        models.User.oauth_provider == "apple",
+        models.User.oauth_id == apple_id
+    ).first()
+
+    if not user:
+        if email:
+            user = db.query(models.User).filter(models.User.email == email).first()
+            if user:
+                user.oauth_provider = "apple"
+                user.oauth_id = apple_id
+                user.is_verified = True
+
+        if not user:
+            username_base = email.split("@")[0] if email else f"user_{apple_id[:8]}"
+            username = username_base
+            existing = db.query(models.User).filter(models.User.username == username).first()
+            if existing:
+                username = f"{username}_{secrets.token_hex(3)}"
+            user = models.User(
+                id=str(uuid.uuid4()),
+                email=email or f"{apple_id}@privaterelay.appleid.apple.com",
+                username=username,
+                password_hash=None,
+                oauth_provider="apple",
+                oauth_id=apple_id,
+                is_verified=True,
+            )
+            db.add(user)
+        db.commit()
+        db.refresh(user)
+
+    access_token = create_access_token(data={"sub": user.id, "is_admin": user.is_admin})
+    return RedirectResponse(f"{FRONTEND_URL}/auth/social-callback?token={access_token}", status_code=303)
 
 
 @router.delete("/withdraw")
