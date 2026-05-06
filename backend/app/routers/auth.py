@@ -26,6 +26,9 @@ APPLE_TEAM_ID = os.getenv("APPLE_TEAM_ID")
 APPLE_KEY_ID = os.getenv("APPLE_KEY_ID")
 APPLE_PRIVATE_KEY = os.getenv("APPLE_PRIVATE_KEY", "")
 
+NAVER_CLIENT_ID = os.getenv("NAVER_CLIENT_ID")
+NAVER_CLIENT_SECRET = os.getenv("NAVER_CLIENT_SECRET")
+
 BACKEND_URL = os.getenv("BACKEND_URL", "https://racconto.app")
 FRONTEND_URL = os.getenv("BASE_URL", "https://racconto.app")
 
@@ -477,6 +480,108 @@ async def apple_callback(request: Request, db: Session = Depends(get_db)):
 
     access_token = create_access_token(data={"sub": user.id, "is_admin": user.is_admin})
     return RedirectResponse(f"{FRONTEND_URL}/auth/social-callback?token={access_token}", status_code=303)
+
+
+@router.get("/naver/login")
+async def naver_login(request: Request):
+    state = secrets.token_urlsafe(16)
+    request.session["oauth_state"] = state
+    redirect_uri = f"{BACKEND_URL}/auth/naver/callback"
+    naver_auth_url = (
+        "https://nid.naver.com/oauth2.0/authorize"
+        f"?client_id={NAVER_CLIENT_ID}"
+        f"&redirect_uri={redirect_uri}"
+        "&response_type=code"
+        f"&state={state}"
+    )
+    return RedirectResponse(naver_auth_url)
+
+
+@router.get("/naver/callback")
+async def naver_callback(
+    request: Request,
+    state: str,
+    code: Optional[str] = None,
+    error: Optional[str] = None,
+    db: Session = Depends(get_db)
+):
+    if error:
+        return RedirectResponse(f"{FRONTEND_URL}/login?error=cancelled")
+
+    saved_state = request.session.get("oauth_state")
+    if not saved_state or saved_state != state:
+        raise HTTPException(status_code=400, detail="INVALID_STATE")
+
+    redirect_uri = f"{BACKEND_URL}/auth/naver/callback"
+
+    async with httpx.AsyncClient() as client:
+        token_resp = await client.post(
+            "https://nid.naver.com/oauth2.0/token",
+            params={
+                "grant_type": "authorization_code",
+                "client_id": NAVER_CLIENT_ID,
+                "client_secret": NAVER_CLIENT_SECRET,
+                "code": code,
+                "state": state,
+                "redirect_uri": redirect_uri,
+            }
+        )
+        token_data = token_resp.json()
+
+    if "error" in token_data:
+        raise HTTPException(status_code=400, detail="NAVER_TOKEN_ERROR")
+
+    naver_access_token = token_data.get("access_token")
+
+    async with httpx.AsyncClient() as client:
+        profile_resp = await client.get(
+            "https://openapi.naver.com/v1/nid/me",
+            headers={"Authorization": f"Bearer {naver_access_token}"}
+        )
+        profile_data = profile_resp.json()
+
+    if profile_data.get("resultcode") != "00":
+        raise HTTPException(status_code=400, detail="NAVER_PROFILE_ERROR")
+
+    naver_user = profile_data.get("response", {})
+    naver_id = naver_user.get("id")
+    email = naver_user.get("email")
+
+    user = db.query(models.User).filter(
+        models.User.oauth_provider == "naver",
+        models.User.oauth_id == naver_id
+    ).first()
+
+    if not user:
+        if email:
+            user = db.query(models.User).filter(models.User.email == email).first()
+            if user:
+                user.oauth_provider = "naver"
+                user.oauth_id = naver_id
+                user.is_verified = True
+
+        if not user:
+            username_base = email.split("@")[0] if email else f"user_{naver_id[:8]}"
+            username = username_base
+            existing = db.query(models.User).filter(models.User.username == username).first()
+            if existing:
+                username = f"{username}_{secrets.token_hex(3)}"
+            user = models.User(
+                id=str(uuid.uuid4()),
+                email=email,
+                username=username,
+                password_hash=None,
+                oauth_provider="naver",
+                oauth_id=naver_id,
+                is_verified=True,
+            )
+            db.add(user)
+
+        db.commit()
+        db.refresh(user)
+
+    access_token_jwt = create_access_token(data={"sub": user.id, "is_admin": user.is_admin})
+    return RedirectResponse(f"{FRONTEND_URL}/auth/social-callback?token={access_token_jwt}")
 
 
 @router.delete("/withdraw")

@@ -161,6 +161,17 @@ export default function Register() {
                     </svg>
                     <span className="text-sm font-medium">{t('auth.apple', 'Apple로 로그인')}</span>
                   </a>
+
+                  <a
+                    href={`${API_BASE}/auth/naver/login`}
+                    className="w-full flex items-center justify-center gap-3 px-4 py-2.5 rounded-lg hover:opacity-90 transition-opacity"
+                    style={{ backgroundColor: '#03C75A' }}
+                  >
+                    <svg className="w-5 h-5" viewBox="0 0 24 24" fill="white">
+                      <path d="M16.273 12.845L7.376 0H0v24h7.727V11.155L16.624 24H24V0h-7.727z"/>
+                    </svg>
+                    <span className="text-sm font-medium text-white">{t('auth.naver', '네이버로 로그인')}</span>
+                  </a>
                 </div>
               </div>
             </div>
