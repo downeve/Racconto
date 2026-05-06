@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { AuthProvider } from './context/AuthContext'
-import MobileAppInfo from './pages/MobileAppInfo'
+//import MobileAppInfo from './pages/MobileAppInfo'
+import MobileLandingPage from './pages/MobileLandingPage'
 import MobilePublicPortfolio from './pages/mobile/MobilePublicPortfolio'
 import Login from './pages/Login'
 import Register from './pages/Register'
@@ -20,7 +21,7 @@ export default function MobileInfoApp() {
           <Route path="/reset-password" element={<ResetPassword />} />
           <Route path="/dashboard" element={<Navigate to="/" replace />} />
           <Route path="/:username" element={<MobilePublicPortfolio />} />
-          <Route path="*" element={<MobileAppInfo />} />
+          <Route path="*" element={<MobileLandingPage />} />
         </Routes>
       </BrowserRouter>
     </AuthProvider>

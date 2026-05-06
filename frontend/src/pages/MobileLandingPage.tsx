@@ -1,11 +1,14 @@
 import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
+import { useRef } from 'react'
 import PublicNavbar from '../components/PublicNavbar'
 
 export default function MobileLandingPage() {
   const { t, i18n } = useTranslation()
   const lang = i18n.language.startsWith('ko') ? 'ko' : 'en'
   const ss = (name: string, ext: string = 'webp') => `./screenshots/${name}_${lang}.${ext}`
+  const featuresRef = useRef<HTMLDivElement>(null)
+  
 
   const features = [
     {
@@ -102,12 +105,18 @@ export default function MobileLandingPage() {
         <div className="flex flex-col items-center gap-3">
           <Link
             to="/register"
-            className="w-full max-w-xs px-6 py-4 bg-stone-900 text-white text-sm tracking-widest text-center rounded"
+            className="font-serif w-full max-w-xs px-6 py-4 bg-stone-900 text-white text-sm tracking-widest text-center rounded"
+            style={{
+              fontWeight: 700,
+              letterSpacing: '0.08em',
+              transform: 'translateY(1px)',
+            }}
           >
             {t('landing.ctaPrimary')}
           </Link>
           <Link
             to="/features"
+            onClick={() => featuresRef.current?.scrollIntoView({ behavior: 'smooth' })}
             className="w-full max-w-xs px-6 py-4 border border-stone-300 text-stone-600 text-sm tracking-widest text-center rounded"
           >
             {t('landing.ctaSecondary')}
@@ -138,7 +147,7 @@ export default function MobileLandingPage() {
       </section>
 
       {/* Features */}
-      <section className="py-12 px-6 bg-white">
+       <section ref={featuresRef} className="py-12 px-6 bg-white">
         <div className="text-center mb-10">
           <p className="text-xs tracking-[0.3em] text-stone-400 uppercase mb-2">
             {t('landing.featuresEyebrow')}
@@ -216,19 +225,24 @@ export default function MobileLandingPage() {
         <h2 className="text-2xl font-bold mb-3">
           {t('landing.betaTitle')}
         </h2>
-        <p className="text-stone-400 mb-2 text-sm leading-relaxed">
+        <p className="text-faint mb-2 text-small leading-relaxed">
           {t('landing.betaDesc')}
         </p>
-        <p className="text-stone-500 mb-8 text-xs">
+        <p className="text-muted mb-8 text-caption">
           {t('landing.betaLimit')}
         </p>
         <Link
           to="/register"
-          className="inline-block w-full max-w-xs px-8 py-4 bg-white text-stone-900 text-sm tracking-widest font-semibold rounded"
+          className="inline-block w-full max-w-xs px-8 py-4 bg-card text-ink text-sm tracking-widest font-semibold rounded"
+            style={{
+              fontWeight: 700,
+              letterSpacing: '0.08em',
+              transform: 'translateY(1px)',
+            }}
         >
           {t('landing.ctaPrimary')}
         </Link>
-        <p className="mt-5 text-xs text-stone-500">
+        <p className="mt-5 text-xs text-muted">
           {t('landing.alreadyHaveAccount')}{' '}
           <Link to="/login" className="text-stone-300 underline underline-offset-2">
             {t('auth.login')}
@@ -237,8 +251,8 @@ export default function MobileLandingPage() {
       </section>
 
       {/* Footer */}
-      <footer className="py-6 px-6 bg-stone-900 border-t border-stone-800 flex items-center justify-between">
-        <span className="text-stone-500 text-sm tracking-widest">Racconto</span>
+      <footer className="py-6 px-6 bg-ink border-t border-stone-800 flex items-center justify-between">
+        <span className="text-muted text-small tracking-widest">Racconto</span>
         <p className="text-stone-600 text-xs">© 2026 Racconto.</p>
       </footer>
     </div>
