@@ -258,6 +258,10 @@ export default function ProjectDetail({
             newW = Math.round(width * MAX_SIZE / height)
           }
         }
+        if (newW === width && newH === height) {
+          resolve(file)
+          return
+        }
         const canvas = document.createElement('canvas')
         canvas.width = newW
         canvas.height = newH
