@@ -198,8 +198,10 @@ export default function Settings() {
     }
   }
 
+  const isSocialUser = !!user?.oauth_provider
+
   const handleWithdraw = async () => {
-    if (!withdrawPassword) {
+    if (!isSocialUser && !withdrawPassword) {
       setWithdrawError(t('settings.withdrawPasswordRequired'))
       return
     }
@@ -207,12 +209,9 @@ export default function Settings() {
     setWithdrawError('')
     try {
       const token = localStorage.getItem('token')
-      // 비밀번호 확인
-      const formData = new FormData()
-      formData.append('username', '') // 임시
       await axios.delete(`${API}/auth/withdraw`, {
         headers: { Authorization: `Bearer ${token}` },
-        data: { password: withdrawPassword, lang: i18n.language.startsWith('ko') ? 'ko' : 'en' }
+        data: { password: isSocialUser ? null : withdrawPassword, lang: i18n.language.startsWith('ko') ? 'ko' : 'en' }
       })
       logout()
     } catch (err: any) {
@@ -578,13 +577,15 @@ export default function Settings() {
             <p className="text-menu text-red-500 mb-4">
               {t('settings.withdrawDesc')}
             </p>
-            <input
-              type="password"
-              className="w-full border border-red-200 rounded px-3 py-2 text-sm outline-none focus:border-red-400 mb-3 bg-white"
-              placeholder={t('settings.withdrawPasswordPlaceholder')}
-              value={withdrawPassword}
-              onChange={e => setWithdrawPassword(e.target.value)}
-            />
+            {!isSocialUser && (
+              <input
+                type="password"
+                className="w-full border border-red-200 rounded px-3 py-2 text-sm outline-none focus:border-red-400 mb-3 bg-white"
+                placeholder={t('settings.withdrawPasswordPlaceholder')}
+                value={withdrawPassword}
+                onChange={e => setWithdrawPassword(e.target.value)}
+              />
+            )}
             {withdrawError && (
               <p className="text-menu text-red-500 mb-3">{withdrawError}</p>
             )}

@@ -180,6 +180,7 @@ def get_me(
         "username": current_user.username,
         "is_admin": current_user.is_admin,
         "tier": current_user.tier,
+        "oauth_provider": current_user.oauth_provider,
         "project_count": project_count,
         "project_limit": current_user.project_limit,
         "photo_count": total_photo_count,

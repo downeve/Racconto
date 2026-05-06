@@ -8,6 +8,7 @@ interface User {
   email: string
   username: string
   is_admin: boolean
+  oauth_provider: string | null
 }
 
 interface AuthContextType {
@@ -46,10 +47,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
       setIsAuthenticated(true)
       axios.get(`${API}/auth/me`).then(res => {
-        setUser({ 
+        setUser({
           email: res.data.email,
           username: res.data.username,
-          is_admin: res.data.is_admin ?? false 
+          is_admin: res.data.is_admin ?? false,
+          oauth_provider: res.data.oauth_provider ?? null,
         })
       }).catch(() => {
         // 토큰 만료 등 — 401 인터셉터가 처리
@@ -109,7 +111,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setUser({
         email,
         username: meRes.data.username,
-        is_admin: meRes.data.is_admin ?? false
+        is_admin: meRes.data.is_admin ?? false,
+        oauth_provider: meRes.data.oauth_provider ?? null,
       })
       localStorage.setItem('userEmail', email)
       return true
