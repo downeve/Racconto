@@ -11,6 +11,7 @@ class User(Base):
     password_hash = Column(String, nullable=True)
     oauth_provider = Column(String, nullable=True)
     oauth_id = Column(String, nullable=True)
+    apple_refresh_token = Column(String, nullable=True)
     projects = relationship("Project", back_populates="owner", cascade="all, delete-orphan")
     settings = relationship("Setting", back_populates="owner", cascade="all, delete-orphan")
     is_verified = Column(Boolean, default=False)

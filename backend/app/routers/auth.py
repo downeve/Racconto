@@ -51,7 +51,7 @@ class UsernameUpdate(BaseModel):
     username: str
 
 class WithdrawRequest(BaseModel):
-    password: str
+    password: Optional[str] = None
     lang: str = 'ko'
 
 class ForgotPasswordRequest(BaseModel):
@@ -268,7 +268,7 @@ def update_username(
 async def google_login(request: Request):
     state = secrets.token_urlsafe(16)
     request.session["oauth_state"] = state
-    redirect_uri = f"{BACKEND_URL}/api/auth/google/callback"
+    redirect_uri = f"{BACKEND_URL}/auth/google/callback"
     google_auth_url = (
         "https://accounts.google.com/o/oauth2/v2/auth"
         f"?client_id={GOOGLE_CLIENT_ID}"
@@ -281,12 +281,14 @@ async def google_login(request: Request):
 
 
 @router.get("/google/callback")
-async def google_callback(request: Request, code: str, state: str, db: Session = Depends(get_db)):
+async def google_callback(request: Request, state: str, code: Optional[str] = None, error: Optional[str] = None, db: Session = Depends(get_db)):
+    if error:
+        return RedirectResponse(f"{FRONTEND_URL}/login?error=cancelled")
     saved_state = request.session.get("oauth_state")
     if not saved_state or saved_state != state:
         raise HTTPException(status_code=400, detail="INVALID_STATE")
 
-    redirect_uri = f"{BACKEND_URL}/api/auth/google/callback"
+    redirect_uri = f"{BACKEND_URL}/auth/google/callback"
 
     async with httpx.AsyncClient() as client:
         token_resp = await client.post(
@@ -343,6 +345,26 @@ async def google_callback(request: Request, code: str, state: str, db: Session =
     return RedirectResponse(f"{FRONTEND_URL}/auth/social-callback?token={access_token}")
 
 
+def _revoke_apple_token(refresh_token: str) -> None:
+    """Apple refresh_token을 revoke. 실패해도 탈퇴는 계속 진행."""
+    try:
+        client_secret = _generate_apple_client_secret()
+        with httpx.Client() as client:
+            client.post(
+                "https://appleid.apple.com/auth/revoke",
+                data={
+                    "client_id": APPLE_CLIENT_ID,
+                    "client_secret": client_secret,
+                    "token": refresh_token,
+                    "token_type_hint": "refresh_token",
+                },
+                headers={"Content-Type": "application/x-www-form-urlencoded"},
+                timeout=10,
+            )
+    except Exception:
+        pass
+
+
 def _generate_apple_client_secret() -> str:
     now = int(time.time())
     payload = {
@@ -360,7 +382,7 @@ def _generate_apple_client_secret() -> str:
 async def apple_login(request: Request):
     state = secrets.token_urlsafe(16)
     request.session["oauth_state"] = state
-    redirect_uri = f"{BACKEND_URL}/api/auth/apple/callback"
+    redirect_uri = f"{BACKEND_URL}/auth/apple/callback"
     apple_auth_url = (
         "https://appleid.apple.com/auth/authorize"
         f"?client_id={APPLE_CLIENT_ID}"
@@ -384,7 +406,7 @@ async def apple_callback(request: Request, db: Session = Depends(get_db)):
     if not saved_state or saved_state != state:
         raise HTTPException(status_code=400, detail="INVALID_STATE")
 
-    redirect_uri = f"{BACKEND_URL}/api/auth/apple/callback"
+    redirect_uri = f"{BACKEND_URL}/auth/apple/callback"
     client_secret = _generate_apple_client_secret()
 
     async with httpx.AsyncClient() as client:
@@ -421,6 +443,8 @@ async def apple_callback(request: Request, db: Session = Depends(get_db)):
         models.User.oauth_id == apple_id
     ).first()
 
+    refresh_token = token_data.get("refresh_token")
+
     if not user:
         if email:
             user = db.query(models.User).filter(models.User.email == email).first()
@@ -445,8 +469,11 @@ async def apple_callback(request: Request, db: Session = Depends(get_db)):
                 is_verified=True,
             )
             db.add(user)
-        db.commit()
-        db.refresh(user)
+
+    if refresh_token:
+        user.apple_refresh_token = refresh_token
+    db.commit()
+    db.refresh(user)
 
     access_token = create_access_token(data={"sub": user.id, "is_admin": user.is_admin})
     return RedirectResponse(f"{FRONTEND_URL}/auth/social-callback?token={access_token}", status_code=303)
@@ -459,9 +486,14 @@ def withdraw(
     current_user: models.User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
-    # 비밀번호 확인
-    if not verify_password(body.password, current_user.password_hash):
-        raise HTTPException(status_code=400, detail="WRONG_PASSWORD")
+    # 비밀번호 확인 (소셜 로그인 유저는 password_hash가 없으므로 건너뜀)
+    if current_user.oauth_provider is None:
+        if not body.password or not verify_password(body.password, current_user.password_hash):
+            raise HTTPException(status_code=400, detail="WRONG_PASSWORD")
+
+    # Apple 유저: App Store 가이드라인에 따라 탈퇴 전 token revoke
+    if current_user.oauth_provider == "apple" and current_user.apple_refresh_token:
+        _revoke_apple_token(current_user.apple_refresh_token)
     
     """회원 탈퇴 — CF 이미지 삭제 후 유저 및 관련 데이터 삭제"""
     from app.routers.photos import delete_from_cloudflare
