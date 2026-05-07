@@ -16,7 +16,7 @@ import jwt as pyjwt
 import time
 import os
 from starlette.requests import Request
-from starlette.responses import RedirectResponse
+from starlette.responses import RedirectResponse, Response
 
 GOOGLE_CLIENT_ID = os.getenv("GOOGLE_CLIENT_ID")
 GOOGLE_CLIENT_SECRET = os.getenv("GOOGLE_CLIENT_SECRET")
@@ -390,7 +390,6 @@ def _generate_apple_client_secret() -> str:
 @router.get("/apple/login")
 async def apple_login(request: Request):
     state = secrets.token_urlsafe(16)
-    request.session["oauth_state"] = state
     redirect_uri = f"{BACKEND_URL}/auth/apple/callback"
     apple_auth_url = (
         "https://appleid.apple.com/auth/authorize"
@@ -401,7 +400,11 @@ async def apple_login(request: Request):
         "&response_mode=form_post"
         f"&state={state}"
     )
-    return RedirectResponse(apple_auth_url)
+    response = RedirectResponse(apple_auth_url)
+    # SameSite=None; Secure 필수 — Apple이 cross-origin form POST로 콜백을 보내기 때문에
+    # SameSite=Lax인 세션 쿠키는 전달되지 않음
+    response.set_cookie("apple_oauth_state", state, max_age=600, httponly=True, secure=True, samesite="none")
+    return response
 
 
 @router.post("/apple/callback")
@@ -411,7 +414,7 @@ async def apple_callback(request: Request, background_tasks: BackgroundTasks, db
     state = form.get("state")
     user_info_str = form.get("user")
 
-    saved_state = request.session.get("oauth_state")
+    saved_state = request.cookies.get("apple_oauth_state")
     if not saved_state or saved_state != state:
         raise HTTPException(status_code=400, detail="INVALID_STATE")
 
@@ -490,7 +493,9 @@ async def apple_callback(request: Request, background_tasks: BackgroundTasks, db
         background_tasks.add_task(send_social_welcome_email, email)
 
     access_token = create_access_token(data={"sub": user.id, "is_admin": user.is_admin})
-    return RedirectResponse(f"{FRONTEND_URL}/auth/social-callback?token={access_token}", status_code=303)
+    response = RedirectResponse(f"{FRONTEND_URL}/auth/social-callback?token={access_token}", status_code=303)
+    response.delete_cookie("apple_oauth_state", secure=True, samesite="none")
+    return response
 
 
 @router.get("/naver/login")
