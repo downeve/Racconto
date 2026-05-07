@@ -185,7 +185,7 @@ export const SortableTextBlock = memo(function SortableTextBlock({
   const isEditing = editingTextItemId === itemId;
 
   return (
-    <div ref={setRef} style={style} className="w-full group relative bg-stone-50 border border-stone-200 rounded-card px-5 py-4 my-1 min-w-0 overflow-x-hidden break-words">
+    <div ref={setRef} style={style} className="w-full group relative bg-stone-50 border border-stone-200 rounded-card px-5 py-4 my-1 min-w-0 [overflow-x:clip] break-words">
       {isEditing ? (
         /* 👇 편집 모드일 때: 단독 텍스트 인라인 편집창 */
         <div className="flex flex-col gap-2">
