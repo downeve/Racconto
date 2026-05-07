@@ -6,7 +6,7 @@ from sqlalchemy.orm import Session
 from app import models
 from pydantic import BaseModel, EmailStr
 import uuid
-from app.email import send_verification_email, send_password_reset_email, send_farewell_email, send_welcome_email
+from app.email import send_verification_email, send_password_reset_email, send_farewell_email, send_welcome_email, send_social_welcome_email
 from datetime import datetime, timedelta
 from typing import Optional
 from app.routers.photos import delete_cf_files_parallel
@@ -348,7 +348,7 @@ async def google_callback(request: Request, background_tasks: BackgroundTasks, s
         db.refresh(user)
 
     if is_new_user and email:
-        background_tasks.add_task(send_welcome_email, email)
+        background_tasks.add_task(send_social_welcome_email, email)
 
     access_token = create_access_token(data={"sub": user.id, "is_admin": user.is_admin})
     return RedirectResponse(f"{FRONTEND_URL}/auth/social-callback?token={access_token}")
@@ -487,7 +487,7 @@ async def apple_callback(request: Request, background_tasks: BackgroundTasks, db
     db.refresh(user)
 
     if is_new_user and email and not email.endswith("@privaterelay.appleid.apple.com"):
-        background_tasks.add_task(send_welcome_email, email)
+        background_tasks.add_task(send_social_welcome_email, email)
 
     access_token = create_access_token(data={"sub": user.id, "is_admin": user.is_admin})
     return RedirectResponse(f"{FRONTEND_URL}/auth/social-callback?token={access_token}", status_code=303)
@@ -595,7 +595,7 @@ async def naver_callback(
         db.refresh(user)
 
     if is_new_user and email:
-        background_tasks.add_task(send_welcome_email, email)
+        background_tasks.add_task(send_social_welcome_email, email)
 
     access_token_jwt = create_access_token(data={"sub": user.id, "is_admin": user.is_admin})
     return RedirectResponse(f"{FRONTEND_URL}/auth/social-callback?token={access_token_jwt}")

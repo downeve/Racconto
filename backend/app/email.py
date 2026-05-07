@@ -253,6 +253,87 @@ def send_welcome_email(to_email: str, lang: str = 'ko'):
         return False
 
 
+SOCIAL_WELCOME_TEMPLATES = {
+    'ko': {
+        'subject': 'Racconto에 오신 것을 환영합니다',
+        'title': 'Racconto에 가입해 주셔서 감사합니다.',
+        'body': (
+            '소셜 계정으로 가입이 완료되었습니다.<br><br>'
+            '이제 Racconto와 함께 이야기를 시작할 모든 준비가 끝났습니다.<br>'
+            '프로젝트를 만들고, 당신의 사진에 스토리를 담아보세요.'
+        ),
+        'button': 'Racconto 시작하기',
+        'closing': 'Racconto와 함께 멋진 이야기를 만들어가세요.',
+    },
+    'en': {
+        'subject': 'Welcome to Racconto',
+        'title': 'Thanks for joining Racconto.',
+        'body': (
+            'You\'ve successfully signed up with your social account.<br><br>'
+            'You\'re all set to start telling your photo stories on Racconto.<br>'
+            'Create a project and bring your photos to life.'
+        ),
+        'button': 'Get Started',
+        'closing': 'We\'re excited to see the stories you\'ll create.',
+    },
+}
+
+
+def send_social_welcome_email(to_email: str, lang: str = 'ko'):
+    t = SOCIAL_WELCOME_TEMPLATES.get(lang, SOCIAL_WELCOME_TEMPLATES['ko'])
+
+    BASE_URL = os.getenv("BASE_URL", "https://racconto.app")
+    login_url = f"{BASE_URL}/login"
+
+    send_smtp_email = sib_api_v3_sdk.SendSmtpEmail(
+        to=[{"email": to_email}],
+        sender={"email": FROM_EMAIL, "name": FROM_NAME},
+        subject=t['subject'],
+        html_content=f"""
+        <div style="font-family: Pretendard, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+                    max-width: 480px; margin: 0 auto;
+                    background-color: #F7F4F0; padding: 40px 32px; color: #1c1917;">
+            <div style="margin-bottom: 32px;">
+                <span style="font-family: 'Noto Serif KR', Georgia, serif;
+                            font-size: 22px; font-weight: 700;
+                            letter-spacing: 0.08em; color: #1c1917;">
+                    Racconto
+                </span>
+            </div>
+            <div style="background-color: #ffffff; border-radius: 3px;
+                        padding: 32px; margin-bottom: 24px;">
+                <h2 style="font-size: 16px; font-weight: 600; margin: 0 0 16px 0;
+                        letter-spacing: 0.05em; color: #1c1917;">
+                    {t['title']}
+                </h2>
+                <p style="font-size: 14px; line-height: 1.65; color: #44403c; margin: 0 0 24px 0;">
+                    {t['body']}
+                </p>
+                <a href="{login_url}"
+                style="font-family: 'Noto Serif KR', Georgia, serif;
+                        display: inline-block; padding: 12px 28px;
+                        background-color: #1c1917; color: #ffffff !important;
+                        text-decoration: none; font-size: 13px;
+                        letter-spacing: 0.08em; border-radius: 2px;
+                        -webkit-text-fill-color: #ffffff;">
+                    {t['button']}
+                </a>
+            </div>
+            <p style="font-size: 12px; color: #a8a29e; line-height: 1.6; margin: 0;">
+                {t['closing']}
+            </p>
+        </div>
+        """
+    )
+
+    try:
+        api_instance.send_transac_email(send_smtp_email)
+        return True
+    except ApiException as e:
+        print(f"소셜 웰컴 이메일 발송 실패: {e}")
+        return False
+
+
 FAREWELL_TEMPLATES = {
     'ko': {
         'subject': 'Racconto 회원 탈퇴가 완료되었습니다',

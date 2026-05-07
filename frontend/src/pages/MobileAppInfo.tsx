@@ -1,10 +1,18 @@
 import { useTranslation } from 'react-i18next'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { Monitor } from 'lucide-react'
 import PublicNavbar from '../components/PublicNavbar'
+import { useAuth } from '../context/AuthContext'
 
 export default function MobileAppInfo() {
   const { t } = useTranslation()
+  const { logout } = useAuth()
+  const navigate = useNavigate()
+
+  const handleLogout = () => {
+    logout()
+    navigate('/', { replace: true })
+  }
 
   return (
     <div className="min-h-screen bg-canvas text-ink flex flex-col">
@@ -37,15 +45,21 @@ export default function MobileAppInfo() {
           <Link
             to="/download"
             className="w-full inline-flex items-center justify-center gap-2 px-6 py-3.5 bg-ink text-white text-small tracking-widest rounded hover:bg-stone-700 transition-colors duration-150"
-          >          
+          >
             {t('mobileAppInfo.downloadBtn')}
           </Link>
           <Link
             to="/"
             className="w-full inline-flex items-center justify-center gap-2 px-6 py-3.5 border border-hair text-muted text-small tracking-widest rounded hover:border-stone-400 hover:text-ink transition-colors duration-150"
-          >          
+          >
             {t('mobileAppInfo.openDesktop')}
           </Link>
+          <button
+            onClick={handleLogout}
+            className="w-full inline-flex items-center justify-center gap-2 px-6 py-3.5 text-muted text-small tracking-widest rounded hover:text-ink transition-colors duration-150"
+          >
+            {t('auth.logout', '로그아웃')}
+          </button>
         </div>
 
       </main>
