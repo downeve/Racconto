@@ -579,9 +579,6 @@ export const SortableSideBySideBlock = memo(function SortableSideBySideBlock({
   const photoCol = (
   <div className="flex-1 min-w-0 relative group/photo">
     <div className="absolute -top-2 left-2 opacity-0 group-hover/photo:opacity-100 transition-opacity z-20">
-      <span className="text-[10px] text-gray-400 border border-gray-200 rounded px-1.5 py-0.5 bg-white">
-        {t('story.sideSingleHint')}
-      </span>
     </div>
       <div className="grid grid-cols-1 gap-2">
         {photoItems.map(item => (
