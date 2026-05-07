@@ -218,21 +218,26 @@ export const SortableTextBlock = memo(function SortableTextBlock({
             <DragHandleDots />
           </div>
 
+          {(!isFirst || !isLast) && (
+            <div className="absolute -top-1 left-6 opacity-0 group-hover:opacity-100 transition-opacity z-20 flex items-center gap-1 bg-white border border-gray-200 rounded shadow px-1.5 py-0.5">
+              {!isFirst && (
+                <button
+                  onClick={() => onMoveBlock?.('up')}
+                  className="text-[10px] px-1.5 py-0.5 rounded text-gray-500 hover:bg-gray-100"
+                  title="위로 이동"
+                >↑</button>
+              )}
+              {!isLast && (
+                <button
+                  onClick={() => onMoveBlock?.('down')}
+                  className="text-[10px] px-1.5 py-0.5 rounded text-gray-500 hover:bg-gray-100"
+                  title="아래로 이동"
+                >↓</button>
+              )}
+            </div>
+          )}
+
           <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-            {!isFirst && (
-              <button
-                onClick={() => onMoveBlock?.('up')}
-                className="text-xs px-1.5 py-0.5 rounded border border-gray-300 text-gray-500 hover:text-gray-800 bg-white"
-                title="위로 이동"
-              >↑</button>
-            )}
-            {!isLast && (
-              <button
-                onClick={() => onMoveBlock?.('down')}
-                className="text-xs px-1.5 py-0.5 rounded border border-gray-300 text-gray-500 hover:text-gray-800 bg-white"
-                title="아래로 이동"
-              >↓</button>
-            )}
             {hasPhotoAbove && (
               <button
                 onClick={() => onSideBySide(itemId, 'side-left', 'above')}
@@ -661,24 +666,24 @@ export const SortableSideBySideBlock = memo(function SortableSideBySideBlock({
         <DragHandleDots />
       </div>
 
-      {(!isFirst || !isLast) && (
-        <div className="absolute -top-1 right-0 opacity-0 group-hover/block:opacity-100 transition-opacity z-20 flex items-center gap-1 bg-white border border-gray-200 rounded shadow px-1.5 py-0.5">
-          {!isFirst && (
-            <button
-              onClick={() => onMoveBlock?.('up')}
-              className="text-[10px] px-1.5 py-0.5 rounded text-gray-500 hover:bg-gray-100"
-              title="위로 이동"
-            >↑</button>
-          )}
-          {!isLast && (
-            <button
-              onClick={() => onMoveBlock?.('down')}
-              className="text-[10px] px-1.5 py-0.5 rounded text-gray-500 hover:bg-gray-100"
-              title="아래로 이동"
-            >↓</button>
-          )}
-        </div>
-      )}
+      <div className="absolute -top-1 left-6 opacity-0 group-hover/block:opacity-100 transition-opacity z-20 flex items-center gap-1 bg-white border border-gray-200 rounded shadow px-1.5 py-0.5">
+        {!isFirst && (
+          <button
+            onClick={() => onMoveBlock?.('up')}
+            className="text-[10px] px-1.5 py-0.5 rounded text-gray-500 hover:bg-gray-100"
+            title="위로 이동"
+          >↑</button>
+        )}
+        {!isLast && (
+          <button
+            onClick={() => onMoveBlock?.('down')}
+            className="text-[10px] px-1.5 py-0.5 rounded text-gray-500 hover:bg-gray-100"
+            title="아래로 이동"
+          >↓</button>
+        )}
+        {(!isFirst || !isLast) && <span className="text-[10px] text-stone-200 select-none">|</span>}
+        <span className="text-[10px] text-faint">{t('story.sideSingleHint')}</span>
+      </div>
 
       <div className="flex gap-3">
         {blockType === 'side-right' ? <>{photoCol}{textCol}</> : <>{textCol}{photoCol}</>}
