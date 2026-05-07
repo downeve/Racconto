@@ -144,11 +144,9 @@ export default function MobilePublicPortfolio() {
   const getAllChapterItems = (project: PortfolioProject) => {
     const items: { photo: Photo; title: string }[] = []
     project.chapters?.forEach((ch, idx) => {
-      const chTitle = `${idx + 1}. ${ch.title}`
-      ch.items?.filter(i => i.item_type === 'PHOTO').forEach(i => items.push({ photo: i as Photo, title: chTitle }))
-      ch.sub_chapters?.forEach((sub, subIdx) => {
-        const subTitle = `${idx + 1}.${subIdx + 1}. ${sub.title}`
-        sub.items?.filter(i => i.item_type === 'PHOTO').forEach(i => items.push({ photo: i as Photo, title: subTitle }))
+      ch.items?.filter(i => i.item_type === 'PHOTO').forEach(i => items.push({ photo: i as Photo, title: ch.title }))
+      ch.sub_chapters?.forEach((sub) => {
+        sub.items?.filter(i => i.item_type === 'PHOTO').forEach(i => items.push({ photo: i as Photo, title: sub.title }))
       })
     })
     return items
@@ -264,8 +262,7 @@ export default function MobilePublicPortfolio() {
                     <div key={chapter.id} className={idx > 0 ? 'pt-space-xl' : ''}>
                       {/* 챕터 헤더 */}
                       <div className="mb-5">
-                        <div className="flex items-baseline gap-2 mb-1">
-                          <span className={`text-caption uppercase ${subText}`}>{idx + 1}</span>
+                        <div className="mb-1">
                           <h2 className="text-xl font-serif font-bold tracking-tight">{chapter.title}</h2>
                         </div>
                         {chapter.description && (
@@ -288,8 +285,7 @@ export default function MobilePublicPortfolio() {
                       {chapter.sub_chapters?.map((sub, subIdx) => (
                         <div key={sub.id} className="mt-space-xl">
                           <div className="mb-4">
-                            <div className="flex items-baseline gap-2 mb-1">
-                              <span className={`text-caption ${subText}`}>{idx + 1}.{subIdx + 1}</span>
+                            <div className="mb-1">
                               <h3 className="text-base font-serif font-semibold">{sub.title}</h3>
                             </div>
                             {sub.description && (

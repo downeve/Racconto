@@ -1823,18 +1823,6 @@ function ProjectStory({
           setPreviewLbIndex(idx !== -1 ? idx : 0)
         }
 
-        const mainChapters = chapters.filter(c => !c.parent_id)
-        const chapterIdx = isSubChapter
-          ? mainChapters.findIndex(c => c.id === targetChapter.parent_id)
-          : mainChapters.findIndex(c => c.id === chapterPreviewId)
-        const subIdx = isSubChapter
-          ? chapters.filter(c => c.parent_id === targetChapter.parent_id).findIndex(c => c.id === chapterPreviewId)
-          : -1
-
-        const chapterLabel = isSubChapter
-          ? `${chapterIdx + 1}.${subIdx + 1}`
-          : `${chapterIdx + 1 < 10 ? `0${chapterIdx + 1}` : chapterIdx + 1}`
-
         return (
           <>
             {/* 딤 배경 */}
@@ -1853,9 +1841,6 @@ function ProjectStory({
               <div className={`shrink-0 sticky top-0 z-10 backdrop-blur-sm border-b ${headerBg}`}>
                 <div className="px-5 h-12 flex items-center justify-between">
                   <div className="flex items-center gap-2 min-w-0">
-                    <span className={`text-xs tracking-widest uppercase shrink-0 ${subText}`}>
-                      {isSubChapter ? `Ch ${chapterLabel}` : `Chapter ${chapterLabel}`}
-                    </span>
                     <span className="text-sm font-semibold truncate">{targetChapter.title}</span>
                     {isSubChapter && parentChapter && (
                       <span className={`text-xs shrink-0 ${subText}`}>↑ {parentChapter.title}</span>

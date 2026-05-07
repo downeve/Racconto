@@ -108,14 +108,12 @@ export default function PublicPortfolio() {
   const getAllChapterItems = (project: PortfolioProject) => {
     const items: { photo: Photo; title: string }[] = []
     project.chapters?.forEach((ch, idx) => {
-      const chTitle = `${idx + 1}: ${ch.title}`
       ch.items?.filter(i => i.item_type === 'PHOTO').forEach(i => {
-        items.push({ photo: i as Photo, title: chTitle })
+        items.push({ photo: i as Photo, title: ch.title })
       })
-      ch.sub_chapters?.forEach((sub, subIdx) => {
-        const subTitle = `${idx + 1}.${subIdx + 1}: ${sub.title}`
+      ch.sub_chapters?.forEach((sub) => {
         sub.items?.filter(i => i.item_type === 'PHOTO').forEach(i => {
-          items.push({ photo: i as Photo, title: subTitle })
+          items.push({ photo: i as Photo, title: sub.title })
         })
       })
     })
@@ -320,8 +318,7 @@ export default function PublicPortfolio() {
                 {selectedProject.chapters.map((chapter, idx) => (
                   <div key={chapter.id} className={idx > 0 ? 'pt-space-xl' : ''}>
                     <div className="mb-space-md">
-                      <div className="flex items-baseline gap-2 mb-2">
-                        <p className={`text-small uppercase mb-3 ${subText}`}>{idx + 1}</p>
+                      <div className="mb-2">
                         <h3 className="text-h2 font-bold font-serif mb-4 tracking-tight">
                           {chapter.title}
                         </h3>
@@ -342,10 +339,7 @@ export default function PublicPortfolio() {
                     {chapter.sub_chapters?.map((sub, subIdx) => (
                       <div key={sub.id} className="mt-space-xl">
                         <div className="mb-8">
-                          <div className="flex items-baseline gap-2 mb-2">
-                            <p className={`text-caption uppercase mb-2 ${subText}`}>
-                              {idx + 1}.{subIdx + 1}
-                            </p>
+                          <div className="mb-2">
                             <h4 className="text-h3 font-serif font-semibold">
                               {sub.title}
                             </h4>
