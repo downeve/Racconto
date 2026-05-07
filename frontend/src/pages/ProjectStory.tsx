@@ -1682,10 +1682,7 @@ function ProjectStory({
 
                         {/* 챕터 헤더 */}
                         <div className="mb-space-md">
-                          <div className="flex items-baseline gap-2 mb-2">
-                            <p className={`text-small uppercase mb-3 ${subText}`}>
-                              {idx + 1 < 10 ? `0${idx + 1}` : idx + 1}
-                            </p>
+                          <div className="mb-2">
                             <h3 className="text-h2 font-bold font-serif mb-4 tracking-tight">
                               {chapter.title}
                             </h3>
@@ -1706,14 +1703,11 @@ function ProjectStory({
                         />
 
                         {/* 서브챕터 */}
-                        {subChapters.map((sub, subIdx) => (
+                        {subChapters.map((sub) => (
                           <div key={sub.id} className="mt-space-md">
                             <div className={`h-px mb-10 w-1/3 ${divider}`} />
                             <div className="mb-8">
-                              <div className="flex items-baseline gap-2 mb-2">
-                                <p className={`text-caption uppercase mb-2 ${subText}`}>
-                                  {idx + 1}.{subIdx + 1}
-                                </p>
+                              <div className="mb-2">
                                 <h4 className="text-h3 font-serif font-semibold">
                                   {sub.title}
                                 </h4>
