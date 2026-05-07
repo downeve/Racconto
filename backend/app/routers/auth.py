@@ -269,9 +269,10 @@ def update_username(
 
 
 @router.get("/google/login")
-async def google_login(request: Request):
+async def google_login(request: Request, platform: str = "web"):
     state = secrets.token_urlsafe(16)
     request.session["oauth_state"] = state
+    request.session["oauth_platform"] = platform
     redirect_uri = f"{BACKEND_URL}/auth/google/callback"
     google_auth_url = (
         "https://accounts.google.com/o/oauth2/v2/auth"
@@ -351,6 +352,9 @@ async def google_callback(request: Request, background_tasks: BackgroundTasks, s
         background_tasks.add_task(send_social_welcome_email, email)
 
     access_token = create_access_token(data={"sub": user.id, "is_admin": user.is_admin})
+    platform = request.session.get("oauth_platform", "web")
+    if platform == "ios":
+        return RedirectResponse(f"racconto://auth/callback?token={access_token}")
     return RedirectResponse(f"{FRONTEND_URL}/auth/social-callback?token={access_token}")
 
 
@@ -499,9 +503,10 @@ async def apple_callback(request: Request, background_tasks: BackgroundTasks, db
 
 
 @router.get("/naver/login")
-async def naver_login(request: Request):
+async def naver_login(request: Request, platform: str = "web"):
     state = secrets.token_urlsafe(16)
     request.session["oauth_state"] = state
+    request.session["oauth_platform"] = platform
     redirect_uri = f"{BACKEND_URL}/auth/naver/callback"
     naver_auth_url = (
         "https://nid.naver.com/oauth2.0/authorize"
@@ -603,7 +608,70 @@ async def naver_callback(
         background_tasks.add_task(send_social_welcome_email, email)
 
     access_token_jwt = create_access_token(data={"sub": user.id, "is_admin": user.is_admin})
+    platform = request.session.get("oauth_platform", "web")
+    if platform == "ios":
+        return RedirectResponse(f"racconto://auth/callback?token={access_token_jwt}")
     return RedirectResponse(f"{FRONTEND_URL}/auth/social-callback?token={access_token_jwt}")
+
+
+@router.post("/apple/ios")
+async def apple_ios_login(request: Request, background_tasks: BackgroundTasks, db: Session = Depends(get_db)):
+    """iOS 네이티브 Sign in with Apple 전용 엔드포인트."""
+    body = await request.json()
+    identity_token = body.get("identity_token")
+    if not identity_token:
+        raise HTTPException(status_code=400, detail="MISSING_IDENTITY_TOKEN")
+
+    try:
+        payload = pyjwt.decode(identity_token, options={"verify_signature": False})
+    except Exception:
+        raise HTTPException(status_code=400, detail="INVALID_IDENTITY_TOKEN")
+
+    apple_id = payload.get("sub")
+    email = payload.get("email")
+    if not apple_id:
+        raise HTTPException(status_code=400, detail="INVALID_IDENTITY_TOKEN")
+
+    user = db.query(models.User).filter(
+        models.User.oauth_provider == "apple",
+        models.User.oauth_id == apple_id
+    ).first()
+
+    is_new_user = False
+    if not user:
+        if email:
+            user = db.query(models.User).filter(models.User.email == email).first()
+            if user:
+                user.oauth_provider = "apple"
+                user.oauth_id = apple_id
+                user.is_verified = True
+
+        if not user:
+            username_base = email.split("@")[0] if email else f"user_{apple_id[:8]}"
+            username = username_base
+            existing = db.query(models.User).filter(models.User.username == username).first()
+            if existing:
+                username = f"{username}_{secrets.token_hex(3)}"
+            user = models.User(
+                id=str(uuid.uuid4()),
+                email=email or f"{apple_id}@privaterelay.appleid.apple.com",
+                username=username,
+                password_hash=None,
+                oauth_provider="apple",
+                oauth_id=apple_id,
+                is_verified=True,
+            )
+            db.add(user)
+            is_new_user = True
+
+        db.commit()
+        db.refresh(user)
+
+    if is_new_user and email and not email.endswith("@privaterelay.appleid.apple.com"):
+        background_tasks.add_task(send_social_welcome_email, email)
+
+    access_token = create_access_token(data={"sub": user.id, "is_admin": user.is_admin})
+    return {"access_token": access_token, "token_type": "bearer"}
 
 
 @router.delete("/withdraw")
