@@ -185,12 +185,12 @@ export const SortableTextBlock = memo(function SortableTextBlock({
   const isEditing = editingTextItemId === itemId;
 
   return (
-    <div ref={setRef} style={style} className="w-full group relative bg-stone-50 border border-stone-200 rounded-card px-5 py-4 my-1 min-w-0 [overflow-x:clip] break-words">
+    <div ref={setRef} style={style} className="w-full group relative bg-stone-50 border border-stone-200 rounded-card px-5 py-4 my-1 min-w-0 [overflow-x:clip] [word-break:keep-all]">
       {isEditing ? (
         /* 👇 편집 모드일 때: 단독 텍스트 인라인 편집창 */
         <div className="flex flex-col gap-2">
           <textarea
-            className="w-full h-32 p-3 text-small rounded-card border border-stone-100 focus:ring-2 focus:ring-stone-200 focus:outline-none resize-none bg-card overflow-x-hidden whitespace-pre-wrap break-words"
+            className="w-full h-32 p-3 text-small rounded-card border border-stone-100 focus:ring-2 focus:ring-stone-200 focus:outline-none resize-none bg-card overflow-x-hidden whitespace-pre-wrap [word-break:keep-all]"
             value={textDraft}
             onChange={(e) => onTextDraftChange?.(e.target.value)}
             autoFocus
@@ -617,12 +617,12 @@ export const SortableSideBySideBlock = memo(function SortableSideBySideBlock({
   )
 
   const textCol = textItem ? (
-    <div className="flex-1 min-w-0 overflow-x-hidden break-words group/text relative bg-stone-50 border border-stone-200 rounded-card px-4 py-4">
+    <div className="flex-1 min-w-0 overflow-x-hidden [word-break:keep-all] group/text relative bg-stone-50 border border-stone-200 rounded-card px-4 py-4">
       {editingTextItemId === textItem.id ? (
         /* 👇 편집 모드일 때: 텍스트 영역만 편집창으로 전환 */
         <div className="flex flex-col gap-2">
           <textarea
-            className="w-full h-32 p-2 text-small rounded border border-stone-100 focus:ring-2 focus:ring-stone-200 outline-none resize-none bg-card overflow-x-hidden whitespace-pre-wrap break-words"
+            className="w-full h-32 p-2 text-small rounded border border-stone-100 focus:ring-2 focus:ring-stone-200 outline-none resize-none bg-card overflow-x-hidden whitespace-pre-wrap [word-break:keep-all]"
             value={textDraft}
             onChange={(e) => onTextDraftChange?.(e.target.value)}
             autoFocus
