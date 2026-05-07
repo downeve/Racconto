@@ -439,13 +439,15 @@ function ProjectStory({
           .find(i => i.block_id === blockId && i.item_type === 'TEXT')
         if (textItem) {
           await handleCancelSideBySide(chapterId, textItem.id)
+          onChapterChange?.()
           return
         }
       }
     }
 
     fetchChapterPhotos(chapterId)
-  }, [chapterPhotos, handleCancelSideBySide, fetchChapterPhotos])
+    if (item?.item_type === 'PHOTO') onChapterChange?.()
+  }, [chapterPhotos, handleCancelSideBySide, fetchChapterPhotos, onChapterChange])
 
   const handleSideBySide = useCallback(async (
     chapterId: string,
