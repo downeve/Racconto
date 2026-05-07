@@ -37,7 +37,7 @@ export default function MobileAppInfo() {
           {t('mobileAppInfo.title')}
         </h1>
 
-        <p className="text-small text-muted leading-relaxed mb-10 whitespace-pre-line break-keep max-w-xs">
+        <p className="text-small text-muted leading-relaxed mb-10 whitespace-pre-line word-break:keep-all max-w-xs">
           {t('mobileAppInfo.subtitle')}
         </p>
 
