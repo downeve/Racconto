@@ -48,12 +48,6 @@ export default function MobileAppInfo() {
           >
             {t('mobileAppInfo.downloadBtn')}
           </Link>
-          <Link
-            to="/"
-            className="w-full inline-flex items-center justify-center gap-2 px-6 py-3.5 border border-hair text-muted text-small tracking-widest rounded hover:border-stone-400 hover:text-ink transition-colors duration-150"
-          >
-            {t('mobileAppInfo.openDesktop')}
-          </Link>
           <button
             onClick={handleLogout}
             className="w-full inline-flex items-center justify-center gap-2 px-6 py-3.5 text-muted text-small tracking-widest rounded hover:text-ink transition-colors duration-150"
