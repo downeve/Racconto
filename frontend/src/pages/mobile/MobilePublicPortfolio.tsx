@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next'
 import { useAuth } from '../../context/AuthContext'
 import { Sun, Moon, MapPin, X, ChevronLeft, ChevronRight } from 'lucide-react'
 import MarkdownRenderer from '../../components/MarkdownRenderer'
+import EmptyState from '../../components/EmptyState'
 import { cfUrl } from '../../utils/cfImage'
 
 const API = import.meta.env.VITE_API_URL
@@ -22,7 +23,6 @@ interface PortfolioProject {
 }
 
 // ── 심플 아이템 렌더러 ────────────────────────────────────────
-// side-by-side, grid 등 없이 텍스트·사진을 순서대로 렌더링
 interface SimpleItemsProps {
   items: ChapterItem[]
   darkMode: boolean
@@ -30,16 +30,12 @@ interface SimpleItemsProps {
   onLightbox: (photo: Photo, items: { photo: Photo; title: string }[]) => void
 }
 
-function SimpleMobileItems({ items, darkMode, allLightboxItems, onLightbox, photoPadding = 'px-2' }: SimpleItemsProps & { photoPadding?: string }) {
-  // block_id 기준으로 사진을 그룹핑해서 순서대로 렌더링
-  // 텍스트 아이템은 그냥 바로 출력, 사진은 block 단위로 묶어서 세로로 나열
+function SimpleMobileItems({ items, darkMode, allLightboxItems, onLightbox }: SimpleItemsProps) {
   const rendered = new Set<string>()
-
   const elements: React.ReactNode[] = []
 
   items.forEach((item, i) => {
     if (item.item_type === 'TEXT') {
-      // side-by-side 텍스트도 여기선 그냥 독립 텍스트로 처리
       elements.push(
         <div key={`text-${i}`} className="my-5">
           <MarkdownRenderer
@@ -52,19 +48,17 @@ function SimpleMobileItems({ items, darkMode, allLightboxItems, onLightbox, phot
       return
     }
 
-    // PHOTO
     const bid = item.block_id
     if (bid) {
       if (rendered.has(bid)) return
       rendered.add(bid)
 
-      // 같은 block_id의 사진을 모아서 순서대로 세로 나열
       const blockPhotos = items
         .filter(p => p.item_type === 'PHOTO' && p.block_id === bid)
         .sort((a, b) => (a.order_in_block ?? 0) - (b.order_in_block ?? 0))
 
       elements.push(
-        <div key={`block-${bid}`} className={`space-y-2 mb-2 ${photoPadding}`}>
+        <div key={`block-${bid}`} className="space-y-2 mb-2">
           {blockPhotos.map(photo => (
             <div
               key={photo.id}
@@ -73,6 +67,7 @@ function SimpleMobileItems({ items, darkMode, allLightboxItems, onLightbox, phot
             >
               <img
                 src={cfUrl(photo.image_url, 'grid')}
+                alt={photo.caption || ''}
                 loading="lazy"
                 className="w-full object-cover hover:opacity-90 transition-opacity block"
               />
@@ -86,7 +81,6 @@ function SimpleMobileItems({ items, darkMode, allLightboxItems, onLightbox, phot
         </div>
       )
     } else {
-      // block_id 없는 단독 사진
       elements.push(
         <div
           key={`photo-${item.id ?? i}`}
@@ -95,6 +89,7 @@ function SimpleMobileItems({ items, darkMode, allLightboxItems, onLightbox, phot
         >
           <img
             src={cfUrl(item.image_url, 'grid')}
+            alt={item.caption || ''}
             loading="lazy"
             className="w-full object-cover hover:opacity-90 transition-opacity block"
           />
@@ -165,55 +160,70 @@ export default function MobilePublicPortfolio() {
     setLightboxIndex(idx !== -1 ? idx : 0)
   }
 
-  const bg = darkMode ? 'bg-stone-900 text-white' : 'bg-[#F7F4F0] text-stone-900'
+  const bg = darkMode ? 'bg-card-surface text-white' : 'bg-[#F7F4F0] text-stone-900'
   const subText = darkMode ? 'text-stone-400' : 'text-stone-500'
-  const divider = darkMode ? 'bg-stone-700' : 'bg-stone-200'
+  const barBg = darkMode
+    ? 'bg-card-surface/95 border-b border-white/10'
+    : 'bg-[#F7F4F0]/95 border-b border-stone-200/60'
 
   if (notFound) {
     return (
       <div className={`min-h-screen flex items-center justify-center ${bg}`}>
-        <p className="text-stone-400">{t('portfolio.notFound') || '포트폴리오를 찾을 수 없습니다.'}</p>
+        <EmptyState
+          heading={t('portfolio.notFound') || '포트폴리오를 찾을 수 없습니다.'}
+          darkMode={darkMode}
+        />
       </div>
     )
   }
 
   return (
-    <div className={`min-h-screen ${bg}`} style={{ paddingTop: 'env(safe-area-inset-top)' }}>
-      {/* 상단 바 */}
-      <div className="flex items-center justify-between px-4 py-3">
-        {selectedProject ? (
+    <div className={`min-h-screen ${bg}`}>
+      {/* Sticky top bar */}
+      <div
+        className={`sticky top-0 z-10 ${barBg} backdrop-blur-sm`}
+        style={{ paddingTop: 'env(safe-area-inset-top)' }}
+      >
+        <div className="flex items-center justify-between px-4 py-3">
+          {selectedProject ? (
+            <button
+              onClick={() => { setSelectedProject(null); window.scrollTo(0, 0) }}
+              className="min-w-[44px] min-h-[44px] flex items-center justify-center"
+            >
+              <ChevronLeft size={22} strokeWidth={1.5} />
+            </button>
+          ) : (
+            <div className="min-w-[44px]" />
+          )}
+          <span className="font-serif text-lg font-semibold">{username}</span>
           <button
-            onClick={() => { setSelectedProject(null); window.scrollTo(0, 0) }}
-            className="min-w-[44px] min-h-[44px] flex items-center justify-center"
+            onClick={() => setDarkMode(v => !v)}
+            aria-label="다크 모드 전환"
+            className="min-w-[44px] min-h-[44px] flex items-center justify-center p-3"
           >
-            <ChevronLeft size={22} strokeWidth={1.5} />
+            {darkMode ? <Sun size={18} strokeWidth={1.5} /> : <Moon size={18} strokeWidth={1.5} />}
           </button>
-        ) : (
-          <div className="min-w-[44px]" />
-        )}
-        <span className="font-serif text-lg font-semibold">{username}</span>
-        <button
-          onClick={() => setDarkMode(v => !v)}
-          className="min-w-[44px] min-h-[44px] flex items-center justify-center p-3"
-        >
-          {darkMode ? <Sun size={18} strokeWidth={1.5} /> : <Moon size={18} strokeWidth={1.5} />}
-        </button>
+        </div>
       </div>
 
       <div ref={containerRef} className="px-4">
         {!selectedProject ? (
           // ── 프로젝트 목록 ──────────────────────────────────
-          <div className="flex flex-col gap-4 pb-8">
+          <div className="flex flex-col gap-4 pb-8 pt-4">
             {projects.map(project => (
               <div
                 key={project.id}
-                className={`rounded-xl overflow-hidden cursor-pointer ${darkMode ? 'bg-stone-800' : 'bg-white'} shadow-sm`}
+                className={`rounded-xl overflow-hidden cursor-pointer border shadow-sm hover:shadow transition-shadow ${darkMode ? 'bg-card-cover border-white/10' : 'bg-white border-stone-200/60'}`}
                 onClick={() => { setSelectedProject(project); window.scrollTo(0, 0) }}
               >
                 {project.cover_image_url ? (
                   <img src={project.cover_image_url} className="w-full aspect-[3/2] object-cover" alt={project.title} />
                 ) : (
-                  <div className={`w-full aspect-[3/2] ${darkMode ? 'bg-stone-700' : 'bg-stone-100'}`} />
+                  <div className={`w-full aspect-[3/2] flex items-center justify-center ${darkMode ? 'bg-card-cover' : 'bg-stone-100'}`}>
+                    <span className={`font-serif text-[3.5rem] leading-none font-light select-none ${darkMode ? 'text-stone-600' : 'text-stone-300'}`}>
+                      {project.title.charAt(0).toUpperCase()}
+                    </span>
+                  </div>
                 )}
                 <div className="p-3">
                   <p className="font-semibold text-sm">{project.title}</p>
@@ -226,14 +236,12 @@ export default function MobilePublicPortfolio() {
               </div>
             ))}
             {projects.length === 0 && (
-              <div className="text-center py-20">
-                <p className={`text-sm ${subText}`}>{t('portfolio.noPublicProjects')}</p>
-              </div>
+              <EmptyState heading={t('portfolio.noPublicProjects')} darkMode={darkMode} />
             )}
           </div>
         ) : (
           // ── 프로젝트 상세 ──────────────────────────────────
-          <div className="pb-12">
+          <div className="pb-12 pt-4">
             {/* 프로젝트 헤더 */}
             <h1 className="text-2xl font-serif font-semibold mb-1">{selectedProject.title}</h1>
             {selectedProject.location && (
@@ -253,16 +261,11 @@ export default function MobilePublicPortfolio() {
                 {selectedProject.chapters.map((chapter, idx) => {
                   const allChapterItems = getAllChapterItems(selectedProject)
                   return (
-                    <div key={chapter.id}>
-                      {/* 챕터 구분선 — 첫 챕터 제외 */}
-                      {idx > 0 && <div className={`h-px my-8 ${divider}`} />}
-
+                    <div key={chapter.id} className={idx > 0 ? 'pt-space-xl' : ''}>
                       {/* 챕터 헤더 */}
                       <div className="mb-5">
                         <div className="flex items-baseline gap-2 mb-1">
-                          <span className={`text-xs uppercase ${subText}`}>
-                            {idx + 1 < 10 ? `0${idx + 1}` : idx + 1}
-                          </span>
+                          <span className={`text-caption uppercase ${subText}`}>{idx + 1}</span>
                           <h2 className="text-xl font-serif font-bold tracking-tight">{chapter.title}</h2>
                         </div>
                         {chapter.description && (
@@ -270,7 +273,7 @@ export default function MobilePublicPortfolio() {
                             {chapter.description}
                           </p>
                         )}
-                        <div className={`mt-4 h-px w-10 ${divider}`} />
+                        <div className={`mt-4 h-px w-10 ${darkMode ? 'bg-stone-700' : 'bg-stone-200'}`} />
                       </div>
 
                       {/* 챕터 아이템 */}
@@ -283,11 +286,10 @@ export default function MobilePublicPortfolio() {
 
                       {/* 서브챕터 */}
                       {chapter.sub_chapters?.map((sub, subIdx) => (
-                        <div key={sub.id} className="mt-8">
-                          <div className={`h-px mb-6 w-1/3 ${divider}`} />
+                        <div key={sub.id} className="mt-space-xl">
                           <div className="mb-4">
                             <div className="flex items-baseline gap-2 mb-1">
-                              <span className={`text-xs ${subText}`}>{idx + 1}.{subIdx + 1}</span>
+                              <span className={`text-caption ${subText}`}>{idx + 1}.{subIdx + 1}</span>
                               <h3 className="text-base font-serif font-semibold">{sub.title}</h3>
                             </div>
                             {sub.description && (
@@ -309,9 +311,7 @@ export default function MobilePublicPortfolio() {
                 })}
               </div>
             ) : (
-              <div className={`text-center py-20 ${subText}`}>
-                <p className="text-sm">{t('portfolio.noChapters')}</p>
-              </div>
+              <EmptyState heading={t('portfolio.noChapters')} darkMode={darkMode} />
             )}
           </div>
         )}
@@ -325,6 +325,7 @@ export default function MobilePublicPortfolio() {
         >
           <div className="flex items-center justify-between px-4 py-2 shrink-0">
             <button
+              aria-label="닫기"
               onClick={() => setLightboxIndex(null)}
               className="min-w-[44px] min-h-[44px] flex items-center justify-center"
             >
@@ -346,11 +347,13 @@ export default function MobilePublicPortfolio() {
           >
             <img
               src={lightboxItems[lightboxIndex].photo.image_url}
+              alt={lightboxItems[lightboxIndex].photo.caption || ''}
               style={{ width: '100%', height: '100dvh', objectFit: 'contain' }}
               draggable={false}
             />
             {lightboxIndex > 0 && (
               <button
+                aria-label="이전 사진"
                 onClick={() => setLightboxIndex(v => v! - 1)}
                 className="absolute left-2 min-w-[44px] min-h-[44px] flex items-center justify-center bg-black/30 rounded-full"
               >
@@ -359,6 +362,7 @@ export default function MobilePublicPortfolio() {
             )}
             {lightboxIndex < lightboxItems.length - 1 && (
               <button
+                aria-label="다음 사진"
                 onClick={() => setLightboxIndex(v => v! + 1)}
                 className="absolute right-2 min-w-[44px] min-h-[44px] flex items-center justify-center bg-black/30 rounded-full"
               >

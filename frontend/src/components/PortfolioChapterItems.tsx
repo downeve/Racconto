@@ -80,6 +80,7 @@ export default function PortfolioChapterItems({
           >
             <img
               src={cfUrl(photo.image_url, 'grid')}
+              alt={photo.caption || ''}
               loading="lazy"
               className="w-full h-full rounded-photo object-cover hover:opacity-90 transition-opacity block"
               onLoad={(e) => handleImageLoad(photo.image_url || '', e)}
@@ -159,6 +160,7 @@ export default function PortfolioChapterItems({
             <div key={photo.id} className="break-inside-avoid rounded-photo">
               <img
                 src={cfUrl(photo.image_url, 'grid')}
+                alt={photo.caption || ''}
                 loading="lazy"
                 className="w-full rounded-photo cursor-pointer hover:opacity-90 transition-opacity block"
                 onClick={() => onLightbox?.(photo as PortfolioPhoto, allLightboxItems)}
@@ -175,7 +177,7 @@ export default function PortfolioChapterItems({
       )
       const textCol = group.text ? (
         <div
-          className={`min-w-0 flex items-center w-full ${group.blockType === 'side-left' ? 'text-right' : 'text-left'}`}
+          className={`min-w-0 flex items-start w-full ${group.blockType === 'side-left' ? 'text-right' : 'text-left'}`}
           style={{ flex: '2' }}
         >
           <MarkdownRenderer
@@ -206,6 +208,7 @@ export default function PortfolioChapterItems({
             <div key={photo.id} className="break-inside-avoid rounded-photo">
               <img
                 src={cfUrl(photo.image_url, 'public')}
+                alt={photo.caption || ''}
                 loading="lazy"
                 className="w-full rounded-photo cursor-pointer hover:opacity-90 transition-opacity"
                 onClick={() => onLightbox?.(photo as PortfolioPhoto, allLightboxItems)}

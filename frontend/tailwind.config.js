@@ -24,6 +24,8 @@ export default {
         hair: colors.stone[200],      //구분선, 보더
         accent: 'oklch(55% 0.08 55)', //포커스, 링크 Hover(선택)
         lightbox: colors.stone[950], //라이트박스 배경색
+        'card-cover': colors.stone[800],   // 다크모드 카드 커버 플레이스홀더
+        'card-surface': colors.stone[900], // 다크모드 카드 정보 영역
         status: {
           progress:  '#F59E0B',  // amber-500
           completed: '#10B981',  // emerald-500

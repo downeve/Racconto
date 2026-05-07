@@ -36,6 +36,7 @@ export default function MobilePortfolioChapterItems({
           >
             <img
               src={photo.image_url}
+              alt={(photo as PortfolioChapterItem).caption || ''}
               loading="lazy"
               className="w-full h-full rounded-photo object-cover block"
               onLoad={(e) => handleImageLoad(photo.image_url || '', e)}
@@ -78,7 +79,7 @@ export default function MobilePortfolioChapterItems({
 
     if (item.item_type === 'TEXT' && item.block_type !== 'side-left' && item.block_type !== 'side-right') {
       result.push(
-        <div key={`text-${i}`} className="my-8 px-2">
+        <div key={`text-${i}`} className="my-8">
           <MarkdownRenderer content={item.text_content || ''} darkMode={darkMode} className="leading-[2.1] [word-break:keep-all] font-serif" />
         </div>
       )
@@ -97,7 +98,7 @@ export default function MobilePortfolioChapterItems({
           <div className="space-y-2">
             {group.photos.map(photo => (
               <div key={photo.id} className="rounded-photo overflow-hidden cursor-pointer" onClick={() => onLightbox?.(photo as PortfolioPhoto, allLightboxItems)}>
-                <img src={photo.image_url} loading="lazy" className="w-full block rounded-photo" />
+                <img src={photo.image_url} alt={photo.caption || ''} loading="lazy" className="w-full block rounded-photo" />
               </div>
             ))}
           </div>
@@ -117,7 +118,7 @@ export default function MobilePortfolioChapterItems({
         <div key={`block-${bid}`} className="mb-4 space-y-2">
           {photos.map(photo => (
             <div key={photo.id} className="rounded-photo overflow-hidden cursor-pointer" onClick={() => onLightbox?.(photo as PortfolioPhoto, allLightboxItems)}>
-              <img src={photo.image_url} loading="lazy" className="w-full rounded-photo block" />
+              <img src={photo.image_url} alt={photo.caption || ''} loading="lazy" className="w-full rounded-photo block" />
             </div>
           ))}
         </div>
