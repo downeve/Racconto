@@ -114,13 +114,12 @@ export default function MobileLandingPage() {
           >
             {t('landing.ctaPrimary')}
           </Link>
-          <Link
-            to="/features"
+          <button
             onClick={() => featuresRef.current?.scrollIntoView({ behavior: 'smooth' })}
             className="w-full max-w-xs px-6 py-4 border border-stone-300 text-stone-600 text-sm tracking-widest text-center rounded"
           >
             {t('landing.ctaSecondary')}
-          </Link>
+          </button>
         </div>
         <p className="mt-5 text-xs text-stone-400 tracking-wider">
           {t('landing.betaBadge')}
