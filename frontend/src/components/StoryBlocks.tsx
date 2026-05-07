@@ -1,6 +1,6 @@
 import { useTranslation } from 'react-i18next'
 // import { memo, useState, useMemo } from 'react'  // useState, useMemo: GhostFrameGrid 전용
-import { memo } from 'react'
+import { memo, useRef } from 'react'
 // import { computePortfolioRows } from '../utils/portfolioRows'  // GhostFrameGrid 전용
 import MarkdownRenderer from './MarkdownRenderer'
 import { cfUrl } from '../utils/cfImage'
@@ -176,13 +176,16 @@ export const SortableTextBlock = memo(function SortableTextBlock({
 }: SortableTextBlockProps) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id })
   const style = { transform: CSS.Transform.toString(transform), transition, opacity: isDragging ? 0.5 : 1 }
+  const localRef = useRef<HTMLDivElement>(null)
+  const setRef = (node: HTMLDivElement | null) => { setNodeRef(node); (localRef as React.MutableRefObject<HTMLDivElement | null>).current = node }
+  const scrollToSelf = () => setTimeout(() => localRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' }), 50)
   const { t } = useTranslation()
 
   // 현재 이 블록이 편집 중인지 확인
   const isEditing = editingTextItemId === itemId;
 
   return (
-    <div ref={setNodeRef} style={style} className="w-full group relative bg-stone-50 border border-stone-200 rounded-card px-5 py-4 my-1 min-w-0 overflow-x-hidden break-words">
+    <div ref={setRef} style={style} className="w-full group relative bg-stone-50 border border-stone-200 rounded-card px-5 py-4 my-1 min-w-0 overflow-x-hidden break-words">
       {isEditing ? (
         /* 👇 편집 모드일 때: 단독 텍스트 인라인 편집창 */
         <div className="flex flex-col gap-2">
@@ -222,14 +225,14 @@ export const SortableTextBlock = memo(function SortableTextBlock({
             <div className="absolute -top-1 left-6 opacity-0 group-hover:opacity-100 transition-opacity z-60 flex items-center gap-1 bg-white border border-gray-200 rounded shadow px-1.5 py-0.5">
               {!isFirst && (
                 <button
-                  onClick={() => onMoveBlock?.('up')}
+                  onClick={() => { onMoveBlock?.('up'); scrollToSelf() }}
                   className="text-[10px] px-1.5 py-0.5 rounded text-gray-500 hover:bg-gray-100"
                   title="위로 이동"
                 >↑</button>
               )}
               {!isLast && (
                 <button
-                  onClick={() => onMoveBlock?.('down')}
+                  onClick={() => { onMoveBlock?.('down'); scrollToSelf() }}
                   className="text-[10px] px-1.5 py-0.5 rounded text-gray-500 hover:bg-gray-100"
                   title="아래로 이동"
                 >↓</button>
@@ -396,10 +399,13 @@ export const SortablePhotoBlock = memo(function SortablePhotoBlock({
     disabled: !isExternalDrag,
   })
 
+  const localRef = useRef<HTMLDivElement>(null)
   const setRef = (node: HTMLDivElement | null) => {
     setSortableRef(node)
     setDropRef(node)
+    ;(localRef as React.MutableRefObject<HTMLDivElement | null>).current = node
   }
+  const scrollToSelf = () => setTimeout(() => localRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' }), 50)
 
   const blockLayout = items[0]?.block_layout || 'grid'
   const layoutLabels: Record<string, string> = { grid: t('portfolio.columnGrid'), wide: t('portfolio.columnWide'), single: t('portfolio.columnSingle') }
@@ -462,14 +468,14 @@ export const SortablePhotoBlock = memo(function SortablePhotoBlock({
       <div className="absolute -top-1 left-6 opacity-0 group-hover/block:opacity-100 transition-opacity z-20 flex items-center gap-1 bg-white border border-gray-200 rounded shadow px-1.5 py-0.5">
         {!isFirst && (
           <button
-            onClick={() => onMoveBlock?.('up')}
+            onClick={() => { onMoveBlock?.('up'); scrollToSelf() }}
             className="text-[10px] px-1.5 py-0.5 rounded text-gray-500 hover:bg-gray-100"
             title="위로 이동"
           >↑</button>
         )}
         {!isLast && (
           <button
-            onClick={() => onMoveBlock?.('down')}
+            onClick={() => { onMoveBlock?.('down'); scrollToSelf() }}
             className="text-[10px] px-1.5 py-0.5 rounded text-gray-500 hover:bg-gray-100"
             title="아래로 이동"
           >↓</button>
@@ -567,8 +573,14 @@ export const SortableSideBySideBlock = memo(function SortableSideBySideBlock({
   editingTextItemId, textDraft, onTextDraftChange, onSaveText, onCancelEdit,
   onEdit, onMoveBlock, isFirst, isLast
 }: SortableSideBySideBlockProps) {
-  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: blockId })
+  const { attributes, listeners, setNodeRef: setSortableRef, transform, transition, isDragging } = useSortable({ id: blockId })
   const style = { transform: CSS.Transform.toString(transform), transition, opacity: isDragging ? 0.5 : 1 }
+  const localRef = useRef<HTMLDivElement>(null)
+  const setNodeRef = (node: HTMLDivElement | null) => {
+    setSortableRef(node)
+    ;(localRef as React.MutableRefObject<HTMLDivElement | null>).current = node
+  }
+  const scrollToSelf = () => setTimeout(() => localRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' }), 50)
 
   const blockType = items[0]?.block_type || 'side-left'
   const photoItems = items.filter(i => i.item_type === 'PHOTO')
@@ -666,14 +678,14 @@ export const SortableSideBySideBlock = memo(function SortableSideBySideBlock({
       <div className="absolute -top-1 left-6 opacity-0 group-hover/block:opacity-100 transition-opacity z-20 flex items-center gap-1 bg-white border border-gray-200 rounded shadow px-1.5 py-0.5">
         {!isFirst && (
           <button
-            onClick={() => onMoveBlock?.('up')}
+            onClick={() => { onMoveBlock?.('up'); scrollToSelf() }}
             className="text-[10px] px-1.5 py-0.5 rounded text-gray-500 hover:bg-gray-100"
             title="위로 이동"
           >↑</button>
         )}
         {!isLast && (
           <button
-            onClick={() => onMoveBlock?.('down')}
+            onClick={() => { onMoveBlock?.('down'); scrollToSelf() }}
             className="text-[10px] px-1.5 py-0.5 rounded text-gray-500 hover:bg-gray-100"
             title="아래로 이동"
           >↓</button>
