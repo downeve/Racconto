@@ -107,7 +107,7 @@ export default function PublicPortfolio() {
 
   const getAllChapterItems = (project: PortfolioProject) => {
     const items: { photo: Photo; title: string }[] = []
-    project.chapters?.forEach((ch, idx) => {
+    project.chapters?.forEach((ch) => {
       ch.items?.filter(i => i.item_type === 'PHOTO').forEach(i => {
         items.push({ photo: i as Photo, title: ch.title })
       })
@@ -336,7 +336,7 @@ export default function PublicPortfolio() {
                       darkMode={darkMode}
                       onLightbox={(photo, items) => openLightbox(photo as unknown as Photo, items as { photo: Photo; title: string }[])}
                     />
-                    {chapter.sub_chapters?.map((sub, subIdx) => (
+                    {chapter.sub_chapters?.map((sub) => (
                       <div key={sub.id} className="mt-space-xl">
                         <div className="mb-8">
                           <div className="mb-2">

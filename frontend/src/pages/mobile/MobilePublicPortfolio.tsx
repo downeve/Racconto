@@ -143,9 +143,9 @@ export default function MobilePublicPortfolio() {
 
   const getAllChapterItems = (project: PortfolioProject) => {
     const items: { photo: Photo; title: string }[] = []
-    project.chapters?.forEach((ch, idx) => {
+    project.chapters?.forEach((ch) => {
       ch.items?.filter(i => i.item_type === 'PHOTO').forEach(i => items.push({ photo: i as Photo, title: ch.title }))
-      ch.sub_chapters?.forEach((sub) => {
+      ch.sub_chapters?.forEach(sub => {
         sub.items?.filter(i => i.item_type === 'PHOTO').forEach(i => items.push({ photo: i as Photo, title: sub.title }))
       })
     })
@@ -282,7 +282,7 @@ export default function MobilePublicPortfolio() {
                       />
 
                       {/* 서브챕터 */}
-                      {chapter.sub_chapters?.map((sub, subIdx) => (
+                      {chapter.sub_chapters?.map((sub) => (
                         <div key={sub.id} className="mt-space-xl">
                           <div className="mb-4">
                             <div className="mb-1">
