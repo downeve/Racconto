@@ -219,7 +219,7 @@ export const SortableTextBlock = memo(function SortableTextBlock({
           </div>
 
           {(!isFirst || !isLast) && (
-            <div className="absolute -top-1 left-6 opacity-0 group-hover:opacity-100 transition-opacity z-20 flex items-center gap-1 bg-white border border-gray-200 rounded shadow px-1.5 py-0.5">
+            <div className="absolute -top-2 left-6 opacity-0 group-hover:opacity-100 transition-opacity z-20 flex items-center gap-1 bg-white border border-gray-200 rounded shadow px-1.5 py-0.5">
               {!isFirst && (
                 <button
                   onClick={() => onMoveBlock?.('up')}
