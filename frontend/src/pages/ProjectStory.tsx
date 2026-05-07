@@ -550,6 +550,34 @@ function ProjectStory({
     }).catch(err => console.error('블록 순서 업데이트 실패:', err));
   };
 
+  const handleMoveBlock = (chapterId: string, blockId: string, direction: 'up' | 'down') => {
+    const blocks = blocksPerChapter[chapterId] || []
+    const idx = blocks.findIndex(b => b.blockId === blockId)
+    if (idx === -1) return
+    const newIdx = direction === 'up' ? idx - 1 : idx + 1
+    if (newIdx < 0 || newIdx >= blocks.length) return
+    // Reuse handleBlockDragEnd logic via a synthetic call
+    const newBlocks = arrayMove(blocks, idx, newIdx)
+    const itemsToSync: { id: string; block_id: string | null; order_num: number; order_in_block: number }[] = []
+    newBlocks.forEach((block, blockIndex) => {
+      const blockOrderNum = blockIndex * 10
+      block.items.forEach((item, itemIndex) => {
+        itemsToSync.push({ id: item.id, block_id: block.blockId, order_in_block: itemIndex, order_num: blockOrderNum })
+      })
+    })
+    setChapterPhotos(prev => {
+      const items = prev[chapterId] || []
+      const newItems = items.map(item => {
+        const syncData = itemsToSync.find(i => i.id === item.id)
+        if (syncData) return { ...item, order_num: syncData.order_num, order_in_block: syncData.order_in_block }
+        return item
+      }).sort((a, b) => a.order_num !== b.order_num ? a.order_num - b.order_num : a.order_in_block - b.order_in_block)
+      return { ...prev, [chapterId]: newItems }
+    })
+    axios.put(`${API}/chapters/${chapterId}/items/bulk-sync`, { items: itemsToSync })
+      .catch(err => console.error('블록 순서 업데이트 실패:', err))
+  }
+
   // 블록 내 사진 순서 변경 (내부 DnD)
   const handleInnerDragEnd = useCallback((event: DragEndEvent, blockId: string, chapterId: string) => {
     const { active, over } = event
@@ -884,6 +912,9 @@ function ProjectStory({
                   onTextDraftChange={setTextDraft}
                   onSaveText={handleSaveTextBlock}
                   onCancelEdit={() => setEditingTextItemId(null)}
+                  onMoveBlock={(dir) => handleMoveBlock(targetChapterId, block.blockId, dir)}
+                  isFirst={blockIdx === 0}
+                  isLast={blockIdx === blocks.length - 1}
                 />
               )
 
@@ -907,6 +938,9 @@ function ProjectStory({
                   onTextDraftChange={setTextDraft}
                   onSaveText={handleSaveTextBlock}
                   onCancelEdit={() => setEditingTextItemId(null)}
+                  onMoveBlock={(dir) => handleMoveBlock(targetChapterId, block.blockId, dir)}
+                  isFirst={blockIdx === 0}
+                  isLast={blockIdx === blocks.length - 1}
                 />
               )
 
@@ -939,6 +973,9 @@ function ProjectStory({
                   onRequestMove={(itemId, chapterId, sourceBlockId) =>
                     setMoveModalItem({ itemId, chapterId, sourceBlockId })
                   }
+                  onMoveBlock={(dir) => handleMoveBlock(targetChapterId, block.blockId, dir)}
+                  isFirst={blockIdx === 0}
+                  isLast={blockIdx === blocks.length - 1}
                   //ghostMode={ghostMode}
                 />
               )
