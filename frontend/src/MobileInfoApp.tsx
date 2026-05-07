@@ -4,6 +4,7 @@ import { AuthProvider } from './context/AuthContext'
 import MobileAppInfo from './pages/MobileAppInfo'
 import MobileLandingPage from './pages/MobileLandingPage'
 import MobilePublicPortfolio from './pages/mobile/MobilePublicPortfolio'
+import AppDownload from './pages/AppDownload'
 import Login from './pages/Login'
 import Register from './pages/Register'
 import VerifyEmail from './pages/VerifyEmail'
@@ -50,6 +51,7 @@ export default function MobileInfoApp() {
           <Route path="/dashboard" element={<Navigate to="/mobile-app-info" replace />} />
           <Route path="/auth/social-callback" element={<MobileSocialCallback />} />
           <Route path="/mobile-app-info" element={<MobileAppInfo />} />
+          <Route path="/download" element={<AppDownload />} />
           <Route path="/:username" element={<MobilePublicPortfolio />} />
           <Route path="*" element={<MobileLandingPage />} />
         </Routes>
