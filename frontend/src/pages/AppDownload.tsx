@@ -150,7 +150,7 @@ export default function AppDownload() {
           {/* Download Card */}
           <div className="rounded-card border border-hair bg-canvas-2 p-6 mb-10">
             {platform === 'mac' ? (
-              <div className="flex items-center justify-between gap-4">
+              <div className="flex flex-col items-center gap-4"> {/* 세로 정렬로 변경 */}
                 <div>
                   <p className="text-small font-semibold text-ink mb-1">
                     Racconto-beta-arm64.dmg<br />
@@ -160,28 +160,30 @@ export default function AppDownload() {
                     macOS 11+ · Apple Silicon & Intel · {version}
                   </p>
                 </div>
-                <div className="flex flex-col gap-2 shrink-0">
+                
+                {/* 버튼들을 가로로 나열하기 위해 flex-row(기본값)와 gap 적용 */}
+                <div className="flex flex-row gap-2 shrink-0">
                     <a
-                    href={arm64Url}
-                    className="shrink-0 inline-flex items-center gap-2 px-5 py-2.5 bg-ink text-white text-small tracking-widest rounded hover:bg-stone-700 transition-colors duration-150"
+                      href={arm64Url}
+                      className="flex-1 justify-center shrink-0 inline-flex items-center gap-2 px-5 py-2.5 bg-ink text-white text-small tracking-widest rounded hover:bg-stone-700 transition-colors duration-150"
                     >
-                    <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-                        <polyline points="7 10 12 15 17 10" />
-                        <line x1="12" y1="15" x2="12" y2="3" />
-                    </svg>
-                    {t('download.macArm64btn')}
+                      <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                          <polyline points="7 10 12 15 17 10" />
+                          <line x1="12" y1="15" x2="12" y2="3" />
+                      </svg>
+                      {t('download.macArm64btn')}
                     </a>
                     <a
-                    href={x64Url}
-                    className="shrink-0 inline-flex items-center gap-2 px-5 py-2.5 border border-stone-300 text-stone-700 text-small tracking-widest rounded hover:border-stone-500 hover:text-stone-900 transition-colors duration-150"
+                      href={x64Url}
+                      className="flex-1 justify-center shrink-0 inline-flex items-center gap-2 px-5 py-2.5 border border-stone-300 text-stone-700 text-small tracking-widest rounded hover:border-stone-500 hover:text-stone-900 transition-colors duration-150"
                     >
-                    <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-                        <polyline points="7 10 12 15 17 10" />
-                        <line x1="12" y1="15" x2="12" y2="3" />
-                    </svg>
-                    {t('download.macIntelbtn')}
+                      <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                          <polyline points="7 10 12 15 17 10" />
+                          <line x1="12" y1="15" x2="12" y2="3" />
+                      </svg>
+                      {t('download.macIntelbtn')}
                     </a>
                 </div>
               </div>
