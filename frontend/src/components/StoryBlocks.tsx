@@ -80,7 +80,7 @@ export function InsertSlot({ onInsertText }: InsertSlotProps) {
   return (
     <div
       ref={ref}
-      className={`relative flex items-center justify-center transition-[height] duration-150 mb-2 ${hovered || open ? 'h-6' : 'h-2'}`}
+      className={`relative flex items-center justify-center transition-[height] duration-150 mb-1 ${hovered || open ? 'h-6' : 'h-2'}`}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => { if (!open) setHovered(false) }}
     >
@@ -282,7 +282,7 @@ export const SortableTextBlock = memo(function SortableTextBlock({
   const isEditing = editingTextItemId === itemId;
 
   return (
-    <div ref={setRef} style={style} className="w-full group relative mb-2 min-w-0">
+    <div ref={setRef} style={style} className="w-full group relative mb-1 min-w-0">
       {/* 드래그 핸들 — 외부 좌측 (PHOTO/SIDE 블록과 동일 위치) */}
       {!isEditing && (
         <div
@@ -528,7 +528,7 @@ export const SortablePhotoBlock = memo(function SortablePhotoBlock({
     <div
       ref={setRef}
       style={style}
-      className={`group/block relative mb-2 rounded-card p-3 border transition-[background,color,border] duration-150 ease-out ${
+      className={`group/block relative mb-1 rounded-card p-3 border transition-[background,color,border] duration-150 ease-out ${
         isOver && isExternalDrag
           ? 'bg-blue-50 border-blue-300'
           : 'bg-stone-50 border-stone-200'
@@ -798,7 +798,7 @@ export const SortableSideBySideBlock = memo(function SortableSideBySideBlock({
   ) : null
 
   return (
-    <div ref={setNodeRef} style={style} className="group/block relative mb-2">
+    <div ref={setNodeRef} style={style} className="group/block relative mb-1">
       <div
         {...attributes}
         {...listeners}
