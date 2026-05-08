@@ -59,7 +59,7 @@ export interface InsertSlotProps {
   onSideBySide?: () => void
 }
 
-export function InsertSlot({ onInsertText, onSideBySide }: InsertSlotProps) {
+export function InsertSlot({ onInsertText }: InsertSlotProps) {
   const [hovered, setHovered] = useState(false)
   const [open, setOpen] = useState(false)
   const ref = useRef<HTMLDivElement>(null)
@@ -80,20 +80,21 @@ export function InsertSlot({ onInsertText, onSideBySide }: InsertSlotProps) {
   return (
     <div
       ref={ref}
-      className="relative flex items-center justify-center h-3 mb-2"
+      className={`relative flex items-center justify-center transition-[height] duration-150 mb-2 ${hovered || open ? 'h-6' : 'h-2'}`}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => { if (!open) setHovered(false) }}
     >
-      {/* 시각 레이어: scaleY로 슬라이드인. absolute라 외부 높이에 영향 없음 */}
-      <div className={`absolute inset-x-0 h-6 flex items-center justify-center origin-center transition-[transform,opacity] duration-150 ${hovered || open ? 'scale-y-100 opacity-100' : 'scale-y-0 opacity-0 pointer-events-none'}`}>
-        <div className="absolute inset-x-0 top-1/2 h-px bg-stone-300 pointer-events-none" />
-        <button
-          onClick={() => setOpen(v => !v)}
-          className="relative z-10 w-5 h-5 flex items-center justify-center rounded-full bg-white border border-stone-300 text-stone-400 hover:text-stone-600 hover:border-stone-400 shadow-sm text-sm leading-none"
-          aria-label={t('story.insertText')}
-          tabIndex={0}
-        >+</button>
-      </div>
+      {(hovered || open) && (
+        <>
+          <div className="absolute inset-x-0 top-1/2 h-px bg-stone-300 pointer-events-none" />
+          <button
+            onClick={() => { onInsertText(); setOpen(false); setHovered(false) }}
+            className="relative z-10 h-6 flex items-center justify-center px-2 rounded-btn bg-white border border-stone-300 text-stone-400 hover:text-stone-600 hover:border-stone-400 shadow-sm text-sm leading-none"
+            aria-label={t('story.insertText')}
+            tabIndex={0}
+          ><FileText size={13} strokeWidth={1.5} /> {t('story.insertText')}</button>
+        </>
+      )}
 
       {open && (
         <div className="absolute top-full left-1/2 -translate-x-1/2 mt-1 z-50 bg-white border border-stone-200 rounded-card shadow-lg py-1 min-w-[160px]">
@@ -104,7 +105,7 @@ export function InsertSlot({ onInsertText, onSideBySide }: InsertSlotProps) {
             <FileText size={13} strokeWidth={1.5} />
             {t('story.insertText')}
           </button>
-          {onSideBySide && (
+          {/*{onSideBySide && (
             <button
               onClick={() => { onSideBySide(); setOpen(false); setHovered(false) }}
               className="w-full text-left px-3 py-1.5 text-sm text-blue-500 hover:bg-stone-50 flex items-center gap-2"
@@ -112,7 +113,7 @@ export function InsertSlot({ onInsertText, onSideBySide }: InsertSlotProps) {
               <ArrowLeftRight size={13} strokeWidth={1.5} />
               {t('story.insertSideBySide')}
             </button>
-          )}
+          )}*/}
         </div>
       )}
     </div>

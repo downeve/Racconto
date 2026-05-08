@@ -252,11 +252,11 @@ function ProjectStory({
   }, [])
 
   // 변경 후 — API 호출 없이 모달만 열고, 저장 시 생성
-  const handleAddTextBlock = (chapterId: string) => {
-    const blocks = blocksPerChapter[chapterId] || []
-    setInsertSlotActive({ chapterId, insertIndex: blocks.length })
-    setInsertTextDraft('')
-  }
+  //const handleAddTextBlock = (chapterId: string) => {
+  //  const blocks = blocksPerChapter[chapterId] || []
+  //  setInsertSlotActive({ chapterId, insertIndex: blocks.length })
+  //  setInsertTextDraft('')
+  //}
 
   // 0-2: 특정 위치에 텍스트 블록 삽입
   const handleAddTextBlockAt = async (chapterId: string, insertIndex: number, textContent: string) => {
@@ -1685,11 +1685,11 @@ function ProjectStory({
                   <div className="p-4">
                     {renderChapterActionBar(chapter.id)}
                     {renderChapterBlocks(chapter.id)}
-                    <button onClick={() => handleAddTextBlock(chapter.id)}
+                    {/*<button onClick={() => handleAddTextBlock(chapter.id)}
                         className="mt-2 flex items-center justify-center text-small text-faint hover:text-ink-2 border border-dashed border-gray-300 hover:border-faint rounded-card px-3 py-1.5 w-full transition-[background,color,border] duration-150 ease-out"
                       >
                         <FileText size={13} strokeWidth={1.5} /> {t('story.addTextBlock')}
-                    </button>
+                    </button>*/}
                   </div>
                 </div>
 
@@ -1785,11 +1785,11 @@ function ProjectStory({
                     <div className="p-4">
                     {renderChapterActionBar(subChapter.id)}
                     {renderChapterBlocks(subChapter.id)}
-                    <button onClick={() => handleAddTextBlock(subChapter.id)}
+                    {/*<button onClick={() => handleAddTextBlock(subChapter.id)}
                         className="mt-2 flex items-center justify-center text-small text-faint hover:text-ink-2 border border-dashed border-gray-300 hover:border-faint rounded-card px-3 py-1.5 w-full transition-[background,color,border] duration-150 ease-out"
                       >
                         <FileText size={13} strokeWidth={1.5} /> {t('story.addTextBlock')}
-                    </button>
+                    </button>*/}
                   </div>
                 </div>
                 ))}
