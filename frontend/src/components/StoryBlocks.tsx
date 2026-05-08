@@ -315,14 +315,14 @@ export const SortableTextBlock = memo(function SortableTextBlock({
               {hasPhotoAbove && (
                 <button
                   onClick={() => onSideBySide(itemId, 'side-left', 'above')}
-                  className="text-xs px-2 py-0.5 rounded border border-stone-200 text-blue-500 hover:text-stone-800 bg-white"
+                  className="inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded border border-stone-200 text-blue-500 hover:text-stone-800 bg-white"
                   title="위 사진과 나란히 (텍스트 왼쪽)"
                 ><ArrowLeftRight size={10} strokeWidth={1.5} /> {t('story.attachLeft')}</button>
               )}
               {hasPhotoBelow && (
                 <button
                   onClick={() => onSideBySide(itemId, 'side-right', 'below')}
-                  className="text-xs px-2 py-0.5 rounded border border-stone-200 text-blue-500 hover:text-stone-800 bg-white"
+                  className="inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded border border-stone-200 text-blue-500 hover:text-stone-800 bg-white"
                   title="아래 사진과 나란히 (텍스트 오른쪽)"
                 ><ArrowLeftRight size={10} strokeWidth={1.5} /> {t('story.attachRight')}</button>
               )}
