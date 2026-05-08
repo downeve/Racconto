@@ -256,7 +256,7 @@
     "attachLeft": "↑",
     "attachRight": "↓",
     "detach": "분리",
-    "sideSingleHint": "이미지 배치 1열 · 포트폴리오 기준",
+    "sideSingleHint": "레이아웃 1열 (포트폴리오)",
     "toOtherBlock": "옮기기",
     "toOtherBlockTitle": "다른 블록으로 옮기기",
     "selectPhotos": "챕터에 추가할 사진을 클릭하세요.",
@@ -338,11 +338,11 @@
     "startMessage": "나만의 포트폴리오를 만드세요.",
     "startMessage2": "아직 포트폴리오 주소를 설정하지 않았습니다. 설정에서 사용자 이름을 등록하세요.",
     "noUser": "의 포트폴리오를 찾을 수 없습니다.",
-    "column": "이미지 배치: ",
+    "column": "포트폴리오 레이아웃: ",
     "columnSingle": "1열",
     "columnWide": "2열",
     "columnGrid": "3열",
-    "layoutInPort": "/ 포트폴리오에 적용됩니다."
+    "layoutInPort": "/_"
   },
   "delivery": {
     "title": "납품",
