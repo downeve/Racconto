@@ -108,7 +108,7 @@ export function InsertSlot({ onInsertText }: InsertSlotProps) {
           {/*{onSideBySide && (
             <button
               onClick={() => { onSideBySide(); setOpen(false); setHovered(false) }}
-              className="w-full text-left px-3 py-1.5 text-sm text-blue-500 hover:bg-stone-50 flex items-center gap-2"
+              className="w-full text-left px-3 py-1.5 text-sm text-stone-700 hover:bg-stone-50 flex items-center gap-2"
             >
               <ArrowLeftRight size={13} strokeWidth={1.5} />
               {t('story.insertSideBySide')}
@@ -222,7 +222,7 @@ export function SortablePhotoChapter({
         <div className="absolute bottom-1 right-1 z-20">
           <button
             onClick={(e) => { e.stopPropagation(); onRequestMove(id) }}
-            className="opacity-0 group-hover:opacity-100 transition-opacity bg-black/60 hover:bg-black/80 text-white rounded px-1.5 py-0.5 text-[10px] leading-tight"
+            className="opacity-0 group-hover:opacity-100 transition-opacity border border-stone-300 bg-card text-muted hover:text-ink rounded px-1.5 py-0.5 text-[10px] leading-tight"
             title="다른 블록으로 이동"
           >
             {t('story.toOtherBlock')}
@@ -350,14 +350,14 @@ export const SortableTextBlock = memo(function SortableTextBlock({
               {hasPhotoAbove && (
                 <button
                   onClick={() => onSideBySide(itemId, 'side-left', 'above')}
-                  className="inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded text-blue-500 hover:bg-gray-100"
+                  className="inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded text-muted hover:text-ink hover:bg-gray-100"
                   title="위 사진과 나란히 (텍스트 왼쪽)"
                 ><ArrowLeftRight size={10} strokeWidth={1.5} /> {t('story.attachLeft')}</button>
               )}
               {hasPhotoBelow && (
                 <button
                   onClick={() => onSideBySide(itemId, 'side-right', 'below')}
-                  className="inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded text-blue-500 hover:bg-gray-100"
+                  className="inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded text-muted hover:text-ink hover:bg-gray-100"
                   title="아래 사진과 나란히 (텍스트 오른쪽)"
                 ><ArrowLeftRight size={10} strokeWidth={1.5} /> {t('story.attachRight')}</button>
               )}
@@ -607,7 +607,7 @@ export const SortablePhotoBlock = memo(function SortablePhotoBlock({
             {hasTextAbove && (
               <button
                 onClick={onSideBySideAbove}
-                className="text-[11px] px-2 py-1 rounded text-blue-500 hover:bg-stone-100 flex items-center gap-0.5"
+                className="text-[11px] px-2 py-1 rounded text-muted hover:text-ink hover:bg-stone-100 flex items-center gap-0.5"
                 title={t('story.sideBySideAbove')}
               >
                 <ArrowLeftRight size={10} strokeWidth={1.5} />↑
@@ -616,7 +616,7 @@ export const SortablePhotoBlock = memo(function SortablePhotoBlock({
             {hasTextBelow && (
               <button
                 onClick={onSideBySideBelow}
-                className="text-[11px] px-2 py-1 rounded text-blue-500 hover:bg-stone-100 flex items-center gap-0.5"
+                className="text-[11px] px-2 py-1 rounded text-muted hover:text-ink hover:bg-stone-100 flex items-center gap-0.5"
                 title={t('story.sideBySideBelow')}
               >
                 <ArrowLeftRight size={10} strokeWidth={1.5} />↓
