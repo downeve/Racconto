@@ -299,7 +299,12 @@
     "mobileReadOnly": "Editing is available on desktop",
     "editMode": "Edit",
     "previewMode": "Preview",
-    "deleteBlock": "Delete Block"
+    "deleteBlock": "Delete Block",
+    "insertText": "Add Text",
+    "insertSideBySide": "Side by Side",
+    "noAdjacentText": "An adjacent text block is needed",
+    "sideBySideAbove": "Side by side with text above",
+    "sideBySideBelow": "Side by side with text below"
   },
   "note": {
     "title": "Note",

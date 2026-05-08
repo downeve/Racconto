@@ -1,7 +1,8 @@
 import { useTranslation } from 'react-i18next'
 // import { memo, useState, useMemo } from 'react'  // useState, useMemo: GhostFrameGrid 전용
-import { memo, useRef } from 'react'
+import { memo, useRef, useState, useEffect } from 'react'
 // import { computePortfolioRows } from '../utils/portfolioRows'  // GhostFrameGrid 전용
+import { FileText, ArrowLeftRight } from 'lucide-react'
 import MarkdownRenderer from './MarkdownRenderer'
 import { cfUrl } from '../utils/cfImage'
 import {
@@ -48,6 +49,74 @@ function DragHandleDots({ size = 12, color = '#999' }: { size?: number; color?: 
       <circle cx="3" cy="16" r="1.5" fill={color}/>
       <circle cx="9" cy="16" r="1.5" fill={color}/>
     </svg>
+  )
+}
+
+// ── InsertSlot ──────────────────────────────────────────────
+
+export interface InsertSlotProps {
+  onInsertText: () => void
+  onSideBySide?: () => void
+}
+
+export function InsertSlot({ onInsertText, onSideBySide }: InsertSlotProps) {
+  const [hovered, setHovered] = useState(false)
+  const [open, setOpen] = useState(false)
+  const ref = useRef<HTMLDivElement>(null)
+  const { t } = useTranslation()
+
+  useEffect(() => {
+    if (!open) return
+    const handler = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) {
+        setOpen(false)
+        setHovered(false)
+      }
+    }
+    document.addEventListener('mousedown', handler)
+    return () => document.removeEventListener('mousedown', handler)
+  }, [open])
+
+  return (
+    <div
+      ref={ref}
+      className={`relative flex items-center justify-center transition-all duration-150 ${hovered || open ? 'h-6 my-0.5' : 'h-2'}`}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => { if (!open) setHovered(false) }}
+    >
+      {(hovered || open) && (
+        <>
+          <div className="absolute inset-x-0 top-1/2 h-px bg-stone-300 pointer-events-none" />
+          <button
+            onClick={() => setOpen(v => !v)}
+            className="relative z-10 w-5 h-5 flex items-center justify-center rounded-full bg-white border border-stone-300 text-stone-400 hover:text-stone-600 hover:border-stone-400 shadow-sm text-sm leading-none"
+            aria-label={t('story.insertText')}
+            tabIndex={0}
+          >+</button>
+        </>
+      )}
+
+      {open && (
+        <div className="absolute top-full left-1/2 -translate-x-1/2 mt-1 z-50 bg-white border border-stone-200 rounded-card shadow-lg py-1 min-w-[160px]">
+          <button
+            onClick={() => { onInsertText(); setOpen(false); setHovered(false) }}
+            className="w-full text-left px-3 py-1.5 text-sm text-stone-700 hover:bg-stone-50 flex items-center gap-2"
+          >
+            <FileText size={13} strokeWidth={1.5} />
+            {t('story.insertText')}
+          </button>
+          {onSideBySide && (
+            <button
+              onClick={() => { onSideBySide(); setOpen(false); setHovered(false) }}
+              className="w-full text-left px-3 py-1.5 text-sm text-stone-700 hover:bg-stone-50 flex items-center gap-2"
+            >
+              <ArrowLeftRight size={13} strokeWidth={1.5} />
+              {t('story.insertSideBySide')}
+            </button>
+          )}
+        </div>
+      )}
+    </div>
   )
 }
 
@@ -102,7 +171,7 @@ export function SortablePhotoChapter({
         <div
           {...attributes}
           {...listeners}
-          className="absolute top-1.5 left-1.5 p-1.5 rounded cursor-grab opacity-0 group-hover:opacity-100 transition-opacity z-20"
+          className="absolute top-1.5 left-1.5 p-1.5 rounded cursor-grab opacity-30 group-hover:opacity-100 transition-opacity z-20"
         >
           <DragHandleDots size={12} color="white" />
         </div>
@@ -110,7 +179,7 @@ export function SortablePhotoChapter({
         {/* 삭제 버튼 */}
         <button
           onClick={(e) => { e.stopPropagation(); onRemove(chapterId, id) }}
-          className="absolute top-1 right-1 bg-stone-900/70 text-white rounded w-5 h-5 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity z-20 hover:bg-stone-900"
+          className="absolute top-1 right-1 bg-stone-900/70 text-white rounded w-5 h-5 opacity-40 group-hover:opacity-100 flex items-center justify-center transition-opacity z-20 hover:bg-stone-900"
           aria-label="삭제"
         >
           <svg width="10" height="10" viewBox="0 0 10 10" fill="none" strokeWidth="1.5" stroke="currentColor">
@@ -185,89 +254,92 @@ export const SortableTextBlock = memo(function SortableTextBlock({
   const isEditing = editingTextItemId === itemId;
 
   return (
-    <div ref={setRef} style={style} className="w-full group relative bg-stone-50 border border-stone-200 rounded-card px-5 py-4 my-1 min-w-0 [overflow-x:clip] [word-break:keep-all]">
-      {isEditing ? (
-        /* 👇 편집 모드일 때: 단독 텍스트 인라인 편집창 */
-        <div className="flex flex-col gap-2">
-          <textarea
-            className="w-full h-32 p-3 text-small rounded-card border border-stone-100 focus:ring-2 focus:ring-stone-200 focus:outline-none resize-none bg-card overflow-x-hidden whitespace-pre-wrap [word-break:keep-all]"
-            value={textDraft}
-            onChange={(e) => onTextDraftChange?.(e.target.value)}
-            autoFocus
-          />
-          <div className="flex gap-2 justify-end mt-1">
-            <button 
-              onClick={(e) => { e.stopPropagation(); onCancelEdit?.(); }}
-              className="px-3 py-1.5 text-xs text-muted border border-stone-300 rounded bg-card hover:bg-stone-50"
-            >
-              {t('common.cancel')}
-            </button>
-            <button 
-              onClick={(e) => { e.stopPropagation(); onSaveText?.(); }}
-              className="px-3 py-1.5 text-xs bg-ink text-card rounded hover:bg-stone-800 font-medium"
-            >
-              {t('common.save')}
-            </button>
-          </div>
+    <div ref={setRef} style={style} className="w-full group relative my-1 min-w-0">
+      {/* 드래그 핸들 — 외부 좌측 (PHOTO/SIDE 블록과 동일 위치) */}
+      {!isEditing && (
+        <div
+          {...attributes}
+          {...listeners}
+          className="absolute -left-5 top-1/2 -translate-y-1/2 cursor-grab opacity-30 group-hover:opacity-100 transition-opacity z-10 p-1"
+        >
+          <DragHandleDots />
         </div>
-      ) : (
-        /* 👇 일반 모드: 회원님의 기존 원본 코드 100% 유지 */
-        <>
-          <div
-            {...attributes}
-            {...listeners}
-            className="absolute top-3 left-3 cursor-grab opacity-0 group-hover:opacity-40 transition-opacity"
-          >
-            <DragHandleDots />
-          </div>
-
-          {(!isFirst || !isLast) && (
-            <div className="absolute -top-1 left-6 opacity-0 group-hover:opacity-100 transition-opacity z-60 flex items-center gap-1 bg-white border border-gray-200 rounded shadow px-1.5 py-0.5">
-              {!isFirst && (
-                <button
-                  onClick={() => { onMoveBlock?.('up'); scrollToSelf() }}
-                  className="text-[10px] px-1.5 py-0.5 rounded text-gray-500 hover:bg-gray-100"
-                  title="위로 이동"
-                >↑</button>
-              )}
-              {!isLast && (
-                <button
-                  onClick={() => { onMoveBlock?.('down'); scrollToSelf() }}
-                  className="text-[10px] px-1.5 py-0.5 rounded text-gray-500 hover:bg-gray-100"
-                  title="아래로 이동"
-                >↓</button>
-              )}
-            </div>
-          )}
-
-          <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-            {hasPhotoAbove && (
-              <button
-                onClick={() => onSideBySide(itemId, 'side-left', 'above')}
-                className="text-xs px-2 py-0.5 rounded border border-blue-200 text-blue-400 hover:text-blue-600 bg-white"
-                title="위 사진과 나란히 (텍스트 왼쪽)"
-              >{t('story.attachLeft')}</button>
-            )}
-            {hasPhotoBelow && (
-              <button
-                onClick={() => onSideBySide(itemId, 'side-right', 'below')}
-                className="text-xs px-2 py-0.5 rounded border border-blue-200 text-blue-400 hover:text-blue-600 bg-white"
-                title="아래 사진과 나란히 (텍스트 오른쪽)"
-              >{t('story.attachRight')}</button>
-            )}
-            <button
-              onClick={() => onEdit(itemId, text_content)}
-              className="text-xs px-2 py-0.5 rounded border border-gray-300 text-gray-500 hover:text-gray-800 bg-white"
-            >{t('common.edit')}</button>
-            <button
-              onClick={() => onRemove(chapterId, itemId)}
-              className="text-xs px-2 py-0.5 rounded border border-red-200 text-red-400 hover:text-red-600 bg-white"
-            >×</button>
-          </div>
-
-          <MarkdownRenderer content={text_content} className="pl-4" />
-        </>
       )}
+
+      <div className="relative bg-stone-50 border border-stone-200 rounded-card px-5 py-4 min-w-0 [overflow-x:clip] [word-break:keep-all]">
+        {isEditing ? (
+          <div className="flex flex-col gap-2">
+            <textarea
+              className="w-full h-32 p-3 text-small rounded-card border border-stone-100 focus:ring-2 focus:ring-stone-200 focus:outline-none resize-none bg-card overflow-x-hidden whitespace-pre-wrap [word-break:keep-all]"
+              value={textDraft}
+              onChange={(e) => onTextDraftChange?.(e.target.value)}
+              autoFocus
+            />
+            <div className="flex gap-2 justify-end mt-1">
+              <button
+                onClick={(e) => { e.stopPropagation(); onCancelEdit?.(); }}
+                className="px-3 py-1.5 text-xs text-muted border border-stone-300 rounded bg-card hover:bg-stone-50"
+              >
+                {t('common.cancel')}
+              </button>
+              <button
+                onClick={(e) => { e.stopPropagation(); onSaveText?.(); }}
+                className="px-3 py-1.5 text-xs bg-ink text-card rounded hover:bg-stone-800 font-medium"
+              >
+                {t('common.save')}
+              </button>
+            </div>
+          </div>
+        ) : (
+          <>
+            {(!isFirst || !isLast) && (
+              <div className="absolute -top-1 left-6 opacity-0 group-hover:opacity-100 transition-opacity z-60 flex items-center gap-1 bg-white border border-gray-200 rounded shadow px-1.5 py-0.5">
+                {!isFirst && (
+                  <button
+                    onClick={() => { onMoveBlock?.('up'); scrollToSelf() }}
+                    className="text-[11px] px-2 py-1 rounded text-gray-500 hover:bg-gray-100"
+                    title="위로 이동"
+                  >↑</button>
+                )}
+                {!isLast && (
+                  <button
+                    onClick={() => { onMoveBlock?.('down'); scrollToSelf() }}
+                    className="text-[11px] px-2 py-1 rounded text-gray-500 hover:bg-gray-100"
+                    title="아래로 이동"
+                  >↓</button>
+                )}
+              </div>
+            )}
+
+            <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+              {hasPhotoAbove && (
+                <button
+                  onClick={() => onSideBySide(itemId, 'side-left', 'above')}
+                  className="text-xs px-2 py-0.5 rounded border border-stone-200 text-stone-500 hover:text-stone-800 bg-white"
+                  title="위 사진과 나란히 (텍스트 왼쪽)"
+                >{t('story.attachLeft')}</button>
+              )}
+              {hasPhotoBelow && (
+                <button
+                  onClick={() => onSideBySide(itemId, 'side-right', 'below')}
+                  className="text-xs px-2 py-0.5 rounded border border-stone-200 text-stone-500 hover:text-stone-800 bg-white"
+                  title="아래 사진과 나란히 (텍스트 오른쪽)"
+                >{t('story.attachRight')}</button>
+              )}
+              <button
+                onClick={() => onEdit(itemId, text_content)}
+                className="text-xs px-2 py-0.5 rounded border border-stone-200 text-stone-500 hover:text-stone-800 bg-white"
+              >{t('common.edit')}</button>
+              <button
+                onClick={() => onRemove(chapterId, itemId)}
+                className="text-xs px-2 py-0.5 rounded border border-stone-200 text-red-400 hover:text-red-600 bg-white"
+              >×</button>
+            </div>
+
+            <MarkdownRenderer content={text_content} className="pl-4" />
+          </>
+        )}
+      </div>
     </div>
   )
 })
@@ -376,6 +448,10 @@ export interface SortablePhotoBlockProps {
   onMoveBlock?: (direction: 'up' | 'down') => void
   isFirst?: boolean
   isLast?: boolean
+  hasTextAbove?: boolean
+  hasTextBelow?: boolean
+  onSideBySideAbove?: () => void
+  onSideBySideBelow?: () => void
   //ghostMode?: boolean
 }
 
@@ -385,6 +461,7 @@ export const SortablePhotoBlock = memo(function SortablePhotoBlock({
   draggingItemId, draggingItemBlockId,
   otherBlocks, onRequestMove,
   onMoveBlock, isFirst, isLast,
+  hasTextAbove, hasTextBelow, onSideBySideAbove, onSideBySideBelow,
   //ghostMode = true,
 }: SortablePhotoBlockProps) {
   const { attributes, listeners, setNodeRef: setSortableRef, transform, transition, isDragging } = useSortable({ id: blockId })
@@ -431,7 +508,7 @@ export const SortablePhotoBlock = memo(function SortablePhotoBlock({
       <div
         {...attributes}
         {...listeners}
-        className="absolute -left-5 top-1/2 -translate-y-1/2 cursor-grab opacity-0 group-hover/block:opacity-40 transition-opacity z-10 p-1"
+        className="absolute -left-5 top-1/2 -translate-y-1/2 cursor-grab opacity-30 group-hover/block:opacity-100 transition-opacity z-10 p-1"
       >
         <DragHandleDots />
       </div>
@@ -469,31 +546,54 @@ export const SortablePhotoBlock = memo(function SortablePhotoBlock({
         {!isFirst && (
           <button
             onClick={() => { onMoveBlock?.('up'); scrollToSelf() }}
-            className="text-[10px] px-1.5 py-0.5 rounded text-gray-500 hover:bg-gray-100"
+            className="text-[11px] px-2 py-1 rounded text-gray-500 hover:bg-gray-100"
             title="위로 이동"
           >↑</button>
         )}
         {!isLast && (
           <button
             onClick={() => { onMoveBlock?.('down'); scrollToSelf() }}
-            className="text-[10px] px-1.5 py-0.5 rounded text-gray-500 hover:bg-gray-100"
+            className="text-[11px] px-2 py-1 rounded text-gray-500 hover:bg-gray-100"
             title="아래로 이동"
           >↓</button>
         )}
-        {(!isFirst || !isLast) && <span className="text-[10px] text-stone-200 select-none">|</span>}
-        <span className="text-[10px] text-faint mr-1">{t('portfolio.column')}</span>
+        {(!isFirst || !isLast) && <span className="text-[11px] text-stone-200 select-none">|</span>}
+        <span className="text-[11px] text-faint mr-1">{t('portfolio.column')}</span>
         {(['grid', 'wide', 'single'] as const).map(l => (
           <button
             key={l}
             onClick={() => onLayoutChange(blockId, l)}
-            className={`text-[10px] px-1.5 py-0.5 rounded transition-[background,color,border] duration-150 ease-out ${
+            className={`text-[11px] px-2 py-1 rounded transition-[background,color,border] duration-150 ease-out ${
               blockLayout === l ? 'bg-muted text-card' : 'text-gray-500 hover:bg-gray-100'
             }`}
           >
             {layoutLabels[l]}
           </button>
         ))}
-        <span className="text-[10px] text-faint">{t('portfolio.layoutInPort')}</span>
+        <span className="text-[11px] text-faint">{t('portfolio.layoutInPort')}</span>
+        {(hasTextAbove || hasTextBelow) && (
+          <>
+            <span className="text-[11px] text-stone-200 select-none">|</span>
+            {hasTextAbove && (
+              <button
+                onClick={onSideBySideAbove}
+                className="text-[11px] px-2 py-1 rounded text-stone-500 hover:bg-stone-100 flex items-center gap-0.5"
+                title={t('story.sideBySideAbove')}
+              >
+                <ArrowLeftRight size={10} strokeWidth={1.5} />↑
+              </button>
+            )}
+            {hasTextBelow && (
+              <button
+                onClick={onSideBySideBelow}
+                className="text-[11px] px-2 py-1 rounded text-stone-500 hover:bg-stone-100 flex items-center gap-0.5"
+                title={t('story.sideBySideBelow')}
+              >
+                <ArrowLeftRight size={10} strokeWidth={1.5} />↓
+              </button>
+            )}
+          </>
+        )}
         {/*
         {ghostMode && photoCount > 0 && (
           <span className="text-[10px] text-stone-400 border-l border-stone-200 pl-1.5 ml-0.5">
@@ -602,7 +702,7 @@ export const SortableSideBySideBlock = memo(function SortableSideBySideBlock({
             />
             <button
               onClick={(e) => { e.stopPropagation(); onRemoveItem(chapterId, item.id) }}
-              className="absolute top-1 right-1 bg-stone-900/70 text-white rounded w-5 h-5 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity z-10 hover:bg-stone-900"
+              className="absolute top-1 right-1 bg-stone-900/70 text-white rounded w-5 h-5 opacity-40 group-hover:opacity-100 flex items-center justify-center transition-opacity z-10 hover:bg-stone-900"
               aria-label="삭제"
             >
               <svg width="10" height="10" viewBox="0 0 10 10" fill="none" strokeWidth="1.5" stroke="currentColor">
@@ -670,7 +770,7 @@ export const SortableSideBySideBlock = memo(function SortableSideBySideBlock({
       <div
         {...attributes}
         {...listeners}
-        className="absolute -left-5 top-1/2 -translate-y-1/2 cursor-grab opacity-0 group-hover/block:opacity-40 transition-opacity z-10 p-1"
+        className="absolute -left-5 top-1/2 -translate-y-1/2 cursor-grab opacity-30 group-hover/block:opacity-100 transition-opacity z-10 p-1"
       >
         <DragHandleDots />
       </div>
@@ -679,18 +779,18 @@ export const SortableSideBySideBlock = memo(function SortableSideBySideBlock({
         {!isFirst && (
           <button
             onClick={() => { onMoveBlock?.('up'); scrollToSelf() }}
-            className="text-[10px] px-1.5 py-0.5 rounded text-gray-500 hover:bg-gray-100"
+            className="text-[11px] px-2 py-1 rounded text-gray-500 hover:bg-gray-100"
             title="위로 이동"
           >↑</button>
         )}
         {!isLast && (
           <button
             onClick={() => { onMoveBlock?.('down'); scrollToSelf() }}
-            className="text-[10px] px-1.5 py-0.5 rounded text-gray-500 hover:bg-gray-100"
+            className="text-[11px] px-2 py-1 rounded text-gray-500 hover:bg-gray-100"
             title="아래로 이동"
           >↓</button>
         )}
-        {(!isFirst || !isLast) && <span className="text-[10px] text-stone-200 select-none">|</span>}
+        {(!isFirst || !isLast) && <span className="text-[11px] text-stone-200 select-none">|</span>}
         <span className="text-[10px] text-faint">{t('story.sideSingleHint')}</span>
       </div>
 

@@ -12,6 +12,7 @@ import {
   SortablePhotoBlock,
   SortableTextBlock,
   SortableSideBySideBlock,
+  InsertSlot,
   type ChapterItem as StoryChapterItem,
 } from '../components/StoryBlocks'
 
@@ -125,7 +126,6 @@ function ProjectStory({
   const [showAddChapter, setShowAddChapter] = useState(false)
   const [addingSubChapterTo, setAddingSubChapterTo] = useState<string | null>(null)
   const [editingChapter, setEditingChapter] = useState<string | null>(null)
-  const [addingTextChapterId, setAddingTextChapterId] = useState<string | null>(null)
   const [editTitle, setEditTitle] = useState('')
   const [editDesc, setEditDesc] = useState('')
   const [confirmModal, setConfirmModal] = useState<{ message: string; onConfirm: () => void } | null>(null)
@@ -133,6 +133,10 @@ function ProjectStory({
   // 기존 상태들 아래에 추가
   const [editingTextItemId, setEditingTextItemId] = useState<string | null>(null)
   const [textDraft, setTextDraft] = useState('')
+
+  // 0-2: 인서트 슬롯 상태
+  const [insertSlotActive, setInsertSlotActive] = useState<{ chapterId: string; insertIndex: number } | null>(null)
+  const [insertTextDraft, setInsertTextDraft] = useState('')
 
   const { t } = useTranslation()
 
@@ -244,43 +248,55 @@ function ProjectStory({
 
   // 변경 후 — API 호출 없이 모달만 열고, 저장 시 생성
   const handleAddTextBlock = (chapterId: string) => {
-    setAddingTextChapterId(chapterId)
-    setTextDraft('')
-    setEditingTextItemId('new')  // 'new' = 신규 생성 플래그
+    const blocks = blocksPerChapter[chapterId] || []
+    setInsertSlotActive({ chapterId, insertIndex: blocks.length })
+    setInsertTextDraft('')
+  }
+
+  // 0-2: 특정 위치에 텍스트 블록 삽입
+  const handleAddTextBlockAt = async (chapterId: string, insertIndex: number, textContent: string) => {
+    if (!textContent.trim()) return
+    try {
+      const res = await axios.post(`${API}/chapters/${chapterId}/texts`, { text_content: textContent })
+      const newItemId = res.data?.id
+
+      if (newItemId) {
+        const blocks = blocksPerChapter[chapterId] || []
+        const reorderedBlocks = [
+          ...blocks.slice(0, insertIndex),
+          { blockId: newItemId, items: [res.data] },
+          ...blocks.slice(insertIndex),
+        ]
+        const itemsToSync: { id: string; block_id: string | null; order_num: number; order_in_block: number }[] = []
+        reorderedBlocks.forEach((block, blockIdx) => {
+          block.items.forEach((item: StoryChapterItem, itemIdx: number) => {
+            itemsToSync.push({ id: item.id, block_id: block.blockId, order_num: blockIdx * 10, order_in_block: itemIdx })
+          })
+        })
+        await axios.put(`${API}/chapters/${chapterId}/items/bulk-sync`, { items: itemsToSync })
+      }
+
+      await fetchChapterPhotos(chapterId)
+      setInsertSlotActive(null)
+      setInsertTextDraft('')
+    } catch (err) {
+      console.error('텍스트 블록 추가 실패:', err)
+    }
   }
 
   const handleSaveTextBlock = async () => {
-    if (!textDraft.trim()) return
+    if (!textDraft.trim() || !editingTextItemId) return
 
     try {
-      if (editingTextItemId === 'new') {
-        // ✅ 신규 생성: 기존 로직 그대로 유지
-        if (!addingTextChapterId) return
-        await axios.post(`${API}/chapters/${addingTextChapterId}/texts`, {
-          text_content: textDraft
-        })
-        // 새로고침
-        fetchChapterPhotos(addingTextChapterId)
-        setAddingTextChapterId(null)
-      } else {
-        // ✅ 기존 수정: 기존 로직 그대로 유지
-        if (!editingTextItemId) return
-        
-        // 해당 아이템이 속한 chapterId 찾기
-        const chapterId = Object.keys(chapterPhotos).find(cid =>
-          chapterPhotos[cid].some(item => item.id === editingTextItemId)
-        )
-        
-        if (!chapterId) return
-        
-        await axios.put(`${API}/chapters/${chapterId}/texts/${editingTextItemId}`, {
-          text_content: textDraft
-        })
-        // 새로고침
-        fetchChapterPhotos(chapterId)
-      }
+      const chapterId = Object.keys(chapterPhotos).find(cid =>
+        chapterPhotos[cid].some(item => item.id === editingTextItemId)
+      )
+      if (!chapterId) return
 
-      // 공통 상태 초기화
+      await axios.put(`${API}/chapters/${chapterId}/texts/${editingTextItemId}`, {
+        text_content: textDraft
+      })
+      fetchChapterPhotos(chapterId)
       setEditingTextItemId(null)
       setTextDraft('')
     } catch (err) {
@@ -472,6 +488,20 @@ function ProjectStory({
     })
     fetchChapterPhotos(chapterId)
   }, [blocksPerChapter, fetchChapterPhotos])
+
+  // 0-3: 슬롯에서 side-by-side 연결 (slotAfterBlockIdx 뒤 슬롯 기준)
+  const handleSideBySideFromSlot = useCallback((chapterId: string, slotAfterBlockIdx: number) => {
+    const blocks = blocksPerChapter[chapterId] || []
+    const blockAbove = blocks[slotAfterBlockIdx]
+    const blockBelow = blocks[slotAfterBlockIdx + 1]
+    if (!blockAbove || !blockBelow) return
+
+    if (blockAbove.type === 'PHOTO' && blockBelow.type === 'TEXT') {
+      handleSideBySide(chapterId, blockBelow.items[0].id, 'side-left', 'above')
+    } else if (blockAbove.type === 'TEXT' && blockBelow.type === 'PHOTO') {
+      handleSideBySide(chapterId, blockAbove.items[0].id, 'side-right', 'below')
+    }
+  }, [blocksPerChapter, handleSideBySide])
 
   const handleBlockLayoutChange = useCallback(async (
     chapterId: string,
@@ -738,14 +768,64 @@ function ProjectStory({
   // blocks를 순회하기 전에 각 블록의 otherBlocks 계산
   const photoBlocks = blocks.filter(b => b.type === 'PHOTO')
 
+  const renderInsertSlot = (insertIndex: number) => {
+    if (insertSlotActive?.chapterId === targetChapterId && insertSlotActive.insertIndex === insertIndex) {
+      return (
+        <div className="bg-card border border-hair rounded-card p-3 my-2 shadow animate-in fade-in zoom-in-95" key={`form-${insertIndex}`}>
+          <div className="flex flex-col gap-3">
+            <textarea
+              className="w-full h-32 p-3 text-body rounded-card border border-hair focus:ring-1 focus:ring-faint/80 focus:outline-none resize-none bg-stone-50/50 whitespace-pre-wrap overflow-x-hidden break-words"
+              value={insertTextDraft}
+              onChange={(e) => setInsertTextDraft(e.target.value)}
+              placeholder={t('story.textBlockPlaceholder')}
+              autoFocus
+            />
+            <div className="flex gap-2 justify-end">
+              <button
+                onClick={() => handleAddTextBlockAt(targetChapterId, insertIndex, insertTextDraft)}
+                className="text-small btn-primary"
+              >
+                {t('common.save')}
+              </button>
+              <button
+                onClick={() => { setInsertSlotActive(null); setInsertTextDraft('') }}
+                className="text-small btn-secondary-on-card"
+              >
+                {t('common.cancel')}
+              </button>
+            </div>
+          </div>
+        </div>
+      )
+    }
+
+    // 슬롯 컨텍스트: 인접 블록이 PHOTO+TEXT 또는 TEXT+PHOTO 조합이면 ↔ 옵션 노출
+    const blockAbove = blocks[insertIndex - 1]
+    const blockBelow = blocks[insertIndex]
+    const canSideBySide =
+      (blockAbove?.type === 'PHOTO' && blockBelow?.type === 'TEXT') ||
+      (blockAbove?.type === 'TEXT' && blockBelow?.type === 'PHOTO')
+
+    return (
+      <InsertSlot
+        key={`slot-${insertIndex}`}
+        onInsertText={() => setInsertSlotActive({ chapterId: targetChapterId, insertIndex })}
+        onSideBySide={canSideBySide ? () => handleSideBySideFromSlot(targetChapterId, insertIndex - 1) : undefined}
+      />
+    )
+  }
+
   return (
     <>
-    {/* 1. 블록이 없을 때는 가이드 메시지 렌더링 */}
+      {/* 빈 챕터 */}
       {blocks.length === 0 && (
-        <p className="text-sm text-gray-400 py-2">{t('story.addPhotoGuide')}</p>
+        <div className="py-2">
+          <p className="text-sm text-gray-400 mb-2">{t('story.addPhotoGuide')}</p>
+          {renderInsertSlot(0)}
+        </div>
       )}
 
-      {/* 2. 블록이 하나라도 있을 때만 DndContext 렌더링 */}
+      {/* 블록이 하나라도 있을 때만 DndContext 렌더링 */}
       {blocks.length > 0 && (
       <DndContext
         sensors={sensors}
@@ -883,12 +963,13 @@ function ProjectStory({
         }}
       >
         <SortableContext items={blocks.map(b => b.blockId)} strategy={verticalListSortingStrategy}>
-          <div className="space-y-2">        
+          <div className="space-y-0">
+            {renderInsertSlot(0)}
             {blocks.map((block, blockIdx) => {
               const prevBlock = blocks[blockIdx - 1]
               const nextBlock = blocks[blockIdx + 1]
 
-              if (block.type === 'SIDE') return (
+              const blockEl = block.type === 'SIDE' ? (
                 <SortableSideBySideBlock
                   key={block.blockId}
                   blockId={block.blockId}
@@ -905,8 +986,6 @@ function ProjectStory({
                     handleBlockLayoutChange(targetChapterId, block.blockId, layout)
                   }
                   onCancelSideBySide={handleCancelSideBySide}
-
-                  /* 👇 StoryBlocks에 추가한 Props 전달 */
                   editingTextItemId={editingTextItemId}
                   textDraft={textDraft}
                   onTextDraftChange={setTextDraft}
@@ -916,9 +995,7 @@ function ProjectStory({
                   isFirst={blockIdx === 0}
                   isLast={blockIdx === blocks.length - 1}
                 />
-              )
-
-              if (block.type === 'TEXT') return (
+              ) : block.type === 'TEXT' ? (
                 <SortableTextBlock
                   key={block.blockId}
                   id={block.blockId}
@@ -932,7 +1009,6 @@ function ProjectStory({
                   onSideBySide={(itemId, position, direction) =>
                     handleSideBySide(targetChapterId, itemId, position, direction)
                   }
-
                   editingTextItemId={editingTextItemId}
                   textDraft={textDraft}
                   onTextDraftChange={setTextDraft}
@@ -942,9 +1018,7 @@ function ProjectStory({
                   isFirst={blockIdx === 0}
                   isLast={blockIdx === blocks.length - 1}
                 />
-              )
-
-              return (
+              ) : (
                 <SortablePhotoBlock
                   key={block.blockId}
                   blockId={block.blockId}
@@ -963,7 +1037,7 @@ function ProjectStory({
                   }
                   draggingItemId={draggingItemId}
                   draggingItemBlockId={draggingItemBlockId}
-                  otherBlocks={photoBlocks                          // 추가
+                  otherBlocks={photoBlocks
                     .filter(b => b.blockId !== block.blockId)
                     .map(b => ({
                       blockId: b.blockId,
@@ -976,8 +1050,23 @@ function ProjectStory({
                   onMoveBlock={(dir) => handleMoveBlock(targetChapterId, block.blockId, dir)}
                   isFirst={blockIdx === 0}
                   isLast={blockIdx === blocks.length - 1}
+                  hasTextAbove={prevBlock?.type === 'TEXT'}
+                  hasTextBelow={nextBlock?.type === 'TEXT'}
+                  onSideBySideAbove={prevBlock?.type === 'TEXT'
+                    ? () => handleSideBySide(targetChapterId, prevBlock.items[0].id, 'side-right', 'below')
+                    : undefined}
+                  onSideBySideBelow={nextBlock?.type === 'TEXT'
+                    ? () => handleSideBySide(targetChapterId, nextBlock.items[0].id, 'side-left', 'above')
+                    : undefined}
                   //ghostMode={ghostMode}
                 />
+              )
+
+              return (
+                <div key={block.blockId}>
+                  {blockEl}
+                  {renderInsertSlot(blockIdx + 1)}
+                </div>
               )
             })}
           </div>
@@ -1015,37 +1104,9 @@ function ProjectStory({
         </DragOverlay>
       </DndContext>
       )}
-      {/* 3. 🚨 핵심: 얼리 리턴의 방해를 받지 않도록 제일 바깥에(아래에) 텍스트 입력창 배치 */}
-            {editingTextItemId === 'new' && addingTextChapterId === targetChapterId && (
-              <div className="bg-card border border-hair rounded-card p-3 my-2 shadow animate-in fade-in zoom-in-95">
-                <div className="flex flex-col gap-3">
-                  <textarea
-                    className="w-full h-32 p-3 text-body rounded-card border border-hair focus:ring-1 focus:ring-faint/80 focus:outline-none resize-none bg-stone-50/50 whitespace-pre-wrap overflow-x-hidden break-words"
-                    value={textDraft}
-                    onChange={(e) => setTextDraft(e.target.value)}
-                    placeholder={t('story.textBlockPlaceholder')}
-                    autoFocus
-                  />
-                  <div className="flex gap-2 justify-end">
-                    <button 
-                      onClick={handleSaveTextBlock} 
-                      className="text-small btn-primary"
-                    >
-                      {t('common.save')}
-                    </button>
-                    <button 
-                      onClick={() => { setEditingTextItemId(null); setAddingTextChapterId(null); setTextDraft(''); }} 
-                      className="text-small btn-secondary-on-card"
-                    >
-                      {t('common.cancel')}
-                    </button>
-                  </div>
-                </div>
-              </div>
-            )}
-          </>
-        )
-      }
+    </>
+    )
+  }
 
   const handleMoveChapter = async (chapterId: string, direction: 'up' | 'down') => {
       const currentChapter = chapters.find(c => c.id === chapterId)

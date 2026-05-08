@@ -294,7 +294,12 @@
     "mobileReadOnly": "편집은 데스크톱에서 가능합니다",
     "editMode": "편집",
     "previewMode": "미리보기",
-    "deleteBlock": "블록 삭제"
+    "deleteBlock": "블록 삭제",
+    "insertText": "텍스트 추가",
+    "insertSideBySide": "나란히 배치",
+    "noAdjacentText": "인접한 텍스트 블록이 필요합니다",
+    "sideBySideAbove": "위 텍스트와 나란히",
+    "sideBySideBelow": "아래 텍스트와 나란히"
   },
   "note": {
     "title": "노트",
