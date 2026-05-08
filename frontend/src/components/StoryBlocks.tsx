@@ -749,7 +749,7 @@ export const SortableSideBySideBlock = memo(function SortableSideBySideBlock({
   )
 
   const textCol = textItem ? (
-    <div className="flex-1 min-w-0 overflow-x-hidden [word-break:keep-all] group/text relative bg-stone-50 border border-stone-200 rounded-card px-4 py-4">
+    <div className="flex-1 min-w-0 overflow-x-hidden [word-break:keep-all] group/text relative bg-card border border-stone-100 rounded-card px-4 py-4">
       {editingTextItemId === textItem.id ? (
         /* 👇 편집 모드일 때: 텍스트 영역만 편집창으로 전환 */
         <div className="flex flex-col gap-2">
@@ -798,7 +798,7 @@ export const SortableSideBySideBlock = memo(function SortableSideBySideBlock({
   ) : null
 
   return (
-    <div ref={setNodeRef} style={style} className="group/block relative mb-1">
+    <div ref={setNodeRef} style={style} className="group/block relative mb-1 rounded-card p-3 border bg-stone-50 border-stone-200 transition-[background,color,border] duration-150 ease-out">
       <div
         {...attributes}
         {...listeners}
@@ -807,7 +807,7 @@ export const SortableSideBySideBlock = memo(function SortableSideBySideBlock({
         <DragHandleDots />
       </div>
 
-      <div className="absolute -top-4 right-7 opacity-0 group-hover/block:opacity-100 transition-opacity z-20 flex items-center gap-1 bg-white border border-gray-200 rounded shadow px-1.5 py-0.5">
+      <div className="absolute -top-4 right-5 opacity-0 group-hover/block:opacity-100 transition-opacity z-20 flex items-center gap-1 bg-white border border-gray-200 rounded shadow px-1.5 py-0.5">
         {!isFirst && (
           <button
             onClick={() => { onMoveBlock?.('up'); scrollToSelf() }}
