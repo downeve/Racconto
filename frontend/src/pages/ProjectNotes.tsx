@@ -272,7 +272,7 @@ function ProjectNotes({
     if (activeTab !== 'notes') return
     setSidebarContent(
       <div className="p-4">
-        <p className="text-menu font-semibold text-muted mb-2">{t('note.filter')}</p>
+        {/*<p className="text-menu font-semibold text-muted mb-2">{t('note.filter')}</p>*/}
         <button onClick={() => { setFilterType(null); setFilterPinned(false) }}
           className={`w-full text-left px-2 py-1.5 text-menu rounded-card flex items-center justify-between mb-1 ${!filterType && !filterPinned ? 'bg-ink text-card' : 'hover:bg-hair text-ink-2'}`}>
           <span>{t('note.filterAll')}</span>

@@ -1250,7 +1250,7 @@ function ProjectStory({
     if (activeTab !== 'story') return
     setSidebarContent(
       <div className="p-4">
-        <p className="text-menu font-semibold text-muted mb-3">{t('story.chapters')}</p>
+        {/*<p className="text-menu font-semibold text-muted mb-3">{t('story.chapters')}</p>*/}
         <button
           onClick={() => { setShowAddChapter(true); setAddingSubChapterTo(null) }}
           className="w-full mb-2 text-menu font-semibold btn-secondary px-2 py-1.5 rounded-card transition-[background,color,border] duration-150 ease-out tracking-wider"
@@ -1316,7 +1316,7 @@ function ProjectStory({
                   )}
                   <button onClick={() => scrollToChapter(chapter.id)}
                     className="flex-1 text-left px-1 py-1.5 text-menu flex items-center gap-1.5 min-w-0">
-                    <span className="text-muted shrink-0">{t('story.chapter')} {idx + 1}</span>
+                    <span className="text-muted shrink-0">Ch. {idx + 1}</span>
                     <span className="truncate text-ink-2 group-hover:text-ink">{chapter.title}</span>
                   </button>
                   <div className="flex shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
@@ -1332,7 +1332,7 @@ function ProjectStory({
                       <div key={sub.id} className="flex items-center gap-1 group rounded hover:bg-hair">
                         <button onClick={() => scrollToChapter(sub.id)}
                           className="flex-1 text-left px-1 py-1 text-menu flex items-center gap-1.5 min-w-0">
-                          <span className="text-muted shrink-0 text-small">{idx + 1}.{subIdx + 1}</span>
+                          <span className="text-muted shrink-0 text-small">Ch. {idx + 1}.{subIdx + 1}</span>
                           <span className="text-ink-2 hover:text-ink truncate">{sub.title}</span>
                         </button>
                         <div className="flex shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
