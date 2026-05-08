@@ -298,7 +298,8 @@ export const SortableTextBlock = memo(function SortableTextBlock({
         {isEditing ? (
           <div className="flex flex-col gap-2">
             <textarea
-              className="w-full h-32 p-3 text-small rounded-card border border-stone-100 focus:ring-2 focus:ring-stone-200 focus:outline-none resize-none bg-card overflow-x-hidden whitespace-pre-wrap [word-break:keep-all]"
+              className="w-full min-h-32 p-3 text-small rounded-card border border-stone-100 focus:ring-2 focus:ring-stone-200 focus:outline-none resize-none bg-card overflow-x-hidden whitespace-pre-wrap [word-break:keep-all]"
+              onInput={e => { const t = e.currentTarget; t.style.height = 'auto'; t.style.height = t.scrollHeight + 'px' }}
               value={textDraft}
               onChange={(e) => onTextDraftChange?.(e.target.value)}
               autoFocus
@@ -754,7 +755,8 @@ export const SortableSideBySideBlock = memo(function SortableSideBySideBlock({
         /* 👇 편집 모드일 때: 텍스트 영역만 편집창으로 전환 */
         <div className="flex flex-col gap-2">
           <textarea
-            className="w-full h-32 p-2 text-small rounded border border-stone-100 focus:ring-2 focus:ring-stone-200 outline-none resize-none bg-card overflow-x-hidden whitespace-pre-wrap [word-break:keep-all]"
+            className="w-full min-h-32 p-2 text-small rounded border border-stone-100 focus:ring-2 focus:ring-stone-200 outline-none resize-none bg-card overflow-x-hidden whitespace-pre-wrap [word-break:keep-all]"
+            onInput={e => { const t = e.currentTarget; t.style.height = 'auto'; t.style.height = t.scrollHeight + 'px' }}
             value={textDraft}
             onChange={(e) => onTextDraftChange?.(e.target.value)}
             autoFocus
