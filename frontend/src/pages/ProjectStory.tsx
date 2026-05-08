@@ -184,6 +184,7 @@ function ProjectStory({
   }
 
   const [showNotePanel, setShowNotePanel] = useState(false)
+  const [collapsedChapters, setCollapsedChapters] = useState<Set<string>>(new Set())
   const { setSidebarContent } = useElectronSidebar()
 
   // O(N²) 성능 저하를 막기 위한 Set(해시테이블) 캐싱
@@ -1297,11 +1298,24 @@ function ProjectStory({
           {chapters.filter(c => !c.parent_id).map((chapter, idx) => {
             const mainChapters = chapters.filter(c => !c.parent_id)
             const subChapters = chapters.filter(c => c.parent_id === chapter.id)
+            const isCollapsed = collapsedChapters.has(chapter.id)
+            const toggleCollapse = () => setCollapsedChapters(prev => {
+              const next = new Set(prev)
+              next.has(chapter.id) ? next.delete(chapter.id) : next.add(chapter.id)
+              return next
+            })
             return (
               <div key={chapter.id}>
                 <div className="flex items-center gap-1 group rounded hover:bg-hair">
+                  {subChapters.length > 0 ? (
+                    <button onClick={toggleCollapse} className="shrink-0 pl-1 text-muted hover:text-ink text-[10px] w-4">
+                      {isCollapsed ? '▸' : '▾'}
+                    </button>
+                  ) : (
+                    <span className="shrink-0 w-4" />
+                  )}
                   <button onClick={() => scrollToChapter(chapter.id)}
-                    className="flex-1 text-left px-2 py-1.5 text-menu flex items-center gap-1.5 min-w-0">
+                    className="flex-1 text-left px-1 py-1.5 text-menu flex items-center gap-1.5 min-w-0">
                     <span className="text-muted shrink-0">{t('story.chapter')} {idx + 1}</span>
                     <span className="truncate text-ink-2 group-hover:text-ink">{chapter.title}</span>
                   </button>
@@ -1312,28 +1326,32 @@ function ProjectStory({
                       className="text-muted hover:text-ink disabled:opacity-20 px-0.5 text-caption">↓</button>
                   </div>
                 </div>
-                {subChapters.map((sub, subIdx) => (
-                  <div key={sub.id} className="flex items-center gap-1 group rounded hover:bg-hair">
-                    <button onClick={() => scrollToChapter(sub.id)}
-                      className="flex-1 text-left pl-5 pr-1 py-1 text-menu flex items-center gap-1.5 min-w-0">
-                      <span className="text-muted shrink-0">↳ {t('story.chapter')} {idx + 1}.{subIdx + 1}</span>
-                      <span className="text-ink-2 hover:text-ink truncate">{sub.title}</span>
-                    </button>
-                    <div className="flex shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
-                      <button onClick={() => handleMoveChapter(sub.id, 'up')} disabled={subIdx === 0}
-                        className="text-muted hover:text-ink disabled:opacity-20 px-0.5 text-caption">↑</button>
-                      <button onClick={() => handleMoveChapter(sub.id, 'down')} disabled={subIdx === subChapters.length - 1}
-                        className="text-muted hover:text-ink disabled:opacity-20 px-0.5 text-caption">↓</button>
-                    </div>
+                {!isCollapsed && subChapters.length > 0 && (
+                  <div className="ml-4 border-l border-stone-300 pl-2 mt-0.5 space-y-0.5">
+                    {subChapters.map((sub, subIdx) => (
+                      <div key={sub.id} className="flex items-center gap-1 group rounded hover:bg-hair">
+                        <button onClick={() => scrollToChapter(sub.id)}
+                          className="flex-1 text-left px-1 py-1 text-menu flex items-center gap-1.5 min-w-0">
+                          <span className="text-muted shrink-0 text-small">{idx + 1}.{subIdx + 1}</span>
+                          <span className="text-ink-2 hover:text-ink truncate">{sub.title}</span>
+                        </button>
+                        <div className="flex shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
+                          <button onClick={() => handleMoveChapter(sub.id, 'up')} disabled={subIdx === 0}
+                            className="text-muted hover:text-ink disabled:opacity-20 px-0.5 text-caption">↑</button>
+                          <button onClick={() => handleMoveChapter(sub.id, 'down')} disabled={subIdx === subChapters.length - 1}
+                            className="text-muted hover:text-ink disabled:opacity-20 px-0.5 text-caption">↓</button>
+                        </div>
+                      </div>
+                    ))}
                   </div>
-                ))}
+                )}
               </div>
             )
           })}
         </div>
       </div>
     )
-  }, [activeTab, chapters, t])
+  }, [activeTab, chapters, collapsedChapters, t])
 
 
   // 0-4: 다중 이동 모달
