@@ -2,6 +2,7 @@ import { useEffect, useState, useMemo, useRef, memo, useCallback } from 'react'
 import axios from 'axios'
 import { useTranslation } from 'react-i18next'
 import { Eye, FileText, Sun, Moon } from 'lucide-react'
+import { cfUrl } from '../utils/cfImage'
 //import { Rows3 } from 'lucide-react'
 import PhotoNotePanel from '../components/PhotoNotePanel'
 import { useElectronSidebar } from '../context/ElectronSidebarContext'
@@ -1685,9 +1686,9 @@ function ProjectStory({
                     {renderChapterActionBar(chapter.id)}
                     {renderChapterBlocks(chapter.id)}
                     <button onClick={() => handleAddTextBlock(chapter.id)}
-                        className="mt-2 text-small text-faint hover:text-ink-2 border border-dashed border-gray-300 hover:border-faint rounded-card px-3 py-1.5 w-full transition-[background,color,border] duration-150 ease-out"
+                        className="mt-2 flex items-center justify-center text-small text-faint hover:text-ink-2 border border-dashed border-gray-300 hover:border-faint rounded-card px-3 py-1.5 w-full transition-[background,color,border] duration-150 ease-out"
                       >
-                        {t('story.addTextBlock')}
+                        <FileText size={13} strokeWidth={1.5} /> {t('story.addTextBlock')}
                     </button>
                   </div>
                 </div>
@@ -1785,9 +1786,9 @@ function ProjectStory({
                     {renderChapterActionBar(subChapter.id)}
                     {renderChapterBlocks(subChapter.id)}
                     <button onClick={() => handleAddTextBlock(subChapter.id)}
-                        className="mt-2 text-small text-faint hover:text-ink-2 border border-dashed border-gray-300 hover:border-faint rounded-card px-3 py-1.5 w-full transition-[background,color,border] duration-150 ease-out"
+                        className="mt-2 flex items-center justify-center text-small text-faint hover:text-ink-2 border border-dashed border-gray-300 hover:border-faint rounded-card px-3 py-1.5 w-full transition-[background,color,border] duration-150 ease-out"
                       >
-                        {t('story.addTextBlock')}
+                        <FileText size={13} strokeWidth={1.5} /> {t('story.addTextBlock')}
                     </button>
                   </div>
                 </div>
@@ -1852,7 +1853,7 @@ function ProjectStory({
               >‹</button>
             )}
             <img
-              src={currentChapterPhotos[selectedPhotoIndex].image_url || undefined}
+              src={cfUrl(currentChapterPhotos[selectedPhotoIndex].image_url, 'public') || undefined}
               alt={currentChapterPhotos[selectedPhotoIndex].caption || undefined}
               className="max-w-[calc(100%-8rem)] max-h-full object-contain"
               onClick={e => e.stopPropagation()}
@@ -2029,7 +2030,7 @@ function ProjectStory({
                   )}
                   <div className="w-full h-full p-4 flex flex-col items-center">
                     <img
-                      src={activeLbItem.photo.image_url}
+                      src={cfUrl(activeLbItem.photo.image_url, 'public')}
                       alt={activeLbItem.photo.caption || ''}
                       className="h-full w-auto object-contain"
                       onClick={e => e.stopPropagation()}
@@ -2173,7 +2174,7 @@ function ProjectStory({
                   )}
                   <div className="w-full h-full p-4 flex flex-col items-center">
                     <img
-                      src={activeLbItem.photo.image_url}
+                      src={cfUrl(activeLbItem.photo.image_url, 'public')}
                       alt={activeLbItem.photo.caption || ''}
                       className="h-full w-auto object-contain"
                       onClick={e => e.stopPropagation()}

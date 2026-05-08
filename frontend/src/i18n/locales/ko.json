@@ -251,8 +251,8 @@
     "chapterTitle": "챕터 제목을 입력하세요 (필수)",
     "chapterDescription": "챕터 내용을 입력하세요",
     "addPhoto": "+ 사진 추가",
-    "addTextBlock": "+ 텍스트 블록 추가",
-    "editTextBlock": "텍스트 블록 편집",
+    "addTextBlock": " 텍스트 추가",
+    "editTextBlock": "텍스트 편집",
     "attachLeft": "↑",
     "attachRight": "↓",
     "detach": "분리",
@@ -338,11 +338,11 @@
     "startMessage": "나만의 포트폴리오를 만드세요.",
     "startMessage2": "아직 포트폴리오 주소를 설정하지 않았습니다. 설정에서 사용자 이름을 등록하세요.",
     "noUser": "의 포트폴리오를 찾을 수 없습니다.",
-    "column": "포트폴리오 레이아웃: ",
+    "column": "레이아웃:",
     "columnSingle": "1열",
     "columnWide": "2열",
     "columnGrid": "3열",
-    "layoutInPort": "/_"
+    "layoutInPort": "(포트폴리오 기준)"
   },
   "delivery": {
     "title": "납품",
