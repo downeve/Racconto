@@ -212,7 +212,10 @@ export default function AppDownload() {
             )}
           </div>
 
-          {/* 인증 안내 배너 */}
+          {platform === 'mac' ? (
+          <div className="flex gap-3 rounded border border-stone-200 bg-stone-50 px-4 py-3 mb-10">
+          </div>
+          ) : (
           <div className="flex gap-3 rounded border border-stone-200 bg-stone-50 px-4 py-3 mb-10">
             <svg className="w-4 h-4 text-stone-400 shrink-0 mt-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <circle cx="12" cy="12" r="10" />
@@ -223,6 +226,7 @@ export default function AppDownload() {
               {t('download.notarizationNote')}
             </p>
           </div>
+          )}
 
           {/* 설치 안내 */}
           <div>
