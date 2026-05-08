@@ -2,7 +2,7 @@ import { useTranslation } from 'react-i18next'
 // import { memo, useState, useMemo } from 'react'  // useState, useMemo: GhostFrameGrid 전용
 import { memo, useRef, useState, useEffect } from 'react'
 // import { computePortfolioRows } from '../utils/portfolioRows'  // GhostFrameGrid 전용
-import { FileText, ArrowLeftRight } from 'lucide-react'
+import { FileText, ArrowLeftRight, Check } from 'lucide-react'
 import MarkdownRenderer from './MarkdownRenderer'
 import { cfUrl } from '../utils/cfImage'
 import {
@@ -139,13 +139,16 @@ export interface SortablePhotoChapterProps {
   otherBlocks: OtherBlock[]
   onRequestMove: (itemId: string) => void
   fullWidthHint?: boolean
+  selected?: boolean
+  anySelected?: boolean
+  onToggleSelect?: (itemId: string, shiftKey: boolean, metaKey: boolean) => void
 }
 
 export function SortablePhotoChapter({
-  id, imageUrl, chapterId, caption, onRemove, onClick, onRequestMove, fullWidthHint
+  id, imageUrl, chapterId, caption, onRemove, onClick, onRequestMove, fullWidthHint,
+  selected = false, anySelected = false, onToggleSelect
 }: SortablePhotoChapterProps) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id })
-  // useState import 필요
 
   const { t } = useTranslation()
 
@@ -158,7 +161,9 @@ export function SortablePhotoChapter({
 
   return (
     <div ref={setNodeRef} style={style} className="flex flex-col w-full h-full">
-      <div className="relative group rounded overflow-hidden aspect-[3/2] shadow">
+      <div className={`relative group rounded overflow-hidden aspect-[3/2] shadow transition-[box-shadow] ${
+        selected ? 'ring-2 ring-white ring-offset-2 ring-offset-stone-400' : ''
+      }`}>
         <img
           src={cfUrl(imageUrl, 'grid')}
           alt={caption || undefined}
@@ -167,14 +172,39 @@ export function SortablePhotoChapter({
         />
         <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity z-10 pointer-events-none" />
 
-        {/* 드래그 핸들 */}
-        <div
-          {...attributes}
-          {...listeners}
-          className="absolute top-1.5 left-1.5 p-1.5 rounded cursor-grab opacity-30 group-hover:opacity-100 transition-opacity z-20"
-        >
-          <DragHandleDots size={12} color="white" />
-        </div>
+        {/* 체크박스 — 선택 시 상시, 미선택 시 hover 또는 anySelected일 때 표시 */}
+        {onToggleSelect && (
+          <button
+            onClick={(e) => { e.stopPropagation(); onToggleSelect(id, e.shiftKey, e.metaKey || e.ctrlKey) }}
+            className={`absolute top-1.5 left-1.5 z-30 w-5 h-5 rounded flex items-center justify-center transition-opacity ${
+              selected || anySelected ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'
+            } ${selected ? 'bg-white' : 'bg-black/40 border border-white/60'}`}
+            aria-label={selected ? '선택 해제' : '선택'}
+            tabIndex={0}
+          >
+            {selected && <Check size={11} strokeWidth={2.5} className="text-stone-800" />}
+          </button>
+        )}
+
+        {/* 드래그 핸들 — 체크박스와 위치 겹침 방지: onToggleSelect 있으면 숨김 */}
+        {!onToggleSelect && (
+          <div
+            {...attributes}
+            {...listeners}
+            className="absolute top-1.5 left-1.5 p-1.5 rounded cursor-grab opacity-30 group-hover:opacity-100 transition-opacity z-20"
+          >
+            <DragHandleDots size={12} color="white" />
+          </div>
+        )}
+        {onToggleSelect && (
+          <div
+            {...attributes}
+            {...listeners}
+            className="absolute top-1.5 left-8 p-1.5 rounded cursor-grab opacity-0 group-hover:opacity-60 transition-opacity z-20"
+          >
+            <DragHandleDots size={12} color="white" />
+          </div>
+        )}
 
         {/* 삭제 버튼 */}
         <button
@@ -188,18 +218,16 @@ export function SortablePhotoChapter({
           </svg>
         </button>
 
-        {/* 블록 이동 버튼 — 새 블록 슬롯이 있으므로 항상 표시 */}
-        {(
-          <div className="absolute bottom-1 right-1 z-20">
-            <button
-              onClick={(e) => { e.stopPropagation(); onRequestMove(id) }}
-              className="opacity-0 group-hover:opacity-100 transition-opacity bg-black/60 hover:bg-black/80 text-white rounded px-1.5 py-0.5 text-[10px] leading-tight"
-              title="다른 블록으로 이동"
-            >
-              {t('story.toOtherBlock')}
-            </button>
-          </div>
-        )}
+        {/* 블록 이동 버튼 */}
+        <div className="absolute bottom-1 right-1 z-20">
+          <button
+            onClick={(e) => { e.stopPropagation(); onRequestMove(id) }}
+            className="opacity-0 group-hover:opacity-100 transition-opacity bg-black/60 hover:bg-black/80 text-white rounded px-1.5 py-0.5 text-[10px] leading-tight"
+            title="다른 블록으로 이동"
+          >
+            {t('story.toOtherBlock')}
+          </button>
+        </div>
 
         {/* 풀너비 힌트 배지 */}
         {fullWidthHint && (
@@ -452,6 +480,8 @@ export interface SortablePhotoBlockProps {
   hasTextBelow?: boolean
   onSideBySideAbove?: () => void
   onSideBySideBelow?: () => void
+  selectedItemIds?: Set<string>
+  onItemToggle?: (itemId: string, shiftKey: boolean, metaKey: boolean) => void
   //ghostMode?: boolean
 }
 
@@ -462,6 +492,7 @@ export const SortablePhotoBlock = memo(function SortablePhotoBlock({
   otherBlocks, onRequestMove,
   onMoveBlock, isFirst, isLast,
   hasTextAbove, hasTextBelow, onSideBySideAbove, onSideBySideBelow,
+  selectedItemIds, onItemToggle,
   //ghostMode = true,
 }: SortablePhotoBlockProps) {
   const { attributes, listeners, setNodeRef: setSortableRef, transform, transition, isDragging } = useSortable({ id: blockId })
@@ -634,6 +665,9 @@ export const SortablePhotoBlock = memo(function SortablePhotoBlock({
                   onClick={() => onPhotoClick(item)}
                   otherBlocks={otherBlocks}
                   onRequestMove={(itemId) => onRequestMove(itemId, chapterId, blockId)}
+                  selected={selectedItemIds?.has(item.id)}
+                  anySelected={selectedItemIds ? selectedItemIds.size > 0 : false}
+                  onToggleSelect={onItemToggle}
                 />
               ))}
             </div>

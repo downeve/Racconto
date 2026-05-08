@@ -304,7 +304,12 @@
     "insertSideBySide": "Side by Side",
     "noAdjacentText": "An adjacent text block is needed",
     "sideBySideAbove": "Side by side with text above",
-    "sideBySideBelow": "Side by side with text below"
+    "sideBySideBelow": "Side by side with text below",
+    "selected_one": "{{count}} photo selected",
+    "selected_other": "{{count}} photos selected",
+    "deselectAll": "Deselect All",
+    "bulkDeleteConfirm_one": "Delete {{count}} selected photo?",
+    "bulkDeleteConfirm_other": "Delete {{count}} selected photos?"
   },
   "note": {
     "title": "Note",

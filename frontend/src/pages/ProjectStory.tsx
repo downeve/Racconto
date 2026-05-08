@@ -162,6 +162,10 @@ function ProjectStory({
   const [activeBlockId, setActiveBlockId] = useState<string | null>(null)
   const [activeBlockItems, setActiveBlockItems] = useState<ChapterItem[]>([])
 
+  // 0-4: 다중 선택 상태
+  const [selectedItemIds, setSelectedItemIds] = useState<Set<string>>(new Set())
+  const lastSelectedRef = useRef<{ chapterId: string; itemId: string } | null>(null)
+
   // 블록 간 사진 이동 드래그 state
   const [draggingItemId, setDraggingItemId] = useState<string | null>(null)
   const [draggingItemBlockId, setDraggingItemBlockId] = useState<string | null>(null)
@@ -1058,7 +1062,8 @@ function ProjectStory({
                   onSideBySideBelow={nextBlock?.type === 'TEXT'
                     ? () => handleSideBySide(targetChapterId, nextBlock.items[0].id, 'side-left', 'above')
                     : undefined}
-                  //ghostMode={ghostMode}
+                  selectedItemIds={selectedItemIds}
+                  onItemToggle={(itemId, shiftKey, metaKey) => handleItemToggle(targetChapterId, itemId, shiftKey, metaKey)}
                 />
               )
 
@@ -1105,6 +1110,53 @@ function ProjectStory({
       </DndContext>
       )}
     </>
+    )
+  }
+
+  const renderChapterActionBar = (chapterId: string) => {
+    const chapterSelectedIds = (chapterPhotos[chapterId] || [])
+      .filter(i => i.item_type === 'PHOTO' && selectedItemIds.has(i.id))
+      .map(i => i.id)
+    if (chapterSelectedIds.length === 0) return null
+
+    const sourceBlockIds = [...new Set(
+      (chapterPhotos[chapterId] || [])
+        .filter(i => chapterSelectedIds.includes(i.id))
+        .map(i => i.block_id)
+        .filter((id): id is string => !!id)
+    )]
+
+    return (
+      <div className="flex items-center gap-2 mb-3 px-2 py-1.5 bg-stone-100 rounded-card">
+        <span className="text-small text-muted flex-1">
+          {t('story.selected', { count: chapterSelectedIds.length })}
+        </span>
+        <button
+          onClick={() => setMoveModalItems({ itemIds: chapterSelectedIds, chapterId, sourceBlockIds })}
+          className="text-menu text-faint hover:text-ink-2 px-2 py-0.5 border border-faint rounded hover:border-stone-400 transition-[background,color,border] duration-150"
+        >
+          {t('story.toOtherBlock')}
+        </button>
+        <button
+          onClick={() => setConfirmModal({
+            message: t('story.bulkDeleteConfirm', { count: chapterSelectedIds.length }),
+            onConfirm: () => { handleBulkDelete(chapterId, chapterSelectedIds); setConfirmModal(null) }
+          })}
+          className="text-menu text-red-400 hover:text-red-600 px-2 py-0.5"
+        >
+          {t('common.delete')}
+        </button>
+        <button
+          onClick={() => setSelectedItemIds(prev => {
+            const next = new Set(prev)
+            chapterSelectedIds.forEach(id => next.delete(id))
+            return next
+          })}
+          className="text-menu text-faint hover:text-ink px-2 py-0.5"
+        >
+          {t('story.deselectAll')}
+        </button>
+      </div>
     )
   }
 
@@ -1283,11 +1335,111 @@ function ProjectStory({
   }, [activeTab, chapters, t])
 
 
+  // 0-4: 다중 이동 모달
+  const [moveModalItems, setMoveModalItems] = useState<{
+    itemIds: string[]
+    chapterId: string
+    sourceBlockIds: string[]
+  } | null>(null)
+
+  // 0-4: 단건 이동 (기존 DnD/이동 버튼 경로)
   const [moveModalItem, setMoveModalItem] = useState<{
     itemId: string
     chapterId: string
     sourceBlockId: string
   } | null>(null)
+
+  // 0-4: 아이템 토글 (Shift/Meta 클릭 지원)
+  const handleItemToggle = useCallback((chapterId: string, itemId: string, shiftKey: boolean, _metaKey: boolean) => {
+    if (shiftKey && lastSelectedRef.current?.chapterId === chapterId) {
+      // Range select: 같은 챕터 내 마지막 선택~현재 범위
+      const flatOrder = (blocksPerChapter[chapterId] || [])
+        .flatMap(b => b.items.filter(i => i.item_type === 'PHOTO'))
+        .map(i => i.id)
+      const lastIdx = flatOrder.indexOf(lastSelectedRef.current!.itemId)
+      const curIdx = flatOrder.indexOf(itemId)
+      if (lastIdx !== -1 && curIdx !== -1) {
+        const [from, to] = [Math.min(lastIdx, curIdx), Math.max(lastIdx, curIdx)]
+        const rangeIds = flatOrder.slice(from, to + 1)
+        setSelectedItemIds(prev => {
+          const next = new Set(prev)
+          rangeIds.forEach(id => next.add(id))
+          return next
+        })
+        return
+      }
+    }
+    setSelectedItemIds(prev => {
+      const next = new Set(prev)
+      if (next.has(itemId)) { next.delete(itemId) } else { next.add(itemId) }
+      return next
+    })
+    lastSelectedRef.current = { chapterId, itemId }
+  }, [blocksPerChapter])
+
+  // 0-4: 일괄 이동
+  const handleBulkMove = useCallback(async (
+    chapterId: string,
+    itemIds: string[],
+    targetBlockId: string
+  ) => {
+    const resolvedTargetId = targetBlockId === 'new' ? crypto.randomUUID() : targetBlockId
+
+    // 낙관적 업데이트
+    setChapterPhotos(prev => {
+      const all = prev[chapterId] || []
+      const prevTargetItems = all.filter(i => i.block_id === resolvedTargetId && i.item_type === 'PHOTO')
+      const prevTargetLayout = prevTargetItems[0]?.block_layout || 'grid'
+      const prevTargetOrderNum = prevTargetItems[0]?.order_num ?? (all[all.length - 1]?.order_num ?? 0)
+
+      const updated = all.map((item) => {
+        if (!itemIds.includes(item.id)) return item
+        const newIdx = prevTargetItems.length + itemIds.indexOf(item.id)
+        return { ...item, block_id: resolvedTargetId, order_in_block: newIdx, order_num: prevTargetOrderNum, block_layout: prevTargetLayout }
+      })
+      return { ...prev, [chapterId]: updated }
+    })
+
+    setSelectedItemIds(prev => {
+      const next = new Set(prev)
+      itemIds.forEach(id => next.delete(id))
+      return next
+    })
+
+    try {
+      await Promise.all(itemIds.map(itemId =>
+        axios.put(`${API}/chapters/${chapterId}/items/move-to-block`, {
+          item_id: itemId,
+          target_block_id: resolvedTargetId,
+        })
+      ))
+    } catch (err) {
+      console.error('일괄 이동 실패:', err)
+      fetchChapterPhotos(chapterId)
+    }
+  }, [fetchChapterPhotos])
+
+  // 0-4: 일괄 삭제
+  const handleBulkDelete = useCallback(async (chapterId: string, itemIds: string[]) => {
+    setChapterPhotos(prev => ({
+      ...prev,
+      [chapterId]: (prev[chapterId] || []).filter(i => !itemIds.includes(i.id))
+    }))
+    setSelectedItemIds(prev => {
+      const next = new Set(prev)
+      itemIds.forEach(id => next.delete(id))
+      return next
+    })
+    try {
+      await Promise.all(itemIds.map(itemId =>
+        axios.delete(`${API}/chapters/${chapterId}/items/${itemId}`)
+      ))
+      onChapterChange?.(0)
+    } catch (err) {
+      console.error('일괄 삭제 실패:', err)
+      fetchChapterPhotos(chapterId)
+    }
+  }, [fetchChapterPhotos, onChapterChange])
 
   return (
     <div className="relative flex flex-row items-start gap-6">
@@ -1329,6 +1481,30 @@ function ProjectStory({
         />
       )
       })()}
+
+    {moveModalItems && (() => {
+      const blocks = blocksPerChapter[moveModalItems.chapterId] || []
+      const photoBlocks = blocks.filter(b => b.type === 'PHOTO')
+      const usedBlockIds = new Set(moveModalItems.sourceBlockIds)
+      const otherBlocks = photoBlocks
+        .filter(b => !usedBlockIds.has(b.blockId))
+        .map(b => ({
+          blockId: b.blockId,
+          firstImageUrl: b.items[0]?.image_url ?? null,
+          count: b.items.length,
+        }))
+      return (
+        <ConfirmModal
+          type="moveBlock"
+          blocks={otherBlocks}
+          onSelect={(targetBlockId) => {
+            handleBulkMove(moveModalItems.chapterId, moveModalItems.itemIds, targetBlockId)
+            setMoveModalItems(null)
+          }}
+          onCancel={() => setMoveModalItems(null)}
+        />
+      )
+    })()}
 
       <div className="flex-1 max-w-5xl">
 
@@ -1506,6 +1682,7 @@ function ProjectStory({
 
                   {/* 챕터 사진/텍스트 블록 영역 */}
                   <div className="p-4">
+                    {renderChapterActionBar(chapter.id)}
                     {renderChapterBlocks(chapter.id)}
                     <button onClick={() => handleAddTextBlock(chapter.id)}
                         className="mt-2 text-small text-faint hover:text-ink-2 border border-dashed border-gray-300 hover:border-faint rounded-card px-3 py-1.5 w-full transition-[background,color,border] duration-150 ease-out"
@@ -1605,6 +1782,7 @@ function ProjectStory({
 
                     {/* 서브 챕터 사진/텍스트 블록 영역 */}
                     <div className="p-4">
+                    {renderChapterActionBar(subChapter.id)}
                     {renderChapterBlocks(subChapter.id)}
                     <button onClick={() => handleAddTextBlock(subChapter.id)}
                         className="mt-2 text-small text-faint hover:text-ink-2 border border-dashed border-gray-300 hover:border-faint rounded-card px-3 py-1.5 w-full transition-[background,color,border] duration-150 ease-out"
