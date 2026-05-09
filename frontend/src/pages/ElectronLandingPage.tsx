@@ -1,8 +1,7 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { useTranslation } from 'react-i18next'
-import { BookOpen, Share2, Aperture } from 'lucide-react'
 
 const API_BASE = import.meta.env.VITE_API_URL || 'https://racconto.app/api'
 
@@ -49,39 +48,61 @@ export default function ElectronLandingPage() {
     setLoading(false)
   }
 
-  const features = [
-    { Icon: BookOpen, label: t('electron.feature.story') },
-    { Icon: Share2,   label: t('electron.feature.delivery') },
-    { Icon: Aperture, label: t('electron.feature.portfolio') },
-  ]
-
   return (
     <div className="h-screen flex overflow-hidden">
 
-      {/* ── 왼쪽 패널 — 브랜딩 ── */}
-      <div className="w-[42%] bg-stone-900 flex flex-col justify-between px-10 py-12 shrink-0">
-        <span
-          className="font-serif font-bold text-[26px] text-stone-100 tracking-[0.08em]"
-          style={{ fontWeight: 700, transform: 'translateY(1px)' }}
-        >
-          Racconto
-        </span>
+      {/* ── 왼쪽 패널 — 메인 텍스트 ── */}
+      <div className="w-[42%] flex flex-col items-center justify-center px-10 py-12 shrink-0 border-r border-stone-200 relative overflow-hidden bg-[#F7F4F0]">
 
-        <div className="flex flex-col gap-8">
-          <p className="text-stone-400 text-[14px] leading-relaxed">
-            {t('electron.tagline')}
+        {/* 배경 그리드 장식 */}
+        <div
+          className="absolute inset-0 pointer-events-none"
+          style={{
+            backgroundImage: 'linear-gradient(to bottom, #E7E3DE 1px, transparent 1px), linear-gradient(90deg, #e7e3de 1px, transparent 1px)',
+            backgroundSize: '60px 60px',
+            opacity: 0.4,
+          }}
+        />
+
+        <div className="relative z-10 text-center w-full">
+          {/* 로고 — PublicNavbar와 동일 스타일 */}
+          <span
+            className="font-serif font-bold text-[26px] tracking-[0.08em] text-ink block mb-10"
+            style={{ fontWeight: 700, transform: 'translateY(1px)' }}
+          >
+            Racconto
+          </span>
+
+          <p className="text-body tracking-[0.3em] text-faint uppercase mb-6">
+            {t('landing.heroEyebrow')}
           </p>
-          <div className="flex flex-col gap-5">
-            {features.map(({ Icon, label }) => (
-              <div key={label} className="flex items-center gap-3">
-                <Icon size={15} strokeWidth={1.5} className="text-stone-500 shrink-0" />
-                <span className="text-stone-300 text-[13px]">{label}</span>
-              </div>
-            ))}
+          <h1
+            className="text-h1 font-serif font-bold leading-tight mb-6 text-ink break-keep"
+            style={{ letterSpacing: '-0.02em' }}
+          >
+            {t('landing.heroTitle')}
+          </h1>
+          <h1
+            className="text-h1 font-serif font-bold leading-tight mb-8 text-ink break-keep"
+            style={{ letterSpacing: '-0.02em' }}
+          >
+            {t('landing.heroTitle2')}
+          </h1>
+          <p className="text-body text-muted leading-relaxed mb-10 break-keep">
+            {t('landing.heroSubtitle')}
+          </p>
+          <div className="flex flex-col items-center">
+            <Link
+              to="/register"
+              className="px-8 py-3 min-w-40 text-body font-serif font-semibold btn-primary tracking-widest transition-all duration-200 shadow rounded"
+            >
+              {t('landing.ctaPrimary')}
+            </Link>
           </div>
+          <p className="mt-6 text-small text-muted tracking-wider">
+            {t('landing.betaBadge')}
+          </p>
         </div>
-
-        <p className="text-stone-700 text-[11px]">© 2025 Racconto</p>
       </div>
 
       {/* ── 오른쪽 패널 — 로그인 ── */}
