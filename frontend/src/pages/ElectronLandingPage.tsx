@@ -4,6 +4,8 @@ import { useAuth } from '../context/AuthContext'
 import { useTranslation } from 'react-i18next'
 
 const API_BASE = import.meta.env.VITE_API_URL || 'https://racconto.app/api'
+// OAuth는 항상 프로덕션 백엔드 사용 (Google/Naver/Apple redirect URI가 racconto.app으로 등록됨)
+const OAUTH_BASE = 'https://racconto.app/api'
 
 export default function ElectronLandingPage() {
   const [email, setEmail] = useState('')
@@ -67,13 +69,13 @@ export default function ElectronLandingPage() {
         <div className="relative z-10 text-center w-full">
           {/* 로고 — PublicNavbar와 동일 스타일 */}
           <span
-            className="font-serif font-bold text-h1 tracking-[0.08em] text-ink block mb-10"
+            className="font-serif font-bold text-h2 tracking-[0.08em] text-ink block mb-10"
             style={{ fontWeight: 700, transform: 'translateY(1px)' }}
           >
             Racconto
           </span>
 
-          <p className="text-body tracking-[0.3em] text-faint uppercase mb-6">
+          <p className="text-h3 tracking-[0.3em] text-faint uppercase mb-6">
             {t('landing.heroEyebrow')}
           </p>
           <h1
@@ -88,10 +90,10 @@ export default function ElectronLandingPage() {
           >
             {t('landing.heroTitle2')}
           </h1>
-          <p className="text-body text-muted leading-relaxed mb-10 break-keep">
+          <p className="text-h3 text-muted leading-relaxed mb-10 break-keep">
             {t('landing.heroSubtitle')}
           </p>
-          <p className="mt-6 text-small text-muted tracking-wider">
+          <p className="mt-6 text-body text-muted tracking-wider">
             {t('landing.betaBadge')}
           </p>
         </div>
@@ -156,7 +158,7 @@ export default function ElectronLandingPage() {
 
               <div className="mt-4 space-y-2">
                 <button
-                  onClick={() => window.racconto?.openOAuth(`${API_BASE}/auth/google/login?platform=electron`)}
+                  onClick={() => window.racconto?.openOAuth(`${OAUTH_BASE}/auth/google/login?platform=electron`)}
                   className="w-full flex items-center justify-center gap-3 px-4 py-2.5 border border-stone-200 rounded-card bg-white hover:bg-stone-50 transition-colors"
                 >
                   <svg className="w-4 h-4 shrink-0" viewBox="0 0 24 24">
@@ -169,7 +171,7 @@ export default function ElectronLandingPage() {
                 </button>
 
                 <button
-                  onClick={() => window.racconto?.openOAuth(`${API_BASE}/auth/apple/login?platform=electron`)}
+                  onClick={() => window.racconto?.openOAuth(`${OAUTH_BASE}/auth/apple/login?platform=electron`)}
                   className="w-full flex items-center justify-center gap-3 px-4 py-2.5 bg-stone-900 text-white rounded-card hover:bg-stone-800 transition-colors"
                 >
                   <svg className="w-4 h-4 shrink-0" fill="currentColor" viewBox="0 0 24 24">
@@ -179,7 +181,7 @@ export default function ElectronLandingPage() {
                 </button>
 
                 <button
-                  onClick={() => window.racconto?.openOAuth(`${API_BASE}/auth/naver/login?platform=electron`)}
+                  onClick={() => window.racconto?.openOAuth(`${OAUTH_BASE}/auth/naver/login?platform=electron`)}
                   className="w-full flex items-center justify-center gap-3 px-4 py-2.5 rounded-card hover:opacity-90 transition-opacity"
                   style={{ backgroundColor: '#03C75A' }}
                 >
