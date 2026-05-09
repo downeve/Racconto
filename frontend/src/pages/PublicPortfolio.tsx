@@ -201,10 +201,10 @@ export default function PublicPortfolio() {
 
   return (
     <div className={`min-h-screen ${bg} transition-[background,color,border] duration-150 ease-out`}>
-      {!isAuthenticated && <PublicNavbar username={username} darkMode={darkMode} compact />}
+      {!isAuthenticated && <PublicNavbar username={username} darkMode={darkMode} compact onToggleDark={() => setDarkMode(!darkMode)} />}
 
       {/* Sticky top bar: breadcrumb (left) + theme toggle (right) — desktop only breadcrumb */}
-      <div className={`sticky ${!isAuthenticated ? 'top-20' : 'top-0'} z-10 border-b backdrop-blur-sm ${barBg}`}>
+      {(isAuthenticated || !!selectedProject) && <div className={`sticky ${!isAuthenticated ? 'top-14' : 'top-0'} z-10 border-b backdrop-blur-sm ${barBg}`}>
         <div className="max-w-4xl mx-auto px-6 h-10 flex items-center justify-between">
           {selectedProject ? (
             <button
@@ -220,17 +220,19 @@ export default function PublicPortfolio() {
             <div className="hidden md:block" />
           )}
           <div className="md:hidden" />
-          <button
-            onClick={() => setDarkMode(!darkMode)}
-            aria-label="다크 모드 전환"
-            className={`inline-flex items-center gap-1 px-3 py-1 text-xs rounded-btn border ${darkMode ? 'border-ink-2 text-faint' : 'border-faint text-muted'}`}
-          >
-            {darkMode
-              ? <><Sun size={12} strokeWidth={1.5} /> {t('settings.themeBeige')}</>
-              : <><Moon size={12} strokeWidth={1.5} /> {t('settings.themeDark')}</>}
-          </button>
+          {isAuthenticated && (
+            <button
+              onClick={() => setDarkMode(!darkMode)}
+              aria-label="다크 모드 전환"
+              className={`inline-flex items-center gap-1 px-3 py-1 text-xs rounded-btn border ${darkMode ? 'border-ink-2 text-faint' : 'border-faint text-muted'}`}
+            >
+              {darkMode
+                ? <><Sun size={12} strokeWidth={1.5} /> {t('settings.themeBeige')}</>
+                : <><Moon size={12} strokeWidth={1.5} /> {t('settings.themeDark')}</>}
+            </button>
+          )}
         </div>
-      </div>
+      </div>}
 
       <div className={`max-w-4xl mx-auto px-6 ${isElectron ? 'pt-4' : 'pt-space-md'} pb-space-xl`}>
 

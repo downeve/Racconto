@@ -1,8 +1,9 @@
 import { useState, useRef, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
+import { Sun, Moon } from 'lucide-react'
 
-export default function PublicNavbar({ username, darkMode, compact }: { username?: string; darkMode?: boolean; compact?: boolean } = {}) {
+export default function PublicNavbar({ username, darkMode, compact, onToggleDark }: { username?: string; darkMode?: boolean; compact?: boolean; onToggleDark?: () => void } = {}) {
   const { t, i18n } = useTranslation()
 
   // 🚨 누락되었던 부분 추가: 상태(State)와 참조(Ref) 선언
@@ -60,14 +61,17 @@ export default function PublicNavbar({ username, darkMode, compact }: { username
               </Link>
             )}
           </div>
-          {/* 기능 소개 페이지 일시 숨김 처리
-          <Link
-            to="/features"
-            className={`text-body sm:text-h3 tracking-wider transition-[background,color,border] duration-150 ease-out hover:font-bold ${dm ? 'text-faint hover:text-hair' : 'text-ink-2 hover:text-ink'}`}
-          >
-            {t('nav.features')}
-          </Link>
-          */}
+          {onToggleDark && (
+            <button
+              onClick={onToggleDark}
+              aria-label="다크 모드 전환"
+              className={`inline-flex items-center gap-1 px-3 py-1 text-xs rounded-btn border ${dm ? 'border-ink-2 text-faint' : 'border-faint text-muted'}`}
+            >
+              {dm
+                ? <><Sun size={12} strokeWidth={1.5} /> {t('settings.themeBeige')}</>
+                : <><Moon size={12} strokeWidth={1.5} /> {t('settings.themeDark')}</>}
+            </button>
+          )}
         </div>
       </nav>
     )
