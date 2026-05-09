@@ -1,8 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
 import axios from 'axios'
-import { FolderOpenIcon, XMarkIcon, LinkIcon, ExclamationTriangleIcon } from '@heroicons/react/24/outline'
-import { Folder } from 'lucide-react'
+import { Folder, FolderOpen, X, Link, TriangleAlert } from 'lucide-react'
 import ConfirmModal from './ConfirmModal'
 
 const API = import.meta.env.VITE_API_URL
@@ -118,12 +117,12 @@ export default function FolderProjectMapper() {
         dangerous
       />
     )}
-    <div className="bg-white rounded-card shadow p-6 mb-6">
-      <h3 className="font-semibold mb-1 flex items-center gap-2">
-        <FolderOpenIcon className="w-5 h-5 text-gray-500" />
+    <div className="border-b border-hair py-8">
+      <h3 className="t-eyebrow text-muted mb-1 flex items-center gap-2">
+        <FolderOpen size={14} strokeWidth={1.5} />
         {t('electron.localFolderConnect')}
       </h3>
-      <p className="text-xs text-gray-400 mb-4 ml-7">
+      <p className="text-[11px] text-faint mb-5 ml-6">
         {t('electron.localFolderConnectInfo')}
       </p>
 
@@ -134,17 +133,17 @@ export default function FolderProjectMapper() {
             const isMissing = missingFolders.has(folderPath)
             return (
               <div key={folderPath}
-                className={`flex items-center justify-between rounded px-3 py-2 text-sm ${isMissing ? 'bg-amber-50 border border-amber-200' : 'bg-gray-50'}`}>
+                className={`flex items-center justify-between px-3 py-2 text-sm ${isMissing ? 'bg-amber-50 border border-amber-200' : 'bg-hair/30'}`}>
                 <div className="flex items-center gap-2 min-w-0">
                   {isMissing
-                    ? <ExclamationTriangleIcon className="w-4 h-4 text-amber-500 shrink-0" />
-                    : <LinkIcon className="w-4 h-4 text-gray-400 shrink-0" />
+                    ? <TriangleAlert size={14} strokeWidth={1.5} className="text-amber-500 shrink-0" />
+                    : <Link size={14} strokeWidth={1.5} className="text-faint shrink-0" />
                   }
                   <div className="min-w-0">
-                    <p className={`font-medium truncate ${isMissing ? 'text-amber-700' : 'text-gray-700'}`}>
+                    <p className={`font-medium truncate ${isMissing ? 'text-amber-700' : 'text-ink-2'}`}>
                       {mapping.projectName}
                     </p>
-                    <p className={`text-xs truncate ${isMissing ? 'text-amber-500' : 'text-gray-400'}`}>
+                    <p className={`text-xs truncate ${isMissing ? 'text-amber-500' : 'text-faint'}`}>
                       {folderPath}
                     </p>
                     {isMissing && (
@@ -153,8 +152,8 @@ export default function FolderProjectMapper() {
                   </div>
                 </div>
                 <button onClick={() => handleUnlink(folderPath)}
-                  className="ml-2 text-gray-400 hover:text-red-500 shrink-0">
-                  <XMarkIcon className="w-4 h-4" />
+                  className="ml-2 text-faint hover:text-[oklch(0.50_0.15_25)] shrink-0 transition-colors">
+                  <X size={14} strokeWidth={1.5} />
                 </button>
               </div>
             )
@@ -165,7 +164,7 @@ export default function FolderProjectMapper() {
       {/* 새 폴더 연결 */}
       <div className="flex items-center gap-2">
         <button onClick={handleSelectFolder}
-          className="px-3 py-2 text-sm border rounded hover:bg-gray-50 shrink-0">
+          className="px-3 py-2 text-sm border-hair border hover:bg-canvas-2 shrink-0 transition-colors">
           {selectedFolder
             ? <span className="flex items-center gap-1"><Folder size={14} strokeWidth={1.5} />{selectedFolder.split('/').pop()}</span>
             : t('electron.selectFolder')}
@@ -173,7 +172,7 @@ export default function FolderProjectMapper() {
         <select
           value={selectedProjectId}
           onChange={e => setSelectedProjectId(e.target.value)}
-          className="border rounded px-3 py-2 text-sm outline-none focus:border-black flex-1">
+          className="border-hair border px-3 py-2 text-sm outline-none focus:border-ink flex-1 transition-colors">
           <option value="">{t('electron.selectProject')}</option>
           {projects.map(p => (
             <option key={p.id} value={p.id}>{p.title}</option>
@@ -182,12 +181,12 @@ export default function FolderProjectMapper() {
         <button
           onClick={handleLink}
           disabled={!selectedFolder || !selectedProjectId}
-          className="px-4 py-2 text-sm bg-black text-white rounded hover:bg-gray-800 disabled:opacity-40 shrink-0">
+          className="px-4 py-2 text-sm bg-ink text-canvas hover:bg-ink-2 disabled:opacity-40 shrink-0 transition-colors">
           {t('electron.connect')}
         </button>
       </div>
       {selectedFolder && (
-        <p className="text-xs text-gray-400 mt-1.5 truncate">{selectedFolder}</p>
+        <p className="text-[11px] text-faint mt-1.5 truncate">{selectedFolder}</p>
       )}
     </div>
     </>
