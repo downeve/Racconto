@@ -54,11 +54,18 @@ export default function TabletSidebar({ activeTab, onTabChange, showTabs, width 
     axios.get(`${API}/projects/`).then(r => setProjects(r.data)).catch(() => {})
   }, [refreshTrigger])
 
-  const toggleLanguage = () => {
-    const next = i18n.language.startsWith('ko') ? 'en' : 'ko'
-    i18n.changeLanguage(next)
-    localStorage.setItem('app_language', next)
+  const currentLang = (i18n.language || 'ko').substring(0, 2)
+
+  const changeLanguage = (lang: string) => {
+    i18n.changeLanguage(lang)
+    localStorage.setItem('app_language', lang)
   }
+
+  const languages = [
+    { code: 'ko', label: '한국어 (KO)' },
+    { code: 'en', label: 'English (EN)' },
+    { code: 'ja', label: '日本語 (JA)' },
+  ]
 
   const avatarInitial = user?.email?.[0]?.toUpperCase() ?? '?'
   const isOnProjectDetail = !!location.pathname.match(/^\/projects\/[^/]+$/)
@@ -196,12 +203,17 @@ export default function TabletSidebar({ activeTab, onTabChange, showTabs, width 
               {t('nav.trash')}
             </Link>
             <div className="border-t border-hair my-1" />
-            <button
-              onClick={() => { toggleLanguage(); setDropdownOpen(false) }}
-              className="w-full text-left px-3 py-2 min-h-[44px] text-small text-muted"
-            >
-              {i18n.language === 'ko' ? 'English' : '한국어'}
-            </button>
+            {languages.map(lang => (
+              <button
+                key={lang.code}
+                onClick={() => { changeLanguage(lang.code); setDropdownOpen(false) }}
+                className={`w-full text-left px-3 py-2 min-h-[44px] text-small ${
+                  currentLang === lang.code ? 'text-ink font-bold' : 'text-muted'
+                }`}
+              >
+                {lang.label}
+              </button>
+            ))}
             <button
               onClick={() => { setDropdownOpen(false); logout() }}
               className="w-full text-left px-3 py-2 min-h-[44px] text-small text-red-400"
