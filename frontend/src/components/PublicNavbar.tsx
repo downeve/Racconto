@@ -8,7 +8,7 @@ export default function PublicNavbar({ username, darkMode, compact }: { username
   // 🚨 누락되었던 부분 추가: 상태(State)와 참조(Ref) 선언
   const [isLangOpen, setIsLangOpen] = useState(false)
   const dropdownRef = useRef<HTMLDivElement>(null)
-  
+
   // i18n.language가 없을 경우를 대비해 기본값 'ko' 설정
   const currentLang = (i18n.language || 'ko').substring(0, 2);
 
@@ -109,7 +109,6 @@ export default function PublicNavbar({ username, darkMode, compact }: { username
           </Link>
           */}
 
-          <div className="flex items-center gap-3 sm:gap-6">
           {/* 드롭다운 언어 선택기 */}
           <div className="relative" ref={dropdownRef}>
             <button
