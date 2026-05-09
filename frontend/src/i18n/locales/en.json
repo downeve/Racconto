@@ -620,5 +620,13 @@
       "step4Title": "Launch and Log in",
       "step4Desc": "Log in with your racconto.app account. Linking a folder starts auto-upload."
     }
+  },
+  "electron": {
+    "tagline": "The storytelling tool for photographers",
+    "feature": {
+      "story": "Story editor — document your work in photos and words",
+      "delivery": "Delivery links — let clients choose their photos",
+      "portfolio": "Portfolio — auto-generated public page"
+    }
   }
 }

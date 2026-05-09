@@ -18,6 +18,7 @@ import ResetPassword from './pages/ResetPassword'
 import Admin from './pages/Admin'
 import PublicPortfolio from './pages/PublicPortfolio'
 import LandingPage from './pages/LandingPage'
+import ElectronLandingPage from './pages/ElectronLandingPage'
 import FeaturesPage from './pages/FeaturesPage'
 import MobileLandingPage from './pages/MobileLandingPage'
 import MobileFeaturesPage from './pages/MobileFeaturesPage'
@@ -124,7 +125,7 @@ function AppRoutes() {
           <Route path="/verify-email" element={<VerifyEmail />} />
           <Route path="/forgot-password" element={<ForgotPassword />} />
           <Route path="/reset-password" element={<ResetPassword />} />
-          <Route path="/" element={isAuthenticated ? <Navigate to="/dashboard" replace /> : (isMobileDevice ? <MobileLandingPage /> : <LandingPage />)} />
+          <Route path="/" element={isAuthenticated ? <Navigate to="/dashboard" replace /> : (isElectron ? <ElectronLandingPage /> : isMobileDevice ? <MobileLandingPage /> : <LandingPage />)} />
           <Route path="/features" element={isMobileDevice ? <MobileFeaturesPage /> : <FeaturesPage />} />
           <Route path="/projects" element={<PrivateRoute><Projects /></PrivateRoute>} />
           <Route path="/projects/:id" element={
