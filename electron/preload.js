@@ -26,4 +26,6 @@ contextBridge.exposeInMainWorld('racconto', {
   onMenuNavigate: (callback) => ipcRenderer.on('menu:navigate', (_, path) => callback(path)),
   onMenuAction: (callback) => ipcRenderer.on('menu:action', (_, action) => callback(action)),
   setMenuLanguage: (lang) => ipcRenderer.send('change-language', lang),
+  openOAuth: (url) => ipcRenderer.invoke('auth:openOAuth', url),
+  onOAuthToken: (callback) => ipcRenderer.on('auth:oauthToken', (_, token) => callback(token)),
 })

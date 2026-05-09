@@ -16,6 +16,7 @@ interface AuthContextType {
   isLoading: boolean
   user: User | null
   login: (email: string, password: string) => Promise<boolean>
+  loginWithToken: (token: string) => Promise<boolean>
   logout: () => void
 }
 
@@ -121,8 +122,30 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }
 
+  const loginWithToken = async (token: string): Promise<boolean> => {
+    try {
+      localStorage.setItem('token', token)
+      axios.defaults.headers.common['Authorization'] = `Bearer ${token}`
+      if (window.racconto) {
+        window.racconto.setAuthToken(token)
+      }
+      setIsAuthenticated(true)
+      const meRes = await axios.get(`${API}/auth/me`)
+      setUser({
+        email: meRes.data.email,
+        username: meRes.data.username,
+        is_admin: meRes.data.is_admin ?? false,
+        oauth_provider: meRes.data.oauth_provider ?? null,
+      })
+      localStorage.setItem('userEmail', meRes.data.email)
+      return true
+    } catch {
+      return false
+    }
+  }
+
   return (
-    <AuthContext.Provider value={{ isAuthenticated, isLoading, user, login, logout }}>
+    <AuthContext.Provider value={{ isAuthenticated, isLoading, user, login, loginWithToken, logout }}>
       {children}
     </AuthContext.Provider>
   )

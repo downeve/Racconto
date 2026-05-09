@@ -1,4 +1,4 @@
-const { app, BrowserWindow, ipcMain, dialog, net, nativeImage, Menu } = require('electron')
+const { app, BrowserWindow, ipcMain, dialog, net, nativeImage, Menu, shell } = require('electron')
 const path = require('path')
 const chokidar = require('chokidar')
 const fs = require('fs')
@@ -632,6 +632,14 @@ function createWindow() {
       mainWindow.webContents.executeJavaScript("window.location.hash = '#/'")
     })
   }
+
+  // app 준비 전에 도착한 OAuth 토큰 전달
+  mainWindow.webContents.once('did-finish-load', () => {
+    if (pendingOAuthToken) {
+      mainWindow.webContents.send('auth:oauthToken', pendingOAuthToken)
+      pendingOAuthToken = null
+    }
+  })
 }
 
 // ── 앱 메뉴 ──────────────────────────────────────────
@@ -713,6 +721,33 @@ function buildAppMenu() {
   ]
   Menu.setApplicationMenu(Menu.buildFromTemplate(template))
 }
+
+// ── OAuth 외부 브라우저 ──────────────────────────────
+// macOS: open-url이 app 준비 전에 올 수 있으므로 토큰을 임시 저장
+let pendingOAuthToken = null
+
+app.setAsDefaultProtocolClient('racconto')
+
+app.on('open-url', (event, url) => {
+  event.preventDefault()
+  try {
+    const parsed = new URL(url)
+    if (parsed.hostname === 'auth' && parsed.pathname === '/callback') {
+      const token = parsed.searchParams.get('token')
+      if (token) {
+        if (mainWindow) {
+          mainWindow.webContents.send('auth:oauthToken', token)
+        } else {
+          pendingOAuthToken = token
+        }
+      }
+    }
+  } catch {}
+})
+
+ipcMain.handle('auth:openOAuth', (event, url) => {
+  shell.openExternal(url)
+})
 
 // ── 앱 시작 ──────────────────────────────────────────
 app.whenReady().then(() => {

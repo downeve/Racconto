@@ -27,5 +27,7 @@ interface Window {
     onMenuNavigate: (callback: (path: string) => void) => void
     onMenuAction: (callback: (action: string) => void) => void
     setMenuLanguage: (lang: string) => void
+    openOAuth: (url: string) => Promise<void>
+    onOAuthToken: (callback: (token: string) => void) => void
   }
 }

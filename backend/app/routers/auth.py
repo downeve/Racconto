@@ -353,7 +353,7 @@ async def google_callback(request: Request, background_tasks: BackgroundTasks, s
 
     access_token = create_access_token(data={"sub": user.id, "is_admin": user.is_admin})
     platform = request.session.get("oauth_platform", "web")
-    if platform == "ios":
+    if platform in ("ios", "electron"):
         return RedirectResponse(f"racconto://auth/callback?token={access_token}")
     return RedirectResponse(f"{FRONTEND_URL}/auth/social-callback?token={access_token}")
 
@@ -392,7 +392,7 @@ def _generate_apple_client_secret() -> str:
 
 
 @router.get("/apple/login")
-async def apple_login(request: Request):
+async def apple_login(request: Request, platform: str = "web"):
     state = secrets.token_urlsafe(16)
     redirect_uri = f"{BACKEND_URL}/auth/apple/callback"
     apple_auth_url = (
@@ -408,6 +408,7 @@ async def apple_login(request: Request):
     # SameSite=None; Secure 필수 — Apple이 cross-origin form POST로 콜백을 보내기 때문에
     # SameSite=Lax인 세션 쿠키는 전달되지 않음
     response.set_cookie("apple_oauth_state", state, max_age=600, httponly=True, secure=True, samesite="none")
+    response.set_cookie("apple_oauth_platform", platform, max_age=600, httponly=True, secure=True, samesite="none")
     return response
 
 
@@ -497,8 +498,13 @@ async def apple_callback(request: Request, background_tasks: BackgroundTasks, db
         background_tasks.add_task(send_social_welcome_email, email)
 
     access_token = create_access_token(data={"sub": user.id, "is_admin": user.is_admin})
-    response = RedirectResponse(f"{FRONTEND_URL}/auth/social-callback?token={access_token}", status_code=303)
+    apple_platform = request.cookies.get("apple_oauth_platform", "web")
+    if apple_platform in ("ios", "electron"):
+        response = RedirectResponse(f"racconto://auth/callback?token={access_token}", status_code=303)
+    else:
+        response = RedirectResponse(f"{FRONTEND_URL}/auth/social-callback?token={access_token}", status_code=303)
     response.delete_cookie("apple_oauth_state", secure=True, samesite="none")
+    response.delete_cookie("apple_oauth_platform", secure=True, samesite="none")
     return response
 
 
@@ -609,7 +615,7 @@ async def naver_callback(
 
     access_token_jwt = create_access_token(data={"sub": user.id, "is_admin": user.is_admin})
     platform = request.session.get("oauth_platform", "web")
-    if platform == "ios":
+    if platform in ("ios", "electron"):
         return RedirectResponse(f"racconto://auth/callback?token={access_token_jwt}")
     return RedirectResponse(f"{FRONTEND_URL}/auth/social-callback?token={access_token_jwt}")
 
