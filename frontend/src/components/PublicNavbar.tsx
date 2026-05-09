@@ -152,7 +152,7 @@ export default function PublicNavbar({ username, darkMode, compact }: { username
           </Link>
           <Link
             to="/register"
-            className="hidden sm:inline-flex tracking-wider text-body btn-primary whitespace-nowrap"
+            className="hidden sm:inline-flex justify-center tracking-wider text-body btn-primary whitespace-nowrap min-w-[8.5rem]"
           >
             {t('auth.register')}
           </Link>
