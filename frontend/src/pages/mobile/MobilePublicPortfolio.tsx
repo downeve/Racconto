@@ -72,7 +72,7 @@ function SimpleMobileItems({ items, darkMode, allLightboxItems, onLightbox }: Si
                 className="w-full object-cover hover:opacity-90 transition-opacity block"
               />
               {photo.caption && (
-                <p className={`text-xs mt-1 px-0.5 ${darkMode ? 'text-stone-400' : 'text-stone-400'}`}>
+                <p className={`t-caption mt-2.5 ${darkMode ? 'text-d-faint' : 'text-faint'}`}>
                   {photo.caption}
                 </p>
               )}
@@ -94,7 +94,7 @@ function SimpleMobileItems({ items, darkMode, allLightboxItems, onLightbox }: Si
             className="w-full object-cover hover:opacity-90 transition-opacity block"
           />
           {item.caption && (
-            <p className={`text-xs mt-1 px-0.5 ${darkMode ? 'text-stone-400' : 'text-stone-400'}`}>
+            <p className={`t-caption mt-2.5 ${darkMode ? 'text-d-faint' : 'text-faint'}`}>
               {item.caption}
             </p>
           )}
@@ -158,11 +158,12 @@ export default function MobilePublicPortfolio() {
     setLightboxIndex(idx !== -1 ? idx : 0)
   }
 
-  const bg = darkMode ? 'bg-card-surface text-white' : 'bg-[#F7F4F0] text-stone-900'
-  const subText = darkMode ? 'text-stone-400' : 'text-stone-500'
-  const barBg = darkMode
-    ? 'bg-card-surface/95 border-b border-white/10'
-    : 'bg-[#F7F4F0]/95 border-b border-stone-200/60'
+  const bg       = darkMode ? 'bg-d-bg text-d-hair'  : 'bg-canvas text-ink'
+  const subText  = darkMode ? 'text-d-soft'          : 'text-muted'
+  const microcopy = darkMode ? 'text-d-faint'        : 'text-faint'
+  const barBg    = darkMode
+    ? 'bg-d-bg/85 border-b border-d-line'
+    : 'bg-canvas/85 border-b border-hair/60'
 
   if (notFound) {
     return (
@@ -193,7 +194,7 @@ export default function MobilePublicPortfolio() {
           ) : (
             <div className="min-w-[44px]" />
           )}
-          <span className="font-serif text-lg font-semibold">{username}</span>
+          <span className="t-eyebrow text-muted">{username}</span>
           <button
             onClick={() => setDarkMode(v => !v)}
             aria-label="다크 모드 전환"
@@ -207,31 +208,40 @@ export default function MobilePublicPortfolio() {
       <div ref={containerRef} className="px-4">
         {!selectedProject ? (
           // ── 프로젝트 목록 ──────────────────────────────────
-          <div className="flex flex-col gap-4 pb-8 pt-4">
+          <div className="flex flex-col gap-12 pb-8 pt-6">
             {projects.map(project => (
-              <div
+              <article
                 key={project.id}
-                className={`rounded-xl overflow-hidden cursor-pointer border shadow-sm hover:shadow transition-shadow ${darkMode ? 'bg-card-cover border-white/10' : 'bg-white border-stone-200/60'}`}
+                className="cursor-pointer group"
                 onClick={() => { setSelectedProject(project); window.scrollTo(0, 0) }}
               >
-                {project.cover_image_url ? (
-                  <img src={project.cover_image_url} className="w-full aspect-[3/2] object-cover" alt={project.title} />
-                ) : (
-                  <div className={`w-full aspect-[3/2] flex items-center justify-center ${darkMode ? 'bg-card-cover' : 'bg-stone-100'}`}>
-                    <span className={`font-serif text-[3.5rem] leading-none font-light select-none ${darkMode ? 'text-stone-600' : 'text-stone-300'}`}>
-                      {project.title.charAt(0).toUpperCase()}
-                    </span>
-                  </div>
-                )}
-                <div className="p-3">
-                  <p className="font-semibold text-sm">{project.title}</p>
-                  {project.location && (
-                    <p className={`flex items-center gap-1 text-xs mt-1 ${subText}`}>
-                      <MapPin size={11} strokeWidth={1.5} />{project.location}
-                    </p>
+                <div className={`aspect-[4/5] overflow-hidden ${darkMode ? 'bg-d-surface' : 'bg-[oklch(0.92_0.012_75)]'}`}>
+                  {project.cover_image_url ? (
+                    <img
+                      src={cfUrl(project.cover_image_url, 'thumb')}
+                      className="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-[1.02]"
+                      alt={project.title}
+                    />
+                  ) : (
+                    <div className={`w-full h-full flex items-end p-5 bg-gradient-to-br ${darkMode ? 'from-d-surface to-d-bg' : 'from-[oklch(0.94_0.012_75)] to-[oklch(0.86_0.014_75)]'}`}>
+                      <div>
+                        <p className={`t-eyebrow mb-1 ${microcopy}`}>Untitled cover</p>
+                        <p className={`font-serif text-[18px] leading-tight font-light [word-break:keep-all] ${darkMode ? 'text-d-soft' : 'text-ink-2/70'}`}>
+                          {project.title}
+                        </p>
+                      </div>
+                    </div>
                   )}
                 </div>
-              </div>
+                <h3 className="mt-3 font-serif text-[18px] tracking-tight font-normal [word-break:keep-all]">
+                  {project.title}
+                </h3>
+                {project.location && (
+                  <p className={`t-loc mt-1.5 ${subText}`}>
+                    <MapPin size={10} strokeWidth={1.5} />{project.location}
+                  </p>
+                )}
+              </article>
             ))}
             {projects.length === 0 && (
               <EmptyState heading={t('portfolio.noPublicProjects')} darkMode={darkMode} />
@@ -241,14 +251,17 @@ export default function MobilePublicPortfolio() {
           // ── 프로젝트 상세 ──────────────────────────────────
           <div className="pb-12 pt-4">
             {/* 프로젝트 헤더 */}
-            <h1 className="text-2xl font-serif font-semibold mb-1">{selectedProject.title}</h1>
+            <p className={`t-eyebrow mb-1.5 ${microcopy}`}>Portfolio</p>
+            <h1 className="font-serif text-[26px] leading-[1.1] font-normal tracking-tight mb-2 [word-break:keep-all]">
+              {selectedProject.title}
+            </h1>
             {selectedProject.location && (
-              <p className={`flex items-center gap-1 text-xs mb-3 ${subText}`}>
-                <MapPin size={12} strokeWidth={1.5} />{selectedProject.location}
+              <p className={`t-loc mb-5 ${subText}`}>
+                <MapPin size={10} strokeWidth={1.5} />{selectedProject.location}
               </p>
             )}
             {selectedProject.description && (
-              <p className={`text-sm font-serif mb-6 [word-break:keep-all] leading-relaxed ${subText}`}>
+              <p className={`font-serif text-[15px] leading-[1.65] italic mb-6 [word-break:keep-all] ${subText}`}>
                 {selectedProject.description}
               </p>
             )}
@@ -259,18 +272,16 @@ export default function MobilePublicPortfolio() {
                 {selectedProject.chapters.map((chapter, idx) => {
                   const allChapterItems = getAllChapterItems(selectedProject)
                   return (
-                    <div key={chapter.id} className={idx > 0 ? 'pt-space-xl' : ''}>
+                    <div key={chapter.id} className={idx > 0 ? 'pt-24' : ''}>
                       {/* 챕터 헤더 */}
                       <div className="mb-5">
-                        <div className="mb-1">
-                          <h2 className="text-xl font-serif font-bold tracking-tight">{chapter.title}</h2>
-                        </div>
+                        <p className={`t-eyebrow mb-1.5 ${microcopy}`}>Chapter</p>
+                        <h2 className="font-serif text-[22px] tracking-tight font-normal [word-break:keep-all]">{chapter.title}</h2>
                         {chapter.description && (
-                          <p className={`text-sm font-serif [word-break:keep-all] leading-relaxed ${subText}`}>
+                          <p className={`text-sm font-serif mt-2 [word-break:keep-all] leading-relaxed ${subText}`}>
                             {chapter.description}
                           </p>
                         )}
-                        <div className={`mt-4 h-px w-10 ${darkMode ? 'bg-stone-700' : 'bg-stone-200'}`} />
                       </div>
 
                       {/* 챕터 아이템 */}
@@ -283,13 +294,12 @@ export default function MobilePublicPortfolio() {
 
                       {/* 서브챕터 */}
                       {chapter.sub_chapters?.map((sub) => (
-                        <div key={sub.id} className="mt-space-xl">
+                        <div key={sub.id} className="mt-16">
                           <div className="mb-4">
-                            <div className="mb-1">
-                              <h3 className="text-base font-serif font-semibold">{sub.title}</h3>
-                            </div>
+                            <p className={`t-eyebrow mb-1.5 ${microcopy}`}>Section</p>
+                            <h3 className="font-serif text-[18px] tracking-tight font-medium [word-break:keep-all]">{sub.title}</h3>
                             {sub.description && (
-                              <p className={`text-xs font-serif [word-break:keep-all] leading-relaxed ${subText}`}>
+                              <p className={`text-xs font-serif mt-1.5 [word-break:keep-all] leading-relaxed ${subText}`}>
                                 {sub.description}
                               </p>
                             )}
@@ -316,7 +326,7 @@ export default function MobilePublicPortfolio() {
       {/* Lightbox */}
       {lightboxIndex !== null && lightboxItems[lightboxIndex] && (
         <div
-          className="fixed inset-0 bg-black/95 z-50 flex flex-col"
+          className="fixed inset-0 bg-[oklch(0.12_0.012_60)]/[.98] z-50 flex flex-col"
           style={{ paddingTop: 'env(safe-area-inset-top)', paddingBottom: 'env(safe-area-inset-bottom)' }}
         >
           <div className="flex items-center justify-between px-4 py-2 shrink-0">
@@ -325,9 +335,9 @@ export default function MobilePublicPortfolio() {
               onClick={() => setLightboxIndex(null)}
               className="min-w-[44px] min-h-[44px] flex items-center justify-center"
             >
-              <X size={22} strokeWidth={1.5} className="text-white" />
+              <X size={22} strokeWidth={1.5} className="text-d-faint" />
             </button>
-            <span className="text-white/60 text-sm">{lightboxIndex + 1} / {lightboxItems.length}</span>
+            <span className="t-numeral text-d-faint">{lightboxIndex + 1} / {lightboxItems.length}</span>
             <div className="w-[44px]" />
           </div>
 
@@ -351,25 +361,27 @@ export default function MobilePublicPortfolio() {
               <button
                 aria-label="이전 사진"
                 onClick={() => setLightboxIndex(v => v! - 1)}
-                className="absolute left-2 min-w-[44px] min-h-[44px] flex items-center justify-center bg-black/30 rounded-full"
+                className="absolute left-2 min-w-[44px] min-h-[44px] flex items-center justify-center bg-d-line/50"
               >
-                <ChevronLeft size={22} strokeWidth={1.5} className="text-white" />
+                <ChevronLeft size={22} strokeWidth={1.5} className="text-d-faint" />
               </button>
             )}
             {lightboxIndex < lightboxItems.length - 1 && (
               <button
                 aria-label="다음 사진"
                 onClick={() => setLightboxIndex(v => v! + 1)}
-                className="absolute right-2 min-w-[44px] min-h-[44px] flex items-center justify-center bg-black/30 rounded-full"
+                className="absolute right-2 min-w-[44px] min-h-[44px] flex items-center justify-center bg-d-line/50"
               >
-                <ChevronRight size={22} strokeWidth={1.5} className="text-white" />
+                <ChevronRight size={22} strokeWidth={1.5} className="text-d-faint" />
               </button>
             )}
           </div>
 
           {lightboxItems[lightboxIndex].photo.caption && (
-            <div className="shrink-0 px-4 py-2 text-white/60 text-sm text-center">
-              {lightboxItems[lightboxIndex].photo.caption}
+            <div className="shrink-0 px-4 py-2 text-center">
+              <span className="t-caption text-d-faint">
+                {lightboxItems[lightboxIndex].photo.caption}
+              </span>
             </div>
           )}
         </div>

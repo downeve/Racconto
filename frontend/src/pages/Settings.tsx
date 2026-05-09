@@ -1,18 +1,12 @@
 import { useEffect, useState, useRef } from 'react'
 import axios from 'axios'
 import { useTranslation } from 'react-i18next'
-import Heading from '../components/Heading' //
 import FolderProjectMapper from '../components/FolderProjectMapper'
 import { useAuth } from '../context/AuthContext'
 import {
-  SwatchIcon,
-  ViewColumnsIcon,
-  PaintBrushIcon,
-  TagIcon,
-  LockClosedIcon,
-  UserCircleIcon,
-} from '@heroicons/react/24/outline'
-import { Sun, Moon, Check, ALargeSmall } from 'lucide-react'
+  Sun, Moon, Check, ALargeSmall,
+  Palette, Columns3, Paintbrush, Tag, Lock, UserCircle,
+} from 'lucide-react'
 import { applyFontScale, getStoredFontScale, type FontScale } from '../utils/fontScale'
 
 const API = import.meta.env.VITE_API_URL
@@ -241,53 +235,56 @@ export default function Settings() {
 
   return (
     <div className="max-w-2xl mx-auto p-6">
-      <Heading level={2} className="mb-4 font-serif font-semibold">
-        {t('settings.title')}
-      </Heading>
+      <header className="mb-10">
+        <p className="t-eyebrow text-muted mb-2">Account</p>
+        <h1 className="font-serif text-[32px] leading-[1.1] tracking-[-0.015em] font-normal">
+          {t('settings.title')}
+        </h1>
+      </header>
 
       {/* 사용자 정보 */}
-      <div className="mb-5 p-4 bg-stone-50 rounded-card border border-stone-200 shadow">
-        <div className="flex items-center gap-3 mb-3">
-          <div className="w-9 h-9 rounded-full bg-stone-600 shadow flex items-center justify-center">
-            <span className="text-card text-h3 font-bold">
+      <div className="border-b border-hair pb-8 mb-0">
+        <div className="flex items-center gap-3 mb-5">
+          <div className="w-9 h-9 rounded-full bg-ink-2 flex items-center justify-center">
+            <span className="text-canvas text-h3 font-medium">
               {email ? email[0].toUpperCase() : '?'}
             </span>
           </div>
           <div>
-            <p className="text-xs text-stone-500 font-bold uppercase tracking-widest mb-0.5">
+            <p className="t-eyebrow text-faint mb-0.5">
               {t('settings.currentUser')}
             </p>
-            <p className="text-base text-stone-900 font-semibold tracking-tight">
+            <p className="text-base text-ink font-medium tracking-tight">
               {email || 'Loading...'}
             </p>
           </div>
           {tier && (
-            <span className="ml-auto text-xs font-semibold px-2.5 py-1 rounded-card bg-stone-800 text-white tracking-wide">
+            <span className="ml-auto t-eyebrow border border-hair px-2.5 py-1 text-muted">
               {t(`settings.tier.${tier}`, tier)}
             </span>
           )}
         </div>
-        <div className="grid grid-cols-2 gap-2">
-          <div className="bg-white rounded-card p-3 border border-stone-100">
-            <p className="text-xs text-stone-400 mb-1">{t('settings.usage.projects')}</p>
-            <p className="text-sm font-semibold text-stone-800">
+        <div className="grid grid-cols-2 gap-4">
+          <div className="py-3">
+            <p className="t-eyebrow text-faint mb-1">{t('settings.usage.projects')}</p>
+            <p className="text-sm font-medium text-ink">
               {projectCount} / {projectLimit}
             </p>
-            <div className="mt-1.5 h-1 bg-stone-100 rounded-card overflow-hidden">
+            <div className="mt-1.5 h-1 bg-ink/8 overflow-hidden">
               <div
-                className="h-full bg-stone-600 rounded-card"
+                className="h-full bg-ink/65"
                 style={{ width: `${projectLimit > 0 ? Math.min((projectCount / projectLimit) * 100, 100) : 0}%` }}
               />
             </div>
           </div>
-          <div className="bg-white rounded-card p-3 border border-stone-100">
-            <p className="text-xs text-stone-400 mb-1">{t('settings.usage.photos')}</p>
-            <p className="text-sm font-semibold text-stone-800">
+          <div className="py-3">
+            <p className="t-eyebrow text-faint mb-1">{t('settings.usage.photos')}</p>
+            <p className="text-sm font-medium text-ink">
               {photoCount} / {photoLimit}
             </p>
-            <div className="mt-1.5 h-1 bg-stone-100 rounded-card overflow-hidden">
+            <div className="mt-1.5 h-1 bg-ink/8 overflow-hidden">
               <div
-                className="h-full bg-stone-600 rounded-card"
+                className="h-full bg-ink/65"
                 style={{ width: `${photoLimit > 0 ? Math.min((photoCount / photoLimit) * 100, 100) : 0}%` }}
               />
             </div>
@@ -296,9 +293,9 @@ export default function Settings() {
       </div>
 
       {/* 텍스트 크기 */}
-      <div className="bg-white rounded-card shadow p-6 mb-6">
-        <h3 className="font-semibold mb-4 flex items-center gap-2">
-          <ALargeSmall className="w-5 h-5 text-gray-500" strokeWidth={1.5} />
+      <div className="border-b border-hair py-8">
+        <h3 className="t-eyebrow text-muted mb-6 flex items-center gap-2">
+          <ALargeSmall className="w-4 h-4" strokeWidth={1.5} />
           {t('settings.fontSize')}
         </h3>
         <div className="flex gap-2">
@@ -306,10 +303,10 @@ export default function Settings() {
             <button
               key={scale}
               onClick={() => handleFontScale(scale)}
-              className={`flex-1 py-2 rounded-card text-small border transition-[background,color,border] duration-150 ease-out ${
+              className={`flex-1 py-2 text-small border transition-[background,color,border] duration-150 ease-out ${
                 fontScale === scale
-                  ? 'bg-ink text-canvas border-ink font-semibold'
-                  : 'bg-white text-muted border-hair hover:border-stone-400 hover:text-ink'
+                  ? 'bg-ink text-canvas border-ink font-medium'
+                  : 'bg-canvas text-muted border-hair hover:border-faint hover:text-ink'
               }`}
             >
               {t(`settings.fontSize${scale.charAt(0).toUpperCase() + scale.slice(1)}`)}
@@ -319,9 +316,9 @@ export default function Settings() {
       </div>
 
       {/* 기본 보기 설정 */}
-      <div className="bg-white rounded-card shadow p-6 mb-6">
-        <h3 className="font-semibold mb-4 flex items-center gap-2">
-          <ViewColumnsIcon className="w-5 h-5 text-gray-500" />
+      <div className="border-b border-hair py-8">
+        <h3 className="t-eyebrow text-muted mb-6 flex items-center gap-2">
+          <Columns3 className="w-4 h-4" strokeWidth={1.5} />
           {t('settings.defaultView')}
         </h3>
         <div className="space-y-4">
@@ -330,13 +327,13 @@ export default function Settings() {
             <div className="col-span-2 flex items-center gap-12">
               {/* 1. 그리드 컬럼 */}
               <div className="flex items-center gap-4">
-                <span className="text-sm text-gray-500">{t('settings.defaultGridCols')}</span>
+                <span className="text-sm text-muted">{t('settings.defaultGridCols')}</span>
                 <div className="flex gap-2">
                   {['2', '3', '4', '5'].map((cols) => (
                     <button
                       key={cols}
                       onClick={() => setDefaultGridCols(cols)}
-                      className={`w-8 h-8 text-xs rounded font-medium ${defaultGridCols === cols ? 'bg-black text-white' : 'bg-gray-100 hover:bg-gray-200'}`}
+                      className={`w-8 h-8 text-xs font-medium transition-colors ${defaultGridCols === cols ? 'bg-ink text-canvas' : 'bg-hair hover:bg-canvas-2 text-muted hover:text-ink'}`}
                     >
                       {cols}
                     </button>
@@ -346,17 +343,17 @@ export default function Settings() {
 
               {/* 2. EXIF 기본값 */}
               <div className="flex items-center gap-4">
-                <span className="text-sm text-gray-500">{t('settings.defaultExif')}</span>
+                <span className="text-sm text-muted">{t('settings.defaultExif')}</span>
                 <div className="flex gap-2">
                   <button
                     onClick={() => setDefaultShowExif('true')}
-                    className={`px-3 py-1.5 text-xs rounded font-medium ${defaultShowExif === 'true' ? 'bg-black text-white' : 'bg-gray-100 hover:bg-gray-200'}`}
+                    className={`px-3 py-1.5 text-xs font-medium transition-colors ${defaultShowExif === 'true' ? 'bg-ink text-canvas' : 'bg-hair hover:bg-canvas-2 text-muted hover:text-ink'}`}
                   >
                     ON
                   </button>
                   <button
                     onClick={() => setDefaultShowExif('false')}
-                    className={`px-3 py-1.5 text-xs rounded font-medium ${defaultShowExif === 'false' ? 'bg-black text-white' : 'bg-gray-100 hover:bg-gray-200'}`}
+                    className={`px-3 py-1.5 text-xs font-medium transition-colors ${defaultShowExif === 'false' ? 'bg-ink text-canvas' : 'bg-hair hover:bg-canvas-2 text-muted hover:text-ink'}`}
                   >
                     OFF
                   </button>
@@ -364,7 +361,7 @@ export default function Settings() {
               </div>
             </div>
 
-            <span className="text-sm text-gray-500">{t('photo.listOrder')}</span>
+            <span className="text-sm text-muted">{t('photo.listOrder')}</span>
             <div className="flex items-center gap-4">
               {/* 정렬 기준 */}
               <div className="flex gap-2">
@@ -376,7 +373,7 @@ export default function Settings() {
                   <button
                     key={opt.value}
                     onClick={() => setDefaultSortBy(opt.value)}
-                    className={`px-3 py-1.5 text-xs rounded font-medium ${defaultSortBy === opt.value ? 'bg-black text-white' : 'bg-gray-100 hover:bg-gray-200'}`}
+                    className={`px-3 py-1.5 text-xs font-medium transition-colors ${defaultSortBy === opt.value ? 'bg-ink text-canvas' : 'bg-hair hover:bg-canvas-2 text-muted hover:text-ink'}`}
                   >
                     {opt.label}
                   </button>
@@ -384,19 +381,19 @@ export default function Settings() {
               </div>
 
               {/* 구분선 */}
-              <div className="w-px h-4 bg-gray-200" />
+              <div className="w-px h-4 bg-hair" />
 
               {/* 오름/내림차순 */}
               <div className="flex gap-2">
                 <button
                   onClick={() => setDefaultSortOrder('asc')}
-                  className={`px-3 py-1.5 text-xs rounded font-medium ${defaultSortOrder === 'asc' ? 'bg-black text-white' : 'bg-gray-100 hover:bg-gray-200'}`}
+                  className={`px-3 py-1.5 text-xs font-medium transition-colors ${defaultSortOrder === 'asc' ? 'bg-ink text-canvas' : 'bg-hair hover:bg-canvas-2 text-muted hover:text-ink'}`}
                 >
                   {t('photo.orderAsc')}
                 </button>
                 <button
                   onClick={() => setDefaultSortOrder('desc')}
-                  className={`px-3 py-1.5 text-xs rounded font-medium ${defaultSortOrder === 'desc' ? 'bg-black text-white' : 'bg-gray-100 hover:bg-gray-200'}`}
+                  className={`px-3 py-1.5 text-xs font-medium transition-colors ${defaultSortOrder === 'desc' ? 'bg-ink text-canvas' : 'bg-hair hover:bg-canvas-2 text-muted hover:text-ink'}`}
                 >
                   {t('photo.orderDesc')}
                 </button>
@@ -406,21 +403,19 @@ export default function Settings() {
         </div>
       </div>
 
-      {/* 컬러 레이블 설정 - 2, 2, 1 배열 */}
-      <div className="bg-white rounded-card shadow p-6 mb-6">
-        <h3 className="font-semibold mb-4 flex items-center gap-2">
-          <SwatchIcon className="w-5 h-5 text-gray-500" />
+      {/* 컬러 레이블 설정 */}
+      <div className="border-b border-hair py-8">
+        <h3 className="t-eyebrow text-muted mb-6 flex items-center gap-2">
+          <Palette className="w-4 h-4" strokeWidth={1.5} />
           {t('settings.colorLabelNames')}
         </h3>
-        {/* 아까 넣었던 pr-8은 빼셔도 됩니다 */}
         <div className="grid grid-cols-2 gap-x-8 gap-y-4">
           {COLOR_KEYS.map(({ key, color, value, meaningKey }) => (
             <div key={key} className="flex items-center gap-3">
               <div className={`w-4 h-4 rounded-card ${color} shrink-0`} />
-              <span className="text-sm text-gray-500 w-12 shrink-0">{t(`colorLabels.${value}`)}</span>
-              {/* flex-1을 w-40(고정 너비)으로 변경 */}
+              <span className="text-sm text-muted w-12 shrink-0">{t(`colorLabels.${value}`)}</span>
               <input
-                className="w-40 border rounded px-3 py-1.5 text-sm outline-none focus:border-black transition-[background,color,border] duration-150 ease-out"
+                className="w-40 border-hair border rounded px-3 py-1.5 text-sm outline-none focus:border-ink transition-[background,color,border] duration-150 ease-out"
                 value={settings[key] || ''}
                 placeholder={t(`colors.${meaningKey}`)}
                 onChange={e => handleChange(key, e.target.value)}
@@ -431,21 +426,21 @@ export default function Settings() {
       </div>
 
       {/* 포트폴리오 테마 */}
-      <div className="bg-white rounded-card shadow p-6 mb-6">
-        <h3 className="font-semibold mb-4 flex items-center gap-2">
-          <PaintBrushIcon className="w-5 h-5 text-gray-500" />
+      <div className="border-b border-hair py-8">
+        <h3 className="t-eyebrow text-muted mb-6 flex items-center gap-2">
+          <Paintbrush className="w-4 h-4" strokeWidth={1.5} />
           {t('settings.portfolioThemeDesc')}
         </h3>
         <div className="flex gap-3">
           <button
             onClick={() => setPortfolioTheme('light')}
-            className={`inline-flex items-center gap-1.5 px-4 py-2 text-sm rounded border ${portfolioTheme === 'light' ? 'bg-black text-white border-black' : 'border-gray-300 hover:bg-gray-50'}`}
+            className={`inline-flex items-center gap-1.5 px-4 py-2 text-sm border transition-colors ${portfolioTheme === 'light' ? 'bg-ink text-canvas border-ink' : 'border-hair hover:bg-canvas-2 text-muted hover:text-ink'}`}
           >
             <Sun size={14} strokeWidth={1.5} />{t('settings.themeLight')}
           </button>
           <button
             onClick={() => setPortfolioTheme('dark')}
-            className={`inline-flex items-center gap-1.5 px-4 py-2 text-sm rounded border ${portfolioTheme === 'dark' ? 'bg-black text-white border-black' : 'border-gray-300 hover:bg-gray-50'}`}
+            className={`inline-flex items-center gap-1.5 px-4 py-2 text-sm border transition-colors ${portfolioTheme === 'dark' ? 'bg-ink text-canvas border-ink' : 'border-hair hover:bg-canvas-2 text-muted hover:text-ink'}`}
           >
             <Moon size={14} strokeWidth={1.5} />{t('settings.themeDark')}
           </button>
@@ -453,30 +448,29 @@ export default function Settings() {
       </div>
 
       {/* 퍼블릭 포트폴리오 URL */}
-      <div className="bg-white rounded-card shadow p-6 mb-6">
-        <h3 className="font-semibold mb-1 flex items-center gap-2">
-          <UserCircleIcon className="w-5 h-5 text-gray-500" />
+      <div className="border-b border-hair py-8">
+        <h3 className="t-eyebrow text-muted mb-1 flex items-center gap-2">
+          <UserCircle className="w-4 h-4" strokeWidth={1.5} />
           {t('settings.publicPortfolio')}
         </h3>
-        <p className="text-xs text-gray-400 mb-4 ml-7">
+        <p className="text-[11px] text-faint mb-5 ml-6">
           {t('settings.publicPortfolioDesc')}
         </p>
         <div className="flex items-center gap-2">
-          <span className="text-sm text-gray-400 shrink-0">racconto.app/</span>
+          <span className="text-sm text-faint shrink-0">racconto.app/</span>
           <input
-            className="border rounded px-3 py-2 text-sm outline-none focus:border-black w-48"
+            className="border-hair border rounded px-3 py-2 text-sm outline-none focus:border-ink w-48 transition-colors"
             placeholder="username"
             value={username}
             onChange={e => handleUsernameCheck(e.target.value)}
           />
           <button
             onClick={handleUsernameSave}
-            // 수정: '사용 가능' 상태이거나 '빈 칸'일 때 버튼 활성화
             disabled={(usernameStatus !== 'available' && username !== '') && !usernameSaved}
-            className={`px-4 py-2 text-sm rounded transition-[background,color,border] duration-150 ease-out ${
-              usernameSaved ? 'bg-green-600 text-white' :
-              (usernameStatus === 'available' || username === '') ? 'bg-black text-white hover:bg-gray-800' :
-              'bg-gray-100 text-gray-400 cursor-not-allowed'
+            className={`px-4 py-2 text-sm transition-colors ${
+              usernameSaved ? 'bg-[oklch(0.55_0.10_150)] text-canvas' :
+              (usernameStatus === 'available' || username === '') ? 'bg-ink text-canvas hover:bg-ink-2' :
+              'bg-hair text-faint cursor-not-allowed'
             }`}
           >
             {usernameSaved ? <Check size={14} strokeWidth={1.5} /> : t('common.save')}
@@ -492,7 +486,7 @@ export default function Settings() {
           <p className="text-xs text-red-500 mt-1.5">{t('settings.usernameInvalid')}</p>
         )}
         {username && usernameStatus === 'idle' && (
-          <p className="text-xs text-gray-400 mt-1.5">
+          <p className="text-[11px] text-faint mt-1.5">
             racconto.app/{username}
           </p>
         )}
@@ -503,12 +497,12 @@ export default function Settings() {
 
       {/* 납품 선택 자동 태그 */}
       {DELIVERY_ENABLED && (
-      <div className="bg-white rounded-card shadow p-6 mb-6">
-        <h3 className="font-semibold mb-1 flex items-center gap-2">
-          <TagIcon className="w-5 h-5 text-gray-500" />
+      <div className="border-b border-hair py-8">
+        <h3 className="t-eyebrow text-muted mb-1 flex items-center gap-2">
+          <Tag className="w-4 h-4" strokeWidth={1.5} />
           납품 선택 자동 태그
         </h3>
-        <p className="text-xs text-gray-400 mb-4 ml-7">
+        <p className="text-[11px] text-faint mb-5 ml-6">
           고객이 납품 링크에서 선택 완료하면 해당 사진에 자동으로 이 컬러 레이블이 태깅됩니다.
         </p>
         <div className="flex gap-2 flex-wrap">
@@ -516,10 +510,10 @@ export default function Settings() {
             <button
               key={opt.value}
               onClick={() => setDeliveryTagColor(opt.value)}
-              className={`flex items-center gap-2 px-3 py-2 text-sm rounded border transition-[background,color,border] duration-150 ease-out ${
+              className={`flex items-center gap-2 px-3 py-2 text-sm border transition-colors ${
                 deliveryTagColor === opt.value
-                  ? 'bg-black text-white border-black'
-                  : 'border-gray-300 hover:bg-gray-50'
+                  ? 'bg-ink text-canvas border-ink'
+                  : 'border-hair hover:bg-canvas-2 text-muted hover:text-ink'
               }`}
             >
               <span className={`w-3 h-3 rounded-card ${opt.color}`} />
@@ -530,48 +524,46 @@ export default function Settings() {
       </div>
       )}
 
-      {/* 비밀번호 변경 - 2줄 구성 */}
-      <div className="bg-white rounded-card shadow p-6 mb-6">
-        <h3 className="font-semibold mb-4 flex items-center gap-2">
-          <LockClosedIcon className="w-5 h-5 text-gray-500" />
+      {/* 비밀번호 변경 */}
+      <div className="border-b border-hair py-8">
+        <h3 className="t-eyebrow text-muted mb-6 flex items-center gap-2">
+          <Lock className="w-4 h-4" strokeWidth={1.5} />
           {t('settings.managePassword')}
         </h3>
         <div className="space-y-4">
-          {/* 첫 번째 줄: 현재 비밀번호 */}
           <div>
             <input
               type="password"
-              className="w-full border rounded-card px-3 py-2 text-sm outline-none focus:border-black"
+              className="w-full border-hair border rounded-card px-3 py-2 text-sm outline-none focus:border-ink transition-colors"
               placeholder={t('settings.currentPassword')}
               value={currentPassword}
               onChange={e => setCurrentPassword(e.target.value)}
             />
           </div>
-          {/* 두 번째 줄: 새 비밀번호 & 확인 */}
           <div className="grid grid-cols-2 gap-3">
             <input
               type="password"
-              className="border rounded-card px-3 py-2 text-sm outline-none focus:border-black"
+              className="border-hair border rounded-card px-3 py-2 text-sm outline-none focus:border-ink transition-colors"
               placeholder={t('settings.newPassword')}
               value={newPassword}
               onChange={e => setNewPassword(e.target.value)}
             />
             <input
               type="password"
-              className="border rounded-card px-3 py-2 text-sm outline-none focus:border-black"
+              className="border-hair border rounded-card px-3 py-2 text-sm outline-none focus:border-ink transition-colors"
               placeholder={t('settings.newPasswordConfirm')}
               value={confirmPassword}
               onChange={e => setConfirmPassword(e.target.value)}
             />
           </div>
-          
+
           {passwordError && <p className="text-red-500 text-xs">{passwordError}</p>}
           {passwordSuccess && <p className="text-green-500 text-xs">{passwordSuccess}</p>}
-          
+
           <div className="flex justify-start pt-2">
             <button
               onClick={handlePasswordChange}
-              className="bg-black text-white px-4 py-2 text-sm hover:bg-gray-800 transition-[background,color,border] duration-150 ease-out"
+              className="bg-ink text-canvas px-4 py-2 text-sm hover:bg-ink-2 transition-colors"
             >
               {t('settings.changePassword')}
             </button>
@@ -580,11 +572,11 @@ export default function Settings() {
       </div>
 
       {/* 저장 버튼 */}
-      <div className="flex justify-end">
+      <div className="flex justify-end pt-8">
         <button
           onClick={handleSave}
-          className={`flex items-center gap-2 px-8 py-2.5 text-sm font-bold tracking-wider rounded transition-all ${
-            saved ? 'bg-green-600 text-white' : 'bg-black text-white hover:bg-gray-800 shadow'
+          className={`flex items-center gap-2 px-8 py-2.5 text-sm font-medium tracking-[0.02em] rounded-none transition-colors ${
+            saved ? 'bg-[oklch(0.55_0.10_150)] text-canvas' : 'bg-ink text-canvas hover:bg-ink-2'
           }`}
         >
           {saved ? t('settings.saveSuccess') : t('common.save')}
@@ -592,39 +584,39 @@ export default function Settings() {
       </div>
 
       {/* 회원 탈퇴 */}
-      <div className="mt-12 border-t border-gray-200 pt-6">
+      <div className="mt-12 border-t border-hair pt-6">
         {!showWithdraw ? (
           <button
             onClick={() => setShowWithdraw(true)}
-            className="text-sm text-red-400 hover:text-red-600 underline underline-offset-2"
+            className="text-sm text-[oklch(0.55_0.10_25)] hover:text-[oklch(0.45_0.12_25)] underline underline-offset-2 transition-colors"
           >
             {t('settings.withdrawAccount')}
           </button>
         ) : (
-          <div className="bg-red-50 border border-red-200 rounded-card p-5">
-            <h3 className="text-small font-semibold text-red-700 mb-1">
+          <div className="border-y border-[oklch(0.78_0.08_25)] py-6 bg-[oklch(0.96_0.025_25)]">
+            <h3 className="text-small font-medium text-[oklch(0.40_0.12_25)] mb-1">
               {t('settings.withdrawTitle')}
             </h3>
-            <p className="text-menu text-red-500 mb-4">
+            <p className="text-menu text-[oklch(0.50_0.10_25)] mb-4">
               {t('settings.withdrawDesc')}
             </p>
             {!isSocialUser && (
               <input
                 type="password"
-                className="w-full border border-red-200 rounded px-3 py-2 text-sm outline-none focus:border-red-400 mb-3 bg-white"
+                className="w-full border border-[oklch(0.78_0.08_25)] px-3 py-2 text-sm outline-none focus:border-[oklch(0.55_0.10_25)] mb-3 bg-canvas"
                 placeholder={t('settings.withdrawPasswordPlaceholder')}
                 value={withdrawPassword}
                 onChange={e => setWithdrawPassword(e.target.value)}
               />
             )}
             {withdrawError && (
-              <p className="text-menu text-red-500 mb-3">{withdrawError}</p>
+              <p className="text-menu text-[oklch(0.50_0.10_25)] mb-3">{withdrawError}</p>
             )}
             <div className="flex gap-2">
               <button
                 onClick={handleWithdraw}
                 disabled={withdrawing}
-                className="flex items-left gap-1.5 px-4 py-2 text-menu bg-red-600 text-white rounded hover:bg-red-700 disabled:opacity-50"
+                className="flex items-center gap-1.5 px-4 py-2 text-menu bg-[oklch(0.50_0.15_25)] text-canvas hover:bg-[oklch(0.45_0.15_25)] disabled:opacity-50 transition-colors"
               >
                 {withdrawing ? (
                   <>
@@ -638,7 +630,7 @@ export default function Settings() {
               </button>
               <button
                 onClick={() => { setShowWithdraw(false); setWithdrawPassword(''); setWithdrawError('') }}
-                className="px-4 py-2 text-menu border rounded hover:bg-gray-50"
+                className="px-4 py-2 text-menu border border-hair hover:bg-canvas-2 transition-colors"
               >
                 {t('common.cancel')}
               </button>

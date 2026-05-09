@@ -169,11 +169,12 @@ export default function PublicPortfolio() {
     return () => el.removeEventListener('keydown', handleTab)
   }, [lightboxIndex])
 
-  const bg = darkMode ? 'bg-[#18140F] text-hair' : 'bg-canvas text-ink'
-  const subText = darkMode ? 'text-faint' : 'text-muted'
-  const barBg = darkMode
-    ? 'bg-[#18140F]/95 border-white/10'
-    : 'bg-canvas/95 border-hair/60'
+  const bg       = darkMode ? 'bg-d-bg text-d-hair'  : 'bg-canvas text-ink'
+  const subText  = darkMode ? 'text-d-soft'          : 'text-muted'
+  const microcopy = darkMode ? 'text-d-faint'        : 'text-faint'
+  const barBg    = darkMode
+    ? 'bg-d-bg/85 border-d-line'
+    : 'bg-canvas/85 border-hair/60'
 
   if (username === '@setup' || !username) {
     return (
@@ -239,54 +240,62 @@ export default function PublicPortfolio() {
         {/* Page title */}
         <div id="portfolio-print-start" className="mb-space-md">
           {selectedProject ? (
-            <h1 className={`text-h1 font-bold font-serif tracking-tight ${darkMode ? 'text-hair' : 'text-ink'}`}>
-              {selectedProject.title}
-            </h1>
+            <header>
+              <h1 className="font-serif text-[38px] leading-[1.1] tracking-[-0.015em] font-normal">
+                {selectedProject.title}
+              </h1>
+            </header>
           ) : (
-            <h2 className={`text-h2 font-bold font-serif tracking-wide ${darkMode ? 'text-hair' : 'text-ink'}`}>
-              @{username}
-            </h2>
+            <header>
+              <p className={`t-eyebrow mb-2.5 ${microcopy}`}>Portfolio</p>
+              <h1 className="font-serif text-[38px] leading-[1.1] tracking-[-0.015em] font-normal">
+                @{username}
+              </h1>
+            </header>
           )}
         </div>
 
         {/* Project list */}
         {!selectedProject && (
-          <div className="grid gap-6 grid-cols-1 md:grid-cols-2">
+          <div className="grid gap-x-10 gap-y-16 grid-cols-1 md:grid-cols-2">
             {projects.map(project => (
-              <div
+              <article
                 key={project.id}
-                className={`cursor-pointer group rounded-card overflow-hidden transition-shadow border shadow-sm hover:shadow flex flex-col ${darkMode ? 'border-white/10' : 'border-hair'}`}
+                className="cursor-pointer group"
                 onClick={() => openProject(project)}
               >
-                <div className={`h-48 flex items-center justify-center ${darkMode ? 'bg-card-cover' : 'bg-hair'}`}>
+                <div className={`aspect-[4/5] overflow-hidden ${darkMode ? 'bg-d-surface' : 'bg-[oklch(0.92_0.012_75)]'}`}>
                   {project.cover_image_url ? (
                     <img
                       src={cfUrl(project.cover_image_url, 'thumb')}
                       alt={project.title}
-                      className="w-full h-full object-cover group-hover:opacity-95 transition-opacity"
+                      className="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-[1.02]"
                     />
                   ) : (
-                    <span className={`font-serif text-[3.5rem] leading-none font-light select-none ${darkMode ? 'text-stone-600' : 'text-stone-300'}`}>
-                      {project.title.charAt(0).toUpperCase()}
-                    </span>
+                    <div className={`w-full h-full flex items-end p-6 bg-gradient-to-br ${darkMode ? 'from-d-surface to-d-bg' : 'from-[oklch(0.94_0.012_75)] to-[oklch(0.86_0.014_75)]'}`}>
+                      <div>
+                        <p className={`t-eyebrow mb-1 ${microcopy}`}>Untitled cover</p>
+                        <p className={`font-serif text-[22px] leading-tight font-light [word-break:keep-all] ${darkMode ? 'text-d-soft' : 'text-ink-2/70'}`}>
+                          {project.title}
+                        </p>
+                      </div>
+                    </div>
                   )}
                 </div>
-                <div className={`p-4 flex-1 ${darkMode ? 'bg-card-surface' : 'bg-canvas-2'}`}>
-                  <h3 className={`font-semibold text-h3 font-serif [word-break:keep-all] ${darkMode ? 'text-hair' : 'text-ink-2'}`}>
-                    {project.title}
-                  </h3>
-                  {project.location && (
-                    <p className={`flex items-center gap-1 text-small mt-1 ${subText}`}>
-                      <MapPin size={12} strokeWidth={1.5} />{project.location}
-                    </p>
-                  )}
-                  {project.description && (
-                    <p className={`text-body font-serif mt-1 line-clamp-2 [word-break:keep-all] ${subText}`}>
-                      {project.description}
-                    </p>
-                  )}
-                </div>
-              </div>
+                <h3 className="mt-4 font-serif text-[22px] tracking-tight font-normal [word-break:keep-all]">
+                  {project.title}
+                </h3>
+                {project.location && (
+                  <p className={`t-loc mt-2 ${subText}`}>
+                    <MapPin size={10} strokeWidth={1.5} />{project.location}
+                  </p>
+                )}
+                {project.description && (
+                  <p className={`mt-3 font-serif text-[14px] leading-[1.55] line-clamp-2 [word-break:keep-all] ${subText}`}>
+                    {project.description}
+                  </p>
+                )}
+              </article>
             ))}
             {projects.length === 0 && (
               <div className="col-span-2">
@@ -304,34 +313,32 @@ export default function PublicPortfolio() {
           <div id="portfolio-print-area">
             <div className="mb-space-md max-w-2xl">
               {selectedProject.location && (
-                <p className={`flex items-center gap-1 text-menu uppercase mb-6 ${subText}`}>
-                  <MapPin size={12} strokeWidth={1.5} />{selectedProject.location}
+                <p className={`t-loc mb-7 ${subText}`}>
+                  <MapPin size={10} strokeWidth={1.5} />{selectedProject.location}
                 </p>
               )}
               {selectedProject.description && (
-                <p className={`text-body font-serif [word-break:keep-all] ${subText}`}>
+                <p className={`font-serif text-[17px] leading-[1.65] italic [word-break:keep-all] ${subText}`}>
                   {selectedProject.description}
                 </p>
               )}
             </div>
 
             {selectedProject.chapters.length > 0 ? (
-              <div className="space-y-0">
+              <div>
                 {selectedProject.chapters.map((chapter, idx) => (
-                  <div key={chapter.id} className={idx > 0 ? 'pt-space-xl' : ''}>
-                    <div className="mb-space-md">
-                      <div className="mb-2">
-                        <h3 className="text-h2 font-bold font-serif mb-4 tracking-tight">
-                          {chapter.title}
-                        </h3>
-                      </div>
+                  <section key={chapter.id} className={idx > 0 ? 'pt-32 md:pt-40' : ''}>
+                    <header className="mb-10 max-w-[560px]">
+                      <p className={`t-eyebrow mb-2 ${microcopy}`}>Chapter</p>
+                      <h3 className="font-serif text-[32px] leading-[1.1] tracking-[-0.015em] font-normal">
+                        {chapter.title}
+                      </h3>
                       {chapter.description && (
-                        <p className={`text-body font-serif max-w-xl [word-break:keep-all] ${subText}`}>
+                        <p className={`mt-5 font-serif text-[16px] leading-[1.65] [word-break:keep-all] ${subText}`}>
                           {chapter.description}
                         </p>
                       )}
-                      <div className={`mt-6 h-px w-12 ${darkMode ? 'bg-card/30' : 'bg-faint'}`} />
-                    </div>
+                    </header>
                     <PortfolioChapterItems
                       items={chapter.items || []}
                       allLightboxItems={getAllChapterItems(selectedProject) as { photo: PortfolioPhoto; title: string }[]}
@@ -340,12 +347,11 @@ export default function PublicPortfolio() {
                     />
                     {chapter.sub_chapters?.map((sub) => (
                       <div key={sub.id} className="mt-space-xl">
-                        <div className="mb-8">
-                          <div className="mb-2">
-                            <h4 className="text-h3 font-serif font-semibold">
-                              {sub.title}
-                            </h4>
-                          </div>
+                        <div className="mb-5">
+                          <p className={`t-eyebrow mb-2 ${microcopy}`}>Section</p>
+                          <h4 className="font-serif text-[20px] tracking-tight font-medium">
+                            {sub.title}
+                          </h4>
                           {sub.description && (
                             <p className={`text-body font-serif mt-2 max-w-xl [word-break:keep-all] ${subText}`}>
                               {sub.description}
@@ -360,7 +366,7 @@ export default function PublicPortfolio() {
                         />
                       </div>
                     ))}
-                  </div>
+                  </section>
                 ))}
               </div>
             ) : (
@@ -380,21 +386,21 @@ export default function PublicPortfolio() {
           ref={lightboxRef}
           role="dialog"
           aria-modal="true"
-          className="fixed inset-0 bg-lightbox/[.97] z-50 flex flex-col transition-[background,color,border] duration-150 ease-out"
+          className="fixed inset-0 bg-[oklch(0.12_0.012_60)]/[.98] z-50 flex flex-col transition-[background,color,border] duration-150 ease-out"
           onClick={() => setLightboxIndex(null)}
         >
           {/* Thin top bar: chapter title, counter, close */}
           <div
-            className="shrink-0 flex items-center justify-between px-6 h-10 border-b border-white/10"
+            className="shrink-0 flex items-center justify-between px-6 h-10 border-b border-d-line"
             onClick={e => e.stopPropagation()}
           >
-            <span className="text-hair/50 text-small truncate max-w-[60%]">{activeLightboxItem.title}</span>
+            <span className="t-eyebrow text-d-faint truncate max-w-[60%]">{activeLightboxItem.title}</span>
             <div className="flex items-center gap-3 shrink-0">
-              <span className="text-hair/50 text-small">{lightboxIndex + 1} / {lightboxItems.length}</span>
+              <span className="t-numeral text-d-faint">{lightboxIndex + 1} / {lightboxItems.length}</span>
               <button
                 aria-label="닫기"
                 onClick={() => setLightboxIndex(null)}
-                className="p-1.5 rounded text-hair/60 hover:text-hair hover:bg-white/10 transition-colors"
+                className="p-1.5 text-d-faint hover:text-d-hair hover:bg-d-line/50 transition-colors"
               >
                 <X size={16} strokeWidth={1.5} />
               </button>
@@ -405,7 +411,7 @@ export default function PublicPortfolio() {
           {lightboxIndex > 0 && (
             <button
               aria-label="이전 사진"
-              className="absolute left-4 top-1/2 -translate-y-1/2 z-10 p-3 rounded-full text-hair/60 hover:text-hair hover:bg-white/10 transition-colors"
+              className="absolute left-4 top-1/2 -translate-y-1/2 z-10 p-3 text-d-faint hover:text-d-hair hover:bg-d-line/50 transition-colors"
               onClick={e => { e.stopPropagation(); setLightboxIndex(lightboxIndex - 1) }}
             >
               <ChevronLeft size={28} strokeWidth={1.5} />
@@ -426,7 +432,7 @@ export default function PublicPortfolio() {
           {lightboxIndex < lightboxItems.length - 1 && (
             <button
               aria-label="다음 사진"
-              className="absolute right-4 top-1/2 -translate-y-1/2 z-10 p-3 rounded-full text-hair/60 hover:text-hair hover:bg-white/10 transition-colors"
+              className="absolute right-4 top-1/2 -translate-y-1/2 z-10 p-3 text-d-faint hover:text-d-hair hover:bg-d-line/50 transition-colors"
               onClick={e => { e.stopPropagation(); setLightboxIndex(lightboxIndex + 1) }}
             >
               <ChevronRight size={28} strokeWidth={1.5} />
@@ -435,8 +441,8 @@ export default function PublicPortfolio() {
 
           {/* Keyboard hint toast — 첫 진입 시 1회 */}
           {showLightboxHint && (
-            <div className="absolute bottom-8 left-1/2 -translate-x-1/2 px-4 py-2 rounded bg-white/10 text-hair/60 text-caption pointer-events-none whitespace-nowrap">
-              ← → ESC
+            <div className="absolute bottom-8 left-1/2 -translate-x-1/2 px-4 py-2 bg-d-line/70 pointer-events-none whitespace-nowrap">
+              <span className="t-caption text-d-faint">← → ESC</span>
             </div>
           )}
         </div>

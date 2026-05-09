@@ -11,21 +11,29 @@ export default {
       colors: {
         // gray를 stone으로 remapping — 기존 bg-gray-* 클래스가 stone 톤으로 바뀜
         gray: colors.stone,
-        canvas: '#F7F4F0',      //메인 배경
-        'canvas-2': '#EFEAE3',  //Hover, subtle panel
-        'canvas-3': '#292524',    //Primary 버튼 Hover 적용, warm stone-800 
-        'canvas-4': '#E7E0D7',  //Secondary 버튼 Hover warm-stone-200
-        'secondary-border': "#D6D3D1", //Secondary 버튼 Hover border, warm-stone-300
-        card: '#FFFFFF',        //모달, 카드
-        ink: colors.stone[900],       //제목 및 강조
-        'ink-2': colors.stone[700],   //본문
-        muted: colors.stone[500],     //보조텍스트
-        faint: colors.stone[400],     //메타, placeholder
-        hair: colors.stone[200],      //구분선, 보더
-        accent: 'oklch(55% 0.08 55)', //포커스, 링크 Hover(선택)
-        lightbox: colors.stone[950], //라이트박스 배경색
-        'card-cover': colors.stone[800],   // 다크모드 카드 커버 플레이스홀더
-        'card-surface': colors.stone[900], // 다크모드 카드 정보 영역
+        canvas:    '#F4EFE7',           // 종이 (메인 배경)
+        'canvas-2': '#FFFFFF',          // 모달, 카드
+        'canvas-3': '#292524',          // Primary 버튼 Hover, warm stone-800
+        'canvas-4': '#E7E0D7',          // Secondary 버튼 Hover, warm-stone-200
+        'secondary-border': '#D6D3D1',  // Secondary 버튼 Hover border, warm-stone-300
+        card: '#FFFFFF',                // 하위 호환용 (canvas-2 와 동일)
+        ink:       'oklch(0.18 0.012 60)',  // 제목 및 강조
+        'ink-2':   'oklch(0.28 0.012 60)',  // 본문
+        muted:     'oklch(0.55 0.012 65)',  // 보조 텍스트
+        faint:     'oklch(0.78 0.010 75)',  // 메타, placeholder
+        hair:      'oklch(0.90 0.010 75)',  // 구분선, 보더
+        accent: 'oklch(55% 0.08 55)',       // 포커스, 링크 Hover
+        lightbox: colors.stone[950],        // 라이트박스 배경색 (하위 호환)
+        // 다크 모드 — warm taupe
+        'd-bg':      'oklch(0.18 0.012 60)',  // 다크 메인 배경
+        'd-surface': 'oklch(0.22 0.012 60)',  // 다크 카드/패널
+        'd-line':    'oklch(0.32 0.010 70)',  // 다크 구분선
+        'd-faint':   'oklch(0.55 0.008 75)',  // 다크 microcopy
+        'd-soft':    'oklch(0.78 0.010 75)',  // 다크 secondary body
+        'd-hair':    'oklch(0.94 0.008 75)',  // 다크 body
+        // 하위 호환 (기존 PublicPortfolio 다크 헬퍼에서 사용)
+        'card-cover': colors.stone[800],
+        'card-surface': colors.stone[900],
         status: {
           progress:  '#F59E0B',  // amber-500
           completed: '#10B981',  // emerald-500

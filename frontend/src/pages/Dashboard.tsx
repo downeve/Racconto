@@ -47,19 +47,17 @@ export default function Dashboard() {
     .slice(0, 3)
 
   return (
-    <div className="min-h-screen bg-canvas text-stone-900 pb-20">
+    <div className="min-h-screen bg-canvas text-ink pb-20">
       <div className={`max-w-7xl mx-auto px-6 ${isElectron ? 'pt-4' : 'pt-space-md'}`}>
         
-        {/* 1. Welcome Section: LandingPage의 감성을 이어받음 */}
+        {/* 1. Welcome Section */}
         <section className="mb-space-md">
-          <p className="text-small tracking-[0.3em] text-faint uppercase mb-4">
-            Welcome back
-          </p>
-          <p className="font-serif text-h2 md:text-h1 font-bold mb-6 text-ink-2 leading-tight break-keep">
+          <p className="t-eyebrow text-muted mb-3">Welcome back</p>
+          <h1 className="font-serif text-[40px] md:text-[52px] leading-[1.05] tracking-[-0.015em] font-normal text-ink-2 [word-break:keep-all]">
             {t('dashboard.title1')}<br className="hidden md:block" />
             {t('dashboard.title2')}
-          </p>
-          <p className="font-serif text-muted italic text-h3">
+          </h1>
+          <p className="mt-5 font-serif italic text-[20px] text-muted">
             &#x201C;Every photo has a story to tell.&#x201D;
           </p>
         </section>
@@ -67,14 +65,14 @@ export default function Dashboard() {
         {/* 2. Quick Actions: 대시보드만의 기능적 섹션 */}
         <div className="grid grid-cols-1 md:grid-cols-[2fr_3fr] gap-6 mb-space-md">
           {/* My Stories + Quick Start 합침 */}
-          <div className="bg-card p-6 rounded-card shadow border border-hair flex flex-col gap-5">
+          <div className="border-y border-hair py-8 flex flex-col gap-5">
             {/* 상단: My Stories */}
             <div>
               <div className="flex items-stretch">
                 <div className="flex flex-col justify-between min-w-[140px]">
                   <div>
-                    <p className="text-faint text-body tracking-widest uppercase mb-2">My Stories</p>
-                    <p className="text-h2 font-bold">{projects.length}</p>
+                    <p className="t-eyebrow text-muted mb-2">My Stories</p>
+                    <p className="font-serif text-[40px] font-normal tracking-tight">{projects.length}</p>
                     <p className="text-muted text-body mt-1">{t('dashboard.totalStories')}</p>
                   </div>
                 </div>
@@ -87,11 +85,11 @@ export default function Dashboard() {
                     { labelKey: 'status.archived',    value: 'archived',    color: 'bg-status-archived' },
                   ].map(({ labelKey, value, color }) => (
                     <div key={value} className="flex flex-col gap-0.5">
-                      <span className="flex items-center text-center gap-1.5 text-body tracking-wide uppercase text-muted">
+                      <span className="flex items-center text-center gap-1.5 t-eyebrow text-muted">
                         <span className={`w-2 h-2 rounded-full ${color}`} />
                         {t(labelKey)}
                       </span>
-                      <span className="text-h3 font-semibold text-ink">
+                      <span className="font-serif text-[20px] font-medium text-ink">
                         {projects.filter(p => p.status === value).length}
                       </span>
                     </div>
@@ -108,13 +106,13 @@ export default function Dashboard() {
             {/* 하단: Quick Start */}
             <div className="flex flex-col gap-3">
               <div>
-                <p className="text-faint text-body tracking-widest uppercase mb-2">Quick Start</p>
+                <p className="t-eyebrow text-muted mb-2">Quick Start</p>
                 {recentProjects[0] && (
                   <p className="text-muted text-body mb-3 truncate">
                     {t('dashboard.lastUpdated')} · {recentProjects[0].title}
                   </p>
                 )}
-                <p className="text-h2 mb-2">{t('dashboard.newProject')}</p>
+                <p className="font-serif text-[28px] font-normal tracking-tight mb-2">{t('dashboard.newProject')}</p>
               </div>
               <Link
                 to="/projects"
@@ -127,8 +125,8 @@ export default function Dashboard() {
           </div>
 
           {/* 포트폴리오 바로가기 */}
-          <div className="bg-canvas-4 p-6 rounded-card border border-hair shadow flex flex-col gap-2">
-            <p className="text-ink text-body tracking-widest uppercase">Portfolio</p>
+          <div className="border-y border-hair py-8 flex flex-col gap-2">
+            <p className="t-eyebrow text-muted">Portfolio</p>
             <div className="relative flex-1 min-h-0">
               {publicProjects.length === 0 ? (
                 <div className="absolute inset-0 flex flex-col items-center justify-center text-center gap-1">
@@ -138,18 +136,18 @@ export default function Dashboard() {
               ) : (
                 <div className="absolute inset-0 grid grid-cols-3 grid-rows-2 gap-2">
                   {publicProjects[0] && (
-                    <div className="col-span-2 row-span-2 rounded overflow-hidden bg-stone-100">
+                    <div className="col-span-2 row-span-2 overflow-hidden bg-hair/50">
                       {publicProjects[0].cover_image_url
                         ? <img src={publicProjects[0].cover_image_url} alt={publicProjects[0].title} className="w-full h-full object-cover" />
-                        : <div className="w-full h-full bg-stone-200" />
+                        : <div className="w-full h-full bg-hair" />
                       }
                     </div>
                   )}
                   {publicProjects.slice(1, 3).map(p => (
-                    <div key={p.id} className="rounded overflow-hidden bg-stone-100">
+                    <div key={p.id} className="overflow-hidden bg-hair/50">
                       {p.cover_image_url
                         ? <img src={p.cover_image_url} alt={p.title} className="w-full h-full object-cover" />
-                        : <div className="w-full h-full bg-stone-200" />
+                        : <div className="w-full h-full bg-hair" />
                       }
                     </div>
                   ))}
@@ -164,8 +162,8 @@ export default function Dashboard() {
 
         {/* 3. Recent Projects: Projects.tsx의 그리드 디자인 활용 */}
         <section>
-          <div className="flex items-end justify-between mb-space-sm border-b border-hair pb-space-xs">
-            <p className="text-h2 text-ink font-serif">{t('dashboard.recent')}</p>
+          <div className="flex items-end justify-between mb-space-sm border-b border-hair pb-4">
+            <p className="t-eyebrow text-muted">{t('dashboard.recent')}</p>
             <Link to="/projects" className="text-muted text-body hover:text-ink transition-colors">
               {t('dashboard.viewAll')} →
             </Link>
@@ -180,7 +178,7 @@ export default function Dashboard() {
               ))}
             </div>
           ) : (
-            <div className="bg-card rounded-card py-space-xl text-center">
+            <div className="border-y border-hair py-space-xl text-center">
               <p className="font-serif text-h2 text-ink-2 mb-3">
                 {t('dashboard.emptyTitle')}
               </p>
