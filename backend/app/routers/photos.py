@@ -630,6 +630,7 @@ def update_photo(
     db_photo = get_owned_photo_or_404(photo_id, current_user.id, db)
     for key, value in photo.dict(exclude_unset=True).items():
         setattr(db_photo, key, value)
+    touch_project(db_photo.project_id, db)
     db.commit()
     db.refresh(db_photo)
     return db_photo

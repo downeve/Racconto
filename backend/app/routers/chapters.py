@@ -313,6 +313,12 @@ def reorder_chapters(
         db.query(models.Chapter).filter(models.Chapter.id == chapter_id).update(
             {"order_num": index}, synchronize_session=False
         )
+    if body.chapter_ids:
+        first = db.query(models.Chapter.project_id).filter(
+            models.Chapter.id == body.chapter_ids[0]
+        ).first()
+        if first:
+            touch_project(first.project_id, db)
     db.commit()
     return {"message": "순서가 성공적으로 변경되었습니다."}
 
@@ -344,6 +350,7 @@ def update_chapter(
     for key, value in update_data.items():
         setattr(db_chapter, key, value)
 
+    touch_project(db_chapter.project_id, db)
     db.commit()
     db.refresh(db_chapter)
     return db_chapter
@@ -476,7 +483,7 @@ def update_text_item(
     db: Session = Depends(get_db),
     current_user: models.User = Depends(get_current_user)
 ):
-    get_owned_chapter_or_404(chapter_id, current_user.id, db)
+    db_chapter = get_owned_chapter_or_404(chapter_id, current_user.id, db)
 
     item = db.query(models.ChapterItem).filter(
         models.ChapterItem.id == item_id,
@@ -490,6 +497,7 @@ def update_text_item(
         raise HTTPException(status_code=400, detail="TEXT_CONTENT_EMPTY")
 
     item.text_content = body.text_content
+    touch_project(db_chapter.project_id, db)
     db.commit()
     return build_item_response(item)
 
@@ -525,7 +533,7 @@ def reorder_chapter_items(
     db: Session = Depends(get_db),
     current_user: models.User = Depends(get_current_user)
 ):
-    get_owned_chapter_or_404(chapter_id, current_user.id, db)
+    db_chapter = get_owned_chapter_or_404(chapter_id, current_user.id, db)
 
     if not body.items:
         return {"message": "변경할 아이템이 없습니다."}
@@ -541,6 +549,7 @@ def reorder_chapter_items(
             "block_id": item_data.block_id
         }, synchronize_session=False)
 
+    touch_project(db_chapter.project_id, db)
     db.commit()
     return {"message": "순서와 블록 정보가 성공적으로 반영되었습니다."}
 
@@ -557,7 +566,7 @@ def set_side_by_side(
     db: Session = Depends(get_db),
     current_user: models.User = Depends(get_current_user)
 ):
-    get_owned_chapter_or_404(chapter_id, current_user.id, db)
+    db_chapter = get_owned_chapter_or_404(chapter_id, current_user.id, db)
 
     # 텍스트 아이템 확인
     text_item = db.query(models.ChapterItem).filter(
@@ -585,6 +594,7 @@ def set_side_by_side(
     for photo_item in photo_items:
         photo_item.block_type = body.position
 
+    touch_project(db_chapter.project_id, db)
     db.commit()
     return {"message": "나란히 배치가 설정되었습니다."}
 
@@ -597,7 +607,7 @@ def cancel_side_by_side(
     current_user: models.User = Depends(get_current_user)
 ):
     """Side-by-Side 해제 — 텍스트를 독립 블록으로 분리"""
-    get_owned_chapter_or_404(chapter_id, current_user.id, db)
+    db_chapter = get_owned_chapter_or_404(chapter_id, current_user.id, db)
 
     text_item_id = body.get("text_item_id")
     text_item = db.query(models.ChapterItem).filter(
@@ -623,6 +633,7 @@ def cancel_side_by_side(
         for photo_item in photo_items:
             photo_item.block_type = 'default'
 
+    touch_project(db_chapter.project_id, db)
     db.commit()
     return {"message": "나란히 배치가 해제되었습니다."}
 
@@ -694,7 +705,7 @@ def move_item_to_block(
     current_user: models.User = Depends(get_current_user)
 ):
     """블록 간 사진 이동 — block_id 변경 + 빈 블록 정리"""
-    get_owned_chapter_or_404(chapter_id, current_user.id, db)
+    db_chapter = get_owned_chapter_or_404(chapter_id, current_user.id, db)
 
     item = db.query(models.ChapterItem).filter(
         models.ChapterItem.id == body.item_id,
@@ -750,6 +761,7 @@ def move_item_to_block(
             text_item.block_id = text_item.id
             text_item.block_type = 'default'
 
+    touch_project(db_chapter.project_id, db)
     db.commit()
     return {"message": "이동되었습니다."}
 
@@ -761,7 +773,7 @@ def bulk_sync_chapter_items(
     current_user: models.User = Depends(get_current_user)
 ):
     """드래그 앤 드롭 후 출발지/도착지 블록의 변경된 순서와 소속을 통째로 DB에 동기화합니다."""
-    get_owned_chapter_or_404(chapter_id, current_user.id, db)
+    db_chapter = get_owned_chapter_or_404(chapter_id, current_user.id, db)
 
     checked_source_blocks = set()
 
@@ -776,11 +788,12 @@ def bulk_sync_chapter_items(
             # 블록을 이동한 경우, 원래 있던 블록을 기억해둠 (나중에 빈 블록 검사 용도)
             if item.block_id and item.block_id != item_data.block_id:
                 checked_source_blocks.add(item.block_id)
-            
+
             item.block_id = item_data.block_id
             item.order_in_block = item_data.order_in_block
             item.order_num = item_data.order_num
 
+    touch_project(db_chapter.project_id, db)
     db.commit()
 
     # 2. 기존 로직 복원: 사진이 다 빠져나가서 빈 블록이 된 곳의 텍스트를 자동 분리
@@ -811,13 +824,14 @@ def reorder_block_photos(
     db: Session = Depends(get_db),
     current_user: models.User = Depends(get_current_user)
 ):
-    get_owned_chapter_or_404(chapter_id, current_user.id, db)
+    db_chapter = get_owned_chapter_or_404(chapter_id, current_user.id, db)
 
     for index, item_id in enumerate(body.item_ids):
         db.query(models.ChapterItem).filter(
             models.ChapterItem.id == item_id,
             models.ChapterItem.block_id == block_id
         ).update({"order_in_block": index}, synchronize_session=False)
+    touch_project(db_chapter.project_id, db)
     db.commit()
     return {"message": "블록 내 순서가 변경되었습니다."}
 
@@ -835,7 +849,7 @@ def update_block_layout(
     current_user: models.User = Depends(get_current_user)
 ):
     """블록 단위 레이아웃 변경 — 같은 block_id를 공유하는 모든 아이템에 일괄 적용."""
-    get_owned_chapter_or_404(chapter_id, current_user.id, db)
+    db_chapter = get_owned_chapter_or_404(chapter_id, current_user.id, db)
 
     updated = db.query(models.ChapterItem).filter(
         models.ChapterItem.chapter_id == chapter_id,
@@ -845,6 +859,7 @@ def update_block_layout(
     if updated == 0:
         raise HTTPException(status_code=404, detail="BLOCK_NOT_FOUND")
 
+    touch_project(db_chapter.project_id, db)
     db.commit()
     return {"message": "블록 레이아웃이 변경되었습니다.", "block_layout": body.block_layout}
 
@@ -878,7 +893,7 @@ def remove_photo_legacy(
     current_user: models.User = Depends(get_current_user)
 ):
     """[Deprecated] /items/{item_id} 로 마이그레이션 예정."""
-    get_owned_chapter_or_404(chapter_id, current_user.id, db)
+    db_chapter = get_owned_chapter_or_404(chapter_id, current_user.id, db)
 
     item = db.query(models.ChapterItem).filter(
         models.ChapterItem.chapter_id == chapter_id,
@@ -889,6 +904,7 @@ def remove_photo_legacy(
         raise HTTPException(status_code=404, detail="PHOTO_NOT_FOUND")
 
     db.delete(item)
+    touch_project(db_chapter.project_id, db)
     db.commit()
     return {"message": "제거되었습니다"}
 
@@ -902,7 +918,7 @@ def update_photo_order_legacy(
     current_user: models.User = Depends(get_current_user)
 ):
     """[Deprecated] /items/reorder 로 마이그레이션 예정."""
-    get_owned_chapter_or_404(chapter_id, current_user.id, db)
+    db_chapter = get_owned_chapter_or_404(chapter_id, current_user.id, db)
 
     item = db.query(models.ChapterItem).filter(
         models.ChapterItem.chapter_id == chapter_id,
@@ -913,5 +929,6 @@ def update_photo_order_legacy(
         raise HTTPException(status_code=404, detail="PHOTO_NOT_IN_CHAPTER")
 
     item.order_num = body.get("order_num", item.order_num)
+    touch_project(db_chapter.project_id, db)
     db.commit()
     return {"message": "순서가 업데이트되었습니다"}
