@@ -6,6 +6,7 @@ import { useAuth } from '../../context/AuthContext'
 import { Sun, Moon, MapPin, X, ChevronLeft, ChevronRight } from 'lucide-react'
 import CoverFallback from '../../components/CoverFallback'
 import MarkdownRenderer from '../../components/MarkdownRenderer'
+import PhotoReveal from '../../components/PhotoReveal'
 import EmptyState from '../../components/EmptyState'
 import { cfUrl } from '../../utils/cfImage'
 
@@ -60,10 +61,11 @@ function SimpleMobileItems({ items, darkMode, allLightboxItems, onLightbox }: Si
 
       elements.push(
         <div key={`block-${bid}`} className="space-y-2 mb-2">
-          {blockPhotos.map(photo => (
-            <div
+          {blockPhotos.map((photo, pi) => (
+            <PhotoReveal
               key={photo.id}
               className="w-full overflow-hidden rounded-photo cursor-pointer"
+              delay={pi * 60}
               onClick={() => onLightbox(photo as Photo, allLightboxItems)}
             >
               <img
@@ -77,13 +79,13 @@ function SimpleMobileItems({ items, darkMode, allLightboxItems, onLightbox }: Si
                   {photo.caption}
                 </p>
               )}
-            </div>
+            </PhotoReveal>
           ))}
         </div>
       )
     } else {
       elements.push(
-        <div
+        <PhotoReveal
           key={`photo-${item.id ?? i}`}
           className="w-full overflow-hidden rounded-photo cursor-pointer mb-2"
           onClick={() => onLightbox(item as Photo, allLightboxItems)}
@@ -99,7 +101,7 @@ function SimpleMobileItems({ items, darkMode, allLightboxItems, onLightbox }: Si
               {item.caption}
             </p>
           )}
-        </div>
+        </PhotoReveal>
       )
     }
   })
@@ -180,36 +182,42 @@ export default function MobilePublicPortfolio() {
   return (
     <div className={`min-h-screen ${bg}`}>
       {/* Sticky top bar */}
-      <div
-        className={`sticky top-0 z-10 ${barBg} backdrop-blur-sm`}
+      <header
+        className={`sticky top-0 z-10 ${barBg} backdrop-blur-md`}
         style={{ paddingTop: 'env(safe-area-inset-top)' }}
       >
-        <div className="flex items-center justify-between px-4 py-3">
+        <div className="h-12 px-3 flex items-center justify-between">
           {selectedProject ? (
             <button
               onClick={() => { setSelectedProject(null); window.scrollTo(0, 0) }}
-              className="min-w-[44px] min-h-[44px] flex items-center justify-center"
+              className="min-w-11 min-h-11 flex items-center justify-center -ml-2 opacity-70"
             >
-              <ChevronLeft size={22} strokeWidth={1.5} />
+              <ChevronLeft size={20} strokeWidth={1.5} />
             </button>
           ) : (
-            <div className="min-w-[44px]" />
+            <span className="w-11" />
           )}
-          <span className="t-eyebrow text-muted">{username}</span>
           <button
             onClick={() => setDarkMode(v => !v)}
             aria-label="다크 모드 전환"
-            className="min-w-[44px] min-h-[44px] flex items-center justify-center p-3"
+            className="min-w-11 min-h-11 flex items-center justify-center opacity-60"
           >
-            {darkMode ? <Sun size={18} strokeWidth={1.5} /> : <Moon size={18} strokeWidth={1.5} />}
+            {darkMode ? <Sun size={16} strokeWidth={1.5} /> : <Moon size={16} strokeWidth={1.5} />}
           </button>
         </div>
-      </div>
+      </header>
 
       <div ref={containerRef} className="px-4">
         {!selectedProject ? (
           // ── 프로젝트 목록 ──────────────────────────────────
-          <div className="flex flex-col gap-12 pb-8 pt-6">
+          <>
+          <section className="pt-10 pb-6">
+            <p className={`t-eyebrow mb-1.5 ${microcopy}`}>Portfolio</p>
+            <h1 className="font-serif text-[28px] leading-[1.05] tracking-tight font-normal">
+              @{username}
+            </h1>
+          </section>
+          <div className="flex flex-col gap-12 pb-8">
             {projects.map(project => (
               <article
                 key={project.id}
@@ -241,6 +249,7 @@ export default function MobilePublicPortfolio() {
               <EmptyState heading={t('portfolio.noPublicProjects')} darkMode={darkMode} />
             )}
           </div>
+          </>
         ) : (
           // ── 프로젝트 상세 ──────────────────────────────────
           <div className="pb-12 pt-4">

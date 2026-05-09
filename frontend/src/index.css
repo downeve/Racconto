@@ -29,6 +29,26 @@
   100% { transform: translateY(-25%); }
 }
 
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: none; }
+}
+
+@keyframes fade {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@layer components {
+  .photo-enter {
+    animation: fadeUp .6s cubic-bezier(.2,.7,.2,1) both;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .photo-enter { animation: none !important; }
+}
+
 @layer components {
   /* 공통 버튼 베이스 */
   .btn-base {

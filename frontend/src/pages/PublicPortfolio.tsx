@@ -59,6 +59,7 @@ export default function PublicPortfolio() {
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null)
   const [lightboxItems, setLightboxItems] = useState<{ photo: Photo; title: string }[]>([])
   const [showLightboxHint, setShowLightboxHint] = useState(false)
+  const [chromeOn, setChromeOn] = useState(true)
   const lightboxHintShownRef = useRef(false)
   const lightboxRef = useRef<HTMLDivElement>(null)
 
@@ -146,6 +147,28 @@ export default function PublicPortfolio() {
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
   }, [lightboxIndex, lightboxItems])
+
+  // Chrome auto-hide (2.5s idle)
+  useEffect(() => {
+    if (lightboxIndex === null) {
+      setChromeOn(true)
+      return
+    }
+    let t: number
+    const ping = () => {
+      setChromeOn(true)
+      clearTimeout(t)
+      t = window.setTimeout(() => setChromeOn(false), 2500)
+    }
+    ping()
+    window.addEventListener('mousemove', ping)
+    window.addEventListener('touchstart', ping)
+    return () => {
+      window.removeEventListener('mousemove', ping)
+      window.removeEventListener('touchstart', ping)
+      clearTimeout(t)
+    }
+  }, [lightboxIndex])
 
   // Focus trap for lightbox
   useEffect(() => {
@@ -385,7 +408,7 @@ export default function PublicPortfolio() {
         >
           {/* Thin top bar: chapter title, counter, close */}
           <div
-            className="shrink-0 flex items-center justify-between px-6 h-10 border-b border-d-line"
+            className={`shrink-0 flex items-center justify-between px-6 h-10 border-b border-d-line transition-opacity duration-500 ${chromeOn ? 'opacity-100' : 'opacity-0'}`}
             onClick={e => e.stopPropagation()}
           >
             <span className="t-eyebrow text-d-faint truncate max-w-[60%]">{activeLightboxItem.title}</span>
@@ -405,7 +428,7 @@ export default function PublicPortfolio() {
           {lightboxIndex > 0 && (
             <button
               aria-label="이전 사진"
-              className="absolute left-4 top-1/2 -translate-y-1/2 z-10 p-3 text-d-faint hover:text-d-hair hover:bg-d-line/50 transition-colors"
+              className={`absolute left-4 top-1/2 -translate-y-1/2 z-10 p-3 text-d-faint hover:text-d-hair hover:bg-d-line/50 transition-[opacity,color,background] duration-500 ${chromeOn ? 'opacity-100' : 'opacity-0'}`}
               onClick={e => { e.stopPropagation(); setLightboxIndex(lightboxIndex - 1) }}
             >
               <ChevronLeft size={28} strokeWidth={1.5} />
@@ -415,9 +438,10 @@ export default function PublicPortfolio() {
           {/* Image */}
           <div className="flex-1 flex items-center justify-center p-4 overflow-hidden">
             <img
+              key={lightboxIndex}
               src={cfUrl(activeLightboxItem.photo.image_url, 'public')}
               alt={activeLightboxItem.photo.caption || ''}
-              className="max-h-full max-w-full object-contain"
+              className="max-h-full max-w-full object-contain animate-[fade_.35s_ease-out]"
               onClick={e => e.stopPropagation()}
             />
           </div>
@@ -426,7 +450,7 @@ export default function PublicPortfolio() {
           {lightboxIndex < lightboxItems.length - 1 && (
             <button
               aria-label="다음 사진"
-              className="absolute right-4 top-1/2 -translate-y-1/2 z-10 p-3 text-d-faint hover:text-d-hair hover:bg-d-line/50 transition-colors"
+              className={`absolute right-4 top-1/2 -translate-y-1/2 z-10 p-3 text-d-faint hover:text-d-hair hover:bg-d-line/50 transition-[opacity,color,background] duration-500 ${chromeOn ? 'opacity-100' : 'opacity-0'}`}
               onClick={e => { e.stopPropagation(); setLightboxIndex(lightboxIndex + 1) }}
             >
               <ChevronRight size={28} strokeWidth={1.5} />

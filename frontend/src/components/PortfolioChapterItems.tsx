@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import MarkdownRenderer from './MarkdownRenderer'
 import { cfUrl } from '../utils/cfImage'
+import PhotoReveal from './PhotoReveal'
 
 export const PORTFOLIO_WIDTH = 896  // max-w-4xl. 폭 변경 시 이 값과 className 함께 수정
 export const PORTFOLIO_GAP = 6      // px — 사진 사이 간격
@@ -72,10 +73,11 @@ export default function PortfolioChapterItems({
     return (
       <div key={rowKey} style={{ display: 'flex', gap: `${effectiveGap}px`, marginBottom: `${effectiveGap}px` }}>
         {rowPhotos.map((photo, j) => (
-          <div
+          <PhotoReveal
             key={photo.id}
             style={{ width: `${rowHeight * ratios[j]}px`, height: `${rowHeight}px`, flexShrink: 0 }}
             className="overflow-hidden cursor-pointer"
+            delay={j * 60}
             onClick={() => onLightbox?.(photo as PortfolioPhoto, allLightboxItems)}
           >
             <img
@@ -85,7 +87,7 @@ export default function PortfolioChapterItems({
               className="w-full h-full rounded-photo object-cover hover:opacity-90 transition-opacity block"
               onLoad={(e) => handleImageLoad(photo.image_url || '', e)}
             />
-          </div>
+          </PhotoReveal>
         ))}
       </div>
     )
@@ -204,8 +206,8 @@ export default function PortfolioChapterItems({
       result.push(
         <div key={`block-${bid}`} className="mb-space-sm space-y-4"
           style={{ width: `${effectiveWidth}px` }}>
-          {photos.map(photo => (
-            <div key={photo.id} className="break-inside-avoid rounded-photo">
+          {photos.map((photo, pi) => (
+            <PhotoReveal key={photo.id} className="break-inside-avoid" delay={pi * 60}>
               <img
                 src={cfUrl(photo.image_url, 'public')}
                 alt={photo.caption || ''}
@@ -213,7 +215,7 @@ export default function PortfolioChapterItems({
                 className="w-full rounded-photo cursor-pointer hover:opacity-90 transition-opacity"
                 onClick={() => onLightbox?.(photo as PortfolioPhoto, allLightboxItems)}
               />
-            </div>
+            </PhotoReveal>
           ))}
         </div>
       )
