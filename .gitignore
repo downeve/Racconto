@@ -227,3 +227,6 @@ imageTmp/
 
 # sql backup
 *.sql
+
+# Claude Code worktrees
+.claude/worktrees/
