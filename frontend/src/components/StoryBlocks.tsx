@@ -294,7 +294,37 @@ export const SortableTextBlock = memo(function SortableTextBlock({
         </div>
       )}
 
-      {/* 호버 툴바 — overflow-x:clip 바깥에 위치시켜 Safari 클리핑 방지 */}
+      <div className="relative bg-stone-50 border border-stone-200 rounded-card px-5 py-4 min-w-0 [overflow-x:clip] [word-break:keep-all]">
+        {isEditing ? (
+          <div className="flex flex-col gap-2">
+            <textarea
+              className="w-full min-h-32 p-3 text-small rounded-card border border-stone-100 focus:ring-2 focus:ring-stone-200 focus:outline-none resize-none bg-card overflow-x-hidden whitespace-pre-wrap [word-break:keep-all]"
+              onInput={e => { const t = e.currentTarget; t.style.height = 'auto'; t.style.height = t.scrollHeight + 'px' }}
+              value={textDraft}
+              onChange={(e) => onTextDraftChange?.(e.target.value)}
+              autoFocus
+            />
+            <div className="flex gap-2 justify-end mt-1">
+              <button
+                onClick={(e) => { e.stopPropagation(); onCancelEdit?.(); }}
+                className="px-3 py-1.5 text-xs text-muted border border-stone-300 rounded bg-card hover:bg-stone-50"
+              >
+                {t('common.cancel')}
+              </button>
+              <button
+                onClick={(e) => { e.stopPropagation(); onSaveText?.(); }}
+                className="px-3 py-1.5 text-xs bg-ink text-card rounded hover:bg-stone-800 font-medium"
+              >
+                {t('common.save')}
+              </button>
+            </div>
+          </div>
+        ) : (
+          <MarkdownRenderer content={text_content} className="pl-4" />
+        )}
+      </div>
+
+      {/* 호버 툴바 — inner div 뒤에 배치해야 Safari에서 [overflow-x:clip] stacking context 위에 렌더링됨 */}
       {!isEditing && (
         <div className="absolute -top-4 right-5 opacity-0 group-hover:opacity-100 transition-opacity z-60 flex items-center gap-1 bg-white border border-gray-200 rounded shadow px-1.5 py-0.5">
           {!isFirst && (
@@ -337,36 +367,6 @@ export const SortableTextBlock = memo(function SortableTextBlock({
           )}
         </div>
       )}
-
-      <div className="relative bg-stone-50 border border-stone-200 rounded-card px-5 py-4 min-w-0 [overflow-x:clip] [word-break:keep-all]">
-        {isEditing ? (
-          <div className="flex flex-col gap-2">
-            <textarea
-              className="w-full min-h-32 p-3 text-small rounded-card border border-stone-100 focus:ring-2 focus:ring-stone-200 focus:outline-none resize-none bg-card overflow-x-hidden whitespace-pre-wrap [word-break:keep-all]"
-              onInput={e => { const t = e.currentTarget; t.style.height = 'auto'; t.style.height = t.scrollHeight + 'px' }}
-              value={textDraft}
-              onChange={(e) => onTextDraftChange?.(e.target.value)}
-              autoFocus
-            />
-            <div className="flex gap-2 justify-end mt-1">
-              <button
-                onClick={(e) => { e.stopPropagation(); onCancelEdit?.(); }}
-                className="px-3 py-1.5 text-xs text-muted border border-stone-300 rounded bg-card hover:bg-stone-50"
-              >
-                {t('common.cancel')}
-              </button>
-              <button
-                onClick={(e) => { e.stopPropagation(); onSaveText?.(); }}
-                className="px-3 py-1.5 text-xs bg-ink text-card rounded hover:bg-stone-800 font-medium"
-              >
-                {t('common.save')}
-              </button>
-            </div>
-          </div>
-        ) : (
-          <MarkdownRenderer content={text_content} className="pl-4" />
-        )}
-      </div>
     </div>
   )
 })
