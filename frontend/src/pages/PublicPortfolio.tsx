@@ -253,7 +253,7 @@ export default function PublicPortfolio() {
             {projects.map(project => (
               <div
                 key={project.id}
-                className={`cursor-pointer group rounded-card overflow-hidden transition-shadow border shadow-sm hover:shadow ${darkMode ? 'border-white/10' : 'border-hair'}`}
+                className={`cursor-pointer group rounded-card overflow-hidden transition-shadow border shadow-sm hover:shadow flex flex-col ${darkMode ? 'border-white/10' : 'border-hair'}`}
                 onClick={() => openProject(project)}
               >
                 <div className={`h-48 flex items-center justify-center ${darkMode ? 'bg-card-cover' : 'bg-hair'}`}>
@@ -269,7 +269,7 @@ export default function PublicPortfolio() {
                     </span>
                   )}
                 </div>
-                <div className={`p-4 ${darkMode ? 'bg-card-surface' : 'bg-canvas-2'}`}>
+                <div className={`p-4 flex-1 ${darkMode ? 'bg-card-surface' : 'bg-canvas-2'}`}>
                   <h3 className={`font-semibold text-h3 font-serif [word-break:keep-all] ${darkMode ? 'text-hair' : 'text-ink-2'}`}>
                     {project.title}
                   </h3>
