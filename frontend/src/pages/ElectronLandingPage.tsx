@@ -3,7 +3,6 @@ import { useNavigate, Link } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { useTranslation } from 'react-i18next'
 
-const API_BASE = import.meta.env.VITE_API_URL || 'https://racconto.app/api'
 // OAuth는 항상 프로덕션 백엔드 사용 (Google/Naver/Apple redirect URI가 racconto.app으로 등록됨)
 const OAUTH_BASE = 'https://racconto.app/api'
 
