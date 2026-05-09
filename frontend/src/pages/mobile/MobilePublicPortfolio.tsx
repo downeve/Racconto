@@ -4,6 +4,7 @@ import axios from 'axios'
 import { useTranslation } from 'react-i18next'
 import { useAuth } from '../../context/AuthContext'
 import { Sun, Moon, MapPin, X, ChevronLeft, ChevronRight } from 'lucide-react'
+import CoverFallback from '../../components/CoverFallback'
 import MarkdownRenderer from '../../components/MarkdownRenderer'
 import EmptyState from '../../components/EmptyState'
 import { cfUrl } from '../../utils/cfImage'
@@ -223,14 +224,7 @@ export default function MobilePublicPortfolio() {
                       alt={project.title}
                     />
                   ) : (
-                    <div className={`w-full h-full flex items-end p-5 bg-gradient-to-br ${darkMode ? 'from-d-surface to-d-bg' : 'from-[oklch(0.94_0.012_75)] to-[oklch(0.86_0.014_75)]'}`}>
-                      <div>
-                        <p className={`t-eyebrow mb-1 ${microcopy}`}>Untitled cover</p>
-                        <p className={`font-serif text-[18px] leading-tight font-light [word-break:keep-all] ${darkMode ? 'text-d-soft' : 'text-ink-2/70'}`}>
-                          {project.title}
-                        </p>
-                      </div>
-                    </div>
+                    <CoverFallback title={project.title} dark={darkMode} />
                   )}
                 </div>
                 <h3 className="mt-3 font-serif text-[18px] tracking-tight font-normal [word-break:keep-all]">

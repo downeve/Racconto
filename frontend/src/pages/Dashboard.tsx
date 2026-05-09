@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { useAuth } from '../context/AuthContext' // AuthContext가 구현되어 있다고 가정
 import ProjectCard from '../components/ProjectCard'
+import CoverFallback from '../components/CoverFallback'
 
 const API = import.meta.env.VITE_API_URL
 const isElectron = typeof window !== 'undefined' && !!window.racconto
@@ -139,7 +140,7 @@ export default function Dashboard() {
                     <div className="col-span-2 row-span-2 overflow-hidden bg-hair/50">
                       {publicProjects[0].cover_image_url
                         ? <img src={publicProjects[0].cover_image_url} alt={publicProjects[0].title} className="w-full h-full object-cover" />
-                        : <div className="w-full h-full bg-hair" />
+                        : <CoverFallback title={publicProjects[0].title} />
                       }
                     </div>
                   )}
@@ -147,7 +148,7 @@ export default function Dashboard() {
                     <div key={p.id} className="overflow-hidden bg-hair/50">
                       {p.cover_image_url
                         ? <img src={p.cover_image_url} alt={p.title} className="w-full h-full object-cover" />
-                        : <div className="w-full h-full bg-hair" />
+                        : <CoverFallback title={p.title} />
                       }
                     </div>
                   ))}

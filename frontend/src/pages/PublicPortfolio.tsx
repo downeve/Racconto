@@ -7,6 +7,7 @@ import PortfolioChapterItems, { type PortfolioPhoto } from '../components/Portfo
 import PublicNavbar from '../components/PublicNavbar'
 import EmptyState from '../components/EmptyState'
 import { Sun, Moon, MapPin, ChevronLeft, ChevronRight, X } from 'lucide-react'
+import CoverFallback from '../components/CoverFallback'
 import { cfUrl } from '../utils/cfImage'
 
 const API = import.meta.env.VITE_API_URL
@@ -272,14 +273,7 @@ export default function PublicPortfolio() {
                       className="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-[1.02]"
                     />
                   ) : (
-                    <div className={`w-full h-full flex items-end p-6 bg-gradient-to-br ${darkMode ? 'from-d-surface to-d-bg' : 'from-[oklch(0.94_0.012_75)] to-[oklch(0.86_0.014_75)]'}`}>
-                      <div>
-                        <p className={`t-eyebrow mb-1 ${microcopy}`}>Untitled cover</p>
-                        <p className={`font-serif text-[22px] leading-tight font-light [word-break:keep-all] ${darkMode ? 'text-d-soft' : 'text-ink-2/70'}`}>
-                          {project.title}
-                        </p>
-                      </div>
-                    </div>
+                    <CoverFallback title={project.title} dark={darkMode} />
                   )}
                 </div>
                 <h3 className="mt-4 font-serif text-[22px] tracking-tight font-normal [word-break:keep-all]">
