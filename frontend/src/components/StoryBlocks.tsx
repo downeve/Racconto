@@ -346,6 +346,7 @@ export const SortableTextBlock = memo(function SortableTextBlock({
             onClick={() => onEdit(itemId, text_content)}
             className="text-xs px-2 py-0.5 rounded text-stone-500 hover:bg-gray-100"
           >{t('common.edit')}</button>
+          <span className="text-[11px] text-stone-200 select-none">|</span>
           <button
             onClick={() => onRemove(chapterId, itemId)}
             className="text-xs px-2 py-0.5 rounded text-red-400 hover:text-red-600 hover:bg-gray-100"
@@ -354,14 +355,14 @@ export const SortableTextBlock = memo(function SortableTextBlock({
           {hasPhotoAbove && (
             <button
               onClick={() => onSideBySide(itemId, 'side-left', 'above')}
-              className="inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded text-muted hover:text-ink hover:bg-gray-100"
+              className="inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded font-bold text-blue-400 hover:text-ink hover:bg-gray-100"
               title="위 사진과 나란히 (텍스트 왼쪽)"
             ><ArrowLeftRight size={10} strokeWidth={1.5} /> {t('story.attachLeft')}</button>
           )}
           {hasPhotoBelow && (
             <button
               onClick={() => onSideBySide(itemId, 'side-right', 'below')}
-              className="inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded text-muted hover:text-ink hover:bg-gray-100"
+              className="inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded font-bold text-blue-400 hover:text-ink hover:bg-gray-100"
               title="아래 사진과 나란히 (텍스트 오른쪽)"
             ><ArrowLeftRight size={10} strokeWidth={1.5} /> {t('story.attachRight')}</button>
           )}
