@@ -1,4 +1,5 @@
 const { app, BrowserWindow, ipcMain, dialog, net, nativeImage, Menu, shell } = require('electron')
+const http = require('http')
 const path = require('path')
 const chokidar = require('chokidar')
 const fs = require('fs')
@@ -633,13 +634,6 @@ function createWindow() {
     })
   }
 
-  // app 준비 전에 도착한 OAuth 토큰 전달
-  mainWindow.webContents.once('did-finish-load', () => {
-    if (pendingOAuthToken) {
-      mainWindow.webContents.send('auth:oauthToken', pendingOAuthToken)
-      pendingOAuthToken = null
-    }
-  })
 }
 
 // ── 앱 메뉴 ──────────────────────────────────────────
@@ -722,27 +716,30 @@ function buildAppMenu() {
   Menu.setApplicationMenu(Menu.buildFromTemplate(template))
 }
 
-// ── OAuth 외부 브라우저 ──────────────────────────────
-// macOS: open-url이 app 준비 전에 올 수 있으므로 토큰을 임시 저장
-let pendingOAuthToken = null
+// ── OAuth 외부 브라우저 (localhost callback 방식) ─────
+// racconto:// 딥링크는 설치된 패키지 앱과 충돌하므로
+// localhost:9876 HTTP 서버로 콜백을 받아 렌더러에 전달
 
-app.setAsDefaultProtocolClient('racconto')
+const OAUTH_PORT = 9876
 
-app.on('open-url', (event, url) => {
-  event.preventDefault()
-  try {
-    const parsed = new URL(url)
-    if (parsed.hostname === 'auth' && parsed.pathname === '/callback') {
-      const token = parsed.searchParams.get('token')
-      if (token) {
-        if (mainWindow) {
-          mainWindow.webContents.send('auth:oauthToken', token)
-        } else {
-          pendingOAuthToken = token
-        }
-      }
-    }
-  } catch {}
+const oauthServer = http.createServer((req, res) => {
+  const parsed = new URL(req.url, `http://127.0.0.1:${OAUTH_PORT}`)
+  const token = parsed.searchParams.get('token')
+
+  // 브라우저에 완료 페이지 응답
+  res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' })
+  res.end(`<!DOCTYPE html><html><head><meta charset="utf-8">
+<style>body{font-family:sans-serif;display:flex;align-items:center;justify-content:center;height:100vh;margin:0;background:#F7F4F0;color:#333}</style>
+</head><body><p>로그인이 완료되었습니다. 이 탭을 닫고 앱으로 돌아가세요.<br><br>Login complete. You can close this tab.</p></body></html>`)
+
+  if (token && mainWindow) {
+    mainWindow.webContents.send('auth:oauthToken', token)
+    mainWindow.focus()
+  }
+})
+
+oauthServer.on('error', (err) => {
+  console.error('OAuth callback server error:', err.message)
 })
 
 ipcMain.handle('auth:openOAuth', (event, url) => {
@@ -753,6 +750,9 @@ ipcMain.handle('auth:openOAuth', (event, url) => {
 app.whenReady().then(() => {
   initQueue()
   process.env.APP_VERSION = app.getVersion()
+  oauthServer.listen(OAUTH_PORT, '127.0.0.1', () => {
+    console.log(`OAuth callback server listening on port ${OAUTH_PORT}`)
+  })
   createWindow()
   buildAppMenu()
 

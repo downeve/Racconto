@@ -67,7 +67,7 @@ export default function ElectronLandingPage() {
         <div className="relative z-10 text-center w-full">
           {/* 로고 — PublicNavbar와 동일 스타일 */}
           <span
-            className="font-serif font-bold text-[26px] tracking-[0.08em] text-ink block mb-10"
+            className="font-serif font-bold text-h1 tracking-[0.08em] text-ink block mb-10"
             style={{ fontWeight: 700, transform: 'translateY(1px)' }}
           >
             Racconto
@@ -91,14 +91,6 @@ export default function ElectronLandingPage() {
           <p className="text-body text-muted leading-relaxed mb-10 break-keep">
             {t('landing.heroSubtitle')}
           </p>
-          <div className="flex flex-col items-center">
-            <Link
-              to="/register"
-              className="px-8 py-3 min-w-40 text-body font-serif font-semibold btn-primary tracking-widest transition-all duration-200 shadow rounded"
-            >
-              {t('landing.ctaPrimary')}
-            </Link>
-          </div>
           <p className="mt-6 text-small text-muted tracking-wider">
             {t('landing.betaBadge')}
           </p>

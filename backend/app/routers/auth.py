@@ -353,8 +353,10 @@ async def google_callback(request: Request, background_tasks: BackgroundTasks, s
 
     access_token = create_access_token(data={"sub": user.id, "is_admin": user.is_admin})
     platform = request.session.get("oauth_platform", "web")
-    if platform in ("ios", "electron"):
+    if platform == "ios":
         return RedirectResponse(f"racconto://auth/callback?token={access_token}")
+    if platform == "electron":
+        return RedirectResponse(f"http://localhost:9876/callback?token={access_token}")
     return RedirectResponse(f"{FRONTEND_URL}/auth/social-callback?token={access_token}")
 
 
@@ -499,8 +501,10 @@ async def apple_callback(request: Request, background_tasks: BackgroundTasks, db
 
     access_token = create_access_token(data={"sub": user.id, "is_admin": user.is_admin})
     apple_platform = request.cookies.get("apple_oauth_platform", "web")
-    if apple_platform in ("ios", "electron"):
+    if apple_platform == "ios":
         response = RedirectResponse(f"racconto://auth/callback?token={access_token}", status_code=303)
+    elif apple_platform == "electron":
+        response = RedirectResponse(f"http://localhost:9876/callback?token={access_token}", status_code=303)
     else:
         response = RedirectResponse(f"{FRONTEND_URL}/auth/social-callback?token={access_token}", status_code=303)
     response.delete_cookie("apple_oauth_state", secure=True, samesite="none")
