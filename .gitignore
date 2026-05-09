@@ -6,6 +6,9 @@ __pycache__/
 # C extensions
 *.so
 
+# 작업 지시서 md 파일
+*.md
+
 # Distribution / packaging
 .Python
 build/

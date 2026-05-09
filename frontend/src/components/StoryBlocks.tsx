@@ -294,6 +294,7 @@ export const SortableTextBlock = memo(function SortableTextBlock({
         </div>
       )}
 
+<<<<<<< HEAD
       {/* 호버 툴바 — overflow-x:clip 바깥에 위치시켜 Safari 클리핑 방지 */}
       {!isEditing && (
         <div className="absolute -top-4 right-5 opacity-0 group-hover:opacity-100 transition-opacity z-60 flex items-center gap-1 bg-white border border-gray-200 rounded shadow px-1.5 py-0.5">
@@ -339,6 +340,9 @@ export const SortableTextBlock = memo(function SortableTextBlock({
       )}
 
       <div className="relative bg-stone-50 border border-stone-200 rounded-card px-5 py-4 min-w-0 [overflow-x:clip] [word-break:keep-all]">
+=======
+      <div className="relative bg-stone-50 border border-stone-200 rounded-card px-5 py-4 min-w-0 hover:z-60 [overflow-x:clip] [word-break:keep-all]">
+>>>>>>> 85987a8 (fix: TEXT 블록 hover 오류 수정)
         {isEditing ? (
           <div className="flex flex-col gap-2">
             <textarea
@@ -364,7 +368,55 @@ export const SortableTextBlock = memo(function SortableTextBlock({
             </div>
           </div>
         ) : (
+<<<<<<< HEAD
           <MarkdownRenderer content={text_content} className="pl-4" />
+=======
+          <>
+
+            <div className="absolute -top-4 right-5 opacity-0 group-hover:opacity-100 transition-opacity z-20 flex items-center gap-1 bg-white border border-gray-200 rounded shadow px-1.5 py-0.5">
+              {!isFirst && (
+                <button
+                  onClick={() => { onMoveBlock?.('up'); scrollToSelf() }}
+                  className="text-[11px] px-2 py-1 rounded font-bold text-muted hover:bg-gray-100"
+                  title="위로 이동"
+                >↑</button>
+              )}
+              {!isLast && (
+                <button
+                  onClick={() => { onMoveBlock?.('down'); scrollToSelf() }}
+                  className="text-[11px] px-2 py-1 rounded font-bold text-muted hover:bg-gray-100"
+                  title="아래로 이동"
+                >↓</button>
+              )}
+              {(!isFirst || !isLast) && <span className="text-[11px] text-stone-200 select-none">|</span>}
+              <button
+                onClick={() => onEdit(itemId, text_content)}
+                className="text-xs px-2 py-0.5 rounded text-stone-500 hover:bg-gray-100"
+              >{t('common.edit')}</button>
+              <button
+                onClick={() => onRemove(chapterId, itemId)}
+                className="text-xs px-2 py-0.5 rounded text-red-400 hover:text-red-600 hover:bg-gray-100"
+              >×</button>
+              {(hasPhotoAbove || hasPhotoBelow) && <span className="text-[11px] text-stone-200 select-none">|</span>}
+              {hasPhotoAbove && (
+                <button
+                  onClick={() => onSideBySide(itemId, 'side-left', 'above')}
+                  className="inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded font-bold text-blue-400 hover:text-ink hover:bg-gray-100"
+                  title="위 사진과 나란히 (텍스트 왼쪽)"
+                ><ArrowLeftRight size={10} strokeWidth={1.5} /> {t('story.attachLeft')}</button>
+              )}
+              {hasPhotoBelow && (
+                <button
+                  onClick={() => onSideBySide(itemId, 'side-right', 'below')}
+                  className="inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded font-bold text-blue-400 hover:text-ink hover:bg-gray-100"
+                  title="아래 사진과 나란히 (텍스트 오른쪽)"
+                ><ArrowLeftRight size={10} strokeWidth={1.5} /> {t('story.attachRight')}</button>
+              )}
+            </div>
+
+            <MarkdownRenderer content={text_content} className="pl-4" />
+          </>
+>>>>>>> 85987a8 (fix: TEXT 블록 hover 오류 수정)
         )}
       </div>
     </div>
@@ -607,7 +659,7 @@ export const SortablePhotoBlock = memo(function SortablePhotoBlock({
             {hasTextAbove && (
               <button
                 onClick={onSideBySideAbove}
-                className="text-[11px] px-2 py-1 rounded text-muted hover:text-ink hover:bg-stone-100 flex items-center gap-0.5"
+                className="text-[11px] px-2 py-1 rounded font-bold text-blue-400 hover:text-ink hover:bg-stone-100 flex items-center gap-0.5"
                 title={t('story.sideBySideAbove')}
               >
                 <ArrowLeftRight size={10} strokeWidth={1.5} />↑
@@ -616,7 +668,7 @@ export const SortablePhotoBlock = memo(function SortablePhotoBlock({
             {hasTextBelow && (
               <button
                 onClick={onSideBySideBelow}
-                className="text-[11px] px-2 py-1 rounded text-muted hover:text-ink hover:bg-stone-100 flex items-center gap-0.5"
+                className="text-[11px] px-2 py-1 rounded font-bold text-blue-400 hover:text-ink hover:bg-stone-100 flex items-center gap-0.5"
                 title={t('story.sideBySideBelow')}
               >
                 <ArrowLeftRight size={10} strokeWidth={1.5} />↓
