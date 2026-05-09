@@ -4,11 +4,31 @@ import { useTranslation } from 'react-i18next'
 export default function PublicNavbar({ username, darkMode, compact }: { username?: string; darkMode?: boolean; compact?: boolean } = {}) {
   const { t, i18n } = useTranslation()
 
+  // i18n.language가 없을 경우를 대비해 기본값 'ko' 설정
+  const currentLang = (i18n.language || 'ko').substring(0, 2);
+
   const toggleLanguage = () => {
-    const nextLang = i18n.language === 'ko' ? 'en' : 'ko'
+    const langMap: Record<string, string> = {
+      'ko': 'en',
+      'en': 'ja',
+      'ja': 'ko'
+    };
+    
+    const nextLang = langMap[currentLang] || 'ko';
+
     i18n.changeLanguage(nextLang)
     localStorage.setItem('app_language', nextLang)
   }
+
+  // 3. 버튼에 표시할 라벨 생성 로직
+  const getLangLabel = () => {
+    switch (currentLang) {
+      case 'ko': return 'EN / JA';
+      case 'en': return 'JA / KO';
+      case 'ja': return 'KO / EN';
+      default: return 'EN / JA';
+    }
+  };
 
   const dm = darkMode ?? false
 
@@ -82,11 +102,12 @@ export default function PublicNavbar({ username, darkMode, compact }: { username
             {t('nav.features')}
           </Link>
           */}
+          {/* 언어 토글 버튼 수정 부분 */}
           <button
             onClick={toggleLanguage}
             className={`text-body md:text-h3 font-semibold tracking-widest hover:font-bold transition-[background,color,border] duration-150 ease-out ${dm ? 'text-faint hover:text-hair' : 'text-faint hover:text-ink-2'}`}
           >
-            {i18n.language === 'ko' ? 'EN' : 'KO'}
+            {getLangLabel()}
           </button>
           <Link
             to="/download"
