@@ -81,7 +81,7 @@ export default function PortfolioChapterItems({
             onClick={() => onLightbox?.(photo as PortfolioPhoto, allLightboxItems)}
           >
             <img
-              src={cfUrl(photo.image_url, 'grid')}
+              src={cfUrl(photo.image_url, 'public')}
               alt={photo.caption || ''}
               loading="lazy"
               className="w-full h-full rounded-photo object-cover hover:opacity-90 transition-opacity block"
@@ -161,7 +161,7 @@ export default function PortfolioChapterItems({
           {sidePhotos.map(photo => (
             <div key={photo.id} className="break-inside-avoid rounded-photo">
               <img
-                src={cfUrl(photo.image_url, 'grid')}
+                src={cfUrl(photo.image_url, 'public')}
                 alt={photo.caption || ''}
                 loading="lazy"
                 className="w-full rounded-photo cursor-pointer hover:opacity-90 transition-opacity block"
