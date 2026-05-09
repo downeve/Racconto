@@ -316,7 +316,7 @@ export default function DeliveryPage() {
                   {/* 코멘트 표시 */}
                   {comment && (
                     <div className="absolute bottom-0 left-0 right-0 bg-black/70 px-2 py-1.5 pointer-events-none">
-                      <p className="text-white text-[11px] leading-tight line-clamp-2">{comment}</p>
+                      <p className="text-white text-eyebrow leading-tight line-clamp-2">{comment}</p>
                     </div>
                   )}
                 </div>

@@ -222,7 +222,7 @@ export function SortablePhotoChapter({
         <div className="absolute bottom-1 right-1 z-20">
           <button
             onClick={(e) => { e.stopPropagation(); onRequestMove(id) }}
-            className="opacity-0 group-hover:opacity-100 transition-opacity border border-stone-300 bg-card text-muted hover:text-ink rounded px-1.5 py-0.5 text-[10px] leading-tight"
+            className="opacity-0 group-hover:opacity-100 transition-opacity border border-stone-300 bg-card text-muted hover:text-ink rounded px-1.5 py-0.5 text-eyebrow leading-tight"
             title="다른 블록으로 이동"
           >
             {t('story.toOtherBlock')}
@@ -232,7 +232,7 @@ export function SortablePhotoChapter({
         {/* 풀너비 힌트 배지 */}
         {fullWidthHint && (
           <span
-            className="absolute bottom-1 left-1 z-10 inline-flex items-center gap-0.5 px-1.5 py-[3px] rounded font-mono text-[9px] tracking-wider uppercase bg-stone-900/75 text-white backdrop-blur-sm pointer-events-none"
+            className="absolute bottom-1 left-1 z-10 inline-flex items-center gap-0.5 px-1.5 py-[3px] rounded font-mono text-eyebrow tracking-wider uppercase bg-stone-900/75 text-white backdrop-blur-sm pointer-events-none"
             title="포트폴리오에서 가로 풀너비로 표시됩니다"
           >
             ↔ {t('story.row.fullWidth')}
@@ -330,28 +330,28 @@ export const SortableTextBlock = memo(function SortableTextBlock({
           {!isFirst && (
             <button
               onClick={() => { onMoveBlock?.('up'); scrollToSelf() }}
-              className="text-[11px] px-2 py-1 rounded font-bold text-muted hover:bg-gray-100"
+              className="text-eyebrow px-2 py-1 rounded font-bold text-muted hover:bg-gray-100"
               title="위로 이동"
             >↑</button>
           )}
           {!isLast && (
             <button
               onClick={() => { onMoveBlock?.('down'); scrollToSelf() }}
-              className="text-[11px] px-2 py-1 rounded font-bold text-muted hover:bg-gray-100"
+              className="text-eyebrow px-2 py-1 rounded font-bold text-muted hover:bg-gray-100"
               title="아래로 이동"
             >↓</button>
           )}
-          {(!isFirst || !isLast) && <span className="text-[11px] text-stone-200 select-none">|</span>}
+          {(!isFirst || !isLast) && <span className="text-eyebrow text-stone-200 select-none">|</span>}
           <button
             onClick={() => onEdit(itemId, text_content)}
             className="text-xs px-2 py-0.5 rounded text-stone-500 hover:bg-gray-100"
           >{t('common.edit')}</button>
-          <span className="text-[11px] text-stone-200 select-none">|</span>
+          <span className="text-eyebrow text-stone-200 select-none">|</span>
           <button
             onClick={() => onRemove(chapterId, itemId)}
             className="text-xs px-2 py-0.5 rounded text-red-400 hover:text-red-600 hover:bg-gray-100"
           >×</button>
-          {(hasPhotoAbove || hasPhotoBelow) && <span className="text-[11px] text-stone-200 select-none">|</span>}
+          {(hasPhotoAbove || hasPhotoBelow) && <span className="text-eyebrow text-stone-200 select-none">|</span>}
           {hasPhotoAbove && (
             <button
               onClick={() => onSideBySide(itemId, 'side-left', 'above')}
@@ -400,7 +400,7 @@ function GhostFrameGrid({
 
         return (
           <div key={row.rowIdx}>
-            <div className="font-mono text-[9px] tracking-wider uppercase mb-0.5 ml-0.5 pointer-events-none transition-colors duration-150"
+            <div className="font-mono text-eyebrow tracking-wider uppercase mb-0.5 ml-0.5 pointer-events-none transition-colors duration-150"
               style={{ color: isHovered ? '#57534e' : '#a8a29e' }}
             >
               {row.isFullWidth ? t('story.row.fullWidth') : t('story.row.index', { n: row.rowIdx + 1 })}
@@ -577,38 +577,38 @@ export const SortablePhotoBlock = memo(function SortablePhotoBlock({
         {!isFirst && (
           <button
             onClick={() => { onMoveBlock?.('up'); scrollToSelf() }}
-            className="text-[11px] px-2 py-1 rounded font-bold text-muted hover:bg-gray-100"
+            className="text-eyebrow px-2 py-1 rounded font-bold text-muted hover:bg-gray-100"
             title="위로 이동"
           >↑</button>
         )}
         {!isLast && (
           <button
             onClick={() => { onMoveBlock?.('down'); scrollToSelf() }}
-            className="text-[11px] px-2 py-1 rounded font-bold text-muted hover:bg-gray-100"
+            className="text-eyebrow px-2 py-1 rounded font-bold text-muted hover:bg-gray-100"
             title="아래로 이동"
           >↓</button>
         )}
-        {(!isFirst || !isLast) && <span className="text-[11px] text-stone-200 select-none">|</span>}
-        <span className="text-[11px] text-faint mr-1">{t('portfolio.column')}</span>
+        {(!isFirst || !isLast) && <span className="text-eyebrow text-stone-200 select-none">|</span>}
+        <span className="text-eyebrow text-faint mr-1">{t('portfolio.column')}</span>
         {(['grid', 'wide', 'single'] as const).map(l => (
           <button
             key={l}
             onClick={() => onLayoutChange(blockId, l)}
-            className={`text-[11px] px-2 py-1 rounded transition-[background,color,border] duration-150 ease-out ${
+            className={`text-eyebrow px-2 py-1 rounded transition-[background,color,border] duration-150 ease-out ${
               blockLayout === l ? 'bg-muted text-card' : 'text-gray-500 hover:bg-gray-100'
             }`}
           >
             {layoutLabels[l]}
           </button>
         ))}
-        {/*<span className="text-[11px] text-faint">{t('portfolio.layoutInPort')}</span>*/}
+        {/*<span className="text-eyebrow text-faint">{t('portfolio.layoutInPort')}</span>*/}
         {(hasTextAbove || hasTextBelow) && (
           <>
-            <span className="text-[11px] text-stone-200 select-none">|</span>
+            <span className="text-eyebrow text-stone-200 select-none">|</span>
             {hasTextAbove && (
               <button
                 onClick={onSideBySideAbove}
-                className="text-[11px] px-2 py-1 rounded font-bold text-blue-400 hover:text-ink hover:bg-stone-100 flex items-center gap-0.5"
+                className="text-eyebrow px-2 py-1 rounded font-bold text-blue-400 hover:text-ink hover:bg-stone-100 flex items-center gap-0.5"
                 title={t('story.sideBySideAbove')}
               >
                 <ArrowLeftRight size={10} strokeWidth={1.5} />↑
@@ -617,7 +617,7 @@ export const SortablePhotoBlock = memo(function SortablePhotoBlock({
             {hasTextBelow && (
               <button
                 onClick={onSideBySideBelow}
-                className="text-[11px] px-2 py-1 rounded font-bold text-blue-400 hover:text-ink hover:bg-stone-100 flex items-center gap-0.5"
+                className="text-eyebrow px-2 py-1 rounded font-bold text-blue-400 hover:text-ink hover:bg-stone-100 flex items-center gap-0.5"
                 title={t('story.sideBySideBelow')}
               >
                 <ArrowLeftRight size={10} strokeWidth={1.5} />↓
@@ -627,7 +627,7 @@ export const SortablePhotoBlock = memo(function SortablePhotoBlock({
         )}
         {/*
         {ghostMode && photoCount > 0 && (
-          <span className="text-[10px] text-stone-400 border-l border-stone-200 pl-1.5 ml-0.5">
+          <span className="text-eyebrow text-stone-400 border-l border-stone-200 pl-1.5 ml-0.5">
             {cols}열 · {photoCount}장{hasLastFullWidth ? ` · ${t('story.blockHint.lastFullWidth')}` : ''}
           </span>
         )}
@@ -765,13 +765,13 @@ export const SortableSideBySideBlock = memo(function SortableSideBySideBlock({
           <div className="flex gap-2 justify-end">
             <button 
               onClick={(e) => { e.stopPropagation(); onCancelEdit?.(); }}
-              className="px-2 py-1 text-[11px] text-muted border border-stone-300 rounded bg-card hover:bg-stone-50"
+              className="px-2 py-1 text-eyebrow text-muted border border-stone-300 rounded bg-card hover:bg-stone-50"
             >
               {t('common.cancel')}
             </button>
             <button 
               onClick={(e) => { e.stopPropagation(); onSaveText?.(); }}
-              className="px-2 py-1 text-[11px] bg-stone-900 text-white rounded hover:bg-stone-800 font-medium"
+              className="px-2 py-1 text-eyebrow bg-stone-900 text-white rounded hover:bg-stone-800 font-medium"
             >
               {t('common.save')}
             </button>
@@ -814,19 +814,19 @@ export const SortableSideBySideBlock = memo(function SortableSideBySideBlock({
         {!isFirst && (
           <button
             onClick={() => { onMoveBlock?.('up'); scrollToSelf() }}
-            className="text-[11px] px-2 py-1 rounded font-bold text-muted hover:bg-gray-100"
+            className="text-eyebrow px-2 py-1 rounded font-bold text-muted hover:bg-gray-100"
             title="위로 이동"
           >↑</button>
         )}
         {!isLast && (
           <button
             onClick={() => { onMoveBlock?.('down'); scrollToSelf() }}
-            className="text-[11px] px-2 py-1 rounded font-bold text-muted hover:bg-gray-100"
+            className="text-eyebrow px-2 py-1 rounded font-bold text-muted hover:bg-gray-100"
             title="아래로 이동"
           >↓</button>
         )}
-        {/*{(!isFirst || !isLast) && <span className="text-[11px] text-stone-200 select-none">|</span>}
-        <span className="text-[10px] text-faint">{t('story.sideSingleHint')}</span>*/}
+        {/*{(!isFirst || !isLast) && <span className="text-eyebrow text-stone-200 select-none">|</span>}
+        <span className="text-eyebrow text-faint">{t('story.sideSingleHint')}</span>*/}
       </div>
 
       <div className="flex gap-3">

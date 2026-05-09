@@ -67,12 +67,12 @@ export const TabletStoryBlock = memo(function TabletStoryBlock({
           </svg>
         </div>
         <div className="flex items-center gap-1 bg-white border border-gray-200 rounded px-1.5 py-0.5">
-          <span className="text-[10px] text-faint mr-1">{t('portfolio.column')}</span>
+          <span className="text-eyebrow text-faint mr-1">{t('portfolio.column')}</span>
           {(['grid', 'wide', 'single'] as const).map(l => (
             <button
               key={l}
               onClick={() => onLayoutChange(blockId, l)}
-              className={`min-h-[44px] px-2 text-[10px] rounded transition-colors ${
+              className={`min-h-[44px] px-2 text-eyebrow rounded transition-colors ${
                 blockLayout === l ? 'bg-muted text-card' : 'text-gray-500'
               }`}
             >

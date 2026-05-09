@@ -10,6 +10,14 @@
     <title>Racconto</title>
   </head>
   <body>
+    <!-- 텍스트 크기 설정을 렌더 전에 적용 (flash 방지) -->
+    <script>
+      (function() {
+        var s = localStorage.getItem('font_scale') || 'md';
+        var map = { sm: '14px', md: '16px', lg: '18px' };
+        document.documentElement.style.fontSize = map[s] || '16px';
+      })();
+    </script>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>

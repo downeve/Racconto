@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next'
 import { useElectronSidebar } from '../../context/ElectronSidebarContext'
 import { useAuth } from '../../context/AuthContext'
 import { Camera, BookOpen, FileText, LayoutDashboard, Aperture, Settings, ChevronDown, ChevronRight } from 'lucide-react'
+import { applyFontScale, getStoredFontScale, type FontScale } from '../../utils/fontScale'
 
 const API = import.meta.env.VITE_API_URL
 
@@ -55,16 +56,28 @@ export default function TabletSidebar({ activeTab, onTabChange, showTabs, width 
   }, [refreshTrigger])
 
   const currentLang = (i18n.language || 'ko').substring(0, 2)
+  const [fontScale, setFontScaleState] = useState<FontScale>(getStoredFontScale)
 
   const changeLanguage = (lang: string) => {
     i18n.changeLanguage(lang)
     localStorage.setItem('app_language', lang)
   }
 
+  const handleFontScale = (scale: FontScale) => {
+    applyFontScale(scale)
+    setFontScaleState(scale)
+  }
+
   const languages = [
     { code: 'ko', label: '한국어 (KO)' },
     { code: 'en', label: 'English (EN)' },
     { code: 'ja', label: '日本語 (JA)' },
+  ]
+
+  const fontScaleOptions: { scale: FontScale; label: string }[] = [
+    { scale: 'sm', label: t('settings.fontSizeSm') },
+    { scale: 'md', label: t('settings.fontSizeMd') },
+    { scale: 'lg', label: t('settings.fontSizeLg') },
   ]
 
   const avatarInitial = user?.email?.[0]?.toUpperCase() ?? '?'
@@ -188,7 +201,7 @@ export default function TabletSidebar({ activeTab, onTabChange, showTabs, width 
           onClick={() => setDropdownOpen(v => !v)}
           className="w-full flex items-center gap-2 px-3 py-2.5 min-h-[44px] bg-card"
         >
-          <span className="w-6 h-6 rounded-full bg-ink-2 text-canvas text-[10px] font-bold flex items-center justify-center shrink-0">
+          <span className="w-6 h-6 rounded-full bg-ink-2 text-canvas text-eyebrow font-bold flex items-center justify-center shrink-0">
             {avatarInitial}
           </span>
           <span className="text-small text-muted truncate">{user?.email}</span>
@@ -214,6 +227,26 @@ export default function TabletSidebar({ activeTab, onTabChange, showTabs, width 
                 {lang.label}
               </button>
             ))}
+            <div className="border-t border-hair my-1" />
+            <div className="px-3 py-1.5">
+              <p className="text-eyebrow text-faint mb-1.5 tracking-widest uppercase">{t('settings.fontSize')}</p>
+              <div className="flex gap-1">
+                {fontScaleOptions.map(({ scale, label }) => (
+                  <button
+                    key={scale}
+                    onClick={() => handleFontScale(scale)}
+                    className={`flex-1 py-1.5 min-h-[36px] rounded text-eyebrow transition-[background,color,border] duration-150 ease-out ${
+                      fontScale === scale
+                        ? 'bg-ink text-canvas font-bold'
+                        : 'text-muted hover:bg-hair/30 hover:text-ink'
+                    }`}
+                  >
+                    {label}
+                  </button>
+                ))}
+              </div>
+            </div>
+            <div className="border-t border-hair my-1" />
             <button
               onClick={() => { setDropdownOpen(false); logout() }}
               className="w-full text-left px-3 py-2 min-h-[44px] text-small text-red-400"

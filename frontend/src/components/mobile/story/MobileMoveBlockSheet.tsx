@@ -28,7 +28,7 @@ export default function MobileMoveBlockSheet({ otherBlocks, onSelect, onClose }:
               <div className="w-full h-full bg-stone-200" />
             )}
             {block.count > 1 && (
-              <div className="absolute bottom-1 right-1 bg-black/50 text-white text-[10px] px-1 rounded">
+              <div className="absolute bottom-1 right-1 bg-black/50 text-white text-eyebrow px-1 rounded">
                 {block.count}
               </div>
             )}

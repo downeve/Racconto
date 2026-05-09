@@ -38,7 +38,7 @@ export default function MobileBottomNav() {
             className={`flex flex-col items-center justify-center gap-1 flex-1 min-h-[56px] transition-colors ${active ? 'text-stone-900' : 'text-stone-400'}`}
           >
             <Icon size={22} strokeWidth={1.5} />
-            <span className="text-[10px] font-medium">{t(labelKey)}</span>
+            <span className="text-eyebrow font-medium">{t(labelKey)}</span>
           </button>
         )
       })}

@@ -201,7 +201,7 @@ export default function MobileProjectList() {
                   <p className="text-xs text-stone-400 truncate mt-0.5">{project.location}</p>
                 )}
                 {badge && (
-                  <span className={`inline-block mt-1 text-[10px] font-semibold px-2 py-0.5 rounded-full ${badge.cls}`}>
+                  <span className={`inline-block mt-1 text-eyebrow font-semibold px-2 py-0.5 rounded-full ${badge.cls}`}>
                     {t(badge.label)}
                   </span>
                 )}

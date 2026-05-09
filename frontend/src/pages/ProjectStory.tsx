@@ -1270,7 +1270,7 @@ function ProjectStory({
             <button
               aria-pressed={ghostMode}
               onClick={() => setGhostMode(v => !v)}
-              className={`flex-1 inline-flex items-center justify-center gap-1 px-1.5 py-1 text-[10px] rounded-card border transition-[background,color,border] duration-150 ease-out ${
+              className={`flex-1 inline-flex items-center justify-center gap-1 px-1.5 py-1 text-eyebrow rounded-card border transition-[background,color,border] duration-150 ease-out ${
                 ghostMode ? 'bg-stone-800 text-white border-stone-800' : 'text-muted border-faint hover:border-muted'
               }`}
               title={t('story.ghostMode')}
@@ -1308,7 +1308,7 @@ function ProjectStory({
               <div key={chapter.id}>
                 <div className="flex items-center gap-1 group rounded hover:bg-hair">
                   {subChapters.length > 0 ? (
-                    <button onClick={toggleCollapse} className="shrink-0 pl-1 text-muted hover:text-ink text-[10px] w-4">
+                    <button onClick={toggleCollapse} className="shrink-0 pl-1 text-muted hover:text-ink text-eyebrow w-4">
                       {isCollapsed ? '▸' : '▾'}
                     </button>
                   ) : (
@@ -1606,7 +1606,7 @@ function ProjectStory({
                           {(() => {
                             const count = getChapterPhotoCount(chapter.id)
                             return count > 0 ? (
-                              <span className="ml-1.5 inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-mono text-muted bg-stone-100 border border-stone-200 align-middle">
+                              <span className="ml-1.5 inline-flex items-center px-1.5 py-0.5 rounded text-eyebrow font-mono text-muted bg-stone-100 border border-stone-200 align-middle">
                                 {t('story.chapterPhotoCount', { count })}
                               </span>
                             ) : null
@@ -1750,7 +1750,7 @@ function ProjectStory({
                             {(() => {
                               const count = getChapterPhotoCount(subChapter.id)
                               return count > 0 ? (
-                                <span className="ml-1.5 inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-mono text-muted bg-stone-100 border border-stone-200 align-middle">
+                                <span className="ml-1.5 inline-flex items-center px-1.5 py-0.5 rounded text-eyebrow font-mono text-muted bg-stone-100 border border-stone-200 align-middle">
                                   {t('story.chapterPhotoCount', { count })}
                                 </span>
                               ) : null

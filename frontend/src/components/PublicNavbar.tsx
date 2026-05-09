@@ -116,7 +116,7 @@ export default function PublicNavbar({ username, darkMode, compact }: { username
               className={`flex items-center gap-1 text-body md:text-h3 font-semibold tracking-widest transition-colors duration-150 ${dm ? 'text-faint hover:text-hair' : 'text-faint hover:text-ink-2'}`}
             >
               {currentLang.toUpperCase()}
-              <span className={`text-[10px] transition-transform duration-200 ${isLangOpen ? 'rotate-180' : ''}`}>▼</span>
+              <span className={`text-eyebrow transition-transform duration-200 ${isLangOpen ? 'rotate-180' : ''}`}>▼</span>
             </button>
 
             {isLangOpen && (

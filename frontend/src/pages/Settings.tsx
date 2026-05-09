@@ -12,7 +12,8 @@ import {
   LockClosedIcon,
   UserCircleIcon,
 } from '@heroicons/react/24/outline'
-import { Sun, Moon, Check } from 'lucide-react'
+import { Sun, Moon, Check, ALargeSmall } from 'lucide-react'
+import { applyFontScale, getStoredFontScale, type FontScale } from '../utils/fontScale'
 
 const API = import.meta.env.VITE_API_URL
 const DELIVERY_ENABLED = import.meta.env.VITE_ENABLE_DELIVERY === 'true'
@@ -71,6 +72,13 @@ export default function Settings() {
   const [withdrawPassword, setWithdrawPassword] = useState('')
   const [withdrawError, setWithdrawError] = useState('')
   const [showWithdraw, setShowWithdraw] = useState(false)
+
+  const [fontScale, setFontScaleState] = useState<FontScale>(getStoredFontScale)
+
+  const handleFontScale = (scale: FontScale) => {
+    applyFontScale(scale)
+    setFontScaleState(scale)
+  }
 
   const { logout } = useAuth()
   const { t, i18n } = useTranslation()
@@ -284,6 +292,29 @@ export default function Settings() {
               />
             </div>
           </div>
+        </div>
+      </div>
+
+      {/* 텍스트 크기 */}
+      <div className="bg-white rounded-card shadow p-6 mb-6">
+        <h3 className="font-semibold mb-4 flex items-center gap-2">
+          <ALargeSmall className="w-5 h-5 text-gray-500" strokeWidth={1.5} />
+          {t('settings.fontSize')}
+        </h3>
+        <div className="flex gap-2">
+          {(['sm', 'md', 'lg'] as FontScale[]).map((scale) => (
+            <button
+              key={scale}
+              onClick={() => handleFontScale(scale)}
+              className={`flex-1 py-2 rounded-card text-small border transition-[background,color,border] duration-150 ease-out ${
+                fontScale === scale
+                  ? 'bg-ink text-canvas border-ink font-semibold'
+                  : 'bg-white text-muted border-hair hover:border-stone-400 hover:text-ink'
+              }`}
+            >
+              {t(`settings.fontSize${scale.charAt(0).toUpperCase() + scale.slice(1)}`)}
+            </button>
+          ))}
         </div>
       </div>
 
