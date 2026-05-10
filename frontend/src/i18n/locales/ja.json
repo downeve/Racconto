@@ -316,6 +316,7 @@
     "saveNote": "保存",
     "cancelNote": "キャンセル",
     "deleteNote": "削除",
+    "empty": "Notes",
     "noNotes": "ノートがありません。",
     "noNotes2": "調査、アイデア、コンセプトなどを自由に記録してください。",
     "noPhotoNote": "この写真に関連付けられたノートはありません。",

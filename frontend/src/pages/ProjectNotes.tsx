@@ -26,8 +26,8 @@ interface NoteItemProps {
   editContent: string
   editType: string
   editPreviewMode: boolean
-  NOTE_TYPES: { value: string; label: string; color: string }[]
-  getNoteType: (value: string) => { value: string; label: string; color: string }
+  NOTE_TYPES: { value: string; label: string; dot: string }[]
+  getNoteType: (value: string) => { value: string; label: string; dot: string }
   setEditType: (v: string) => void
   setEditPreviewMode: (v: boolean) => void
   setEditContent: (v: string) => void
@@ -46,60 +46,78 @@ const NoteItem = memo(function NoteItem({
 }: NoteItemProps) {
   const { t, i18n } = useTranslation()
   const typeInfo = getNoteType(note.note_type)
+
+  const formatted = new Date(note.updated_at).toLocaleString(
+    i18n.language?.startsWith('ko') ? 'ko-KR' : i18n.language?.startsWith('ja') ? 'ja-JP' : 'en-US',
+    { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' }
+  )
+
   return (
     <div
       ref={noteRef}
-      className={`bg-card rounded-card shadow p-4 ${note.is_pinned ? 'ring-1 ring-faint' : ''}`}
+      className={`group/note relative px-5 py-5 border-b border-edit-line transition-colors duration-150 ${
+        note.is_pinned
+          ? 'border-l-2 border-l-edit-ink pl-[18px] bg-edit-paper/40'
+          : 'border-l-2 border-l-transparent hover:bg-edit-paper/30'
+      }`}
     >
       {editingNote === note.id ? (
         <div>
+          {/* 편집 헤더 */}
           <div className="flex items-center gap-2 mb-3">
             <div className="flex gap-1.5 flex-wrap">
               {NOTE_TYPES.map(type => (
                 <button
                   key={type.value}
                   onClick={() => setEditType(type.value)}
-                  className={`px-2.5 py-1 text-menu rounded-card transition-[background,color,border] duration-150 ease-out ${
+                  className={`inline-flex items-center gap-1.5 px-2.5 py-1 t-eyebrow rounded-[1px] transition-colors duration-150 ${
                     editType === type.value
-                      ? type.color + ' ring-1 ring-current'
-                      : 'bg-gray-100 text-faint hover:hair'
+                      ? 'bg-edit-ink text-edit-paper'
+                      : 'text-edit-muted hover:text-edit-ink hover:bg-edit-paper-2'
                   }`}
                 >
+                  <span className={`w-1.5 h-1.5 rounded-full ${type.dot}`} />
                   {type.label}
                 </button>
               ))}
             </div>
-            <button
-              onClick={() => setEditPreviewMode(!editPreviewMode)}
-              className="ml-auto text-menu text-faint hover:text-ink inline-flex items-center gap-1"
-            >
-              {editPreviewMode
-                ? <><Pencil size={13} strokeWidth={1.5} />{t('note.editNote')}</>
-                : <><Eye size={13} strokeWidth={1.5} />{t('note.preview')}</>}
-            </button>
+            <div className="ml-auto flex items-center gap-1">
+              <button
+                onClick={() => setEditPreviewMode(false)}
+                className={`p-1.5 rounded-[1px] ${!editPreviewMode ? 'bg-edit-ink text-edit-paper' : 'text-edit-muted hover:text-edit-ink'}`}
+              >
+                <Pencil size={12} strokeWidth={1.5} />
+              </button>
+              <button
+                onClick={() => setEditPreviewMode(true)}
+                className={`p-1.5 rounded-[1px] ${editPreviewMode ? 'bg-edit-ink text-edit-paper' : 'text-edit-muted hover:text-edit-ink'}`}
+              >
+                <Eye size={12} strokeWidth={1.5} />
+              </button>
+            </div>
           </div>
           {editPreviewMode ? (
-            <div className="min-h-[100px] px-3 py-1.5 text-body text-ink-2 prose prose-sm max-w-none border rounded-card bg-gray-50">
+            <div className="min-h-[100px] py-2 font-serif text-[15px] leading-[1.7] text-edit-ink prose prose-sm max-w-none border-b border-edit-line">
               <ReactMarkdown>{editContent}</ReactMarkdown>
             </div>
           ) : (
             <textarea
-              className="w-full border rounded px-3 py-1.5 text-body mb-2 focus:outline-none focus:ring-1 focus:ring-ink resize-none"
+              className="w-full font-serif text-[15px] leading-[1.7] bg-transparent border-0 border-b border-edit-line focus:border-edit-ink focus:outline-none resize-none py-2 transition-colors duration-150 placeholder:text-edit-faint"
               rows={4}
               value={editContent}
               onChange={e => setEditContent(e.target.value)}
             />
           )}
-          <div className="flex gap-2 mt-2">
+          <div className="flex gap-2 mt-3">
             <button
               onClick={() => handleUpdate(note.id)}
-              className="text-small btn-primary tracking-wider transition-[background,color,border] duration-150 ease-out"
+              className="t-caption px-4 py-1.5 bg-edit-ink text-edit-paper rounded-[1px] hover:bg-edit-ink/85 transition-colors"
             >
               {t('note.saveNote')}
             </button>
             <button
               onClick={() => { setEditingNote(null); setEditPreviewMode(false) }}
-              className="text-small btn-secondary-on-card tracking-wider transition-[background,color,border] duration-150 ease-out"
+              className="t-caption px-4 py-1.5 text-edit-muted hover:text-edit-ink transition-colors"
             >
               {t('note.cancelNote')}
             </button>
@@ -107,43 +125,53 @@ const NoteItem = memo(function NoteItem({
         </div>
       ) : (
         <div>
-          <div className="flex items-center gap-2 mb-2">
-            <span className={`px-2.5 py-1 text-menu font-semibold rounded-card ${typeInfo.color}`}>
+          {/* 헤더 */}
+          <div className="flex items-center gap-3 mb-3">
+            <span className="t-eyebrow text-edit-muted inline-flex items-center gap-1.5">
+              <span className={`w-1.5 h-1.5 rounded-full ${typeInfo.dot}`} />
               {typeInfo.label}
             </span>
             {note.photo_id && (() => {
               const photo = photos.find(p => p.id === note.photo_id)
               return photo ? (
                 <div className="flex items-center gap-2">
-                  <img src={photo.image_url} alt="" className="w-8 h-8 object-cover rounded border border-gray-200" />
-                  {photo.caption && <span className="text-xs text-gray-400 italic">{photo.caption}</span>}
+                  <img src={photo.image_url} alt="" className="w-7 h-7 object-cover rounded-[1px] border border-edit-line" />
+                  {photo.caption && <span className="t-caption text-edit-faint italic">{photo.caption}</span>}
                 </div>
               ) : null
             })()}
-            {note.is_pinned && <span className="text-menu text-faint inline-flex items-center gap-1"><Pin size={12} strokeWidth={1.5} />{t('note.pinned')}</span>}
-            <div className="ml-auto flex items-center gap-3">
-              <span className="text-menu text-faint">
-                {new Date(note.updated_at).toLocaleString(
-                  i18n.language?.startsWith('ko') ? 'ko-KR' : 'en-US',
-                  { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' }
-                )}
+            {note.is_pinned && (
+              <span className="t-caption text-edit-muted inline-flex items-center gap-1">
+                <Pin size={11} strokeWidth={1.5} />{t('note.pinned')}
               </span>
-              <button
-                onClick={() => handleTogglePin(note.id)}
-                className={`text-caption hover:text-ink transition-[background,color,border] duration-150 ease-out ${note.is_pinned ? 'text-muted' : 'text-gray-300 hover:text-muted'}`}
-                title={note.is_pinned ? `${t('note.pinRemove')}` : `${t('note.pin')}`}
-              >
-                <Pin size={14} strokeWidth={1.5} />
-              </button>
-              <button onClick={() => startEdit(note)} className="text-menu text-faint hover:text-ink">
-                {t('note.editNote')}
-              </button>
-              <button onClick={() => handleDelete(note.id)} className="text-menu text-red-400 hover:text-red-600">
-                {t('note.deleteNote')}
-              </button>
+            )}
+            <div className="ml-auto flex items-center gap-4">
+              <time className="t-caption text-edit-faint">{formatted}</time>
+              <div className="opacity-0 group-hover/note:opacity-100 focus-within:opacity-100 transition-opacity flex items-center gap-3">
+                <button
+                  onClick={() => handleTogglePin(note.id)}
+                  title={note.is_pinned ? t('note.pinRemove') : t('note.pin')}
+                  className="text-edit-muted hover:text-edit-ink transition-colors"
+                >
+                  <Pin size={13} strokeWidth={1.5} />
+                </button>
+                <button
+                  onClick={() => startEdit(note)}
+                  className="t-eyebrow text-edit-muted hover:text-edit-ink transition-colors"
+                >
+                  {t('note.editNote')}
+                </button>
+                <button
+                  onClick={() => handleDelete(note.id)}
+                  className="t-eyebrow text-edit-danger hover:text-edit-danger/70 transition-colors"
+                >
+                  {t('note.deleteNote')}
+                </button>
+              </div>
             </div>
           </div>
-          <div className="prose prose-sm max-w-none text-ink-2">
+          {/* 본문 */}
+          <div className="prose prose-sm max-w-none text-edit-ink/85 font-serif leading-[1.7]">
             <ReactMarkdown>{note.content}</ReactMarkdown>
           </div>
         </div>
@@ -182,7 +210,14 @@ function ProjectNotes({
   const { setSidebarContent } = useElectronSidebar()
 
   const scrollToNote = (noteId: string) => {
-    noteRefs.current[noteId]?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    const el = noteRefs.current[noteId]
+    if (!el) return
+    const container = el.closest('[data-notes-scroll]') as HTMLElement | null
+    if (container) {
+      container.scrollTo({ top: el.offsetTop - 16, behavior: 'smooth' })
+    } else {
+      el.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    }
   }
 
   const filteredNotes = useMemo(() => notes.filter(note => {
@@ -192,10 +227,10 @@ function ProjectNotes({
   }), [notes, filterPinned, filterType])
 
   const NOTE_TYPES = [
-    { value: 'memo',     label: t('note.labelWork'), color: 'bg-stone-100 text-stone-600' },
-    { value: 'concept',  label: t('note.labelConcept'), color: 'bg-blue-50 text-blue-600' },
-    { value: 'research', label: t('note.labelResearch'), color: 'bg-green-50 text-green-600' },
-    { value: 'client',   label: t('note.labelClient'), color: 'bg-amber-50 text-amber-600' },
+    { value: 'memo',     label: t('note.labelWork'),     dot: 'bg-edit-faint' },
+    { value: 'concept',  label: t('note.labelConcept'),  dot: 'bg-edit-accent' },
+    { value: 'research', label: t('note.labelResearch'), dot: 'bg-label-green' },
+    { value: 'client',   label: t('note.labelClient'),   dot: 'bg-label-yellow' },
   ]
 
   const getNoteType = (value: string) => {
@@ -268,47 +303,52 @@ function ProjectNotes({
     setEditPreviewMode(false)
   }
 
+  // sidebar — dot 토큰 통일
+  const sidebarItem = (active: boolean) =>
+    `relative w-full text-left px-2 py-1.5 rounded-[1px] flex items-center justify-between t-caption transition-colors duration-150 ${
+      active
+        ? 'bg-edit-ink/[0.06] text-edit-ink before:absolute before:left-0 before:top-1.5 before:bottom-1.5 before:w-[2px] before:bg-edit-ink'
+        : 'text-edit-muted hover:bg-edit-paper hover:text-edit-ink'
+    }`
+
   useEffect(() => {
     if (activeTab !== 'notes') return
     setSidebarContent(
       <div className="p-4">
-        {/*<p className="text-menu font-semibold text-muted mb-2">{t('note.filter')}</p>*/}
         <button onClick={() => { setFilterType(null); setFilterPinned(false) }}
-          className={`w-full text-left px-2 py-1.5 text-menu rounded-card flex items-center justify-between mb-1 ${!filterType && !filterPinned ? 'bg-ink text-card' : 'hover:bg-hair text-ink-2'}`}>
+          className={sidebarItem(!filterType && !filterPinned)}>
           <span>{t('note.filterAll')}</span>
-          <span className={!filterType && !filterPinned ? 'text-faint' : 'text-muted'}>{notes.length}</span>
+          <span>{notes.length}</span>
         </button>
         <button onClick={() => { setFilterPinned(!filterPinned); setFilterType(null) }}
-          className={`w-full text-left px-2 py-1.5 text-caption rounded flex items-center justify-between mb-3 ${filterPinned ? 'bg-ink text-card' : 'hover:bg-hair text-ink-2'}`}>
+          className={`${sidebarItem(filterPinned)} mt-0.5 mb-3`}>
           <span className="flex items-center gap-1"><Pin size={12} strokeWidth={1.5} />{t('note.pinned')}</span>
-          <span className={filterPinned ? 'text-faint' : 'text-muted'}>{notes.filter(n => n.is_pinned).length}</span>
+          <span>{notes.filter(n => n.is_pinned).length}</span>
         </button>
-        <div className="border-t border-hair/90 my-2" />
-        <div className="space-y-1">
+        <div className="border-t border-edit-line my-2" />
+        <div className="space-y-0.5">
           {NOTE_TYPES.map(type => (
             <button key={type.value}
               onClick={() => { setFilterType(filterType === type.value ? null : type.value); setFilterPinned(false) }}
-              className={`w-full text-left px-2 py-1.5 text-menu rounded flex items-center justify-between ${filterType === type.value ? 'bg-ink text-card' : 'hover:bg-hair text-ink-2'}`}>
+              className={sidebarItem(filterType === type.value)}>
               <span className="flex items-center gap-1.5">
-                <span className={`w-2 h-2 rounded-full ${
-                  type.value === 'memo' ? 'bg-stone-400' :
-                  type.value === 'concept' ? 'bg-blue-400' :
-                  type.value === 'research' ? 'bg-green-400' : 'bg-amber-400'
-                }`} />
+                <span className={`w-1.5 h-1.5 rounded-full ${type.dot}`} />
                 {type.label}
               </span>
-              <span className={filterType === type.value ? 'text-faint' : 'text-muted'}>{notes.filter(n => n.note_type === type.value).length}</span>
+              <span>{notes.filter(n => n.note_type === type.value).length}</span>
             </button>
           ))}
         </div>
         {notes.filter(n => n.is_pinned).length > 0 && (
           <>
-            <div className="border-t border-hair/90 my-3" />
-            <p className="text-menu font-semibold text-muted mb-2 flex items-center gap-1"><Pin size={12} strokeWidth={1.5} />{t('note.pinned2')}</p>
-            <div className="space-y-1">
+            <div className="border-t border-edit-line my-3" />
+            <p className="t-eyebrow text-edit-muted mb-2 flex items-center gap-1">
+              <Pin size={11} strokeWidth={1.5} />{t('note.pinned2')}
+            </p>
+            <div className="space-y-0.5">
               {notes.filter(n => n.is_pinned).map(note => (
                 <button key={note.id} onClick={() => scrollToNote(note.id)}
-                  className="w-full text-left px-2 py-1.5 text-menu rounded hover:bg-hair text-muted hover:text-ink truncate">
+                  className="w-full text-left px-2 py-1.5 t-caption rounded-[1px] hover:bg-edit-paper text-edit-muted hover:text-edit-ink truncate">
                   {note.content.slice(0, 30)}{note.content.length > 30 ? '...' : ''}
                 </button>
               ))}
@@ -321,55 +361,61 @@ function ProjectNotes({
 
   return (
     <>
+      {confirmModal && (
+        <ConfirmModal
+          message={confirmModal.message}
+          onConfirm={confirmModal.onConfirm}
+          onCancel={() => setConfirmModal(null)}
+          dangerous
+        />
+      )}
 
-    {confirmModal && (
-      <ConfirmModal
-        message={confirmModal.message}
-        onConfirm={confirmModal.onConfirm}
-        onCancel={() => setConfirmModal(null)}
-        dangerous
-      />
-    )}
-
-      <div className="max-w-5xl">
-        {/* 새 노트 작성 */}
-        <div className="bg-card rounded-card shadow p-4 mb-6">
+      <div className="max-w-3xl" data-notes-scroll>
+        {/* 새 노트 작성 — 종이 단락 */}
+        <div className="px-5 py-5 border-b border-edit-line">
           <div className="flex items-center gap-2 mb-3">
             <div className="flex gap-1.5 flex-wrap">
               {NOTE_TYPES.map(type => (
                 <button
                   key={type.value}
                   onClick={() => setNewType(type.value)}
-                  className={`px-2.5 py-1 text-menu rounded-btn transition-[background,color,border] duration-150 ease-out ${
+                  className={`inline-flex items-center gap-1.5 px-2.5 py-1 t-eyebrow rounded-[1px] transition-colors duration-150 ${
                     newType === type.value
-                      ? type.color + ' font-semibold ring-1 ring-current'
-                      : 'bg-gray-100 text-muted hover:bg-hair'
+                      ? 'bg-edit-ink text-edit-paper'
+                      : 'text-edit-muted hover:text-edit-ink hover:bg-edit-paper-2'
                   }`}
                 >
+                  <span className={`w-1.5 h-1.5 rounded-full ${type.dot}`} />
                   {type.label}
                 </button>
               ))}
             </div>
-            <button
-              onClick={() => setPreviewMode(!previewMode)}
-              className="ml-auto text-menu text-faint hover:text-ink inline-flex items-center gap-1"
-            >
-              {previewMode
-                ? <><Pencil size={13} strokeWidth={1.5} />{t('note.editNote')}</>
-                : <><Eye size={13} strokeWidth={1.5} />{t('note.preview')}</>}
-            </button>
+            <div className="ml-auto flex items-center gap-1">
+              <button
+                onClick={() => setPreviewMode(false)}
+                className={`p-1.5 rounded-[1px] ${!previewMode ? 'bg-edit-ink text-edit-paper' : 'text-edit-muted hover:text-edit-ink'}`}
+              >
+                <Pencil size={12} strokeWidth={1.5} />
+              </button>
+              <button
+                onClick={() => setPreviewMode(true)}
+                className={`p-1.5 rounded-[1px] ${previewMode ? 'bg-edit-ink text-edit-paper' : 'text-edit-muted hover:text-edit-ink'}`}
+              >
+                <Eye size={12} strokeWidth={1.5} />
+              </button>
+            </div>
           </div>
 
           {previewMode ? (
-            <div className="min-h-[100px] px-3 py-1.5 text-body text-ink-2 prose prose-sm max-w-none border rounded-card bg-gray-50">
+            <div className="min-h-[100px] py-2 font-serif text-[15px] leading-[1.7] text-edit-ink prose prose-sm max-w-none border-b border-edit-line">
               {newContent
                 ? <ReactMarkdown>{newContent}</ReactMarkdown>
-                : <p className="text-faint">{t('note.previewInfo')}</p>
+                : <p className="text-edit-faint">{t('note.previewInfo')}</p>
               }
             </div>
           ) : (
             <textarea
-              className="w-full border rounded px-3 py-1.5 text-body mb-2 focus:outline-none focus:ring-1 focus:ring-ink-2 resize-none"
+              className="w-full font-serif text-[15px] leading-[1.7] bg-transparent border-0 border-b border-edit-line focus:border-edit-ink focus:outline-none resize-none py-2 transition-colors duration-150 placeholder:text-edit-faint"
               placeholder={t('note.editMdDescription')}
               rows={4}
               value={newContent}
@@ -377,11 +423,11 @@ function ProjectNotes({
             />
           )}
 
-          <div className="flex justify-end mt-2">
+          <div className="flex justify-end mt-3">
             <button
               onClick={handleAdd}
               disabled={!newContent.trim()}
-              className="text-small btn-primary tracking-wider transition-[background,color,border] duration-150 ease-out disabled:opacity-40"
+              className="t-caption px-4 py-1.5 bg-edit-ink text-edit-paper rounded-[1px] hover:bg-edit-ink/85 transition-colors disabled:opacity-40"
             >
               {t('note.addNote')}
             </button>
@@ -389,7 +435,7 @@ function ProjectNotes({
         </div>
 
         {/* 노트 목록 */}
-        <div className="space-y-4">
+        <div>
           {filteredNotes.map(note => (
             <NoteItem
               key={note.id}
@@ -414,15 +460,15 @@ function ProjectNotes({
           ))}
 
           {filteredNotes.length === 0 && (
-            <div className="text-center py-20 text-faint">
-              {filterType || filterPinned
-                ? <p className="text-h3 mb-2">{t('filter.noMatch')}</p>
-                : <>
-                    <p className="text-h3 mb-2">{t('note.noNotes')}</p>
-                    <p className="text-h3">{t('note.noNotes2')}</p>
-                  </>
-              }
-            </div>
+            filterType || filterPinned
+              ? <div className="py-16 text-center">
+                  <p className="t-caption text-edit-faint">{t('filter.noMatch')}</p>
+                </div>
+              : <div className="text-center py-24 max-w-sm mx-auto">
+                  <p className="t-eyebrow text-edit-faint mb-3">{t('note.empty')}</p>
+                  <p className="font-serif text-h3 text-edit-ink/80 mb-2 font-normal">{t('note.noNotes')}</p>
+                  <p className="text-body text-edit-muted">{t('note.noNotes2')}</p>
+                </div>
           )}
         </div>
       </div>
