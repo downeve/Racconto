@@ -71,7 +71,7 @@ export default function Dashboard() {
             <div>
               <div className="flex items-stretch">
                 <div className="flex flex-col justify-between min-w-[140px]">
-                  <div>
+                  <div className="text-center">
                     <p className="text-body text-muted mb-2">My Stories</p>
                     <p className="font-serif text-[2.5rem] font-normal tracking-tight">{projects.length}</p>
                     <p className="text-muted text-body mt-1">{t('dashboard.totalStories')}</p>
@@ -85,8 +85,8 @@ export default function Dashboard() {
                     { labelKey: 'status.published',   value: 'published',   color: 'bg-status-published'  },
                     { labelKey: 'status.archived',    value: 'archived',    color: 'bg-status-archived' },
                   ].map(({ labelKey, value, color }) => (
-                    <div key={value} className="flex flex-col gap-0.5">
-                      <span className="flex items-center text-center gap-1.5 t-eyebrow text-muted">
+                    <div key={value} className="flex flex-col items-center gap-0.5">
+                      <span className="flex items-center gap-1.5 t-eyebrow text-muted">
                         <span className={`w-2 h-2 rounded-full ${color}`} />
                         {t(labelKey)}
                       </span>
@@ -170,11 +170,8 @@ export default function Dashboard() {
 
         {/* 3. Recent Projects: Projects.tsx의 그리드 디자인 활용 */}
         <section>
-          <div className="flex items-end gap-4 mb-space-sm border-b border-hair pb-4">
+          <div className="mb-space-sm border-b border-hair pb-4">
             <p className="text-body text-muted">{t('dashboard.recent')}</p>
-            <Link to="/projects" className="text-muted text-body hover:text-ink transition-colors">
-              {t('dashboard.viewAll')} →
-            </Link>
           </div>
 
           {recentProjects.length > 0 ? (
