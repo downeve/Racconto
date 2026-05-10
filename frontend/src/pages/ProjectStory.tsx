@@ -1,7 +1,7 @@
 import { useEffect, useState, useMemo, useRef, memo, useCallback } from 'react'
 import axios from 'axios'
 import { useTranslation } from 'react-i18next'
-import { Eye, Plus, FileText, Sun, Moon, Grid3X3, Rows3, Square } from 'lucide-react'
+import { Eye, Plus, FileText, Sun, Moon, Grid3X3, Rows3, Square, BookOpen } from 'lucide-react'
 import { cfUrl } from '../utils/cfImage'
 //import { Rows3 } from 'lucide-react'
 import PhotoNotePanel from '../components/PhotoNotePanel'
@@ -158,7 +158,8 @@ function ProjectStory({
   //})
   // const [showPortfolioPreview, setShowPortfolioPreview] = useState(false)
   const [previewLbIndex, setPreviewLbIndex] = useState<number | null>(null)
-  const [previewLbItems, setPreviewLbItems] = useState<{ photo: PortfolioPhoto; title: string }[]>([])
+  const [previewLbItems, setPreviewLbItems] = useState<{ photo: PortfolioPhoto; title: string; chapterLabel: string }[]>([])
+  const [lbNoteOpen, setLbNoteOpen] = useState(false)
 
   const [activeBlockId, setActiveBlockId] = useState<string | null>(null)
   const [activeBlockItems, setActiveBlockItems] = useState<ChapterItem[]>([])
@@ -2034,16 +2035,16 @@ function ProjectStory({
           : 'border-faint text-muted hover:text-ink'
 
         // 전체 챕터 사진을 라이트박스용으로 수집
-        const allLbItems: { photo: PortfolioPhoto; title: string }[] =
-          chapters.filter(c => !c.parent_id).flatMap((chapter) => {
+        const allLbItems: { photo: PortfolioPhoto; title: string; chapterLabel: string }[] =
+          chapters.filter(c => !c.parent_id).flatMap((chapter, ci) => {
             const subs = chapters.filter(c => c.parent_id === chapter.id)
             const mainItems = getVisibleChapterItems(chapter.id)
               .filter(i => i.item_type !== 'TEXT')
-              .map(i => ({ photo: i as PortfolioPhoto, title: chapter.title }))
-            const subItems = subs.flatMap(sub =>
+              .map(i => ({ photo: i as PortfolioPhoto, title: chapter.title, chapterLabel: `Ch ${ci + 1}.` }))
+            const subItems = subs.flatMap((sub, si) =>
               getVisibleChapterItems(sub.id)
                 .filter(i => i.item_type !== 'TEXT')
-                .map(i => ({ photo: i as PortfolioPhoto, title: sub.title }))
+                .map(i => ({ photo: i as PortfolioPhoto, title: sub.title, chapterLabel: `Ch ${ci + 1}.${si + 1}.` }))
             )
             return [...mainItems, ...subItems]
           })
@@ -2146,34 +2147,68 @@ function ProjectStory({
             {/* 프리뷰 라이트박스 */}
             {previewLbIndex !== null && (() => {
               const activeLbItem = previewLbItems[previewLbIndex]
+              const chipBase = "inline-flex items-center gap-1.5 t-caption px-3 py-1.5 rounded-[1px] border transition-colors duration-150"
+              const chipIdle = "border-edit-paper/30 text-edit-paper/80 hover:text-edit-paper hover:border-edit-paper/60"
+              const chipActive = "border-edit-paper/50 text-edit-paper bg-edit-paper/5"
               return activeLbItem ? (
                 <div
-                  className="fixed inset-0 bg-lightbox/[.97] z-[100] flex items-center justify-center"
-                  onClick={() => setPreviewLbIndex(null)}
+                  className="fixed inset-0 bg-lightbox/[.97] z-[100] flex flex-col"
+                  onClick={() => { setPreviewLbIndex(null); setLbNoteOpen(false) }}
                 >
-                  <button
-                    className="absolute top-6 right-6 text-h2 z-10 p-3 text-hair hover:opacity-50"
-                    onClick={() => setPreviewLbIndex(null)}
-                  >✕</button>
-                  {previewLbIndex > 0 && (
-                    <button
-                      className="absolute left-6 text-display z-10 select-none text-hair hover:opacity-50"
-                      onClick={e => { e.stopPropagation(); setPreviewLbIndex(v => v! - 1) }}
-                    >‹</button>
-                  )}
-                  <div className="w-full h-full p-4 flex flex-col items-center">
+                  {/* 상단 바 */}
+                  <div className="flex items-center justify-between px-4 pt-3 pb-0 shrink-0" onClick={e => e.stopPropagation()}>
+                    <div className="flex-1" />
+                    <div className="flex items-center gap-3">
+                      <span className={`${chipBase} ${chipIdle}`}>
+                        <BookOpen size={13} strokeWidth={1.5} />
+                        {activeLbItem.chapterLabel} {activeLbItem.title}
+                      </span>
+                      <button
+                        onClick={() => setLbNoteOpen(v => !v)}
+                        className={`${chipBase} ${lbNoteOpen ? chipActive : chipIdle}`}
+                      >
+                        <FileText size={13} strokeWidth={1.5} />{t('note.title')}
+                      </button>
+                    </div>
+                    <div className="flex-1 flex items-center justify-end gap-2">
+                      <span className="text-edit-paper/60 text-small">{previewLbIndex + 1} / {previewLbItems.length}</span>
+                      <button
+                        className="text-edit-paper/80 hover:text-edit-paper text-h2 p-3"
+                        onClick={() => { setPreviewLbIndex(null); setLbNoteOpen(false) }}
+                      >✕</button>
+                    </div>
+                  </div>
+                  {/* 이미지 */}
+                  <div className="flex-1 flex items-center justify-center relative min-h-0" onClick={() => { setPreviewLbIndex(null); setLbNoteOpen(false) }}>
+                    {previewLbIndex > 0 && (
+                      <button
+                        className="absolute left-4 z-10 text-edit-paper/80 hover:text-edit-paper text-h1 select-none p-4"
+                        onClick={e => { e.stopPropagation(); setPreviewLbIndex(v => v! - 1); setLbNoteOpen(false) }}
+                      >‹</button>
+                    )}
                     <img
                       src={cfUrl(activeLbItem.photo.image_url, 'public')}
                       alt={activeLbItem.photo.caption || ''}
-                      className="h-full w-auto object-contain"
+                      className="max-w-[calc(100%-8rem)] max-h-full object-contain"
                       onClick={e => e.stopPropagation()}
                     />
+                    {previewLbIndex < previewLbItems.length - 1 && (
+                      <button
+                        className="absolute right-4 z-10 text-edit-paper/80 hover:text-edit-paper text-h1 select-none p-4"
+                        onClick={e => { e.stopPropagation(); setPreviewLbIndex(v => v! + 1); setLbNoteOpen(false) }}
+                      >›</button>
+                    )}
                   </div>
-                  {previewLbIndex < previewLbItems.length - 1 && (
-                    <button
-                      className="absolute right-6 text-display z-10 select-none text-hair hover:opacity-50"
-                      onClick={e => { e.stopPropagation(); setPreviewLbIndex(v => v! + 1) }}
-                    >›</button>
+                  {/* 노트 패널 */}
+                  {lbNoteOpen && activeLbItem.photo.id && (
+                    <div onClick={e => e.stopPropagation()}>
+                      <PhotoNotePanel
+                        photoId={activeLbItem.photo.id}
+                        projectId={projectId}
+                        onClose={() => setLbNoteOpen(false)}
+                        onNoteChange={() => {}}
+                      />
+                    </div>
                   )}
                 </div>
               ) : null
@@ -2202,20 +2237,26 @@ function ProjectStory({
           ? chapters.find(c => c.id === targetChapter.parent_id)
           : null
 
-        const chapterLbItems: { photo: PortfolioPhoto; title: string }[] = (() => {
+        const mainChaptersAll = chapters.filter(c => !c.parent_id)
+        const chapterLbItems: { photo: PortfolioPhoto; title: string; chapterLabel: string }[] = (() => {
           if (isSubChapter) {
+            const parentIdx = mainChaptersAll.findIndex(c => c.id === targetChapter.parent_id)
+            const subs = chapters.filter(c => c.parent_id === targetChapter.parent_id)
+            const subIdx = subs.findIndex(c => c.id === chapterPreviewId)
+            const label = `Ch ${parentIdx + 1}.${subIdx + 1}.`
             return getVisibleChapterItems(chapterPreviewId)
               .filter(i => i.item_type !== 'TEXT')
-              .map(i => ({ photo: i as PortfolioPhoto, title: targetChapter.title }))
+              .map(i => ({ photo: i as PortfolioPhoto, title: targetChapter.title, chapterLabel: label }))
           } else {
+            const mainIdx = mainChaptersAll.findIndex(c => c.id === chapterPreviewId)
             const subs = chapters.filter(c => c.parent_id === chapterPreviewId)
             const mainItems = getVisibleChapterItems(chapterPreviewId)
               .filter(i => i.item_type !== 'TEXT')
-              .map(i => ({ photo: i as PortfolioPhoto, title: targetChapter.title }))
-            const subItems = subs.flatMap(sub =>
+              .map(i => ({ photo: i as PortfolioPhoto, title: targetChapter.title, chapterLabel: `Ch ${mainIdx + 1}.` }))
+            const subItems = subs.flatMap((sub, si) =>
               getVisibleChapterItems(sub.id)
                 .filter(i => i.item_type !== 'TEXT')
-                .map(i => ({ photo: i as PortfolioPhoto, title: sub.title }))
+                .map(i => ({ photo: i as PortfolioPhoto, title: sub.title, chapterLabel: `Ch ${mainIdx + 1}.${si + 1}.` }))
             )
             return [...mainItems, ...subItems]
           }
@@ -2290,34 +2331,68 @@ function ProjectStory({
             {/* 슬라이드오버 내 라이트박스 */}
             {previewLbIndex !== null && (() => {
               const activeLbItem = previewLbItems[previewLbIndex]
+              const chipBase = "inline-flex items-center gap-1.5 t-caption px-3 py-1.5 rounded-[1px] border transition-colors duration-150"
+              const chipIdle = "border-edit-paper/30 text-edit-paper/80 hover:text-edit-paper hover:border-edit-paper/60"
+              const chipActive = "border-edit-paper/50 text-edit-paper bg-edit-paper/5"
               return activeLbItem ? (
                 <div
-                  className="fixed inset-0 bg-lightbox/[.97] z-[100] flex items-center justify-center"
-                  onClick={() => setPreviewLbIndex(null)}
+                  className="fixed inset-0 bg-lightbox/[.97] z-[100] flex flex-col"
+                  onClick={() => { setPreviewLbIndex(null); setLbNoteOpen(false) }}
                 >
-                  <button
-                    className="absolute top-6 right-6 text-h2 z-10 p-3 text-hair hover:opacity-50"
-                    onClick={() => setPreviewLbIndex(null)}
-                  >✕</button>
-                  {previewLbIndex > 0 && (
-                    <button
-                      className="absolute left-6 text-display z-10 select-none text-hair hover:opacity-50"
-                      onClick={e => { e.stopPropagation(); setPreviewLbIndex(v => v! - 1) }}
-                    >‹</button>
-                  )}
-                  <div className="w-full h-full p-4 flex flex-col items-center">
+                  {/* 상단 바 */}
+                  <div className="flex items-center justify-between px-4 pt-3 pb-0 shrink-0" onClick={e => e.stopPropagation()}>
+                    <div className="flex-1" />
+                    <div className="flex items-center gap-3">
+                      <span className={`${chipBase} ${chipIdle}`}>
+                        <BookOpen size={13} strokeWidth={1.5} />
+                        {activeLbItem.chapterLabel} {activeLbItem.title}
+                      </span>
+                      <button
+                        onClick={() => setLbNoteOpen(v => !v)}
+                        className={`${chipBase} ${lbNoteOpen ? chipActive : chipIdle}`}
+                      >
+                        <FileText size={13} strokeWidth={1.5} />{t('note.title')}
+                      </button>
+                    </div>
+                    <div className="flex-1 flex items-center justify-end gap-2">
+                      <span className="text-edit-paper/60 text-small">{previewLbIndex + 1} / {previewLbItems.length}</span>
+                      <button
+                        className="text-edit-paper/80 hover:text-edit-paper text-h2 p-3"
+                        onClick={() => { setPreviewLbIndex(null); setLbNoteOpen(false) }}
+                      >✕</button>
+                    </div>
+                  </div>
+                  {/* 이미지 */}
+                  <div className="flex-1 flex items-center justify-center relative min-h-0" onClick={() => { setPreviewLbIndex(null); setLbNoteOpen(false) }}>
+                    {previewLbIndex > 0 && (
+                      <button
+                        className="absolute left-4 z-10 text-edit-paper/80 hover:text-edit-paper text-h1 select-none p-4"
+                        onClick={e => { e.stopPropagation(); setPreviewLbIndex(v => v! - 1); setLbNoteOpen(false) }}
+                      >‹</button>
+                    )}
                     <img
                       src={cfUrl(activeLbItem.photo.image_url, 'public')}
                       alt={activeLbItem.photo.caption || ''}
-                      className="h-full w-auto object-contain"
+                      className="max-w-[calc(100%-8rem)] max-h-full object-contain"
                       onClick={e => e.stopPropagation()}
                     />
+                    {previewLbIndex < previewLbItems.length - 1 && (
+                      <button
+                        className="absolute right-4 z-10 text-edit-paper/80 hover:text-edit-paper text-h1 select-none p-4"
+                        onClick={e => { e.stopPropagation(); setPreviewLbIndex(v => v! + 1); setLbNoteOpen(false) }}
+                      >›</button>
+                    )}
                   </div>
-                  {previewLbIndex < previewLbItems.length - 1 && (
-                    <button
-                      className="absolute right-6 text-display z-10 select-none text-hair hover:opacity-50"
-                      onClick={e => { e.stopPropagation(); setPreviewLbIndex(v => v! + 1) }}
-                    >›</button>
+                  {/* 노트 패널 */}
+                  {lbNoteOpen && activeLbItem.photo.id && (
+                    <div onClick={e => e.stopPropagation()}>
+                      <PhotoNotePanel
+                        photoId={activeLbItem.photo.id}
+                        projectId={projectId}
+                        onClose={() => setLbNoteOpen(false)}
+                        onNoteChange={() => {}}
+                      />
+                    </div>
                   )}
                 </div>
               ) : null
