@@ -1246,11 +1246,11 @@ function ProjectStory({
         const parentIndex = mainChapters.findIndex(c => c.id === chapter.parent_id);
         const subChapters = chapters.filter(c => c.parent_id === chapter.parent_id);
         const subIndex = subChapters.findIndex(c => c.id === chapterId);
-        return `Chapter ${parentIndex + 1}.${subIndex + 1} - ${chapter.title}`;
+        return `Ch. ${parentIndex + 1}.${subIndex + 1} - ${chapter.title}`;
       } else {
-        // 최상위 챕터인 경우 (예: Chapter 1)
+        // 최상위 챕터인 경우 (예: Ch. 1)
         const mainIndex = mainChapters.findIndex(c => c.id === chapterId);
-        return `Chapter ${mainIndex + 1}. ${chapter.title}`;
+        return `Ch. ${mainIndex + 1}. ${chapter.title}`;
       }
     };
 
@@ -1336,7 +1336,7 @@ function ProjectStory({
                                transition-colors duration-150"
                   >
                     <span className="truncate">
-                      <span className="text-edit-faint mr-0.5">Ch {idx + 1}.</span>{chapter.title}
+                      <span className="text-edit-faint mr-0.5">Ch. {idx + 1}.</span>{chapter.title}
                     </span>
                   </button>
                   <div className="flex items-center shrink-0 opacity-0 group-hover:opacity-100
@@ -1375,7 +1375,7 @@ function ProjectStory({
                                      transition-colors duration-150"
                         >
                           <span className="truncate">
-                            <span className="mr-0.5">Ch {idx + 1}.{subIdx + 1}.</span>{sub.title}
+                            <span className="mr-0.5">Ch. {idx + 1}.{subIdx + 1}.</span>{sub.title}
                           </span>
                         </button>
                         <div className="flex items-center shrink-0 opacity-0 group-hover:opacity-100
@@ -1683,7 +1683,7 @@ function ProjectStory({
                       <div className="flex items-baseline justify-between gap-4">
                         <div className="flex items-baseline gap-3 min-w-0">
                           <h3 className="font-serif text-h3 text-edit-ink tracking-tight [word-break:keep-all]">
-                            <span className="font-sans text-body text-edit-muted mr-2">Ch {idx + 1}.</span>{chapter.title}
+                            <span className="font-sans text-body text-edit-muted mr-2">Ch. {idx + 1}.</span>{chapter.title}
                           </h3>
                           {getChapterPhotoCount(chapter.id) > 0 && (
                             <span className="t-eyebrow text-edit-faint shrink-0">
@@ -1847,7 +1847,7 @@ function ProjectStory({
                           <div className="flex items-baseline justify-between gap-4">
                             <div className="flex items-baseline gap-3 min-w-0">
                               <h4 className="font-serif text-h3 text-edit-ink tracking-tight [word-break:keep-all]">
-                                <span className="font-sans text-body text-edit-muted mr-2">Ch {idx + 1}.{subIdx + 1}.</span>{subChapter.title}
+                                <span className="font-sans text-body text-edit-muted mr-2">Ch. {idx + 1}.{subIdx + 1}.</span>{subChapter.title}
                               </h4>
                               {getChapterPhotoCount(subChapter.id) > 0 && (
                                 <span className="t-eyebrow text-edit-faint shrink-0">
