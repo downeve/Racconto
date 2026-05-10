@@ -1,6 +1,6 @@
 import { useEffect, useState, useRef, useMemo, memo } from 'react'
 import axios from 'axios'
-import ReactMarkdown from 'react-markdown'
+import MarkdownRenderer from '../components/MarkdownRenderer'
 import { useTranslation } from 'react-i18next'
 import { useElectronSidebar } from '../context/ElectronSidebarContext'
 import ConfirmModal from '../components/ConfirmModal'
@@ -97,8 +97,8 @@ const NoteItem = memo(function NoteItem({
             </div>
           </div>
           {editPreviewMode ? (
-            <div className="min-h-[100px] py-2 font-serif text-[0.9375rem] leading-[1.7] text-edit-ink prose prose-sm max-w-none border-b border-edit-line">
-              <ReactMarkdown>{editContent}</ReactMarkdown>
+            <div className="min-h-[100px] py-2 border-b border-edit-line">
+              <MarkdownRenderer content={editContent} className="font-serif text-[0.9375rem] leading-[1.7] text-edit-ink" />
             </div>
           ) : (
             <textarea
@@ -171,9 +171,7 @@ const NoteItem = memo(function NoteItem({
             </div>
           </div>
           {/* 본문 */}
-          <div className="prose prose-sm max-w-none text-edit-ink/85 font-serif leading-[1.7]">
-            <ReactMarkdown>{note.content}</ReactMarkdown>
-          </div>
+          <MarkdownRenderer content={note.content} className="text-edit-ink/85 font-serif leading-[1.7]" />
         </div>
       )}
     </div>
@@ -407,9 +405,9 @@ function ProjectNotes({
           </div>
 
           {previewMode ? (
-            <div className="min-h-[100px] py-2 font-serif text-[0.9375rem] leading-[1.7] text-edit-ink prose prose-sm max-w-none border-b border-edit-line">
+            <div className="min-h-[100px] py-2 border-b border-edit-line">
               {newContent
-                ? <ReactMarkdown>{newContent}</ReactMarkdown>
+                ? <MarkdownRenderer content={newContent} className="font-serif text-[0.9375rem] leading-[1.7] text-edit-ink" />
                 : <p className="text-edit-faint">{t('note.previewInfo')}</p>
               }
             </div>
