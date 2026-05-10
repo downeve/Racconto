@@ -2,7 +2,7 @@ import { useEffect, useState, useMemo, useRef } from 'react'
 import { useParams } from 'react-router-dom'
 import axios from 'axios'
 import exifr from 'exifr'
-import { Folder, Monitor, Trash2, FileText, MapPin, AlertTriangle, BookOpen, Grid3X3, ArrowUpDown, Info, Star, Upload, FolderUp } from 'lucide-react'
+import { Folder, Monitor, Trash2, FileText, MapPin, AlertTriangle, BookOpen, Grid3X3, ArrowUpDown, Info, Star, Upload, FolderUp, ArrowUp } from 'lucide-react'
 
 import ProjectStory from './ProjectStory'
 import DeliveryManager from '../components/DeliveryManager'
@@ -1337,10 +1337,10 @@ export default function ProjectDetail({
       <button
         id="floating-top-button"
         onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-        className="fixed bottom-8 right-8 w-10 h-10 bg-ink/70 hover:bg-ink text-card rounded-full flex items-center justify-center shadow transition-all z-40 backdrop-blur-sm"
+        className="fixed bottom-8 right-8 w-10 h-10 bg-edit-ink text-edit-paper rounded-full flex items-center justify-center shadow-deep hover:opacity-80 transition-opacity z-40"
         title="Top"
       >
-        <span className="text-h2 font-bold">↑</span>
+        <ArrowUp size={16} strokeWidth={1.5} />
       </button>
       )}
 
