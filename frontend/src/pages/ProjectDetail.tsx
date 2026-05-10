@@ -813,14 +813,14 @@ export default function ProjectDetail({
     setSidebarContent(
       <div className="p-4">
         {/* 9.9 업로드 버튼 — 분할 primary */}
-        <div className="mb-4 flex">
-          <label className={`flex-1 cursor-pointer t-caption px-2 py-2 inline-flex items-center justify-center gap-1.5 bg-edit-ink text-edit-paper hover:bg-edit-ink/85 rounded-l-[1px] border-r border-edit-paper/20 transition-colors ${uploading ? 'opacity-60 cursor-not-allowed' : ''}`}>
+        <div className="mb-4 flex gap-1">
+          <label className={`flex-1 cursor-pointer t-caption px-2 py-2 inline-flex items-center justify-center gap-1.5 bg-edit-ink text-edit-paper hover:bg-edit-ink/85 rounded-[1px] transition-colors ${uploading ? 'opacity-60 cursor-not-allowed' : ''}`}>
             {uploading
               ? <><div className="w-3 h-3 border border-edit-paper/40 border-t-edit-paper rounded-full animate-spin shrink-0" />{t('photo.uploading')}</>
               : <><Upload size={12} strokeWidth={1.5} />{t('photo.uploadPhotos')}</>}
             <input type="file" accept="image/jpeg, image/png, image/webp" multiple className="hidden" onChange={handleUpload} disabled={uploading} />
           </label>
-          <label className={`flex-1 cursor-pointer t-caption px-2 py-2 inline-flex items-center justify-center gap-1.5 bg-edit-ink text-edit-paper hover:bg-edit-ink/85 rounded-r-[1px] transition-colors ${uploading ? 'opacity-60 cursor-not-allowed' : ''}`}>
+          <label className={`flex-1 cursor-pointer t-caption px-2 py-2 inline-flex items-center justify-center gap-1.5 bg-edit-ink text-edit-paper hover:bg-edit-ink/85 rounded-[1px] transition-colors ${uploading ? 'opacity-60 cursor-not-allowed' : ''}`}>
             {uploading
               ? <div className="w-3 h-3 border border-edit-paper/40 border-t-edit-paper rounded-full animate-spin shrink-0" />
               : <><FolderUp size={12} strokeWidth={1.5} />{t('photo.uploadFolder')}</>}

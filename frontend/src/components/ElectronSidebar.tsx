@@ -35,7 +35,6 @@ export default function ElectronSidebar({ activeTab, onTabChange, showTabs, widt
     () => localStorage.getItem('sidebar_projects_open') !== 'false'
   )
   const navigate = useNavigate()
-  //const { id: currentId } = useParams()
   const location = useLocation()
   const { t, i18n } = useTranslation()
   const { sidebarContent, refreshTrigger } = useElectronSidebar()
@@ -122,6 +121,15 @@ export default function ElectronSidebar({ activeTab, onTabChange, showTabs, widt
     return match ? match[1] : null
   })()
 
+  // §11.1 navItem 헬퍼 — layout shift 없는 active 표시
+  const navItem = (active: boolean) =>
+    `relative w-full text-left px-2 py-1.5 rounded-[1px] flex items-center gap-2 t-caption
+     transition-[background-color,color] duration-150 ${
+      active
+        ? 'bg-edit-ink/[0.06] text-edit-ink before:absolute before:left-0 before:top-1.5 before:bottom-1.5 before:w-[2px] before:bg-edit-ink'
+        : 'text-edit-muted hover:bg-edit-paper hover:text-edit-ink'
+    }`
+
   const otherNavItems = [
     {
       label: t('nav.portfolio') || 'Portfolio',
@@ -147,41 +155,37 @@ export default function ElectronSidebar({ activeTab, onTabChange, showTabs, widt
 
   return (
     <div
-      className="shrink-0 fixed left-0 top-0 bottom-0 bg-card border-r border-hair flex flex-col z-40 overflow-hidden"
+      className="shrink-0 fixed left-0 top-0 bottom-0 bg-edit-paper border-r border-edit-line flex flex-col z-40 overflow-hidden"
       style={{ width }}
     >
-      {/* 드래그 리사이즈 핸들 */}
+      {/* §11.4 드래그 리사이즈 핸들 */}
       <div
         onMouseDown={handleResizeMouseDown}
-        className="absolute right-0 top-0 bottom-0 w-1 cursor-col-resize hover:bg-stone-300 active:bg-stone-400 z-50 transition-colors duration-150"
+        className="absolute right-0 top-0 bottom-0 w-1 cursor-col-resize z-50
+                   after:absolute after:right-0 after:top-0 after:bottom-0 after:w-px
+                   after:bg-edit-ink/0 hover:after:bg-edit-ink/30 active:after:bg-edit-ink/60
+                   after:transition-colors"
       />
 
-      {/* Racconto 로고 */}
-      <div 
+      {/* §11.5 Racconto 로고 */}
+      <div
         className="shrink-0 px-2 pt-3 pb-2 cursor-pointer transition-opacity duration-150 ease-out"
         onClick={() => navigate('/dashboard')}
       >
-        <span 
-          className="font-serif font-bold text-h3 text-ink-2 px-2"
-          style={{ fontWeight: 700, letterSpacing: '0.08em', transform: 'translateY(1px)' }}
-        >
+        <span className="font-serif font-bold text-h3 text-edit-ink px-2 tracking-[0.08em] translate-y-px inline-block">
           Racconto
         </span>
       </div>
 
-      <div className="mx-3 border-t border-faint/30 shrink-0" />
+      <div className="mx-3 border-t border-edit-line shrink-0" />
 
       {/* 앱 네비게이션 */}
       <div className="shrink-0 px-2 pt-3 pb-2">
-        {/* Projects — 접기/펼치기 */}
-        <div className="flex items-center gap-0.5">
+        {/* Projects 접기/펼치기 */}
+        <div className="flex items-center gap-0.5 mb-0.5">
           <button
             onClick={() => navigate('/projects')}
-            className={`flex-1 text-left px-2 py-1.5 rounded-btn flex items-center gap-2 text-small transition-[background,color,border] duration-150 ease-out ${
-              location.pathname === '/projects'
-                ? 'bg-stone-300/70 text-ink font-bold'
-                : 'text-muted hover:bg-stone-200 hover:text-ink hover:font-bold'
-            }`}
+            className={`flex-1 ${navItem(location.pathname === '/projects')}`}
           >
             <LayoutDashboard size={14} strokeWidth={1.5} />
             <span>{t('nav.projects') || 'Projects'}</span>
@@ -191,29 +195,28 @@ export default function ElectronSidebar({ activeTab, onTabChange, showTabs, widt
               localStorage.setItem('sidebar_projects_open', String(!v))
               return !v
             })}
-            className="px-1 py-1.5 text-stone-400 hover:text-stone-600 shrink-0 transition-colors duration-150"
+            className="px-1 py-1.5 text-edit-faint hover:text-edit-ink shrink-0 transition-colors duration-150"
           >
             {showProjects
               ? <ChevronDown size={13} strokeWidth={1.5} />
               : <ChevronRight size={13} strokeWidth={1.5} />}
           </button>
         </div>
+
         {showProjects && (
-          <div className="mt-0.5 mb-1">
+          <div className="mb-1 space-y-0.5">
             {projects.map(project => (
               <button
                 key={project.id}
                 onClick={() => navigate(`/projects/${project.slug ?? project.id}`)}
-                className={`w-full text-left pl-6 pr-2 py-1 rounded-btn flex items-center gap-2 text-small transition-[background,color,border] duration-150 ease-out ${
-                  currentProjectId === project.id
-                    ? 'bg-stone-300/70 text-ink font-bold'
-                    : 'text-muted hover:bg-stone-200 hover:text-ink'
-                }`}
+                className={`pl-6 pr-2 ${navItem(currentProjectId === project.id)}`}
               >
+                {/* §11.6 프로젝트 cover 썸네일 */}
                 {project.cover_image_url ? (
-                  <img src={cfUrl(project.cover_image_url, 'thumb')} className="w-4 h-4 rounded object-cover shrink-0" />
+                  <img src={cfUrl(project.cover_image_url, 'thumb')}
+                       className="w-4 h-4 rounded-[1px] object-cover shrink-0" />
                 ) : (
-                  <span className="w-4 h-4 rounded bg-stone-300 shrink-0" />
+                  <span className="w-4 h-4 rounded-[1px] bg-edit-paper-2 ring-1 ring-edit-line shrink-0" />
                 )}
                 <span className="truncate">{project.title}</span>
               </button>
@@ -222,39 +225,38 @@ export default function ElectronSidebar({ activeTab, onTabChange, showTabs, widt
         )}
 
         {/* 나머지 nav 항목 */}
-        {otherNavItems.map(item => (
-          <button
-            key={item.path}
-            onClick={item.onClick}
-            className={`w-full text-left px-2 py-1.5 rounded-btn flex items-center gap-2 text-small transition-[background,color,border] duration-150 ease-out ${
-              item.active
-                ? 'bg-stone-300/70 text-ink font-bold'
-                : 'text-muted hover:bg-stone-200 hover:text-ink hover:font-bold'
-            }`}
-          >
-            <item.Icon size={14} strokeWidth={1.5} />
-            <span>{item.label}</span>
-          </button>
-        ))}
+        <div className="space-y-0.5">
+          {otherNavItems.map(item => (
+            <button
+              key={item.path}
+              onClick={item.onClick}
+              className={navItem(item.active)}
+            >
+              <item.Icon size={14} strokeWidth={1.5} />
+              <span>{item.label}</span>
+            </button>
+          ))}
+        </div>
       </div>
 
-      <div className="mx-3 border-t border-faint/30 shrink-0" />
+      <div className="mx-3 border-t border-edit-line shrink-0" />
 
-      {/* 탭 전환 — ProjectDetail에서만 */}
+      {/* §11.2 탭 전환 — ProjectDetail에서만 */}
       {showTabs && isOnProjectDetail && (
         <div className="shrink-0 flex px-1 gap-1 py-1">
           {([
-            { key: 'photos' as const, Icon: Camera, label: t('photo.title') },
+            { key: 'photos' as const, Icon: Camera,   label: t('photo.title') },
             { key: 'story'  as const, Icon: BookOpen, label: t('story.title') },
             { key: 'notes'  as const, Icon: FileText, label: t('note.title') },
           ]).map(item => (
             <button
               key={item.key}
               onClick={() => onTabChange(item.key)}
-              className={`rounded-btn flex-1 flex flex-row items-center justify-center gap-1.5 py-2 text-menu tracking-wider transition-[background,color,border] duration-150 ease-out ${
+              className={`rounded-[1px] flex-1 inline-flex items-center justify-center gap-1.5 py-2 t-caption
+                          transition-colors duration-150 ${
                 activeTab === item.key
-                  ? 'bg-stone-900 text-white'
-                  : 'text-stone-600 hover:bg-stone-100 hover:text-stone-900'
+                  ? 'bg-edit-ink text-edit-paper'
+                  : 'text-edit-muted hover:bg-edit-paper-2 hover:text-edit-ink'
               }`}
             >
               <item.Icon size={14} strokeWidth={1.5} />
@@ -266,55 +268,56 @@ export default function ElectronSidebar({ activeTab, onTabChange, showTabs, widt
 
       {/* 탭별 사이드바 내용 */}
       {sidebarContent && isOnProjectDetail && (
-        <div className="border-t border-faint/30 overflow-y-scroll flex-1 [&::-webkit-scrollbar]:w-0">
+        <div className="border-t border-edit-line overflow-y-scroll flex-1 [&::-webkit-scrollbar]:w-0">
           {sidebarContent}
         </div>
       )}
 
-      {/* 사용자 */}
-      <div ref={dropdownRef} className="shrink-0 mt-auto border-t border-faint/30 relative">
+      {/* §11.3 사용자 dropdown */}
+      <div ref={dropdownRef} className="shrink-0 mt-auto border-t border-edit-line relative">
         <button
           onClick={() => setDropdownOpen(v => !v)}
-          className="w-full flex items-center gap-2 px-3 py-2.5 bg-card hover:bg-stone-100 transition-[background,color,border] duration-150 ease-out"
+          className="w-full flex items-center gap-2 px-3 py-2.5 hover:bg-edit-paper-2 transition-colors duration-150"
         >
-          <span className="w-6 h-6 rounded-full bg-ink-2 text-canvas text-eyebrow font-bold flex items-center justify-center shrink-0">
+          <span className="w-6 h-6 rounded-full bg-edit-ink text-edit-paper t-eyebrow font-bold flex items-center justify-center shrink-0">
             {avatarInitial}
           </span>
-          <span className="text-small text-muted truncate">{user?.email}</span>
+          <span className="t-caption text-edit-muted truncate">{user?.email}</span>
         </button>
         {dropdownOpen && (
-          <div className="absolute bottom-full left-2 right-2 bg-card rounded-card shadow border border-hair py-1 z-50 mb-1">
+          <div className="absolute bottom-full left-2 right-2 mb-1 z-popover bg-edit-paper rounded-[2px] py-1 border border-edit-line shadow-[0_8px_24px_rgba(0,0,0,0.08)]">
             <Link
               to="/trash"
               onClick={() => setDropdownOpen(false)}
-              className="w-full text-left px-3 py-2 text-small text-ink-2 hover:bg-hair/30 flex items-center gap-2"
+              className="w-full text-left px-3 py-2 t-caption text-edit-ink hover:bg-edit-paper-2 flex items-center gap-2 transition-colors"
             >
               {t('nav.trash')}
             </Link>
-            <div className="border-t border-hair my-1" />
+            <div className="border-t border-edit-line my-1" />
             {languages.map(lang => (
               <button
                 key={lang.code}
                 onClick={() => { changeLanguage(lang.code); setDropdownOpen(false) }}
-                className={`w-full text-left px-3 py-2 text-small hover:bg-hair/30 ${
-                  currentLang === lang.code ? 'text-ink font-bold' : 'text-muted'
+                className={`w-full text-left px-3 py-2 t-caption hover:bg-edit-paper-2 transition-colors ${
+                  currentLang === lang.code ? 'text-edit-ink' : 'text-edit-muted'
                 }`}
               >
                 {lang.label}
               </button>
             ))}
-            <div className="border-t border-hair my-1" />
+            <div className="border-t border-edit-line my-1" />
+            {/* §11.7 폰트 사이즈 */}
             <div className="px-3 py-1.5">
-              <p className="text-eyebrow text-faint mb-1.5 tracking-widest uppercase">{t('settings.fontSize')}</p>
-              <div className="flex gap-1">
+              <p className="t-eyebrow text-edit-faint mb-1.5">{t('settings.fontSize')}</p>
+              <div className="inline-flex border border-edit-line rounded-[1px] p-0.5 gap-0.5">
                 {fontScaleOptions.map(({ scale, label }) => (
                   <button
                     key={scale}
                     onClick={() => handleFontScale(scale)}
-                    className={`flex-1 py-1 rounded text-eyebrow transition-[background,color,border] duration-150 ease-out ${
+                    className={`px-2 py-1 t-eyebrow rounded-[1px] transition-colors duration-150 ${
                       fontScale === scale
-                        ? 'bg-ink text-canvas font-bold'
-                        : 'text-muted hover:bg-hair/30 hover:text-ink'
+                        ? 'bg-edit-ink text-edit-paper'
+                        : 'text-edit-muted hover:text-edit-ink'
                     }`}
                   >
                     {label}
@@ -322,10 +325,10 @@ export default function ElectronSidebar({ activeTab, onTabChange, showTabs, widt
                 ))}
               </div>
             </div>
-            <div className="border-t border-hair my-1" />
+            <div className="border-t border-edit-line my-1" />
             <button
               onClick={() => { setDropdownOpen(false); logout() }}
-              className="w-full text-left px-3 py-2 text-small text-red-400 hover:bg-red-50"
+              className="w-full text-left px-3 py-2 t-caption text-edit-danger hover:bg-edit-paper-2 transition-colors"
             >
               {t('auth.logout')}
             </button>

@@ -132,6 +132,7 @@
     "createProject": "プロジェクト情報",
     "projectName": "プロジェクトタイトル (必須)",
     "description": "説明",
+    "editing": "編集中",
     "editProject": "プロジェクト編集",
     "deleteProject": "プロジェクト削除",
     "deleteConfirm": "このプロジェクトを削除しますか？ (30日間ゴミ箱に保管されます。)",

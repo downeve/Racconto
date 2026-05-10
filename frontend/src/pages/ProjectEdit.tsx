@@ -2,16 +2,83 @@ import { useEffect, useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import axios from 'axios'
 import { useTranslation } from 'react-i18next'
-import Heading from '../components/Heading' //
 
 const API = import.meta.env.VITE_API_URL
+
+// ── 로컬 폼 컴포넌트 ─────────────────────────────────────
+
+function FormField({ label, required, children }: {
+  label: string; required?: boolean; children: React.ReactNode
+}) {
+  return (
+    <div className="py-5 border-b border-edit-line first:pt-0 last:border-b-0">
+      <label className="block t-eyebrow text-edit-muted mb-2">
+        {label}{required && <span className="text-edit-danger ml-1">*</span>}
+      </label>
+      {children}
+    </div>
+  )
+}
+
+function FormInput({ value, onChange, placeholder }: {
+  value: string; onChange: (v: string) => void; placeholder?: string
+}) {
+  return (
+    <input
+      value={value}
+      onChange={e => onChange(e.target.value)}
+      placeholder={placeholder}
+      className="w-full font-serif text-body bg-transparent border-0 border-b border-edit-line focus:border-edit-ink focus:outline-none py-2 transition-colors duration-150 placeholder:text-edit-faint"
+    />
+  )
+}
+
+function FormTextarea({ value, onChange, rows, placeholder }: {
+  value: string; onChange: (v: string) => void; rows?: number; placeholder?: string
+}) {
+  return (
+    <textarea
+      value={value}
+      onChange={e => onChange(e.target.value)}
+      rows={rows ?? 4}
+      placeholder={placeholder}
+      className="w-full font-serif text-body bg-transparent border-0 border-b border-edit-line focus:border-edit-ink focus:outline-none py-2 resize-none transition-colors duration-150 placeholder:text-edit-faint"
+    />
+  )
+}
+
+function SegmentedControl({ value, onChange, options }: {
+  value: string; onChange: (v: string) => void
+  options: { value: string; label: string }[]
+}) {
+  return (
+    <div className="inline-flex border border-edit-line rounded-[1px] p-0.5 flex-wrap gap-0.5">
+      {options.map(opt => (
+        <button
+          key={opt.value}
+          type="button"
+          onClick={() => onChange(opt.value)}
+          className={`t-caption px-3 py-1.5 rounded-[1px] transition-colors duration-150 ${
+            value === opt.value
+              ? 'bg-edit-ink text-edit-paper'
+              : 'text-edit-muted hover:text-edit-ink'
+          }`}
+        >
+          {opt.label}
+        </button>
+      ))}
+    </div>
+  )
+}
+
+// ── 메인 컴포넌트 ─────────────────────────────────────────
 
 export default function ProjectEdit() {
   const { id } = useParams()
   const navigate = useNavigate()
+  const { t } = useTranslation()
 
   const [numericId, setNumericId] = useState<string | null>(null)
-
   const [title, setTitle] = useState('')
   const [titleEn, setTitleEn] = useState('')
   const [description, setDescription] = useState('')
@@ -20,13 +87,11 @@ export default function ProjectEdit() {
   const [status, setStatus] = useState('in_progress')
   const [isPublic, setIsPublic] = useState('false')
 
-  const { t } = useTranslation()
-
   useEffect(() => {
     if (!id) return
     axios.get(`${API}/projects/${id}`).then(res => {
       const p = res.data
-      setNumericId(String(p.id))  // numericId 세팅
+      setNumericId(String(p.id))
       setTitle(p.title || '')
       setTitleEn(p.title_en || '')
       setDescription(p.description || '')
@@ -37,86 +102,73 @@ export default function ProjectEdit() {
     })
   }, [id])
 
-
   const handleSubmit = async () => {
     if (!title || !numericId) return
-
     try {
-      await axios.put(`${API}/projects/${numericId}`, { // 👈 id 대신 numericId 사용
+      await axios.put(`${API}/projects/${numericId}`, {
         title, title_en: titleEn,
         description, description_en: descriptionEn,
-        location,
-        status,
-        is_public: isPublic
+        location, status, is_public: isPublic,
       })
-      // 저장이 끝나면 다시 프로젝트 상세 페이지로 이동 (상세페이지는 slug 사용 가능)
-      navigate(`/projects/${id}`) 
+      navigate(`/projects/${id}`)
     } catch (error) {
       console.error('Update failed:', error)
     }
   }
 
+  const STATUS_OPTIONS = [
+    { value: 'in_progress', label: t('project.statusInProgress') },
+    { value: 'completed',   label: t('project.statusCompleted') },
+    { value: 'published',   label: t('project.statusPublished') },
+    { value: 'archived',    label: t('project.statusArchived') },
+  ]
+
+  const VISIBILITY_OPTIONS = [
+    { value: 'false', label: t('project.privateProject') },
+    { value: 'true',  label: t('project.publicProject') },
+  ]
+
   return (
-    <div className="max-w-2xl mx-auto p-6">
-      <Heading level={2} className="mb-4 font-serif font-semibold">
-        {t('project.editProject')}
-      </Heading>
+    <div className="max-w-2xl mx-auto px-6 py-12">
+      <div className="mb-12 pb-8 border-b border-edit-line">
+        <p className="t-eyebrow text-edit-muted mb-2">{t('project.editing')}</p>
+        <h1 className="font-serif text-h2 font-normal tracking-tight">
+          {t('project.editProject')}
+        </h1>
+      </div>
 
-      <div className="bg-card rounded-card shadow p-6">
-        <div className="grid grid-cols-2 gap-4 mb-4">
-          <input
-            className="border rounded-card px-3 py-2"
-            placeholder={t('project.projectName')}
-            value={title}
-            onChange={e => setTitle(e.target.value)}
-          />
-          <textarea
-            className="border rounded-card px-3 py-2 col-span-2"
-            placeholder={t('project.description')}
-            rows={3}
-            value={description}
-            onChange={e => setDescription(e.target.value)}
-          />
-          <input
-            className="border rounded-card px-3 py-2"
-            placeholder={t('project.location')}
-            value={location}
-            onChange={e => setLocation(e.target.value)}
-          />
-          <select
-            className="border rounded-card px-3 py-2"
-            value={status}
-            onChange={e => setStatus(e.target.value)}
-          >
-            <option value="in_progress">{t('project.statusInProgress')}</option>
-            <option value="completed">{t('project.statusCompleted')}</option>
-            <option value="published">{t('project.statusPublished')}</option>
-            <option value="archived">{t('project.statusArchived')}</option>
-          </select>
-          <select
-            className="border rounded-card px-3 py-2 col-span-2"
-            value={isPublic}
-            onChange={e => setIsPublic(e.target.value)}
-          >
-            <option value="false">{t('project.privateProject')}</option>
-            <option value="true">{t('project.publicProject')}</option>
-          </select>
-        </div>
+      <div>
+        <FormField label={t('project.projectName')} required>
+          <FormInput value={title} onChange={setTitle} />
+        </FormField>
+        <FormField label={t('project.description')}>
+          <FormTextarea rows={4} value={description} onChange={setDescription} />
+        </FormField>
+        <FormField label={t('project.location')}>
+          <FormInput value={location} onChange={setLocation} />
+        </FormField>
+        <FormField label={t('project.status')}>
+          <SegmentedControl value={status} onChange={setStatus} options={STATUS_OPTIONS} />
+        </FormField>
+        <FormField label={t('project.visibility')}>
+          <SegmentedControl value={isPublic} onChange={setIsPublic} options={VISIBILITY_OPTIONS} />
+        </FormField>
+      </div>
 
-        <div className="flex gap-2 justify-end">
-          <button
-            onClick={handleSubmit}
-            className="text-body btn-primary tracking-wider transition-[background,color,border] duration-150 ease-out"
-          >
-            {t('common.save')}
-          </button>
-          <button
-            onClick={() => navigate(`/projects/${id}`)}
-            className="text-body btn-secondary-on-card"
-          >
-            {t('common.cancel')}
-          </button>
-        </div>
+      <div className="mt-12 pt-8 border-t border-edit-line flex justify-end gap-2">
+        <button
+          onClick={() => navigate(`/projects/${id}`)}
+          className="t-caption px-4 py-2 text-edit-muted hover:text-edit-ink transition-colors"
+        >
+          {t('common.cancel')}
+        </button>
+        <button
+          onClick={handleSubmit}
+          disabled={!title}
+          className="t-caption px-5 py-2 bg-edit-ink text-edit-paper rounded-[1px] hover:bg-edit-ink/85 transition-colors disabled:opacity-40"
+        >
+          {t('common.save')}
+        </button>
       </div>
     </div>
   )
