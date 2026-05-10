@@ -718,11 +718,19 @@ export default function ProjectDetail({
 
   // 변경
   const handleAddToChapter = async (photoId: string, chapterId: string) => {
+    const currentChapterId = photoChapterMap.get(photoId)
+    if (currentChapterId === chapterId) {
+      setChapterMenuPhoto(null)
+      return
+    }
     try {
+      if (currentChapterId) {
+        await axios.delete(`${API}/chapters/${currentChapterId}/photos/${photoId}`)
+      }
       await axios.post(`${API}/chapters/${chapterId}/photos`, { photo_id: photoId })
-      await fetchChapterPhotoIds()   // ← await 추가
+      await fetchChapterPhotoIds()
     } catch {
-      // 이미 추가됨
+      // 오류 무시
     }
     setChapterMenuPhoto(null)
   }

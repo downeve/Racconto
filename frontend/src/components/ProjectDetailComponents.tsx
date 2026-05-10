@@ -265,18 +265,12 @@ export function Lightbox({
 
           {/* 챕터 */}
           <div className="flex items-center" onClick={e => e.stopPropagation()}>
-            {inChapter ? (
-              <span className={`${chipBase} ${chipActive}`}>
-                <BookOpen size={13} strokeWidth={1.5} />{getAssignedChapterInfo()}
-              </span>
-            ) : (
-              <button
-                onClick={() => setShowChapterMenu(v => !v)}
-                className={`${chipBase} ${chipIdle}`}
-              >
-                <BookOpen size={13} strokeWidth={1.5} />{t('story.addToChapter')}
-              </button>
-            )}
+            <button
+              onClick={() => setShowChapterMenu(v => !v)}
+              className={`${chipBase} ${inChapter ? chipActive : chipIdle}`}
+            >
+              <BookOpen size={13} strokeWidth={1.5} />{inChapter ? getAssignedChapterInfo() : t('story.addToChapter')}
+            </button>
           </div>
 
           <div className="w-px h-3 bg-edit-paper/15" />
@@ -371,7 +365,7 @@ export function Lightbox({
       </div>
 
       {/* 챕터 메뉴 */}
-      {showChapterMenu && !inChapter && (
+      {showChapterMenu && (
         <div
           className="fixed inset-0 z-popover"
           onClick={e => { e.stopPropagation(); setShowChapterMenu(false) }}
