@@ -149,8 +149,8 @@ export function Lightbox({
 
   // chip vocabulary
   const chipBase = "inline-flex items-center gap-1.5 t-caption px-3 py-1.5 rounded-[1px] border transition-colors duration-150"
-  const chipIdle = "border-white/30 text-white/80 hover:text-white hover:border-white/60"
-  const chipActive = "border-white/50 text-white bg-white/5"
+  const chipIdle = "border-edit-paper/30 text-edit-paper/80 hover:text-edit-paper hover:border-edit-paper/60"
+  const chipActive = "border-edit-paper/50 text-edit-paper bg-edit-paper/5"
 
   useEffect(() => {
     setShowNotePanel(false)
@@ -208,7 +208,7 @@ export function Lightbox({
       >
         {/* 왼쪽: 인덱스 + 경고 */}
         <div className="flex-1 flex items-center gap-3 justify-start min-w-0">
-          <span className="text-white/60 text-small whitespace-nowrap">{idx + 1} / {photos.length}</span>
+          <span className="text-edit-paper/60 text-small whitespace-nowrap">{idx + 1} / {photos.length}</span>
           {photo.local_missing && (
             <span className={`${chipBase} bg-edit-warning/10 border-edit-warning/30 text-edit-warning`}>
               <AlertTriangle size={10} strokeWidth={1.5} />{t('project.noLocalFile')}
@@ -235,7 +235,7 @@ export function Lightbox({
                     className={`transition-colors ${
                       isHoveredStar ? 'fill-label-yellow text-label-yellow' :
                       isRatedStar   ? 'fill-edit-paper text-edit-paper' :
-                                       'text-white/40'
+                                       'text-edit-paper/40'
                     }`}
                   />
                 </button>
@@ -243,7 +243,7 @@ export function Lightbox({
             })}
           </div>
 
-          <div className="w-px h-3 bg-white/15" />
+          <div className="w-px h-3 bg-edit-paper/15" />
 
           {/* 컬러 라벨 */}
           <div className="flex gap-1.5">
@@ -261,7 +261,7 @@ export function Lightbox({
             ))}
           </div>
 
-          <div className="w-px h-3 bg-white/15" />
+          <div className="w-px h-3 bg-edit-paper/15" />
 
           {/* 챕터 */}
           <div className="flex items-center" onClick={e => e.stopPropagation()}>
@@ -273,7 +273,7 @@ export function Lightbox({
             </button>
           </div>
 
-          <div className="w-px h-3 bg-white/15" />
+          <div className="w-px h-3 bg-edit-paper/15" />
 
           {/* 노트 */}
           <button
@@ -283,7 +283,7 @@ export function Lightbox({
             <FileText size={13} strokeWidth={1.5} />{t('note.title')}
           </button>
 
-          <div className="w-px h-3 bg-white/15" />
+          <div className="w-px h-3 bg-edit-paper/15" />
 
           {/* 회전 */}
           <div className="flex items-center gap-1">
@@ -295,7 +295,7 @@ export function Lightbox({
               }}
               disabled={rotating}
               title={t('photo.rotateLeft')}
-              className={`${chipBase} ${rotating ? 'border-white/10 text-white/30 cursor-not-allowed' : chipIdle}`}
+              className={`${chipBase} ${rotating ? 'border-edit-paper/10 text-edit-paper/30 cursor-not-allowed' : chipIdle}`}
             >
               <RotateCcw size={13} strokeWidth={1.5} />
             </button>
@@ -307,7 +307,7 @@ export function Lightbox({
               }}
               disabled={rotating}
               title={t('photo.rotateRight')}
-              className={`${chipBase} ${rotating ? 'border-white/10 text-white/30 cursor-not-allowed' : chipIdle}`}
+              className={`${chipBase} ${rotating ? 'border-edit-paper/10 text-edit-paper/30 cursor-not-allowed' : chipIdle}`}
             >
               <RotateCw size={13} strokeWidth={1.5} />
             </button>
@@ -316,7 +316,7 @@ export function Lightbox({
 
         {/* 오른쪽: 닫기 */}
         <div className="flex-1 flex justify-end">
-          <button onClick={onClose} className="text-white/80 hover:text-white text-h2 p-3">✕</button>
+          <button onClick={onClose} className="text-edit-paper/80 hover:text-edit-paper text-h2 p-3">✕</button>
         </div>
       </div>
 
@@ -324,7 +324,7 @@ export function Lightbox({
       <div className="flex-1 flex items-center justify-center mt-0 relative min-h-0">
         {idx > 0 && (
           <button
-            className="absolute left-4 z-10 text-white/80 hover:text-white text-h1 select-none p-4"
+            className="absolute left-4 z-10 text-edit-paper/80 hover:text-edit-paper text-h1 select-none p-4"
             onClick={e => { e.stopPropagation(); onNavigate(photos[idx - 1]) }}
           >‹</button>
         )}
@@ -336,7 +336,7 @@ export function Lightbox({
         />
         {idx < photos.length - 1 && (
           <button
-            className="absolute right-4 z-10 text-white/80 hover:text-white text-h1 select-none p-4"
+            className="absolute right-4 z-10 text-edit-paper/80 hover:text-edit-paper text-h1 select-none p-4"
             onClick={e => { e.stopPropagation(); onNavigate(photos[idx + 1]) }}
           >›</button>
         )}
@@ -344,13 +344,13 @@ export function Lightbox({
 
       {/* 하단 EXIF */}
       <div
-        className={`shrink-0 bg-black/30 border-t border-white/10 px-6 py-4 transition-opacity duration-300 ${chromeVisible ? 'opacity-100' : 'opacity-0'}`}
+        className={`shrink-0 bg-black/30 border-t border-edit-paper/10 px-6 py-4 transition-opacity duration-300 ${chromeVisible ? 'opacity-100' : 'opacity-0'}`}
         onClick={e => e.stopPropagation()}
       >
         <div className="max-w-[calc(100%-8rem)] mx-auto">
           <div className="flex items-center justify-center gap-4 flex-wrap">
             {showExif && (photo.camera || photo.focal_length || photo.taken_at) && (
-              <span className="text-small text-white/40">
+              <span className="text-small text-edit-paper/40">
                 {[
                   photo.taken_at
                     ? new Date(photo.taken_at).toLocaleDateString(i18n.language === 'ko' ? 'ko-KR' : 'en-US')

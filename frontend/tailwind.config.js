@@ -1,5 +1,9 @@
 import colors from 'tailwindcss/colors'
 
+// oklch 색상에 Tailwind /opacity 수식어 지원 추가
+const o = (c) => ({ opacityValue }) =>
+  opacityValue !== undefined ? c.replace(')', ` / ${opacityValue})`) : c
+
 /** @type {import('tailwindcss').Config} */
 export default {
   content: [
@@ -17,39 +21,39 @@ export default {
         'canvas-4': '#E7E0D7',          // Secondary 버튼 Hover, warm-stone-200
         'secondary-border': '#D6D3D1',  // Secondary 버튼 Hover border, warm-stone-300
         card: '#FFFFFF',                // 하위 호환용 (canvas-2 와 동일)
-        ink:       'oklch(0.18 0.012 60)',  // 제목 및 강조
-        'ink-2':   'oklch(0.28 0.012 60)',  // 본문
-        muted:     'oklch(0.55 0.012 65)',  // 보조 텍스트
-        faint:     'oklch(0.78 0.010 75)',  // 메타, placeholder
-        hair:      'oklch(0.90 0.010 75)',  // 구분선, 보더
-        accent: 'oklch(55% 0.08 55)',       // 포커스, 링크 Hover
-        lightbox: colors.stone[950],        // 라이트박스 배경색 (하위 호환)
+        ink:       o('oklch(0.18 0.012 60)'),  // 제목 및 강조
+        'ink-2':   o('oklch(0.28 0.012 60)'),  // 본문
+        muted:     o('oklch(0.55 0.012 65)'),  // 보조 텍스트
+        faint:     o('oklch(0.78 0.010 75)'),  // 메타, placeholder
+        hair:      o('oklch(0.90 0.010 75)'),  // 구분선, 보더
+        accent:    o('oklch(0.55 0.08 55)'),   // 포커스, 링크 Hover
+        lightbox: colors.stone[950],           // 라이트박스 배경색 (하위 호환)
         // 다크 모드 — warm taupe
-        'd-bg':      'oklch(0.18 0.012 60)',  // 다크 메인 배경
-        'd-surface': 'oklch(0.22 0.012 60)',  // 다크 카드/패널
-        'd-line':    'oklch(0.32 0.010 70)',  // 다크 구분선
-        'd-faint':   'oklch(0.55 0.008 75)',  // 다크 microcopy
-        'd-soft':    'oklch(0.78 0.010 75)',  // 다크 secondary body
-        'd-hair':    'oklch(0.94 0.008 75)',  // 다크 body
+        'd-bg':      o('oklch(0.18 0.012 60)'),  // 다크 메인 배경
+        'd-surface': o('oklch(0.22 0.012 60)'),  // 다크 카드/패널
+        'd-line':    o('oklch(0.32 0.010 70)'),  // 다크 구분선
+        'd-faint':   o('oklch(0.55 0.008 75)'),  // 다크 microcopy
+        'd-soft':    o('oklch(0.78 0.010 75)'),  // 다크 secondary body
+        'd-hair':    o('oklch(0.94 0.008 75)'),  // 다크 body
         // 편집기 전용 의미 토큰 (ProjectStory / StoryBlocks)
-        'edit-paper':       'oklch(0.98 0.005 75)',
-        'edit-paper-2':     'oklch(0.94 0.005 75)',
-        'edit-line':        'oklch(0.88 0.008 75)',
-        'edit-line-strong': 'oklch(0.78 0.010 75)',
-        'edit-ink':         'oklch(0.22 0.012 60)',
-        'edit-muted':       'oklch(0.55 0.012 65)',
-        'edit-faint':       'oklch(0.72 0.010 75)',
-        'edit-accent':      'oklch(0.45 0.10 240)',
-        'edit-danger':      'oklch(0.50 0.15 25)',
-        'edit-warning':     'oklch(0.62 0.13 75)',
-        'edit-drop':        'oklch(0.95 0.04 240)',
+        'edit-paper':       o('oklch(0.98 0.005 75)'),
+        'edit-paper-2':     o('oklch(0.94 0.005 75)'),
+        'edit-line':        o('oklch(0.88 0.008 75)'),
+        'edit-line-strong': o('oklch(0.78 0.010 75)'),
+        'edit-ink':         o('oklch(0.22 0.012 60)'),
+        'edit-muted':       o('oklch(0.55 0.012 65)'),
+        'edit-faint':       o('oklch(0.72 0.010 75)'),
+        'edit-accent':      o('oklch(0.45 0.10 240)'),
+        'edit-danger':      o('oklch(0.50 0.15 25)'),
+        'edit-warning':     o('oklch(0.62 0.13 75)'),
+        'edit-drop':        o('oklch(0.95 0.04 240)'),
 
         // 컬러 라벨 5종 (동일 채도/명도 곡선)
-        'label-red':        'oklch(0.62 0.16 25)',
-        'label-yellow':     'oklch(0.78 0.13 85)',
-        'label-green':      'oklch(0.65 0.13 150)',
-        'label-blue':       'oklch(0.55 0.12 240)',
-        'label-purple':     'oklch(0.55 0.12 300)',
+        'label-red':        o('oklch(0.62 0.16 25)'),
+        'label-yellow':     o('oklch(0.78 0.13 85)'),
+        'label-green':      o('oklch(0.65 0.13 150)'),
+        'label-blue':       o('oklch(0.55 0.12 240)'),
+        'label-purple':     o('oklch(0.55 0.12 300)'),
         // 하위 호환 (기존 PublicPortfolio 다크 헬퍼에서 사용)
         'card-cover': colors.stone[800],
         'card-surface': colors.stone[900],
