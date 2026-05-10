@@ -110,10 +110,10 @@ export const InsertSlot = memo(function InsertSlot({
   if (!isHoverEnv) {
     return (
       <div className="relative h-6 flex items-center justify-center my-0.5">
-        <div className="absolute inset-x-0 top-1/2 -translate-y-1/2 h-px bg-stone-200 pointer-events-none" />
+        <div className="absolute inset-x-0 top-1/2 -translate-y-1/2 h-px bg-edit-line pointer-events-none" />
         <button
           onClick={() => onInsertText(chapterId, insertIndex)}
-          className="relative z-block-handle h-6 w-6 rounded-full bg-white border border-stone-300 text-stone-500 shadow-sm flex items-center justify-center"
+          className="relative z-block-handle h-6 w-6 rounded-full bg-edit-paper border border-edit-line text-edit-muted shadow-sm flex items-center justify-center"
           aria-label={t('story.insertText')}
         >
           <Plus size={14} strokeWidth={1.5} />
@@ -137,7 +137,7 @@ export const InsertSlot = memo(function InsertSlot({
 
       {/* 2) hairline — 컨테이너 가운데, opacity로만 토글 */}
       <div
-        className={`absolute inset-x-0 top-1/2 -translate-y-1/2 h-px bg-stone-300
+        className={`absolute inset-x-0 top-1/2 -translate-y-1/2 h-px bg-edit-line
                     pointer-events-none transition-opacity duration-150
                     ${active ? 'opacity-100' : 'opacity-0'}`}
       />
@@ -146,8 +146,8 @@ export const InsertSlot = memo(function InsertSlot({
       <button
         onClick={() => { onInsertText(chapterId, insertIndex); setOpen(false); setHovered(false) }}
         className={`absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2
-                    z-block-handle h-6 px-2 rounded-btn bg-white border border-stone-300
-                    text-stone-500 hover:text-stone-700 hover:border-stone-400
+                    z-block-handle h-6 px-2 rounded-btn bg-edit-paper border border-edit-line
+                    text-edit-muted hover:text-edit-ink hover:border-edit-line-strong
                     shadow-sm text-sm leading-none flex items-center gap-1
                     transition-[opacity,transform] duration-150 ease-out origin-center
                     ${active
@@ -162,10 +162,10 @@ export const InsertSlot = memo(function InsertSlot({
 
       {/* popover — open일 때만 mount (현재 side-by-side 옵션 비활성) */}
       {open && (
-        <div className="absolute top-full left-1/2 -translate-x-1/2 mt-1 z-popover bg-white border border-stone-200 rounded-card shadow-lg py-1 min-w-[160px]">
+        <div className="absolute top-full left-1/2 -translate-x-1/2 mt-1 z-popover bg-edit-paper border border-edit-line rounded-[2px] shadow-sm py-1 min-w-[160px]">
           <button
             onClick={() => { onInsertText(chapterId, insertIndex); setOpen(false); setHovered(false) }}
-            className="w-full text-left px-3 py-1.5 text-sm text-stone-700 hover:bg-stone-50 flex items-center gap-2"
+            className="w-full text-left px-3 py-1.5 text-sm text-edit-ink hover:bg-edit-paper-2 flex items-center gap-2"
           >
             <FileText size={13} strokeWidth={1.5} />
             {t('story.insertText')}
@@ -218,7 +218,7 @@ export function SortablePhotoChapter({
   return (
     <div ref={setNodeRef} style={style} className="flex flex-col w-full h-full">
       <div className={`relative group rounded overflow-hidden aspect-[3/2] shadow transition-[box-shadow] ${
-        selected ? 'ring-2 ring-white ring-offset-2 ring-offset-stone-400' : ''
+        selected ? 'ring-2 ring-white ring-offset-2 ring-offset-edit-line-strong' : ''
       }`}>
         <img
           src={cfUrl(imageUrl, 'grid')}
@@ -238,7 +238,7 @@ export function SortablePhotoChapter({
             aria-label={selected ? '선택 해제' : '선택'}
             tabIndex={0}
           >
-            {selected && <Check size={11} strokeWidth={2.5} className="text-stone-800" />}
+            {selected && <Check size={11} strokeWidth={2.5} className="text-edit-ink" />}
           </button>
         )}
 
@@ -265,7 +265,7 @@ export function SortablePhotoChapter({
         {/* 삭제 버튼 */}
         <button
           onClick={(e) => { e.stopPropagation(); onRemove(chapterId, id) }}
-          className="absolute top-1 right-1 bg-stone-900/70 text-white rounded w-5 h-5 opacity-40 group-hover:opacity-100 flex items-center justify-center transition-opacity z-photo-controls hover:bg-stone-900"
+          className="absolute top-1 right-1 bg-edit-ink/70 text-white rounded w-5 h-5 opacity-40 group-hover:opacity-100 flex items-center justify-center transition-opacity z-photo-controls hover:bg-edit-ink"
           aria-label="삭제"
         >
           <svg width="10" height="10" viewBox="0 0 10 10" fill="none" strokeWidth="1.5" stroke="currentColor">
@@ -278,7 +278,7 @@ export function SortablePhotoChapter({
         <div className="absolute bottom-1 right-1 z-photo-controls">
           <button
             onClick={(e) => { e.stopPropagation(); onRequestMove(id) }}
-            className="opacity-0 group-hover:opacity-100 transition-opacity border border-stone-300 bg-card text-muted hover:text-ink rounded px-1.5 py-0.5 text-eyebrow leading-tight"
+            className="opacity-0 group-hover:opacity-100 transition-opacity border border-edit-line bg-edit-paper text-edit-muted hover:text-edit-ink rounded-[2px] px-1.5 py-0.5 text-eyebrow leading-tight"
             title="다른 블록으로 이동"
           >
             {t('story.toOtherBlock')}
@@ -288,7 +288,7 @@ export function SortablePhotoChapter({
         {/* 풀너비 힌트 배지 */}
         {fullWidthHint && (
           <span
-            className="absolute bottom-1 left-1 z-block-handle inline-flex items-center gap-0.5 px-1.5 py-[3px] rounded font-mono text-eyebrow tracking-wider uppercase bg-stone-900/75 text-white backdrop-blur-sm pointer-events-none"
+            className="absolute bottom-1 left-1 z-block-handle inline-flex items-center gap-0.5 px-1.5 py-[3px] rounded font-mono text-eyebrow tracking-wider uppercase bg-edit-ink/75 text-white backdrop-blur-sm pointer-events-none"
             title="포트폴리오에서 가로 풀너비로 표시됩니다"
           >
             ↔ {t('story.row.fullWidth')}
@@ -338,7 +338,7 @@ export const SortableTextBlock = memo(function SortableTextBlock({
   const isEditing = editingTextItemId === itemId;
 
   return (
-    <div ref={setRef} style={style} className="w-full group relative mb-1 min-w-0">
+    <div ref={setRef} style={style} className="w-full group relative mb-1 min-w-0 border-l-2 border-transparent hover:border-edit-line-strong hover:bg-edit-paper/50 transition-[background-color,border-color] duration-150">
       {/* 드래그 핸들 — 외부 좌측 (PHOTO/SIDE 블록과 동일 위치) */}
       {!isEditing && (
         <div
@@ -350,26 +350,26 @@ export const SortableTextBlock = memo(function SortableTextBlock({
         </div>
       )}
 
-      <div className="relative bg-stone-50 border border-stone-200 rounded-card px-5 py-4 min-w-0 [overflow-x:clip] [word-break:keep-all]">
+      <div className="relative px-5 py-4 min-w-0 [overflow-x:clip] [word-break:keep-all]">
         {isEditing ? (
           <div className="flex flex-col gap-2">
             <textarea
-              className="w-full min-h-32 p-3 text-small rounded-card border border-stone-100 focus:ring-2 focus:ring-stone-200 focus:outline-none resize-none bg-card overflow-x-hidden whitespace-pre-wrap [word-break:keep-all]"
+              className="w-full min-h-32 p-3 font-serif text-[15px] leading-[1.6] bg-edit-paper border-0 border-b border-edit-line focus:border-edit-ink focus:outline-none resize-none placeholder:text-edit-faint overflow-x-hidden whitespace-pre-wrap [word-break:keep-all] transition-colors duration-150"
               onInput={e => { const t = e.currentTarget; t.style.height = 'auto'; t.style.height = t.scrollHeight + 'px' }}
               value={textDraft}
               onChange={(e) => onTextDraftChange?.(e.target.value)}
               autoFocus
             />
-            <div className="flex gap-2 justify-end mt-1">
+            <div className="flex gap-2 justify-end mt-3">
               <button
                 onClick={(e) => { e.stopPropagation(); onCancelEdit?.(); }}
-                className="px-3 py-1.5 text-xs text-muted border border-stone-300 rounded bg-card hover:bg-stone-50"
+                className="px-4 py-1.5 text-[12px] tracking-[0.04em] uppercase text-edit-muted hover:text-edit-ink bg-transparent border border-edit-line rounded-[2px] transition-colors"
               >
                 {t('common.cancel')}
               </button>
               <button
                 onClick={(e) => { e.stopPropagation(); onSaveText?.(); }}
-                className="px-3 py-1.5 text-xs bg-ink text-card rounded hover:bg-stone-800 font-medium"
+                className="px-4 py-1.5 text-[12px] tracking-[0.04em] uppercase bg-edit-ink text-edit-paper hover:bg-edit-ink/85 rounded-[2px] transition-colors"
               >
                 {t('common.save')}
               </button>
@@ -382,43 +382,43 @@ export const SortableTextBlock = memo(function SortableTextBlock({
 
       {/* 호버 툴바 — inner div 뒤에 배치해야 Safari에서 [overflow-x:clip] stacking context 위에 렌더링됨 */}
       {!isEditing && (
-        <div className="absolute -top-4 right-5 opacity-0 group-hover:opacity-100 transition-opacity z-modal flex items-center gap-1 bg-white border border-gray-200 rounded shadow px-1.5 py-0.5">
+        <div className="absolute -top-4 right-5 opacity-0 group-hover:opacity-100 transition-opacity z-modal flex items-center gap-1 bg-edit-paper border border-edit-line rounded-[2px] shadow-sm px-1.5 py-0.5">
           {!isFirst && (
             <button
               onClick={() => { onMoveBlock?.('up'); scrollToSelf() }}
-              className="text-eyebrow px-2 py-1 rounded font-bold text-muted hover:bg-gray-100"
+              className="text-eyebrow px-2 py-1 rounded font-bold text-edit-muted hover:bg-edit-paper-2"
               title="위로 이동"
             >↑</button>
           )}
           {!isLast && (
             <button
               onClick={() => { onMoveBlock?.('down'); scrollToSelf() }}
-              className="text-eyebrow px-2 py-1 rounded font-bold text-muted hover:bg-gray-100"
+              className="text-eyebrow px-2 py-1 rounded font-bold text-edit-muted hover:bg-edit-paper-2"
               title="아래로 이동"
             >↓</button>
           )}
-          {(!isFirst || !isLast) && <span className="text-eyebrow text-stone-200 select-none">|</span>}
+          {(!isFirst || !isLast) && <span className="text-eyebrow text-edit-line select-none">|</span>}
           <button
             onClick={() => onEdit(itemId, text_content)}
-            className="text-xs px-2 py-0.5 rounded text-stone-500 hover:bg-gray-100"
+            className="text-xs px-2 py-0.5 rounded text-edit-muted hover:bg-edit-paper-2"
           >{t('common.edit')}</button>
-          <span className="text-eyebrow text-stone-200 select-none">|</span>
+          <span className="text-eyebrow text-edit-line select-none">|</span>
           <button
             onClick={() => onRemove(chapterId, itemId)}
-            className="text-xs px-2 py-0.5 rounded text-red-400 hover:text-red-600 hover:bg-gray-100"
+            className="text-xs px-2 py-0.5 rounded text-edit-danger hover:bg-edit-paper-2"
           >×</button>
-          {(hasPhotoAbove || hasPhotoBelow) && <span className="text-eyebrow text-stone-200 select-none">|</span>}
+          {(hasPhotoAbove || hasPhotoBelow) && <span className="text-eyebrow text-edit-line select-none">|</span>}
           {hasPhotoAbove && (
             <button
               onClick={() => onSideBySide(itemId, 'side-left', 'above')}
-              className="inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded font-bold text-blue-400 hover:text-ink hover:bg-gray-100"
+              className="inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded font-bold text-edit-accent hover:text-edit-ink hover:bg-edit-paper-2"
               title="위 사진과 나란히 (텍스트 왼쪽)"
             ><ArrowLeftRight size={10} strokeWidth={1.5} /> {t('story.attachLeft')}</button>
           )}
           {hasPhotoBelow && (
             <button
               onClick={() => onSideBySide(itemId, 'side-right', 'below')}
-              className="inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded font-bold text-blue-400 hover:text-ink hover:bg-gray-100"
+              className="inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded font-bold text-edit-accent hover:text-edit-ink hover:bg-edit-paper-2"
               title="아래 사진과 나란히 (텍스트 오른쪽)"
             ><ArrowLeftRight size={10} strokeWidth={1.5} /> {t('story.attachRight')}</button>
           )}
@@ -586,11 +586,12 @@ export const SortablePhotoBlock = memo(function SortablePhotoBlock({
     <div
       ref={setRef}
       style={style}
-      className={`group/block relative mb-1 rounded-card p-3 border transition-[background,color,border] duration-150 ease-out ${
-        isOver && isExternalDrag
-          ? 'bg-blue-50 border-blue-300'
-          : 'bg-stone-50 border-stone-200'
-      }`}
+      className={`group/block relative mb-3 px-3 py-3 -mx-3 rounded-[2px]
+                  transition-[background-color,box-shadow] duration-150
+                  border border-transparent hover:bg-edit-paper/40 hover:border-edit-line
+                  ${isOver && isExternalDrag
+                    ? 'bg-edit-drop/50 ring-1 ring-inset ring-edit-accent !border-transparent'
+                    : ''}`}
     >
       <div
         {...attributes}
@@ -629,42 +630,41 @@ export const SortablePhotoBlock = memo(function SortablePhotoBlock({
       </div>
 
       {/* 레이아웃 툴바 — hover 시 표시 */}
-      <div className="absolute -top-4 right-5 opacity-0 group-hover/block:opacity-100 transition-opacity z-block-toolbar flex items-center gap-1 bg-white border border-gray-200 rounded shadow px-1.5 py-0.5">
+      <div className="absolute -top-4 right-5 opacity-0 group-hover/block:opacity-100 transition-opacity z-block-toolbar flex items-center gap-1 bg-edit-paper border border-edit-line rounded-[2px] shadow-sm px-1.5 py-0.5">
         {!isFirst && (
           <button
             onClick={() => { onMoveBlock?.('up'); scrollToSelf() }}
-            className="text-eyebrow px-2 py-1 rounded font-bold text-muted hover:bg-gray-100"
+            className="text-eyebrow px-2 py-1 rounded font-bold text-edit-muted hover:bg-edit-paper-2"
             title="위로 이동"
           >↑</button>
         )}
         {!isLast && (
           <button
             onClick={() => { onMoveBlock?.('down'); scrollToSelf() }}
-            className="text-eyebrow px-2 py-1 rounded font-bold text-muted hover:bg-gray-100"
+            className="text-eyebrow px-2 py-1 rounded font-bold text-edit-muted hover:bg-edit-paper-2"
             title="아래로 이동"
           >↓</button>
         )}
-        {(!isFirst || !isLast) && <span className="text-eyebrow text-stone-200 select-none">|</span>}
-        <span className="text-eyebrow text-faint mr-1">{t('portfolio.column')}</span>
+        {(!isFirst || !isLast) && <span className="text-eyebrow text-edit-line select-none">|</span>}
+        <span className="text-eyebrow text-edit-faint mr-1">{t('portfolio.column')}</span>
         {(['grid', 'wide', 'single'] as const).map(l => (
           <button
             key={l}
             onClick={() => onLayoutChange(blockId, l)}
-            className={`text-eyebrow px-2 py-1 rounded transition-[background,color,border] duration-150 ease-out ${
-              blockLayout === l ? 'bg-muted text-card' : 'text-gray-500 hover:bg-gray-100'
+            className={`text-eyebrow px-2 py-1 rounded transition-[background,color] duration-150 ease-out ${
+              blockLayout === l ? 'bg-edit-ink text-edit-paper' : 'text-edit-muted hover:bg-edit-paper-2'
             }`}
           >
             {layoutLabels[l]}
           </button>
         ))}
-        {/*<span className="text-eyebrow text-faint">{t('portfolio.layoutInPort')}</span>*/}
         {(hasTextAbove || hasTextBelow) && (
           <>
-            <span className="text-eyebrow text-stone-200 select-none">|</span>
+            <span className="text-eyebrow text-edit-line select-none">|</span>
             {hasTextAbove && (
               <button
                 onClick={onSideBySideAbove}
-                className="text-eyebrow px-2 py-1 rounded font-bold text-blue-400 hover:text-ink hover:bg-stone-100 flex items-center gap-0.5"
+                className="text-eyebrow px-2 py-1 rounded font-bold text-edit-accent hover:text-edit-ink hover:bg-edit-paper-2 flex items-center gap-0.5"
                 title={t('story.sideBySideAbove')}
               >
                 <ArrowLeftRight size={10} strokeWidth={1.5} />↑
@@ -673,7 +673,7 @@ export const SortablePhotoBlock = memo(function SortablePhotoBlock({
             {hasTextBelow && (
               <button
                 onClick={onSideBySideBelow}
-                className="text-eyebrow px-2 py-1 rounded font-bold text-blue-400 hover:text-ink hover:bg-stone-100 flex items-center gap-0.5"
+                className="text-eyebrow px-2 py-1 rounded font-bold text-edit-accent hover:text-edit-ink hover:bg-edit-paper-2 flex items-center gap-0.5"
                 title={t('story.sideBySideBelow')}
               >
                 <ArrowLeftRight size={10} strokeWidth={1.5} />↓
@@ -792,7 +792,7 @@ export const SortableSideBySideBlock = memo(function SortableSideBySideBlock({
             />
             <button
               onClick={(e) => { e.stopPropagation(); onRemoveItem(chapterId, item.id) }}
-              className="absolute top-1 right-1 bg-stone-900/70 text-white rounded w-5 h-5 opacity-40 group-hover:opacity-100 flex items-center justify-center transition-opacity z-photo-controls hover:bg-stone-900"
+              className="absolute top-1 right-1 bg-edit-ink/70 text-white rounded w-5 h-5 opacity-40 group-hover:opacity-100 flex items-center justify-center transition-opacity z-photo-controls hover:bg-edit-ink"
               aria-label="삭제"
             >
               <svg width="10" height="10" viewBox="0 0 10 10" fill="none" strokeWidth="1.5" stroke="currentColor">
@@ -807,12 +807,12 @@ export const SortableSideBySideBlock = memo(function SortableSideBySideBlock({
   )
 
   const textCol = textItem ? (
-    <div className="flex-1 min-w-0 overflow-x-hidden [word-break:keep-all] group/text relative bg-card border border-stone-100 rounded-card px-4 py-4">
+    <div className="flex-1 min-w-0 overflow-x-hidden [word-break:keep-all] group/text relative border-l-2 border-transparent hover:border-edit-line-strong hover:bg-edit-paper/50 px-4 py-4 transition-[background-color,border-color] duration-150">
       {editingTextItemId === textItem.id ? (
         /* 👇 편집 모드일 때: 텍스트 영역만 편집창으로 전환 */
         <div className="flex flex-col gap-2">
           <textarea
-            className="w-full min-h-32 p-2 text-small rounded border border-stone-100 focus:ring-2 focus:ring-stone-200 outline-none resize-none bg-card overflow-x-hidden whitespace-pre-wrap [word-break:keep-all]"
+            className="w-full min-h-32 p-2 font-serif text-[15px] leading-[1.6] bg-edit-paper border-0 border-b border-edit-line focus:border-edit-ink outline-none resize-none placeholder:text-edit-faint overflow-x-hidden whitespace-pre-wrap [word-break:keep-all] transition-colors duration-150"
             onInput={e => { const t = e.currentTarget; t.style.height = 'auto'; t.style.height = t.scrollHeight + 'px' }}
             value={textDraft}
             onChange={(e) => onTextDraftChange?.(e.target.value)}
@@ -821,13 +821,13 @@ export const SortableSideBySideBlock = memo(function SortableSideBySideBlock({
           <div className="flex gap-2 justify-end">
             <button 
               onClick={(e) => { e.stopPropagation(); onCancelEdit?.(); }}
-              className="px-2 py-1 text-eyebrow text-muted border border-stone-300 rounded bg-card hover:bg-stone-50"
+              className="px-4 py-1.5 text-[12px] tracking-[0.04em] uppercase text-edit-muted hover:text-edit-ink bg-transparent border border-edit-line rounded-[2px] transition-colors"
             >
               {t('common.cancel')}
             </button>
             <button 
               onClick={(e) => { e.stopPropagation(); onSaveText?.(); }}
-              className="px-2 py-1 text-eyebrow bg-stone-900 text-white rounded hover:bg-stone-800 font-medium"
+              className="px-4 py-1.5 text-[12px] tracking-[0.04em] uppercase bg-edit-ink text-edit-paper hover:bg-edit-ink/85 rounded-[2px] transition-colors"
             >
               {t('common.save')}
             </button>
@@ -840,7 +840,7 @@ export const SortableSideBySideBlock = memo(function SortableSideBySideBlock({
           <div className="absolute top-4 right-2 flex gap-1 opacity-0 group-hover/text:opacity-100 transition-opacity">
             <button
               onClick={() => onEdit(textItem.id, textItem.text_content || '')}
-              className="text-xs px-2 py-0.5 rounded border border-gray-300 text-gray-400 hover:text-gray-700 bg-white"
+              className="text-xs px-2 py-0.5 rounded border border-edit-line text-edit-muted hover:text-edit-ink bg-edit-paper"
             >
               {t('common.edit')}
             </button>
@@ -851,7 +851,7 @@ export const SortableSideBySideBlock = memo(function SortableSideBySideBlock({
   ) : null
 
   return (
-    <div ref={setNodeRef} style={style} className="group/block relative mb-1 rounded-card p-3 border bg-stone-50 border-stone-200 transition-[background,color,border] duration-150 ease-out">
+    <div ref={setNodeRef} style={style} className="group/block relative mb-3 px-3 py-3 -mx-3 rounded-[2px] border border-transparent hover:bg-edit-paper/40 hover:border-edit-line transition-[background-color,border-color] duration-150">
       <div
         {...attributes}
         {...listeners}
@@ -860,25 +860,25 @@ export const SortableSideBySideBlock = memo(function SortableSideBySideBlock({
         <DragHandleDots />
       </div>
 
-      <div className="absolute -top-4 right-5 opacity-0 group-hover/block:opacity-100 transition-opacity z-block-toolbar flex items-center gap-1 bg-white border border-gray-200 rounded shadow px-1.5 py-0.5">
+      <div className="absolute -top-4 right-5 opacity-0 group-hover/block:opacity-100 transition-opacity z-block-toolbar flex items-center gap-1 bg-edit-paper border border-edit-line rounded-[2px] shadow-sm px-1.5 py-0.5">
         {!isFirst && (
           <button
             onClick={() => { onMoveBlock?.('up'); scrollToSelf() }}
-            className="text-eyebrow px-2 py-1 rounded font-bold text-muted hover:bg-gray-100"
+            className="text-eyebrow px-2 py-1 rounded font-bold text-edit-muted hover:bg-edit-paper-2"
             title="위로 이동"
           >↑</button>
         )}
         {!isLast && (
           <button
             onClick={() => { onMoveBlock?.('down'); scrollToSelf() }}
-            className="text-eyebrow px-2 py-1 rounded font-bold text-muted hover:bg-gray-100"
+            className="text-eyebrow px-2 py-1 rounded font-bold text-edit-muted hover:bg-edit-paper-2"
             title="아래로 이동"
           >↓</button>
         )}
         {textItem && (
           <button
             onClick={() => onCancelSideBySide(chapterId, textItem.id)}
-            className="text-eyebrow px-2 py-1 rounded text-muted hover:bg-gray-100"
+            className="text-eyebrow px-2 py-1 rounded text-edit-muted hover:bg-edit-paper-2"
           >
             {t('story.detach')}
           </button>
