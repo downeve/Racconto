@@ -1,5 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException, BackgroundTasks
 from sqlalchemy.orm import Session
+from sqlalchemy import case, update as sa_update
 from app.database import get_db
 from app import models
 from pydantic import BaseModel
@@ -82,11 +83,16 @@ def reorder_projects(
     db: Session = Depends(get_db),
     current_user: models.User = Depends(get_current_user)
 ):
-    for i, project_id in enumerate(body.ids):
-        db.query(models.Project).filter(
-            models.Project.id == project_id,
-            models.Project.user_id == current_user.id
-        ).update({"order_num": i})
+    if not body.ids:
+        return {"ok": True}
+    db.execute(
+        sa_update(models.Project)
+        .where(models.Project.id.in_(body.ids))
+        .where(models.Project.user_id == current_user.id)
+        .values(order_num=case(
+            *[(models.Project.id == pid, i) for i, pid in enumerate(body.ids)]
+        ))
+    )
     db.commit()
     return {"ok": True}
 

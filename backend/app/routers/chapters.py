@@ -1,5 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
+from sqlalchemy import case, update as sa_update
 from app.database import get_db
 from app import models
 from app.auth import get_current_user
@@ -309,10 +310,13 @@ def reorder_chapters(
         if owned_count != len(body.chapter_ids):
             raise HTTPException(status_code=403, detail="FORBIDDEN")
 
-    for index, chapter_id in enumerate(body.chapter_ids):
-        db.query(models.Chapter).filter(models.Chapter.id == chapter_id).update(
-            {"order_num": index}, synchronize_session=False
-        )
+    db.execute(
+        sa_update(models.Chapter)
+        .where(models.Chapter.id.in_(body.chapter_ids))
+        .values(order_num=case(
+            *[(models.Chapter.id == cid, i) for i, cid in enumerate(body.chapter_ids)]
+        ))
+    )
     if body.chapter_ids:
         first = db.query(models.Chapter.project_id).filter(
             models.Chapter.id == body.chapter_ids[0]
