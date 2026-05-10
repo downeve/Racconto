@@ -128,7 +128,7 @@ export const InsertSlot = memo(function InsertSlot({
   return (
     <div
       ref={ref}
-      className="relative h-1 my-0.5"
+      className="relative h-2 my-0.5"
       onMouseEnter={onEnter}
       onMouseLeave={onLeave}
     >
