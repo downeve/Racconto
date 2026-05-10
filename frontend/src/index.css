@@ -87,17 +87,17 @@
     @apply transition-ui duration-150 ease-out hover:-translate-y-[1px] hover:shadow-deep;
   }
 
-  /* 메타 타이포 토큰 — rem 사용하여 font-size 스케일에 반응 */
+  /* 메타 타이포 토큰 — tailwind.config.js fontSize 토큰 참조 */
   .t-eyebrow {
-    @apply font-sans text-[0.625rem] tracking-[0.18em] uppercase font-medium;
+    @apply font-mono text-eyebrow tracking-[0.18em] uppercase font-medium;
   }
   .t-caption {
-    @apply font-sans text-[0.625rem] tracking-[0.14em] uppercase font-medium;
+    @apply font-mono text-caption tracking-[0.14em] uppercase font-medium;
   }
   .t-loc {
-    @apply font-sans text-[0.625rem] tracking-[0.18em] uppercase font-medium inline-flex items-center gap-1.5;
+    @apply font-mono text-eyebrow tracking-[0.18em] uppercase font-medium inline-flex items-center gap-1.5;
   }
   .t-numeral {
-    @apply font-sans text-[0.625rem] tracking-[0.18em] uppercase font-medium;
+    @apply font-mono text-eyebrow tracking-[0.18em] uppercase font-medium;
   }
 }
