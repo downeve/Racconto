@@ -123,7 +123,7 @@ export default function ElectronSidebar({ activeTab, onTabChange, showTabs, widt
 
   // §11.1 navItem 헬퍼 — layout shift 없는 active 표시
   const navItem = (active: boolean) =>
-    `relative w-full text-left px-2 py-1.5 rounded-[1px] flex items-center gap-2 t-caption
+    `relative w-full text-left px-2 py-1.5 rounded-[1px] flex items-center gap-2 text-[0.75rem] font-sans font-medium
      transition-[background-color,color] duration-150 ${
       active
         ? 'bg-edit-ink/[0.06] text-edit-ink before:absolute before:left-0 before:top-1.5 before:bottom-1.5 before:w-[2px] before:bg-edit-ink'
@@ -252,7 +252,7 @@ export default function ElectronSidebar({ activeTab, onTabChange, showTabs, widt
             <button
               key={item.key}
               onClick={() => onTabChange(item.key)}
-              className={`rounded-[1px] flex-1 inline-flex items-center justify-center gap-1.5 py-2 t-caption
+              className={`rounded-[1px] flex-1 inline-flex items-center justify-center gap-1.5 py-2 text-[0.75rem] font-sans font-medium
                           transition-colors duration-150 ${
                 activeTab === item.key
                   ? 'bg-edit-ink text-edit-paper'
@@ -282,14 +282,14 @@ export default function ElectronSidebar({ activeTab, onTabChange, showTabs, widt
           <span className="w-6 h-6 rounded-full bg-edit-ink text-edit-paper t-eyebrow font-bold flex items-center justify-center shrink-0">
             {avatarInitial}
           </span>
-          <span className="t-caption text-edit-muted truncate">{user?.email}</span>
+          <span className="text-[0.75rem] font-sans text-edit-muted truncate">{user?.email}</span>
         </button>
         {dropdownOpen && (
           <div className="absolute bottom-full left-2 right-2 mb-1 z-popover bg-edit-paper rounded-[2px] py-1 border border-edit-line shadow-[0_8px_24px_rgba(0,0,0,0.08)]">
             <Link
               to="/trash"
               onClick={() => setDropdownOpen(false)}
-              className="w-full text-left px-3 py-2 t-caption text-edit-ink hover:bg-edit-paper-2 flex items-center gap-2 transition-colors"
+              className="w-full text-left px-3 py-2 text-[0.75rem] font-sans text-edit-ink hover:bg-edit-paper-2 flex items-center gap-2 transition-colors"
             >
               {t('nav.trash')}
             </Link>
@@ -298,7 +298,7 @@ export default function ElectronSidebar({ activeTab, onTabChange, showTabs, widt
               <button
                 key={lang.code}
                 onClick={() => { changeLanguage(lang.code); setDropdownOpen(false) }}
-                className={`w-full text-left px-3 py-2 t-caption hover:bg-edit-paper-2 transition-colors ${
+                className={`w-full text-left px-3 py-2 text-[0.75rem] font-sans hover:bg-edit-paper-2 transition-colors ${
                   currentLang === lang.code ? 'text-edit-ink' : 'text-edit-muted'
                 }`}
               >
@@ -328,7 +328,7 @@ export default function ElectronSidebar({ activeTab, onTabChange, showTabs, widt
             <div className="border-t border-edit-line my-1" />
             <button
               onClick={() => { setDropdownOpen(false); logout() }}
-              className="w-full text-left px-3 py-2 t-caption text-edit-danger hover:bg-edit-paper-2 transition-colors"
+              className="w-full text-left px-3 py-2 text-[0.75rem] font-sans text-edit-danger hover:bg-edit-paper-2 transition-colors"
             >
               {t('auth.logout')}
             </button>

@@ -1278,7 +1278,7 @@ function ProjectStory({
         {/* 챕터 추가 */}
         <button
           onClick={() => { setShowAddChapter(true); setAddingSubChapterTo(null) }}
-          className="w-full mb-1.5 px-3 py-2 rounded-[1px] inline-flex items-center gap-2 t-caption
+          className="w-full mb-1.5 px-3 py-2 rounded-[1px] inline-flex items-center gap-2 text-[0.75rem] font-sans font-medium
                      border border-edit-line text-edit-muted hover:text-edit-ink hover:border-edit-line-strong
                      transition-colors duration-150"
         >
@@ -1289,7 +1289,7 @@ function ProjectStory({
         {/* 미리보기 */}
         <button
           onClick={() => setShowPreview(true)}
-          className="w-full mb-3 px-3 py-2 rounded-[1px] inline-flex items-center gap-2 t-caption
+          className="w-full mb-3 px-3 py-2 rounded-[1px] inline-flex items-center gap-2 text-[0.75rem] font-sans font-medium
                      border border-edit-line text-edit-muted hover:text-edit-ink hover:border-edit-line-strong
                      transition-colors duration-150"
         >
