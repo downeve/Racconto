@@ -40,6 +40,18 @@ const menuTranslations = {
     toggleLanguage: '언어 변경',
     signOut: '로그아웃',
     window: 'Window'
+  },
+  ja: {
+    navigate: 'メニュー',
+    dashboard: 'ダッシュボード',
+    projects: 'プロジェクト',
+    portfolio: 'ポートフォリオ',
+    account: 'アカウント',
+    settings: '設定',
+    trash: 'ゴミ箱',
+    toggleLanguage: '言語を切替',
+    signOut: 'サインアウト',
+    window: 'ウインドウ'
   }
 };
 

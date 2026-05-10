@@ -90,7 +90,7 @@ function AppRoutes() {
 
   useEffect(() => {
     if (!isElectron) return
-    const lang = i18n.language.startsWith('ko') ? 'ko' : 'en'
+    const lang = i18n.language.startsWith('ko') ? 'ko' : i18n.language.startsWith('ja') ? 'ja' : 'en'
     window.racconto!.setMenuLanguage(lang)
   }, [i18n.language, isElectron])
 
