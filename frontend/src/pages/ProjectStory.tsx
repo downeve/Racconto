@@ -1352,7 +1352,9 @@ function ProjectStory({
                                group-hover:text-edit-ink truncate min-w-0
                                transition-colors duration-150"
                   >
-                    <span className="truncate">{chapter.title}</span>
+                    <span className="truncate">
+                      <span className="text-edit-faint mr-0.5">Ch {idx + 1}.</span>{chapter.title}
+                    </span>
                   </button>
                   <div className="flex items-center shrink-0 opacity-0 group-hover:opacity-100
                                   transition-opacity gap-0.5 pr-1">
@@ -1389,7 +1391,9 @@ function ProjectStory({
                                      group-hover:text-edit-muted truncate min-w-0
                                      transition-colors duration-150"
                         >
-                          <span className="truncate">{sub.title}</span>
+                          <span className="truncate">
+                            <span className="mr-0.5">Ch {idx + 1}.{subIdx + 1}.</span>{sub.title}
+                          </span>
                         </button>
                         <div className="flex items-center shrink-0 opacity-0 group-hover:opacity-100
                                         transition-opacity gap-0.5 pr-1">
@@ -1696,7 +1700,7 @@ function ProjectStory({
                       <div className="flex items-baseline justify-between gap-4">
                         <div className="flex items-baseline gap-3 min-w-0">
                           <h3 className="font-serif text-h3 text-edit-ink tracking-tight [word-break:keep-all]">
-                            {chapter.title}
+                            <span className="font-sans text-body text-edit-muted mr-2">Ch {idx + 1}.</span>{chapter.title}
                           </h3>
                           {getChapterPhotoCount(chapter.id) > 0 && (
                             <span className="t-eyebrow text-edit-faint shrink-0">
@@ -1860,7 +1864,7 @@ function ProjectStory({
                           <div className="flex items-baseline justify-between gap-4">
                             <div className="flex items-baseline gap-3 min-w-0">
                               <h4 className="font-serif text-h3 text-edit-ink tracking-tight [word-break:keep-all]">
-                                {subChapter.title}
+                                <span className="font-sans text-body text-edit-muted mr-2">Ch {idx + 1}.{subIdx + 1}.</span>{subChapter.title}
                               </h4>
                               {getChapterPhotoCount(subChapter.id) > 0 && (
                                 <span className="t-eyebrow text-edit-faint shrink-0">
