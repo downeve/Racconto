@@ -1,7 +1,7 @@
 import { useEffect, useState, useMemo, useRef, memo, useCallback } from 'react'
 import axios from 'axios'
 import { useTranslation } from 'react-i18next'
-import { Eye, FileText, Sun, Moon } from 'lucide-react'
+import { Eye, Plus, FileText, Sun, Moon } from 'lucide-react'
 import { cfUrl } from '../utils/cfImage'
 //import { Rows3 } from 'lucide-react'
 import PhotoNotePanel from '../components/PhotoNotePanel'
@@ -1102,7 +1102,7 @@ function ProjectStory({
         </SortableContext>
         <DragOverlay dropAnimation={{ duration: 250, easing: 'cubic-bezier(0.18, 0.67, 0.6, 1.22)' }}>
           {activeBlockId && !draggingItemId ? (
-            <div className="bg-edit-paper border border-edit-line rounded-[2px] p-3 opacity-90 shadow-[0_8px_24px_rgba(0,0,0,0.12)]">
+            <div className="bg-edit-paper border border-edit-line rounded-[2px] p-3 opacity-90 shadow-[0_8px_24px_rgba(0,0,0,0.06)]">
               <div className="grid grid-cols-3 gap-2">
                 {activeBlockItems.map(item => (
                   <div key={item.id} className={item.item_type === 'PHOTO' ? "aspect-[3/2] overflow-hidden bg-edit-paper-2" : "col-span-3 bg-edit-paper border border-edit-line rounded-[2px] px-5 py-4"}>
@@ -1120,12 +1120,12 @@ function ProjectStory({
             const draggedItem = Object.values(chapterPhotos).flat().find(i => i.id === draggingItemId)
             if (!draggedItem) return null
             if (draggedItem.item_type === 'TEXT') return (
-              <div className="w-180 bg-edit-paper border border-edit-line rounded-[2px] px-5 py-4 shadow-[0_8px_24px_rgba(0,0,0,0.12)] rotate-1 scale-105 opacity-95">
+              <div className="w-180 bg-edit-paper border border-edit-line rounded-[2px] px-5 py-4 shadow-[0_8px_24px_rgba(0,0,0,0.06)] rotate-1 scale-105 opacity-95">
                 <p className="text-sm text-edit-ink line-clamp-3">{draggedItem.text_content}</p>
               </div>
             )
             return (
-              <div className="aspect-[3/2] w-60 rounded-[2px] overflow-hidden shadow-[0_8px_24px_rgba(0,0,0,0.12)] rotate-3 scale-105 bg-edit-paper-2 opacity-60 cursor-grabbing">
+              <div className="aspect-[3/2] w-60 rounded-[2px] overflow-hidden shadow-[0_8px_24px_rgba(0,0,0,0.06)] rotate-3 scale-105 bg-edit-paper-2 opacity-60 cursor-grabbing">
                 {draggedItem.image_url && <img src={draggedItem.image_url} className="w-full h-full object-contain" />}
               </div>
             )
@@ -1151,13 +1151,16 @@ function ProjectStory({
     )]
 
     return (
-      <div className="flex items-center gap-2 mb-3 px-2 py-1.5 bg-stone-100 rounded-card">
-        <span className="text-small text-muted flex-1">
+      <div className="flex items-center gap-3 mb-4 px-3 py-2
+                      bg-edit-paper-2 border border-edit-line rounded-[2px]">
+        <span className="t-caption text-edit-muted flex-1">
           {t('story.selected', { count: chapterSelectedIds.length })}
         </span>
         <button
           onClick={() => setMoveModalItems({ itemIds: chapterSelectedIds, chapterId, sourceBlockIds })}
-          className="text-menu text-faint hover:text-ink-2 px-2 py-0.5 border border-faint rounded hover:border-stone-400 transition-[background,color,border] duration-150"
+          className="t-caption text-edit-muted hover:text-edit-ink px-2 py-0.5
+                     border border-edit-line rounded-[1px] hover:border-edit-line-strong
+                     transition-colors duration-150"
         >
           {t('story.toOtherBlock')}
         </button>
@@ -1166,7 +1169,7 @@ function ProjectStory({
             message: t('story.bulkDeleteConfirm', { count: chapterSelectedIds.length }),
             onConfirm: () => { handleBulkDelete(chapterId, chapterSelectedIds); setConfirmModal(null) }
           })}
-          className="text-menu text-red-400 hover:text-red-600 px-2 py-0.5"
+          className="t-caption text-edit-danger hover:opacity-80 px-2 py-0.5 transition-opacity"
         >
           {t('common.delete')}
         </button>
@@ -1176,7 +1179,7 @@ function ProjectStory({
             chapterSelectedIds.forEach(id => next.delete(id))
             return next
           })}
-          className="text-menu text-faint hover:text-ink px-2 py-0.5"
+          className="t-caption text-edit-muted hover:text-edit-ink px-2 py-0.5 transition-colors"
         >
           {t('story.deselectAll')}
         </button>
@@ -1271,52 +1274,33 @@ function ProjectStory({
   useEffect(() => {
     if (activeTab !== 'story') return
     setSidebarContent(
-      <div className="p-4">
-        {/*<p className="text-menu font-semibold text-muted mb-3">{t('story.chapters')}</p>*/}
+      <div className="p-3">
+        {/* 챕터 추가 */}
         <button
           onClick={() => { setShowAddChapter(true); setAddingSubChapterTo(null) }}
-          className="w-full mb-2 text-menu font-semibold btn-secondary px-2 py-1.5 rounded-card transition-[background,color,border] duration-150 ease-out tracking-wider"
+          className="w-full mb-1 px-2 py-1.5 rounded-[1px] flex items-center gap-2 t-caption
+                     text-edit-muted hover:bg-edit-paper-2 hover:text-edit-ink
+                     transition-colors duration-150"
         >
-          {t('story.addChapter')}
+          <Plus size={13} strokeWidth={1.5} />
+          <span>{t('story.addChapter')}</span>
         </button>
+
+        {/* 미리보기 */}
         <button
           onClick={() => setShowPreview(true)}
-          className="w-full mb-3 text-menu btn-secondary-on-card px-2 py-1.5 rounded-card transition-[background,color,border] duration-150 ease-out tracking-wider inline-flex items-center justify-center gap-1.5"
+          className="w-full mb-3 px-2 py-1.5 rounded-[1px] flex items-center gap-2 t-caption
+                     text-edit-muted hover:bg-edit-paper-2 hover:text-edit-ink
+                     transition-colors duration-150"
         >
-          <Eye size={14} strokeWidth={1.5} />{t('story.preview')}
+          <Eye size={13} strokeWidth={1.5} />
+          <span>{t('story.preview')}</span>
         </button>
-          
-          {/* Ghost Frame / Preview Panel 토글 */}
-          <div className="flex gap-1.5 mb-3">
-            {/* Ghot Frame 토글 버튼 숨김 처리
-            <button
-              aria-pressed={ghostMode}
-              onClick={() => setGhostMode(v => !v)}
-              className={`flex-1 inline-flex items-center justify-center gap-1 px-1.5 py-1 text-eyebrow rounded-card border transition-[background,color,border] duration-150 ease-out ${
-                ghostMode ? 'bg-stone-800 text-white border-stone-800' : 'text-muted border-faint hover:border-muted'
-              }`}
-              title={t('story.ghostMode')}
-            >
-              <Rows3 size={11} strokeWidth={1.5} />
-              {t('story.ghostMode')}
-            </button>
-            */}
-            {/* 포트폴리오 미리보기 패널 버튼 숨김 처리
-            <button
-              aria-pressed={showPortfolioPreview}
-              onClick={() => setShowPortfolioPreview(v => !v)}
-              className={`flex-1 inline-flex items-center justify-center gap-1 px-1.5 py-1 text-caption rounded-card border transition-[background,color,border] duration-150 ease-out ${
-                showPortfolioPreview ? 'bg-stone-800 text-card border-stone-800' : 'text-muted border-faint hover:border-muted'
-              }`}
-              title={t('story.portfolioPreviewPanel')}
-            >
-              <PanelRight size={11} strokeWidth={1.5} />
-              {t('story.portfolioPreviewPanel')}
-            </button>
-            */}
-          </div>
 
-        <div className="space-y-1">
+        <div className="mx-1 mb-2 border-t border-edit-line" />
+
+        {/* 챕터 목록 */}
+        <div className="space-y-0.5">
           {chapters.filter(c => !c.parent_id).map((chapter, idx) => {
             const mainChapters = chapters.filter(c => !c.parent_id)
             const subChapters = chapters.filter(c => c.parent_id === chapter.id)
@@ -1328,52 +1312,86 @@ function ProjectStory({
             })
             return (
               <div key={chapter.id}>
-                <div className="flex items-center gap-1 group rounded hover:bg-hair">
+                <div className="flex items-center gap-0.5 group rounded-[1px] hover:bg-edit-paper-2">
                   {subChapters.length > 0 ? (
-                    <button onClick={toggleCollapse} className="shrink-0 pl-1 text-muted hover:text-ink text-eyebrow w-4">
+                    <button
+                      onClick={toggleCollapse}
+                      aria-label={isCollapsed ? '펼치기' : '접기'}
+                      className="shrink-0 pl-1 t-eyebrow text-edit-faint hover:text-edit-ink w-4"
+                    >
                       {isCollapsed ? '▸' : '▾'}
                     </button>
                   ) : (
                     <span className="shrink-0 w-4" />
                   )}
-                  <button onClick={() => scrollToChapter(chapter.id)}
-                    className="flex-1 text-left px-1 py-1.5 text-menu flex items-center gap-1.5 min-w-0">
-                    <span className="text-muted shrink-0">Ch. {idx + 1}</span>
-                    <span className="truncate text-ink-2 group-hover:text-ink">{chapter.title}</span>
+                  <button
+                    onClick={() => scrollToChapter(chapter.id)}
+                    className="flex-1 text-left px-1 py-1.5 t-caption text-edit-muted
+                               group-hover:text-edit-ink truncate min-w-0
+                               transition-colors duration-150"
+                  >
+                    <span className="truncate">{chapter.title}</span>
                   </button>
-                  <div className="flex items-center shrink-0 opacity-0 group-hover:opacity-100 transition-opacity gap-0.5">
+                  <div className="flex items-center shrink-0 opacity-0 group-hover:opacity-100
+                                  transition-opacity gap-0.5 pr-1">
                     <button
                       onClick={() => { setChapterPreviewId(chapter.id); setChapterPreviewOpen(true) }}
-                      className="text-muted hover:text-ink px-0.5"
+                      aria-label="챕터 미리보기"
+                      className="p-0.5 t-eyebrow text-edit-faint hover:text-edit-ink transition-colors"
                     >
-                      <Eye size={12} strokeWidth={1.5} />
+                      <Eye size={11} strokeWidth={1.5} />
                     </button>
-                    <button onClick={() => handleMoveChapter(chapter.id, 'up')} disabled={idx === 0}
-                      className="text-muted hover:text-ink disabled:opacity-20 px-0.5 text-caption">↑</button>
-                    <button onClick={() => handleMoveChapter(chapter.id, 'down')} disabled={idx === mainChapters.length - 1}
-                      className="text-muted hover:text-ink disabled:opacity-20 px-0.5 text-caption">↓</button>
+                    <button
+                      onClick={() => handleMoveChapter(chapter.id, 'up')}
+                      disabled={idx === 0}
+                      aria-label="위로 이동"
+                      className="px-0.5 py-0.5 t-eyebrow text-edit-faint hover:text-edit-ink
+                                 disabled:opacity-20 transition-colors"
+                    >↑</button>
+                    <button
+                      onClick={() => handleMoveChapter(chapter.id, 'down')}
+                      disabled={idx === mainChapters.length - 1}
+                      aria-label="아래로 이동"
+                      className="px-0.5 py-0.5 t-eyebrow text-edit-faint hover:text-edit-ink
+                                 disabled:opacity-20 transition-colors"
+                    >↓</button>
                   </div>
                 </div>
                 {!isCollapsed && subChapters.length > 0 && (
-                  <div className="ml-4 border-l border-stone-300 pl-2 mt-0.5 space-y-0.5">
+                  <div className="ml-3 border-l border-edit-line pl-2 mt-0.5 space-y-0.5">
                     {subChapters.map((sub, subIdx) => (
-                      <div key={sub.id} className="flex items-center gap-1 group rounded hover:bg-hair">
-                        <button onClick={() => scrollToChapter(sub.id)}
-                          className="flex-1 text-left px-1 py-1 text-menu flex items-center gap-1.5 min-w-0">
-                          <span className="text-muted shrink-0 text-small">Ch. {idx + 1}.{subIdx + 1}</span>
-                          <span className="text-ink-2 hover:text-ink truncate">{sub.title}</span>
+                      <div key={sub.id} className="flex items-center gap-0.5 group rounded-[1px] hover:bg-edit-paper-2">
+                        <button
+                          onClick={() => scrollToChapter(sub.id)}
+                          className="flex-1 text-left pl-2 py-1 t-caption text-edit-faint
+                                     group-hover:text-edit-muted truncate min-w-0
+                                     transition-colors duration-150"
+                        >
+                          <span className="truncate">{sub.title}</span>
                         </button>
-                        <div className="flex items-center shrink-0 opacity-0 group-hover:opacity-100 transition-opacity gap-0.5">
+                        <div className="flex items-center shrink-0 opacity-0 group-hover:opacity-100
+                                        transition-opacity gap-0.5 pr-1">
                           <button
                             onClick={() => { setChapterPreviewId(sub.id); setChapterPreviewOpen(true) }}
-                            className="text-muted hover:text-ink px-0.5"
+                            aria-label="챕터 미리보기"
+                            className="p-0.5 t-eyebrow text-edit-faint hover:text-edit-ink transition-colors"
                           >
-                            <Eye size={12} strokeWidth={1.5} />
+                            <Eye size={11} strokeWidth={1.5} />
                           </button>
-                          <button onClick={() => handleMoveChapter(sub.id, 'up')} disabled={subIdx === 0}
-                            className="text-muted hover:text-ink disabled:opacity-20 px-0.5 text-caption">↑</button>
-                          <button onClick={() => handleMoveChapter(sub.id, 'down')} disabled={subIdx === subChapters.length - 1}
-                            className="text-muted hover:text-ink disabled:opacity-20 px-0.5 text-caption">↓</button>
+                          <button
+                            onClick={() => handleMoveChapter(sub.id, 'up')}
+                            disabled={subIdx === 0}
+                            aria-label="위로 이동"
+                            className="px-0.5 py-0.5 t-eyebrow text-edit-faint hover:text-edit-ink
+                                       disabled:opacity-20 transition-colors"
+                          >↑</button>
+                          <button
+                            onClick={() => handleMoveChapter(sub.id, 'down')}
+                            disabled={subIdx === subChapters.length - 1}
+                            aria-label="아래로 이동"
+                            className="px-0.5 py-0.5 t-eyebrow text-edit-faint hover:text-edit-ink
+                                       disabled:opacity-20 transition-colors"
+                          >↓</button>
                         </div>
                       </div>
                     ))}
@@ -1563,16 +1581,20 @@ function ProjectStory({
 
         {/* 챕터 추가 폼 — 사이드바 버튼 클릭 시 표시 */}
         {showAddChapter && !addingSubChapterTo && (
-          <div className="bg-card rounded-card shadow p-4 mb-6">
+          <div className="bg-edit-paper border border-edit-line rounded-[2px] p-5 mb-8">
             <input
-              className="w-full border rounded-card px-3 py-2 text-body mb-2"
+              className="w-full px-3 py-2 text-body bg-edit-paper border border-edit-line rounded-[2px]
+                         focus:border-edit-ink focus:outline-none placeholder:text-edit-faint
+                         transition-colors mb-2"
               placeholder={t('story.chapterTitle')}
               value={newTitle}
               onChange={e => setNewTitle(e.target.value)}
               autoFocus
             />
             <textarea
-              className="w-full border rounded-card px-3 py-2 text-body mb-3 resize-none"
+              className="w-full px-3 py-2 text-body bg-edit-paper border border-edit-line rounded-[2px]
+                         focus:border-edit-ink focus:outline-none placeholder:text-edit-faint
+                         resize-none transition-colors mb-4"
               placeholder={t('story.chapterDescription')}
               rows={2}
               value={newDesc}
@@ -1581,13 +1603,15 @@ function ProjectStory({
             <div className="flex gap-2 justify-end">
               <button
                 onClick={handleAddChapter}
-                className="text-small btn-primary tracking-wider transition-[background,color,border] duration-150 ease-out"
+                className="px-4 py-1.5 t-caption bg-edit-ink text-edit-paper
+                           hover:bg-edit-ink/85 rounded-[2px] transition-colors"
               >
                 {t('common.add')}
               </button>
               <button
                 onClick={() => { setShowAddChapter(false); setAddingSubChapterTo(null); setNewTitle(''); setNewDesc('') }}
-                className="text-small btn-secondary-on-card tracking-wider transition-[background,color,border] duration-150 ease-out"
+                className="px-4 py-1.5 t-caption border border-edit-line text-edit-muted
+                           hover:text-edit-ink hover:border-edit-line-strong rounded-[2px] transition-colors"
               >
                 {t('common.cancel')}
               </button>
@@ -1606,244 +1630,279 @@ function ProjectStory({
               <div
                 key={chapter.id}
                 ref={el => { chapterRefs.current[chapter.id] = el }}
+                className="group/chapter"
               >
-                {/* 최상위 챕터 */}
-                <div className="bg-card rounded-card shadow overflow-hidden pl-4">
-                  <div className="p-4 border-b">
-                    {editingChapter === chapter.id ? (
-                      <div>
-                        <div className="mb-2">
-                          <span className="text-small text-muted mr-2">{t('story.chapter')} {idx + 1}</span>
-                          <span className="text-body text-ink-2 font-semibold">{chapter.title}</span>
-                        </div>
-                        <input
-                          className="w-full border rounded px-3 py-2 text-body mb-2"
-                          value={editTitle}
-                          onChange={e => setEditTitle(e.target.value)}
-                        />
-                        <textarea
-                          className="w-full border rounded px-3 py-2 text-body mb-2"
-                          rows={2}
-                          value={editDesc}
-                          onChange={e => setEditDesc(e.target.value)}
-                        />
-                        <div className="flex gap-2 justify-end">
-                          <button onClick={() => handleUpdateChapter(chapter)} className="text-small btn-primary">{t('common.save')}</button>
-                          <button onClick={() => setEditingChapter(null)} className="text-small btn-secondary-on-card">{t('common.cancel')}</button>
-                        </div>
+                {/* 최상위 챕터 헤더 — hairline 구조 */}
+                <header className="mb-6">
+                  {editingChapter === chapter.id ? (
+                    <div className="bg-edit-paper border border-edit-line rounded-[2px] p-4">
+                      <input
+                        className="w-full px-3 py-2 text-body bg-edit-paper border border-edit-line rounded-[2px]
+                                   focus:border-edit-ink focus:outline-none placeholder:text-edit-faint
+                                   transition-colors mb-2"
+                        value={editTitle}
+                        onChange={e => setEditTitle(e.target.value)}
+                        autoFocus
+                      />
+                      <textarea
+                        className="w-full px-3 py-2 text-body bg-edit-paper border border-edit-line rounded-[2px]
+                                   focus:border-edit-ink focus:outline-none placeholder:text-edit-faint
+                                   resize-none transition-colors mb-3"
+                        rows={2}
+                        value={editDesc}
+                        onChange={e => setEditDesc(e.target.value)}
+                      />
+                      <div className="flex gap-2 justify-end">
+                        <button
+                          onClick={() => handleUpdateChapter(chapter)}
+                          className="px-4 py-1.5 t-caption bg-edit-ink text-edit-paper
+                                     hover:bg-edit-ink/85 rounded-[2px] transition-colors"
+                        >
+                          {t('common.save')}
+                        </button>
+                        <button
+                          onClick={() => setEditingChapter(null)}
+                          className="px-4 py-1.5 t-caption border border-edit-line text-edit-muted
+                                     hover:text-edit-ink hover:border-edit-line-strong rounded-[2px] transition-colors"
+                        >
+                          {t('common.cancel')}
+                        </button>
                       </div>
-                    ) : (
-                      <div className="flex items-start justify-between">
-                        <div>
-                          <span className="text-small text-muted mr-2">{t('story.chapter')} {idx + 1}</span>
-                          <span className="text-body text-ink-2 font-semibold mb-2">{chapter.title}</span>
-                          {(() => {
-                            const count = getChapterPhotoCount(chapter.id)
-                            return count > 0 ? (
-                              <span className="ml-1.5 inline-flex items-center px-1.5 py-0.5 rounded text-eyebrow font-mono text-muted bg-stone-100 border border-stone-200 align-middle">
-                                {t('story.chapterPhotoCount', { count })}
-                              </span>
-                            ) : null
-                          })()}
-                          {chapter.description && <p className="text-body text-muted mt-1">{chapter.description}</p>}
-                        </div>
-                        <div className="flex gap-2 shrink-0">
+                    </div>
+                  ) : (
+                    <>
+                      <div className="flex items-baseline justify-between gap-4">
+                        <h3 className="font-serif text-h3 text-edit-ink tracking-tight [word-break:keep-all]">
+                          {chapter.title}
+                        </h3>
+                        {/* 컨트롤 — hover 시에만 노출 */}
+                        <div className="flex items-center gap-3 shrink-0
+                                        opacity-0 group-hover/chapter:opacity-100 focus-within:opacity-100
+                                        transition-opacity duration-150">
                           <button
-                            onClick={() => {
-                              setChapterPreviewId(chapter.id)
-                              setChapterPreviewOpen(true)
-                            }}
-                            className="text-menu text-faint hover:text-ink inline-flex items-center gap-0.5"
-                            title="Chapter Preview"
+                            onClick={() => { setChapterPreviewId(chapter.id); setChapterPreviewOpen(true) }}
+                            aria-label="챕터 미리보기"
+                            className="t-caption text-edit-muted hover:text-edit-ink transition-colors
+                                       inline-flex items-center gap-1"
                           >
-                            <Eye size={13} strokeWidth={1.5} />
+                            <Eye size={12} strokeWidth={1.5} />
                           </button>
                           <button
-                            onClick={() => {
-                              setShowAddChapter(true)
-                              setAddingSubChapterTo(chapter.id)
-                              setNewTitle('') 
-                              setNewDesc('')
-                            }}
-                            className="text-menu text-blue-500 hover:text-blue-700"
+                            onClick={() => { setShowAddChapter(true); setAddingSubChapterTo(chapter.id); setNewTitle(''); setNewDesc('') }}
+                            className="t-caption text-edit-muted hover:text-edit-ink transition-colors"
                           >
                             + Sub
                           </button>
                           <button
                             onClick={() => handleMoveChapter(chapter.id, 'up')}
                             disabled={idx === 0}
-                            className="text-menu text-faint hover:text-ink disabled:opacity-30"
-                          >
-                            ↑
-                          </button>
+                            aria-label="위로 이동"
+                            className="t-caption text-edit-muted hover:text-edit-ink disabled:opacity-30 transition-colors"
+                          >↑</button>
                           <button
                             onClick={() => handleMoveChapter(chapter.id, 'down')}
                             disabled={idx === chapters.filter(c => !c.parent_id).length - 1}
-                            className="text-menu text-faint hover:text-ink disabled:opacity-30"
-                          >
-                            ↓
-                          </button>
+                            aria-label="아래로 이동"
+                            className="t-caption text-edit-muted hover:text-edit-ink disabled:opacity-30 transition-colors"
+                          >↓</button>
                           <button
-                            onClick={() => { 
-                              setEditingChapter(chapter.id)
-                              setEditTitle(chapter.title)
-                              setEditDesc(chapter.description || '')
-                            }}
-                            className="text-menu text-faint hover:text-ink rounded-card"
+                            onClick={() => { setEditingChapter(chapter.id); setEditTitle(chapter.title); setEditDesc(chapter.description || '') }}
+                            className="t-caption text-edit-muted hover:text-edit-ink transition-colors"
                           >
                             {t('common.edit')}
                           </button>
-                          <button onClick={() => handleDeleteChapter(chapter.id)} className="text-menu text-red-400 hover:text-red-600">{t('common.delete')}</button>
+                          <button
+                            onClick={() => handleDeleteChapter(chapter.id)}
+                            className="t-caption text-edit-danger hover:opacity-80 transition-opacity"
+                          >
+                            {t('common.delete')}
+                          </button>
                         </div>
                       </div>
-                    )}
-                  </div>
 
-                  {/* 서브 챕터 추가 폼 */}
-                  {addingSubChapterTo === chapter.id && (
-                    <div className="ml-4 mt-3 p-4 bg-card border border-faint rounded-card shadow">
-                      <p className="text-muted mb-2">↳ {chapter.title}{t('story.addSubChapter')}</p>
-                      <input
-                        className="w-full border rounded-card px-3 py-2 text-body mb-2"
-                        placeholder={t('story.chapterTitle')}
-                        value={newTitle}
-                        onChange={e => setNewTitle(e.target.value)}
-                      />
-                      <textarea
-                        className="w-full border rounded-card px-3 py-2 text-body mb-3"
-                        placeholder={t('story.chapterDescription')}
-                        rows={2}
-                        value={newDesc}
-                        onChange={e => setNewDesc(e.target.value)}
-                      />
-                      <div className="flex gap-2 justify-end">
-                        <button onClick={handleAddChapter} className="text-small btn-primary tracking-wider transition-[background,color,border] duration-150 ease-out">
-                          {t('common.add')}
-                        </button>
-                        <button 
-                          onClick={() => {
-                            setShowAddChapter(false)
-                            setAddingSubChapterTo(null)
-                          }} 
-                          className="text-small btn-secondary-on-card tracking-wider transition-[background,color,border] duration-150 ease-out"
-                        >
-                          {t('common.cancel')}
-                        </button>
-                      </div>
-                    </div>
+                      {/* 메타 행: description + 사진 수 */}
+                      {(chapter.description || getChapterPhotoCount(chapter.id) > 0) && (
+                        <div className="flex items-baseline gap-3 mt-1.5">
+                          {chapter.description && (
+                            <p className="font-serif text-small text-edit-muted max-w-xl [word-break:keep-all] flex-1">
+                              {chapter.description}
+                            </p>
+                          )}
+                          {getChapterPhotoCount(chapter.id) > 0 && (
+                            <span className="t-eyebrow text-edit-faint shrink-0">
+                              {t('story.chapterPhotoCount', { count: getChapterPhotoCount(chapter.id) })}
+                            </span>
+                          )}
+                        </div>
+                      )}
+
+                      {/* hairline divider */}
+                      <div className="mt-4 h-px bg-edit-line" />
+                    </>
                   )}
+                </header>
 
-                  {/* 챕터 사진/텍스트 블록 영역 */}
-                  <div className="p-4">
-                    {renderChapterActionBar(chapter.id)}
-                    {renderChapterBlocks(chapter.id)}
-                    {/*<button onClick={() => handleAddTextBlock(chapter.id)}
-                        className="mt-2 flex items-center justify-center text-small text-faint hover:text-ink-2 border border-dashed border-gray-300 hover:border-faint rounded-card px-3 py-1.5 w-full transition-[background,color,border] duration-150 ease-out"
+                {/* 서브 챕터 추가 폼 */}
+                {addingSubChapterTo === chapter.id && (
+                  <div className="ml-6 mt-2 mb-6 pl-5 border-l border-edit-line">
+                    <p className="t-eyebrow text-edit-faint mb-3">
+                      ↳ {chapter.title} · {t('story.addSubChapter')}
+                    </p>
+                    <input
+                      className="w-full px-3 py-2 text-body bg-edit-paper border border-edit-line rounded-[2px]
+                                 focus:border-edit-ink focus:outline-none placeholder:text-edit-faint
+                                 transition-colors mb-2"
+                      placeholder={t('story.chapterTitle')}
+                      value={newTitle}
+                      onChange={e => setNewTitle(e.target.value)}
+                      autoFocus
+                    />
+                    <textarea
+                      className="w-full px-3 py-2 text-body bg-edit-paper border border-edit-line rounded-[2px]
+                                 focus:border-edit-ink focus:outline-none placeholder:text-edit-faint
+                                 resize-none transition-colors mb-3"
+                      placeholder={t('story.chapterDescription')}
+                      rows={2}
+                      value={newDesc}
+                      onChange={e => setNewDesc(e.target.value)}
+                    />
+                    <div className="flex gap-2 justify-end">
+                      <button
+                        onClick={handleAddChapter}
+                        className="px-4 py-1.5 t-caption bg-edit-ink text-edit-paper
+                                   hover:bg-edit-ink/85 rounded-[2px] transition-colors"
                       >
-                        <FileText size={13} strokeWidth={1.5} /> {t('story.addTextBlock')}
-                    </button>*/}
+                        {t('common.add')}
+                      </button>
+                      <button
+                        onClick={() => { setShowAddChapter(false); setAddingSubChapterTo(null) }}
+                        className="px-4 py-1.5 t-caption border border-edit-line text-edit-muted
+                                   hover:text-edit-ink hover:border-edit-line-strong rounded-[2px] transition-colors"
+                      >
+                        {t('common.cancel')}
+                      </button>
+                    </div>
                   </div>
+                )}
+
+                {/* 챕터 블록 영역 */}
+                <div>
+                  {renderChapterActionBar(chapter.id)}
+                  {renderChapterBlocks(chapter.id)}
                 </div>
 
-                {/* 서브챕터들 (인덴트) */}
+                {/* 서브챕터들 */}
                 {subChapters.map((subChapter, subIdx) => (
                   <div
                     key={subChapter.id}
                     ref={el => { chapterRefs.current[subChapter.id] = el }}
-                    className="ml-4 border-l-2 border-faint pl-4 bg-card rounded-card shadow overflow-hidden mt-3"
+                    className="ml-6 mt-10 pl-6 border-l border-edit-line group/chapter"
                   >
                     {/* 서브챕터 헤더 */}
-                    <div className="p-4 border-b">
+                    <header className="mb-6">
                       {editingChapter === subChapter.id ? (
-                        <div>
-                          <div>
-                            <span className="text-small text-faint mr-2">{t('story.chapter')} {idx + 1}.{subIdx + 1}</span>
-                            <span className="text-body text-ink-2 font-semibold">{subChapter.title}</span>
-                          </div>
+                        <div className="bg-edit-paper border border-edit-line rounded-[2px] p-4">
                           <input
-                            className="w-full border rounded px-3 py-2 text-body mb-2"
+                            className="w-full px-3 py-2 text-body bg-edit-paper border border-edit-line rounded-[2px]
+                                       focus:border-edit-ink focus:outline-none placeholder:text-edit-faint
+                                       transition-colors mb-2"
                             value={editTitle}
                             onChange={e => setEditTitle(e.target.value)}
+                            autoFocus
                           />
                           <textarea
-                            className="w-full border rounded px-3 py-2 text-body mb-2"
+                            className="w-full px-3 py-2 text-body bg-edit-paper border border-edit-line rounded-[2px]
+                                       focus:border-edit-ink focus:outline-none placeholder:text-edit-faint
+                                       resize-none transition-colors mb-3"
                             rows={2}
                             value={editDesc}
                             onChange={e => setEditDesc(e.target.value)}
                           />
                           <div className="flex gap-2 justify-end">
-                            <button onClick={() => handleUpdateChapter(subChapter)} className="bg-stone-600 text-white px-3 py-1 text-xs tracking-wider hover:bg-stone-700 transition-[background,color,border] duration-150 ease-out rounded">{t('common.save')}</button>
-                            <button onClick={() => setEditingChapter(null)} className="border px-3 py-1 text-xs rounded">{t('common.cancel')}</button>
+                            <button
+                              onClick={() => handleUpdateChapter(subChapter)}
+                              className="px-4 py-1.5 t-caption bg-edit-ink text-edit-paper
+                                         hover:bg-edit-ink/85 rounded-[2px] transition-colors"
+                            >
+                              {t('common.save')}
+                            </button>
+                            <button
+                              onClick={() => setEditingChapter(null)}
+                              className="px-4 py-1.5 t-caption border border-edit-line text-edit-muted
+                                         hover:text-edit-ink hover:border-edit-line-strong rounded-[2px] transition-colors"
+                            >
+                              {t('common.cancel')}
+                            </button>
                           </div>
                         </div>
                       ) : (
-                        <div className="flex items-start justify-between">
-                          <div>
-                            <span className="text-small text-faint mr-2">{t('story.chapter')} {idx + 1}.{subIdx + 1}</span>
-                            <span className="text-body text-ink-2 font-semibold">{subChapter.title}</span>
-                            {(() => {
-                              const count = getChapterPhotoCount(subChapter.id)
-                              return count > 0 ? (
-                                <span className="ml-1.5 inline-flex items-center px-1.5 py-0.5 rounded text-eyebrow font-mono text-muted bg-stone-100 border border-stone-200 align-middle">
-                                  {t('story.chapterPhotoCount', { count })}
+                        <>
+                          <div className="flex items-baseline justify-between gap-4">
+                            <h4 className="font-serif text-h3 text-edit-ink tracking-tight [word-break:keep-all]">
+                              {subChapter.title}
+                            </h4>
+                            <div className="flex items-center gap-3 shrink-0
+                                            opacity-0 group-hover/chapter:opacity-100 focus-within:opacity-100
+                                            transition-opacity duration-150">
+                              <button
+                                onClick={() => { setChapterPreviewId(subChapter.id); setChapterPreviewOpen(true) }}
+                                aria-label="챕터 미리보기"
+                                className="t-caption text-edit-muted hover:text-edit-ink transition-colors
+                                           inline-flex items-center gap-1"
+                              >
+                                <Eye size={12} strokeWidth={1.5} />
+                              </button>
+                              <button
+                                onClick={() => handleMoveChapter(subChapter.id, 'up')}
+                                disabled={subIdx === 0}
+                                aria-label="위로 이동"
+                                className="t-caption text-edit-muted hover:text-edit-ink disabled:opacity-30 transition-colors"
+                              >↑</button>
+                              <button
+                                onClick={() => handleMoveChapter(subChapter.id, 'down')}
+                                disabled={subIdx === subChapters.length - 1}
+                                aria-label="아래로 이동"
+                                className="t-caption text-edit-muted hover:text-edit-ink disabled:opacity-30 transition-colors"
+                              >↓</button>
+                              <button
+                                onClick={() => { setEditingChapter(subChapter.id); setEditTitle(subChapter.title); setEditDesc(subChapter.description || '') }}
+                                className="t-caption text-edit-muted hover:text-edit-ink transition-colors"
+                              >
+                                {t('common.edit')}
+                              </button>
+                              <button
+                                onClick={() => handleDeleteChapter(subChapter.id)}
+                                className="t-caption text-edit-danger hover:opacity-80 transition-opacity"
+                              >
+                                {t('common.delete')}
+                              </button>
+                            </div>
+                          </div>
+                          {(subChapter.description || getChapterPhotoCount(subChapter.id) > 0) && (
+                            <div className="flex items-baseline gap-3 mt-1.5">
+                              {subChapter.description && (
+                                <p className="font-serif text-small text-edit-muted max-w-xl [word-break:keep-all] flex-1">
+                                  {subChapter.description}
+                                </p>
+                              )}
+                              {getChapterPhotoCount(subChapter.id) > 0 && (
+                                <span className="t-eyebrow text-edit-faint shrink-0">
+                                  {t('story.chapterPhotoCount', { count: getChapterPhotoCount(subChapter.id) })}
                                 </span>
-                              ) : null
-                            })()}
-                            {subChapter.description && <p className="text-body text-muted mt-1">{subChapter.description}</p>}
-                          </div>
-                          <div className="flex gap-2 shrink-0">
-                            <button
-                              onClick={() => {
-                                setChapterPreviewId(subChapter.id)
-                                setChapterPreviewOpen(true)
-                              }}
-                              className="text-menu text-faint hover:text-ink inline-flex items-center gap-0.5"
-                              title="Chapter Preview"
-                            >
-                              <Eye size={13} strokeWidth={1.5} />
-                            </button>
-                            <button
-                              onClick={() => handleMoveChapter(subChapter.id, 'up')}
-                              disabled={subIdx === 0}
-                              className="text-menu text-faint hover:text-ink disabled:opacity-30"
-                            >
-                              ↑
-                            </button>
-                            <button
-                              onClick={() => handleMoveChapter(subChapter.id, 'down')}
-                              disabled={subIdx === subChapters.length - 1}
-                              className="text-menu text-faint hover:text-ink disabled:opacity-30"
-                            >
-                              ↓
-                            </button>
-
-                            <button
-                              onClick={() => { 
-                                setEditingChapter(subChapter.id)
-                                setEditTitle(subChapter.title)
-                                setEditDesc(subChapter.description || '')
-                              }}
-                              className="text-menu text-faint hover:text-ink"
-                            >
-                              {t('common.edit')}
-                            </button>
-                            <button onClick={() => handleDeleteChapter(subChapter.id)} className="text-menu text-red-400 hover:text-red-600">{t('common.delete')}</button>
-                          </div>
-                        </div>
+                              )}
+                            </div>
+                          )}
+                          <div className="mt-4 h-px bg-edit-line" />
+                        </>
                       )}
-                    </div>
+                    </header>
 
-                    {/* 서브 챕터 사진/텍스트 블록 영역 */}
-                    <div className="p-4">
-                    {renderChapterActionBar(subChapter.id)}
-                    {renderChapterBlocks(subChapter.id)}
-                    {/*<button onClick={() => handleAddTextBlock(subChapter.id)}
-                        className="mt-2 flex items-center justify-center text-small text-faint hover:text-ink-2 border border-dashed border-gray-300 hover:border-faint rounded-card px-3 py-1.5 w-full transition-[background,color,border] duration-150 ease-out"
-                      >
-                        <FileText size={13} strokeWidth={1.5} /> {t('story.addTextBlock')}
-                    </button>*/}
+                    {/* 서브챕터 블록 영역 */}
+                    <div>
+                      {renderChapterActionBar(subChapter.id)}
+                      {renderChapterBlocks(subChapter.id)}
+                    </div>
                   </div>
-                </div>
                 ))}
               </div>
             ) 
