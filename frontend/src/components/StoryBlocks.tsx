@@ -844,12 +844,6 @@ export const SortableSideBySideBlock = memo(function SortableSideBySideBlock({
             >
               {t('common.edit')}
             </button>
-            <button
-              onClick={() => onCancelSideBySide(chapterId, textItem.id)}
-              className="text-xs px-2 py-0.5 rounded border border-gray-300 text-gray-400 hover:text-gray-700 bg-white"
-            >
-              {t('story.detach')}
-            </button>
           </div>
         </>
       )}
@@ -881,8 +875,14 @@ export const SortableSideBySideBlock = memo(function SortableSideBySideBlock({
             title="아래로 이동"
           >↓</button>
         )}
-        {/*{(!isFirst || !isLast) && <span className="text-eyebrow text-stone-200 select-none">|</span>}
-        <span className="text-eyebrow text-faint">{t('story.sideSingleHint')}</span>*/}
+        {textItem && (
+          <button
+            onClick={() => onCancelSideBySide(chapterId, textItem.id)}
+            className="text-eyebrow px-2 py-1 rounded text-muted hover:bg-gray-100"
+          >
+            {t('story.detach')}
+          </button>
+        )}
       </div>
 
       <div className="flex gap-3">
