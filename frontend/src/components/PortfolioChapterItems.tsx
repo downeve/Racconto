@@ -136,7 +136,7 @@ export default function PortfolioChapterItems({
     // 독립 텍스트 블록
     if (item.item_type === 'TEXT' && item.block_type !== 'side-left' && item.block_type !== 'side-right') {
       result.push(
-        <div key={`text-${i}`} className="my-space-lg text-left max-w-xl mx-auto">
+        <div key={`text-${i}`} className="my-space-lg text-left max-w-2xl">
           <MarkdownRenderer
             content={item.text_content || ''}
             darkMode={darkMode}
@@ -179,7 +179,7 @@ export default function PortfolioChapterItems({
       )
       const textCol = group.text ? (
         <div
-          className={`min-w-0 flex items-start w-full ${group.blockType === 'side-left' ? 'text-right' : 'text-left'}`}
+          className="min-w-0 flex items-start w-full text-left"
           style={{ flex: '2' }}
         >
           <MarkdownRenderer
