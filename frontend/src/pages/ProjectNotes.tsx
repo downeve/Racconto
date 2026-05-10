@@ -97,12 +97,12 @@ const NoteItem = memo(function NoteItem({
             </div>
           </div>
           {editPreviewMode ? (
-            <div className="min-h-[100px] py-2 font-serif text-[15px] leading-[1.7] text-edit-ink prose prose-sm max-w-none border-b border-edit-line">
+            <div className="min-h-[100px] py-2 font-serif text-[0.9375rem] leading-[1.7] text-edit-ink prose prose-sm max-w-none border-b border-edit-line">
               <ReactMarkdown>{editContent}</ReactMarkdown>
             </div>
           ) : (
             <textarea
-              className="w-full font-serif text-[15px] leading-[1.7] bg-transparent border-0 border-b border-edit-line focus:border-edit-ink focus:outline-none resize-none py-2 transition-colors duration-150 placeholder:text-edit-faint"
+              className="w-full font-serif text-[0.9375rem] leading-[1.7] bg-transparent border-0 border-b border-edit-line focus:border-edit-ink focus:outline-none resize-none py-2 transition-colors duration-150 placeholder:text-edit-faint"
               rows={4}
               value={editContent}
               onChange={e => setEditContent(e.target.value)}
@@ -407,7 +407,7 @@ function ProjectNotes({
           </div>
 
           {previewMode ? (
-            <div className="min-h-[100px] py-2 font-serif text-[15px] leading-[1.7] text-edit-ink prose prose-sm max-w-none border-b border-edit-line">
+            <div className="min-h-[100px] py-2 font-serif text-[0.9375rem] leading-[1.7] text-edit-ink prose prose-sm max-w-none border-b border-edit-line">
               {newContent
                 ? <ReactMarkdown>{newContent}</ReactMarkdown>
                 : <p className="text-edit-faint">{t('note.previewInfo')}</p>
@@ -415,7 +415,7 @@ function ProjectNotes({
             </div>
           ) : (
             <textarea
-              className="w-full font-serif text-[15px] leading-[1.7] bg-transparent border-0 border-b border-edit-line focus:border-edit-ink focus:outline-none resize-none py-2 transition-colors duration-150 placeholder:text-edit-faint"
+              className="w-full font-serif text-[0.9375rem] leading-[1.7] bg-transparent border-0 border-b border-edit-line focus:border-edit-ink focus:outline-none resize-none py-2 transition-colors duration-150 placeholder:text-edit-faint"
               placeholder={t('note.editMdDescription')}
               rows={4}
               value={newContent}

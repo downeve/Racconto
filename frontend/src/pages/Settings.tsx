@@ -237,7 +237,7 @@ export default function Settings() {
     <div className="max-w-2xl mx-auto p-6">
       <header className="mb-10">
         <p className="t-eyebrow text-muted mb-2">Account</p>
-        <h1 className="font-serif text-[32px] leading-[1.1] tracking-[-0.015em] font-normal">
+        <h1 className="font-serif text-[2rem] leading-[1.1] tracking-[-0.015em] font-normal">
           {t('settings.title')}
         </h1>
       </header>
@@ -453,7 +453,7 @@ export default function Settings() {
           <UserCircle className="w-4 h-4" strokeWidth={1.5} />
           {t('settings.publicPortfolio')}
         </h3>
-        <p className="text-[11px] text-faint mb-5 ml-6">
+        <p className="text-[0.6875rem] text-faint mb-5 ml-6">
           {t('settings.publicPortfolioDesc')}
         </p>
         <div className="flex items-center gap-2">
@@ -486,7 +486,7 @@ export default function Settings() {
           <p className="text-xs text-red-500 mt-1.5">{t('settings.usernameInvalid')}</p>
         )}
         {username && usernameStatus === 'idle' && (
-          <p className="text-[11px] text-faint mt-1.5">
+          <p className="text-[0.6875rem] text-faint mt-1.5">
             racconto.app/{username}
           </p>
         )}
@@ -502,7 +502,7 @@ export default function Settings() {
           <Tag className="w-4 h-4" strokeWidth={1.5} />
           납품 선택 자동 태그
         </h3>
-        <p className="text-[11px] text-faint mb-5 ml-6">
+        <p className="text-[0.6875rem] text-faint mb-5 ml-6">
           고객이 납품 링크에서 선택 완료하면 해당 사진에 자동으로 이 컬러 레이블이 태깅됩니다.
         </p>
         <div className="flex gap-2 flex-wrap">

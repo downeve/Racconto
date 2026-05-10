@@ -94,13 +94,13 @@ function PhotoCardMenu({ photo, isCover, onSetCover, onDelete }: PhotoCardMenuPr
         <div className="absolute top-full right-0 mt-1 z-popover min-w-[160px] bg-edit-paper rounded-[2px] py-1 border border-edit-line shadow-[0_4px_12px_rgba(0,0,0,0.06)]">
           <button
             onClick={e => { e.stopPropagation(); onSetCover(photo); setOpen(false) }}
-            className="w-full px-3 py-1.5 text-left text-[12px] text-edit-ink hover:bg-edit-paper-2"
+            className="w-full px-3 py-1.5 text-left text-[0.75rem] text-edit-ink hover:bg-edit-paper-2"
           >
             {isCover ? t('photo.isCover') : t('photo.setCover')}
           </button>
           <button
             onClick={e => { e.stopPropagation(); onDelete(photo.id); setOpen(false) }}
-            className="w-full px-3 py-1.5 text-left text-[12px] text-edit-danger hover:bg-edit-paper-2"
+            className="w-full px-3 py-1.5 text-left text-[0.75rem] text-edit-danger hover:bg-edit-paper-2"
           >
             {t('photo.moveToTrash')}
           </button>

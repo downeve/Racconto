@@ -17,7 +17,7 @@ export default function CoverFallback({ title, dark = false }: CoverFallbackProp
           Untitled cover
         </p>
         <p
-          className={`font-serif text-[22px] leading-tight font-light [word-break:keep-all] ${
+          className={`font-serif text-[1.375rem] leading-tight font-light [word-break:keep-all] ${
             dark ? 'text-d-soft' : 'text-ink-2/70'
           }`}
         >

@@ -342,7 +342,7 @@ export const SortableTextBlock = memo(function SortableTextBlock({
         {isEditing ? (
           <div className="flex flex-col gap-2">
             <textarea
-              className="w-full min-h-32 p-3 font-serif text-[15px] leading-[1.6] bg-edit-paper border-0 border-b border-edit-line focus:border-edit-ink focus:outline-none resize-none placeholder:text-edit-faint overflow-x-hidden whitespace-pre-wrap [word-break:keep-all] transition-colors duration-150"
+              className="w-full min-h-32 p-3 font-serif text-[0.9375rem] leading-[1.6] bg-edit-paper border-0 border-b border-edit-line focus:border-edit-ink focus:outline-none resize-none placeholder:text-edit-faint overflow-x-hidden whitespace-pre-wrap [word-break:keep-all] transition-colors duration-150"
               onInput={e => { const t = e.currentTarget; t.style.height = 'auto'; t.style.height = t.scrollHeight + 'px' }}
               value={textDraft}
               onChange={(e) => onTextDraftChange?.(e.target.value)}
@@ -351,13 +351,13 @@ export const SortableTextBlock = memo(function SortableTextBlock({
             <div className="flex gap-2 justify-end mt-3">
               <button
                 onClick={(e) => { e.stopPropagation(); onCancelEdit?.(); }}
-                className="px-4 py-1.5 text-[12px] tracking-[0.04em] uppercase text-edit-muted hover:text-edit-ink bg-transparent border border-edit-line rounded-[2px] transition-colors"
+                className="px-4 py-1.5 text-[0.75rem] tracking-[0.04em] uppercase text-edit-muted hover:text-edit-ink bg-transparent border border-edit-line rounded-[2px] transition-colors"
               >
                 {t('common.cancel')}
               </button>
               <button
                 onClick={(e) => { e.stopPropagation(); onSaveText?.(); }}
-                className="px-4 py-1.5 text-[12px] tracking-[0.04em] uppercase bg-edit-ink text-edit-paper hover:bg-edit-ink/85 rounded-[2px] transition-colors"
+                className="px-4 py-1.5 text-[0.75rem] tracking-[0.04em] uppercase bg-edit-ink text-edit-paper hover:bg-edit-ink/85 rounded-[2px] transition-colors"
               >
                 {t('common.save')}
               </button>
@@ -779,7 +779,7 @@ export const SortableSideBySideBlock = memo(function SortableSideBySideBlock({
         /* 👇 편집 모드일 때: 텍스트 영역만 편집창으로 전환 */
         <div className="flex flex-col gap-2">
           <textarea
-            className="w-full min-h-32 p-2 font-serif text-[15px] leading-[1.6] bg-edit-paper border-0 border-b border-edit-line focus:border-edit-ink outline-none resize-none placeholder:text-edit-faint overflow-x-hidden whitespace-pre-wrap [word-break:keep-all] transition-colors duration-150"
+            className="w-full min-h-32 p-2 font-serif text-[0.9375rem] leading-[1.6] bg-edit-paper border-0 border-b border-edit-line focus:border-edit-ink outline-none resize-none placeholder:text-edit-faint overflow-x-hidden whitespace-pre-wrap [word-break:keep-all] transition-colors duration-150"
             onInput={e => { const t = e.currentTarget; t.style.height = 'auto'; t.style.height = t.scrollHeight + 'px' }}
             value={textDraft}
             onChange={(e) => onTextDraftChange?.(e.target.value)}
@@ -788,13 +788,13 @@ export const SortableSideBySideBlock = memo(function SortableSideBySideBlock({
           <div className="flex gap-2 justify-end">
             <button 
               onClick={(e) => { e.stopPropagation(); onCancelEdit?.(); }}
-              className="px-4 py-1.5 text-[12px] tracking-[0.04em] uppercase text-edit-muted hover:text-edit-ink bg-transparent border border-edit-line rounded-[2px] transition-colors"
+              className="px-4 py-1.5 text-[0.75rem] tracking-[0.04em] uppercase text-edit-muted hover:text-edit-ink bg-transparent border border-edit-line rounded-[2px] transition-colors"
             >
               {t('common.cancel')}
             </button>
             <button 
               onClick={(e) => { e.stopPropagation(); onSaveText?.(); }}
-              className="px-4 py-1.5 text-[12px] tracking-[0.04em] uppercase bg-edit-ink text-edit-paper hover:bg-edit-ink/85 rounded-[2px] transition-colors"
+              className="px-4 py-1.5 text-[0.75rem] tracking-[0.04em] uppercase bg-edit-ink text-edit-paper hover:bg-edit-ink/85 rounded-[2px] transition-colors"
             >
               {t('common.save')}
             </button>

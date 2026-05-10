@@ -54,11 +54,11 @@ export default function Dashboard() {
         {/* 1. Welcome Section */}
         <section className="mb-space-md">
           <p className="t-eyebrow text-muted mb-3">Welcome back</p>
-          <h1 className="font-serif text-[40px] md:text-[52px] leading-[1.05] tracking-[-0.015em] font-normal text-ink-2 [word-break:keep-all]">
+          <h1 className="font-serif text-[2.5rem] md:text-[3.25rem] leading-[1.05] tracking-[-0.015em] font-normal text-ink-2 [word-break:keep-all]">
             {t('dashboard.title1')}<br className="hidden md:block" />
             {t('dashboard.title2')}
           </h1>
-          <p className="mt-5 font-serif italic text-[20px] text-muted">
+          <p className="mt-5 font-serif italic text-[1.25rem] text-muted">
             &#x201C;Every photo has a story to tell.&#x201D;
           </p>
         </section>
@@ -73,7 +73,7 @@ export default function Dashboard() {
                 <div className="flex flex-col justify-between min-w-[140px]">
                   <div>
                     <p className="t-eyebrow text-muted mb-2">My Stories</p>
-                    <p className="font-serif text-[40px] font-normal tracking-tight">{projects.length}</p>
+                    <p className="font-serif text-[2.5rem] font-normal tracking-tight">{projects.length}</p>
                     <p className="text-muted text-body mt-1">{t('dashboard.totalStories')}</p>
                   </div>
                 </div>
@@ -90,7 +90,7 @@ export default function Dashboard() {
                         <span className={`w-2 h-2 rounded-full ${color}`} />
                         {t(labelKey)}
                       </span>
-                      <span className="font-serif text-[20px] font-medium text-ink">
+                      <span className="font-serif text-[1.25rem] font-medium text-ink">
                         {projects.filter(p => p.status === value).length}
                       </span>
                     </div>
@@ -113,7 +113,7 @@ export default function Dashboard() {
                     {t('dashboard.lastUpdated')} · {recentProjects[0].title}
                   </p>
                 )}
-                <p className="font-serif text-[28px] font-normal tracking-tight mb-2">{t('dashboard.newProject')}</p>
+                <p className="font-serif text-[1.75rem] font-normal tracking-tight mb-2">{t('dashboard.newProject')}</p>
               </div>
               <Link
                 to="/projects"

@@ -33,13 +33,13 @@ export function PhotoActionMenu({ onMove, onDelete }: { onMove: () => void; onDe
                         shadow-[0_4px_12px_rgba(0,0,0,0.06)] py-1">
           <button
             onClick={() => { onMove(); setOpen(false) }}
-            className="w-full px-3 py-1.5 text-left text-[12px] text-edit-ink hover:bg-edit-paper"
+            className="w-full px-3 py-1.5 text-left text-[0.75rem] text-edit-ink hover:bg-edit-paper"
           >
             {t('story.toOtherBlockTitle')}
           </button>
           <button
             onClick={() => { onDelete(); setOpen(false) }}
-            className="w-full px-3 py-1.5 text-left text-[12px] text-edit-danger hover:bg-edit-paper"
+            className="w-full px-3 py-1.5 text-left text-[0.75rem] text-edit-danger hover:bg-edit-paper"
           >
             {t('story.removePhoto')}
           </button>

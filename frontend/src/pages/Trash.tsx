@@ -98,24 +98,24 @@ export default function Trash() {
 
       <header className="mb-10">
         <p className="t-eyebrow text-muted mb-2">Archive</p>
-        <h1 className="font-serif text-[32px] leading-[1.1] tracking-[-0.015em] font-normal">
+        <h1 className="font-serif text-[2rem] leading-[1.1] tracking-[-0.015em] font-normal">
           {t('trash.title')}
         </h1>
       </header>
-      <p className="font-serif text-[15px] leading-[1.6] text-muted mb-12 max-w-[520px]">
+      <p className="font-serif text-[0.9375rem] leading-[1.6] text-muted mb-12 max-w-[520px]">
         {t('trash.description')}
       </p>
 
       {projects.length === 0 ? (
         <div className="text-center py-20 text-muted">
-          <p className="font-serif text-[18px] italic">{t('trash.empty')}</p>
+          <p className="font-serif text-[1.125rem] italic">{t('trash.empty')}</p>
         </div>
       ) : (
         <div>
           {projects.map(project => (
             <div key={project.id} className="border-b border-hair py-5 first:border-t flex items-center justify-between">
               <div>
-                <h3 className="font-serif text-[18px] font-medium">{project.title}</h3>
+                <h3 className="font-serif text-[1.125rem] font-medium">{project.title}</h3>
                 {project.title_en && (
                   <p className="t-caption text-faint mt-0.5">{project.title_en}</p>
                 )}
@@ -126,13 +126,13 @@ export default function Trash() {
               <div className="flex gap-2">
                 <button
                   onClick={() => handleRestore(project.id)}
-                  className="border border-hair hover:border-ink px-4 py-2 text-[13px] font-medium tracking-[0.02em] transition-colors"
+                  className="border border-hair hover:border-ink px-4 py-2 text-[0.8125rem] font-medium tracking-[0.02em] transition-colors"
                 >
                   {t('trash.restore')}
                 </button>
                 <button
                   onClick={() => handlePermanentDelete(project.id)}
-                  className="bg-[oklch(0.50_0.15_25)] text-canvas px-4 py-2 text-[13px] font-medium"
+                  className="bg-[oklch(0.50_0.15_25)] text-canvas px-4 py-2 text-[0.8125rem] font-medium"
                 >
                   {t('trash.permanentDelete')}
                 </button>

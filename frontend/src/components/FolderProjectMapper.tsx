@@ -122,7 +122,7 @@ export default function FolderProjectMapper() {
         <FolderOpen size={14} strokeWidth={1.5} />
         {t('electron.localFolderConnect')}
       </h3>
-      <p className="text-[11px] text-faint mb-5 ml-6">
+      <p className="text-[0.6875rem] text-faint mb-5 ml-6">
         {t('electron.localFolderConnectInfo')}
       </p>
 
@@ -186,7 +186,7 @@ export default function FolderProjectMapper() {
         </button>
       </div>
       {selectedFolder && (
-        <p className="text-[11px] text-faint mt-1.5 truncate">{selectedFolder}</p>
+        <p className="text-[0.6875rem] text-faint mt-1.5 truncate">{selectedFolder}</p>
       )}
     </div>
     </>

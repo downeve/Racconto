@@ -790,7 +790,7 @@ function ProjectStory({
                         rounded-[2px] shadow-[0_1px_0_rgba(0,0,0,0.04)]
                         animate-in fade-in slide-in-from-top-1 duration-150" key={`form-${insertIndex}`}>
           <textarea
-            className="w-full h-32 p-3 font-serif text-[15px] leading-[1.6]
+            className="w-full h-32 p-3 font-serif text-[0.9375rem] leading-[1.6]
                        bg-edit-paper border-0 border-b border-edit-line
                        focus:border-edit-ink focus:outline-none
                        resize-none placeholder:text-edit-faint
@@ -804,7 +804,7 @@ function ProjectStory({
           <div className="flex gap-2 justify-end mt-3">
             <button
               onClick={() => { setInsertSlotActive(null); setInsertTextDraft('') }}
-              className="px-4 py-1.5 text-[12px] tracking-[0.04em] uppercase
+              className="px-4 py-1.5 text-[0.75rem] tracking-[0.04em] uppercase
                          text-edit-muted hover:text-edit-ink
                          bg-transparent border border-edit-line rounded-[2px]
                          transition-colors"
@@ -813,7 +813,7 @@ function ProjectStory({
             </button>
             <button
               onClick={() => handleAddTextBlockAt(targetChapterId, insertIndex, insertTextDraft)}
-              className="px-4 py-1.5 text-[12px] tracking-[0.04em] uppercase
+              className="px-4 py-1.5 text-[0.75rem] tracking-[0.04em] uppercase
                          bg-edit-ink text-edit-paper hover:bg-edit-ink/85
                          rounded-[2px] transition-colors"
             >
