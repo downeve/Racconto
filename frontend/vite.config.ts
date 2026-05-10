@@ -6,6 +6,9 @@ export default defineConfig({
   plugins: [react()],
   base: process.env.ELECTRON_BUILD ? './' : '/',
   build: {
-    chunkSizeWarningLimit: 1000, // 기준을 1000kB (1MB)로 올림
-  }
+    chunkSizeWarningLimit: 1100,
+  },
+  optimizeDeps: {
+    exclude: ['remark-breaks', 'remark-gfm'],
+  },
 })
