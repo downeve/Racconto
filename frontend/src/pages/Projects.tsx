@@ -187,47 +187,88 @@ export default function Projects() {
 
       {showForm && (
         <div className="max-w-2xl bg-card rounded-card shadow p-6 mb-8">
-          <h3 className="text-h3 font-serif font-semibold mb-5">{t('project.createProject')}</h3>
-          <div className="flex flex-col gap-4 mb-5">
-            <label className="flex flex-col gap-1">
-              <span className="t-eyebrow text-muted">{t('project.labelTitle')}</span>
-              <input className="text-body text-ink-2 border rounded-card px-3 py-2" placeholder={t('project.projectName')} value={title} onChange={e => setTitle(e.target.value)} />
-            </label>
-            <label className="flex flex-col gap-1">
-              <span className="t-eyebrow text-muted">{t('project.labelDescription')}</span>
-              <textarea className="text-body text-ink-2 border rounded-card px-3 py-2" placeholder={t('project.description')} rows={2} value={description} onChange={e => setDescription(e.target.value)} />
-            </label>
-            <div className="grid grid-cols-2 gap-4">
-              <label className="flex flex-col gap-1">
-                <span className="t-eyebrow text-muted">{t('project.labelLocation')}</span>
-                <input className="text-body text-ink-2 border rounded-card px-3 py-2" placeholder={t('project.location')} value={location} onChange={e => setLocation(e.target.value)} />
-              </label>
-              <label className="flex flex-col gap-1">
-                <span className="t-eyebrow text-muted">{t('project.labelStatus')}</span>
-                <select className="text-body text-ink-2 border rounded-card px-3 py-2" value={status} onChange={e => setStatus(e.target.value)}>
-                  <option value="in_progress">{t('project.statusInProgress')}</option>
-                  <option value="completed">{t('project.statusCompleted')}</option>
-                  <option value="published">{t('project.statusPublished')}</option>
-                  <option value="archived">{t('project.statusArchived')}</option>
-                </select>
-              </label>
-            </div>
-            <label className="flex flex-col gap-1">
-              <span className="t-eyebrow text-muted">{t('project.labelVisibility')}</span>
-              <select className="text-body text-ink-2 border rounded-card px-3 py-2" value={isPublic} onChange={e => setIsPublic(e.target.value)}>
-                <option value="false">{t('project.privateProject')}</option>
-                <option value="true">{t('project.publicProject')}</option>
-              </select>
-            </label>
+          <h3 className="font-serif text-h2 font-normal tracking-tight mb-8">{t('project.createProject')}</h3>
+
+          {/* 제목 */}
+          <div className="py-5 border-b border-edit-line first:pt-0">
+            <p className="t-eyebrow text-edit-muted mb-2">{t('project.labelTitle')}<span className="text-edit-danger ml-1">*</span></p>
+            <input
+              value={title} onChange={e => setTitle(e.target.value)}
+              placeholder={t('project.projectName')}
+              className="w-full font-serif text-body bg-transparent border-0 border-b border-edit-line focus:border-edit-ink focus:outline-none py-2 transition-colors duration-150 placeholder:text-edit-faint"
+            />
           </div>
-          <div className="flex gap-2 justify-end">
-            <button onClick={handleSubmit} className="text-body btn-primary tracking-wider transition-[background,color,border] duration-150 ease-out">{t('common.save')}</button>
-            <button onClick={() => {
-              setShowForm(false)
-              setTitle(''); setTitleEn(''); setDescription('')
-              setDescriptionEn(''); setLocation('')
-              setStatus('in_progress'); setIsPublic('false')
-            }} className="text-body btn-secondary-on-card">{t('common.cancel')}</button>
+
+          {/* 설명 */}
+          <div className="py-5 border-b border-edit-line">
+            <p className="t-eyebrow text-edit-muted mb-2">{t('project.labelDescription')}</p>
+            <textarea
+              value={description} onChange={e => setDescription(e.target.value)}
+              placeholder={t('project.description')}
+              rows={3}
+              className="w-full font-serif text-body bg-transparent border-0 border-b border-edit-line focus:border-edit-ink focus:outline-none py-2 resize-none transition-colors duration-150 placeholder:text-edit-faint"
+            />
+          </div>
+
+          {/* 장소 */}
+          <div className="py-5 border-b border-edit-line">
+            <p className="t-eyebrow text-edit-muted mb-2">{t('project.labelLocation')}</p>
+            <input
+              value={location} onChange={e => setLocation(e.target.value)}
+              placeholder={t('project.location')}
+              className="w-full font-serif text-body bg-transparent border-0 border-b border-edit-line focus:border-edit-ink focus:outline-none py-2 transition-colors duration-150 placeholder:text-edit-faint"
+            />
+          </div>
+
+          {/* 상태 + 공개 여부 */}
+          <div className="py-5 border-b border-edit-line grid grid-cols-2 gap-8">
+            <div>
+              <p className="t-eyebrow text-edit-muted mb-2">{t('project.labelStatus')}</p>
+              <div className="inline-flex border border-edit-line rounded-[1px] p-0.5 flex-wrap gap-0.5">
+                {[
+                  { value: 'in_progress', label: t('project.statusInProgress') },
+                  { value: 'completed',   label: t('project.statusCompleted') },
+                  { value: 'published',   label: t('project.statusPublished') },
+                  { value: 'archived',    label: t('project.statusArchived') },
+                ].map(opt => (
+                  <button key={opt.value} type="button" onClick={() => setStatus(opt.value)}
+                    className={`t-caption px-3 py-1.5 rounded-[1px] transition-colors duration-150 ${status === opt.value ? 'bg-edit-ink text-edit-paper' : 'text-edit-muted hover:text-edit-ink'}`}>
+                    {opt.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+            <div>
+              <p className="t-eyebrow text-edit-muted mb-2">{t('project.labelVisibility')}</p>
+              <div className="inline-flex border border-edit-line rounded-[1px] p-0.5 flex-wrap gap-0.5">
+                {[
+                  { value: 'false', label: t('project.privateProject') },
+                  { value: 'true',  label: t('project.publicProject') },
+                ].map(opt => (
+                  <button key={opt.value} type="button" onClick={() => setIsPublic(opt.value)}
+                    className={`t-caption px-3 py-1.5 rounded-[1px] transition-colors duration-150 ${isPublic === opt.value ? 'bg-edit-ink text-edit-paper' : 'text-edit-muted hover:text-edit-ink'}`}>
+                    {opt.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          <div className="mt-8 flex justify-end gap-2">
+            <button
+              onClick={() => {
+                setShowForm(false)
+                setTitle(''); setTitleEn(''); setDescription('')
+                setDescriptionEn(''); setLocation('')
+                setStatus('in_progress'); setIsPublic('false')
+              }}
+              className="t-caption px-4 py-2 text-edit-muted hover:text-edit-ink transition-colors"
+            >{t('common.cancel')}</button>
+            <button
+              onClick={handleSubmit}
+              disabled={!title}
+              className="t-caption px-5 py-2 bg-edit-ink text-edit-paper rounded-[1px] hover:bg-edit-ink/85 transition-colors disabled:opacity-40"
+            >{t('common.save')}</button>
           </div>
         </div>
       )}

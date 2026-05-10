@@ -138,21 +138,25 @@ export default function ProjectEdit() {
       </div>
 
       <div>
-        <FormField label={t('project.projectName')} required>
-          <FormInput value={title} onChange={setTitle} />
+        <FormField label={t('project.labelTitle')} required>
+          <FormInput value={title} onChange={setTitle} placeholder={t('project.projectName')} />
         </FormField>
-        <FormField label={t('project.description')}>
-          <FormTextarea rows={4} value={description} onChange={setDescription} />
+        <FormField label={t('project.labelDescription')}>
+          <FormTextarea rows={4} value={description} onChange={setDescription} placeholder={t('project.description')} />
         </FormField>
-        <FormField label={t('project.location')}>
-          <FormInput value={location} onChange={setLocation} />
+        <FormField label={t('project.labelLocation')}>
+          <FormInput value={location} onChange={setLocation} placeholder={t('project.location')} />
         </FormField>
-        <FormField label={t('project.status')}>
-          <SegmentedControl value={status} onChange={setStatus} options={STATUS_OPTIONS} />
-        </FormField>
-        <FormField label={t('project.visibility')}>
-          <SegmentedControl value={isPublic} onChange={setIsPublic} options={VISIBILITY_OPTIONS} />
-        </FormField>
+        <div className="py-5 border-b border-edit-line last:border-b-0 grid grid-cols-2 gap-8">
+          <div>
+            <p className="t-eyebrow text-edit-muted mb-2">{t('project.labelStatus')}</p>
+            <SegmentedControl value={status} onChange={setStatus} options={STATUS_OPTIONS} />
+          </div>
+          <div>
+            <p className="t-eyebrow text-edit-muted mb-2">{t('project.labelVisibility')}</p>
+            <SegmentedControl value={isPublic} onChange={setIsPublic} options={VISIBILITY_OPTIONS} />
+          </div>
+        </div>
       </div>
 
       <div className="mt-12 pt-8 border-t border-edit-line flex justify-end gap-2">
