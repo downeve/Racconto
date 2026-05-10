@@ -802,7 +802,7 @@ export default function ProjectDetail({
     if (activeTab !== 'photos') return
 
     const si = (active: boolean) =>
-      `relative w-full text-left px-2 py-1.5 rounded-[1px] flex items-center justify-between t-caption transition-colors duration-150 ${
+      `relative w-full text-left px-2 py-1.5 rounded-[1px] flex items-center justify-between text-[0.75rem] font-sans font-medium transition-colors duration-150 ${
         active
           ? 'bg-edit-ink/[0.06] text-edit-ink before:absolute before:left-0 before:top-1.5 before:bottom-1.5 before:w-[2px] before:bg-edit-ink'
           : 'text-edit-muted hover:bg-edit-paper hover:text-edit-ink'
@@ -814,13 +814,13 @@ export default function ProjectDetail({
       <div className="p-4">
         {/* 9.9 업로드 버튼 — 분할 primary */}
         <div className="mb-4 flex gap-1">
-          <label className={`flex-1 cursor-pointer t-caption px-2 py-2 inline-flex items-center justify-center gap-1.5 bg-edit-ink text-edit-paper hover:bg-edit-ink/85 rounded-[1px] transition-colors ${uploading ? 'opacity-60 cursor-not-allowed' : ''}`}>
+          <label className={`flex-1 cursor-pointer text-[0.75rem] font-sans font-medium px-2 py-2 inline-flex items-center justify-center gap-1.5 bg-edit-ink text-edit-paper hover:bg-edit-ink/85 rounded-[1px] transition-colors ${uploading ? 'opacity-60 cursor-not-allowed' : ''}`}>
             {uploading
               ? <><div className="w-3 h-3 border border-edit-paper/40 border-t-edit-paper rounded-full animate-spin shrink-0" />{t('photo.uploading')}</>
               : <><Upload size={12} strokeWidth={1.5} />{t('photo.uploadPhotos')}</>}
             <input type="file" accept="image/jpeg, image/png, image/webp" multiple className="hidden" onChange={handleUpload} disabled={uploading} />
           </label>
-          <label className={`flex-1 cursor-pointer t-caption px-2 py-2 inline-flex items-center justify-center gap-1.5 bg-edit-ink text-edit-paper hover:bg-edit-ink/85 rounded-[1px] transition-colors ${uploading ? 'opacity-60 cursor-not-allowed' : ''}`}>
+          <label className={`flex-1 cursor-pointer text-[0.75rem] font-sans font-medium px-2 py-2 inline-flex items-center justify-center gap-1.5 bg-edit-ink text-edit-paper hover:bg-edit-ink/85 rounded-[1px] transition-colors ${uploading ? 'opacity-60 cursor-not-allowed' : ''}`}>
             {uploading
               ? <div className="w-3 h-3 border border-edit-paper/40 border-t-edit-paper rounded-full animate-spin shrink-0" />
               : <><FolderUp size={12} strokeWidth={1.5} />{t('photo.uploadFolder')}</>}
@@ -875,7 +875,7 @@ export default function ProjectDetail({
         <div className="my-3">
           <button
             onClick={() => { setSelectionMode(v => !v); setSelectedPhotoIds(new Set()); setShowBulkChapterMenu(false) }}
-            className={`w-full px-3 py-2 text-left t-caption inline-flex items-center justify-between rounded-[1px] transition-colors ${
+            className={`w-full px-3 py-2 text-left text-[0.75rem] font-sans font-medium inline-flex items-center justify-between rounded-[1px] transition-colors ${
               selectionMode
                 ? 'bg-edit-ink text-edit-paper'
                 : 'border border-edit-line text-edit-muted hover:text-edit-ink hover:border-edit-line-strong'
@@ -898,7 +898,7 @@ export default function ProjectDetail({
         <div className="mb-4 mt-3">
           <div className="flex items-center justify-between mb-1.5">
             <p className="t-eyebrow text-edit-faint">{t('filter.rating')}</p>
-            <button onClick={handleClearRatings} className="t-caption text-edit-faint hover:text-edit-danger transition-colors">{t('common.reset')}</button>
+            <button onClick={handleClearRatings} className="text-[0.75rem] font-sans text-edit-faint hover:text-edit-danger transition-colors">{t('common.reset')}</button>
           </div>
           {[5, 4, 3, 2, 1].map(star => (
             <button key={star} onClick={() => { exitTrash(); setFilterRating(filterRating === star ? null : star) }}
@@ -923,7 +923,7 @@ export default function ProjectDetail({
         <div className="mb-2">
           <div className="flex items-center justify-between mb-1.5">
             <p className="t-eyebrow text-edit-faint">{t('filter.colors')}</p>
-            <button onClick={handleClearColorLabels} className="t-caption text-edit-faint hover:text-edit-danger transition-colors">{t('common.reset')}</button>
+            <button onClick={handleClearColorLabels} className="text-[0.75rem] font-sans text-edit-faint hover:text-edit-danger transition-colors">{t('common.reset')}</button>
           </div>
           {colorLabels.map(label => (
             <button key={label.value} onClick={() => { exitTrash(); setFilterColor(filterColor === label.value ? null : label.value) }}

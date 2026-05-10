@@ -305,7 +305,7 @@ function ProjectNotes({
 
   // sidebar — dot 토큰 통일
   const sidebarItem = (active: boolean) =>
-    `relative w-full text-left px-2 py-1.5 rounded-[1px] flex items-center justify-between t-caption transition-colors duration-150 ${
+    `relative w-full text-left px-2 py-1.5 rounded-[1px] flex items-center justify-between text-[0.75rem] font-sans font-medium transition-colors duration-150 ${
       active
         ? 'bg-edit-ink/[0.06] text-edit-ink before:absolute before:left-0 before:top-1.5 before:bottom-1.5 before:w-[2px] before:bg-edit-ink'
         : 'text-edit-muted hover:bg-edit-paper hover:text-edit-ink'
@@ -348,7 +348,7 @@ function ProjectNotes({
             <div className="space-y-0.5">
               {notes.filter(n => n.is_pinned).map(note => (
                 <button key={note.id} onClick={() => scrollToNote(note.id)}
-                  className="w-full text-left px-2 py-1.5 t-caption rounded-[1px] hover:bg-edit-paper text-edit-muted hover:text-edit-ink truncate">
+                  className="w-full text-left px-2 py-1.5 text-[0.75rem] font-sans rounded-[1px] hover:bg-edit-paper text-edit-muted hover:text-edit-ink truncate">
                   {note.content.slice(0, 30)}{note.content.length > 30 ? '...' : ''}
                 </button>
               ))}
