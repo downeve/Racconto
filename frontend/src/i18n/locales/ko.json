@@ -186,6 +186,11 @@
     "privateProject": "비공개",
     "publicProject": "공개 (포트폴리오 반영)",
     "location": "촬영 장소",
+    "labelTitle": "제목",
+    "labelDescription": "설명",
+    "labelLocation": "장소",
+    "labelStatus": "프로젝트 상태",
+    "labelVisibility": "공개 여부",
     "noLocalFile": "로컬 파일 없음",
     "noLocalFile2": "로컬 파일 없는 사진"
   },

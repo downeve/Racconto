@@ -187,21 +187,38 @@ export default function Projects() {
 
       {showForm && (
         <div className="max-w-2xl bg-card rounded-card shadow p-6 mb-8">
-          <h3 className="text-h3 font-serif font-semibold mb-4">{t('project.createProject')}</h3>
-          <div className="grid grid-cols-2 gap-4 mb-4">
-            <input className="text-body text-ink-2 border rounded-card px-3 py-2" placeholder={t('project.projectName')} value={title} onChange={e => setTitle(e.target.value)} />
-            <textarea className="text-body text-ink-2 border rounded-card px-3 py-2 col-span-2" placeholder={t('project.description')} rows={2} value={description} onChange={e => setDescription(e.target.value)} />
-            <input className="text-body text-ink-2 border rounded-card px-3 py-2" placeholder={t('project.location')} value={location} onChange={e => setLocation(e.target.value)} />
-            <select className="text-body text-ink-2 border rounded-card px-3 py-2" value={status} onChange={e => setStatus(e.target.value)}>
-              <option value="in_progress">{t('project.statusInProgress')}</option>
-              <option value="completed">{t('project.statusCompleted')}</option>
-              <option value="published">{t('project.statusPublished')}</option>
-              <option value="archived">{t('project.statusArchived')}</option>
-            </select>
-            <select className="text-body text-ink-2 border rounded-card px-3 py-2" value={isPublic} onChange={e => setIsPublic(e.target.value)}>
-              <option value="false">{t('project.privateProject')}</option>
-              <option value="true">{t('project.publicProject')}</option>
-            </select>
+          <h3 className="text-h3 font-serif font-semibold mb-5">{t('project.createProject')}</h3>
+          <div className="flex flex-col gap-4 mb-5">
+            <label className="flex flex-col gap-1">
+              <span className="t-eyebrow text-muted">{t('project.labelTitle')}</span>
+              <input className="text-body text-ink-2 border rounded-card px-3 py-2" placeholder={t('project.projectName')} value={title} onChange={e => setTitle(e.target.value)} />
+            </label>
+            <label className="flex flex-col gap-1">
+              <span className="t-eyebrow text-muted">{t('project.labelDescription')}</span>
+              <textarea className="text-body text-ink-2 border rounded-card px-3 py-2" placeholder={t('project.description')} rows={2} value={description} onChange={e => setDescription(e.target.value)} />
+            </label>
+            <div className="grid grid-cols-2 gap-4">
+              <label className="flex flex-col gap-1">
+                <span className="t-eyebrow text-muted">{t('project.labelLocation')}</span>
+                <input className="text-body text-ink-2 border rounded-card px-3 py-2" placeholder={t('project.location')} value={location} onChange={e => setLocation(e.target.value)} />
+              </label>
+              <label className="flex flex-col gap-1">
+                <span className="t-eyebrow text-muted">{t('project.labelStatus')}</span>
+                <select className="text-body text-ink-2 border rounded-card px-3 py-2" value={status} onChange={e => setStatus(e.target.value)}>
+                  <option value="in_progress">{t('project.statusInProgress')}</option>
+                  <option value="completed">{t('project.statusCompleted')}</option>
+                  <option value="published">{t('project.statusPublished')}</option>
+                  <option value="archived">{t('project.statusArchived')}</option>
+                </select>
+              </label>
+            </div>
+            <label className="flex flex-col gap-1">
+              <span className="t-eyebrow text-muted">{t('project.labelVisibility')}</span>
+              <select className="text-body text-ink-2 border rounded-card px-3 py-2" value={isPublic} onChange={e => setIsPublic(e.target.value)}>
+                <option value="false">{t('project.privateProject')}</option>
+                <option value="true">{t('project.publicProject')}</option>
+              </select>
+            </label>
           </div>
           <div className="flex gap-2 justify-end">
             <button onClick={handleSubmit} className="text-body btn-primary tracking-wider transition-[background,color,border] duration-150 ease-out">{t('common.save')}</button>
