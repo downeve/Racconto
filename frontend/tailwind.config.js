@@ -41,7 +41,15 @@ export default {
         'edit-faint':       'oklch(0.72 0.010 75)',
         'edit-accent':      'oklch(0.45 0.10 240)',
         'edit-danger':      'oklch(0.50 0.15 25)',
+        'edit-warning':     'oklch(0.62 0.13 75)',
         'edit-drop':        'oklch(0.95 0.04 240)',
+
+        // 컬러 라벨 5종 (동일 채도/명도 곡선)
+        'label-red':        'oklch(0.62 0.16 25)',
+        'label-yellow':     'oklch(0.78 0.13 85)',
+        'label-green':      'oklch(0.65 0.13 150)',
+        'label-blue':       'oklch(0.55 0.12 240)',
+        'label-purple':     'oklch(0.55 0.12 300)',
         // 하위 호환 (기존 PublicPortfolio 다크 헬퍼에서 사용)
         'card-cover': colors.stone[800],
         'card-surface': colors.stone[900],
@@ -101,6 +109,7 @@ export default {
         'photo-controls': '20',
         'block-toolbar':  '25',
         'popover':        '40',
+        'lightbox':       '45',
         'dragging':       '50',
         'modal':          '60',
       },

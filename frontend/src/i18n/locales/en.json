@@ -198,6 +198,9 @@
       "MissingWarning": "{{count}} local files missing",
       "deleteMissingConfirm": "Are you sure you want to delete all {{count}} missing local photos?"
     },
+    "rotateLeft": "Rotate left",
+    "rotateRight": "Rotate right",
+    "moveToTrash": "Move to trash",
     "rotateSuccess": "Photo rotated successfully.",
     "rotateFail": "Failed to rotate photo.",
     "error": {

@@ -198,6 +198,9 @@
       "MissingWarning": "{{count}} 個のローカルファイルが見つかりません",
       "deleteMissingConfirm": "ローカルファイルがない {{count}} 枚の写真をすべて削除しますか？"
     },
+    "rotateLeft": "左に回転",
+    "rotateRight": "右に回転",
+    "moveToTrash": "ゴミ箱へ",
     "rotateSuccess": "写真を回転しました。",
     "rotateFail": "写真の回転に失敗しました。",
     "error": {
@@ -265,6 +268,7 @@
     "noPhotosInChapter": "チャプターに写真がありません。写真を追加してください。",
     "selectChapter": "チャプター選択",
     "chapterIncl": "チャプターに含まれる",
+    "removePhoto": "写真を削除",
     "chapterDeleteWarning": "チャプターを削除しますか？ 写真のつながりが解除されます。",
     "noChapter": "チャプターがありません。",
     "noChapter2": "ストーリータブでチャプターを追加してください。",

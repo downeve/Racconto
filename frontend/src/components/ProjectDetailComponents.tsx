@@ -1,8 +1,9 @@
-import { useEffect, useState, memo } from 'react'
+import { useEffect, useState, memo, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
 import PhotoNotePanel from './PhotoNotePanel'
-import { BookOpen, FileText, AlertTriangle, Check } from 'lucide-react'
+import { BookOpen, FileText, AlertTriangle, Check, Star, RotateCcw, RotateCw, MoreHorizontal } from 'lucide-react'
 import { cfUrl } from '../utils/cfImage'
+import { useChromeAutoHide } from '../hooks/useChromeAutoHide'
 
 // ── 공통 타입 ──────────────────────────────────────────────
 
@@ -58,6 +59,57 @@ export interface ColorLabel {
   label: string
 }
 
+// ── PhotoCardMenu ──────────────────────────────────────────
+
+interface PhotoCardMenuProps {
+  photo: Photo
+  isCover: boolean
+  onSetCover: (photo: Photo) => void
+  onDelete: (id: string) => void
+}
+
+function PhotoCardMenu({ photo, isCover, onSetCover, onDelete }: PhotoCardMenuProps) {
+  const [open, setOpen] = useState(false)
+  const ref = useRef<HTMLDivElement>(null)
+  const { t } = useTranslation()
+
+  useEffect(() => {
+    if (!open) return
+    function handleClick(e: MouseEvent) {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false)
+    }
+    document.addEventListener('mousedown', handleClick)
+    return () => document.removeEventListener('mousedown', handleClick)
+  }, [open])
+
+  return (
+    <div ref={ref} className="relative">
+      <button
+        onClick={e => { e.stopPropagation(); setOpen(v => !v) }}
+        className="w-7 h-7 flex items-center justify-center rounded-full bg-black/45 hover:bg-black/65 backdrop-blur-sm text-white"
+      >
+        <MoreHorizontal size={14} strokeWidth={2} />
+      </button>
+      {open && (
+        <div className="absolute top-full right-0 mt-1 z-popover min-w-[160px] bg-edit-paper rounded-[2px] py-1 border border-edit-line shadow-[0_4px_12px_rgba(0,0,0,0.06)]">
+          <button
+            onClick={e => { e.stopPropagation(); onSetCover(photo); setOpen(false) }}
+            className="w-full px-3 py-1.5 text-left text-[12px] text-edit-ink hover:bg-edit-paper-2"
+          >
+            {isCover ? t('photo.isCover') : t('photo.setCover')}
+          </button>
+          <button
+            onClick={e => { e.stopPropagation(); onDelete(photo.id); setOpen(false) }}
+            className="w-full px-3 py-1.5 text-left text-[12px] text-edit-danger hover:bg-edit-paper-2"
+          >
+            {t('photo.moveToTrash')}
+          </button>
+        </div>
+      )}
+    </div>
+  )
+}
+
 // ── Lightbox ───────────────────────────────────────────────
 
 interface LightboxProps {
@@ -86,14 +138,19 @@ export function Lightbox({
 }: LightboxProps) {
   const idx = photos.findIndex(p => p.id === photo.id)
   const [showChapterMenu, setShowChapterMenu] = useState(false)
-
   const [showNotePanel, setShowNotePanel] = useState(false)
   const { t, i18n } = useTranslation()
+  const chromeVisible = useChromeAutoHide()
 
   const inChapter = chapterPhotoIds.has(photo.id)
 
   const [hoverRating, setHoverRating] = useState<{ id: string; star: number } | null>(null)
   const [rotating, setRotating] = useState(false)
+
+  // chip vocabulary
+  const chipBase = "inline-flex items-center gap-1.5 t-caption px-3 py-1.5 rounded-[1px] border transition-colors duration-150"
+  const chipIdle = "border-edit-paper/15 text-edit-paper/60 hover:text-edit-paper hover:border-edit-paper/40"
+  const chipActive = "border-edit-paper/50 text-edit-paper bg-edit-paper/5"
 
   useEffect(() => {
     setShowNotePanel(false)
@@ -106,8 +163,8 @@ export function Lightbox({
       const tag = (e.target as HTMLElement).tagName
       if (tag === 'INPUT' || tag === 'TEXTAREA') return
       if (e.key === 'Escape') onClose()
-      if ((e.key === 'ArrowRight' || e.key === 'd' || e.key === 'D') && idx < photos.length - 1) onNavigate(photos[idx + 1])
-      if ((e.key === 'ArrowLeft' || e.key === 'a' || e.key === 'A') && idx > 0) onNavigate(photos[idx - 1])
+      if ((e.key === 'ArrowRight' || e.code === 'KeyD') && idx < photos.length - 1) onNavigate(photos[idx + 1])
+      if ((e.key === 'ArrowLeft' || e.code === 'KeyA') && idx > 0) onNavigate(photos[idx - 1])
     }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
@@ -141,48 +198,52 @@ export function Lightbox({
   }
 
   return (
-    <div className="fixed inset-0 bg-black/90 z-50 flex flex-col" onClick={onClose}>
+    <div className="fixed inset-0 bg-black/90 z-lightbox flex flex-col" onClick={onClose}>
 
-      {/* 상단 바 (왼쪽/중앙/오른쪽 3분할 구조) */}
+      {/* 상단 바 */}
       <div
-        className="flex items-center justify-between px-6 pt-3 pb-0 shrink-0 relative"
+        className={`flex items-center justify-between px-6 pt-3 pb-0 shrink-0 relative transition-opacity duration-300 ${chromeVisible ? 'opacity-100' : 'opacity-0'}`}
         style={{ paddingTop: window.racconto ? '2rem' : undefined }}
         onClick={e => e.stopPropagation()}
       >
-        {/* 1. 왼쪽: 인덱스 및 경고 (flex-1로 남는 공간 차지) */}
+        {/* 왼쪽: 인덱스 + 경고 */}
         <div className="flex-1 flex items-center gap-3 justify-start min-w-0">
-          <span className="text-card text-small whitespace-nowrap">{idx + 1} / {photos.length}</span>
+          <span className="text-edit-paper/60 text-small whitespace-nowrap">{idx + 1} / {photos.length}</span>
           {photo.local_missing && (
-            <span className="flex items-center gap-1 text-yellow-400 text-eyebrow font-bold px-2 py-0.5 bg-yellow-400/20 rounded-full whitespace-nowrap">
-              <AlertTriangle size={12} strokeWidth={1.5} />{t('project.noLocalFile')}
+            <span className={`${chipBase} bg-edit-warning/10 border-edit-warning/30 text-edit-warning`}>
+              <AlertTriangle size={10} strokeWidth={1.5} />{t('project.noLocalFile')}
             </span>
           )}
         </div>
 
-        {/* 2. 중앙: 컨트롤 버튼들 (shrink-0으로 자기 크기 유지) */}
+        {/* 중앙: 컨트롤 */}
         <div className="flex items-center justify-center gap-4 flex-wrap shrink-0 px-3">
-          
+
           {/* 별점 */}
           <div className="flex gap-1" onMouseLeave={() => setHoverRating(null)}>
             {[1, 2, 3, 4, 5].map(star => {
               const isHoveringThis = hoverRating?.id === photo.id
               const isHoveredStar = isHoveringThis && hoverRating!.star >= star
-              const isRatedStar = photo.rating && photo.rating >= star
-              let colorClass = 'text-white/20'
-              if (isHoveredStar) colorClass = 'text-yellow-300'
-              else if (!isHoveringThis && isRatedStar) colorClass = 'text-yellow-400'
+              const isRatedStar = !!(photo.rating && photo.rating >= star)
               return (
                 <button
                   key={star}
                   onMouseEnter={() => setHoverRating({ id: photo.id, star })}
                   onClick={() => onSetRating(photo, star)}
-                  className={`text-body rounded-card transition-[background,color,border] duration-150 ease-out ${colorClass}`}
-                >★</button>
+                >
+                  <Star size={14} strokeWidth={1.25}
+                    className={`transition-colors ${
+                      isHoveredStar ? 'fill-label-yellow text-label-yellow' :
+                      isRatedStar   ? 'fill-edit-paper text-edit-paper' :
+                                       'text-edit-paper/25'
+                    }`}
+                  />
+                </button>
               )
             })}
           </div>
 
-          <div className="w-px h-3 bg-card/30" />
+          <div className="w-px h-3 bg-edit-paper/15" />
 
           {/* 컬러 라벨 */}
           <div className="flex gap-1.5">
@@ -191,7 +252,7 @@ export function Lightbox({
                 key={label.value}
                 onClick={() => onSetColorLabel(photo, label.value)}
                 title={label.label}
-                className={`w-4 h-4 text-body rounded-full ${label.color} transition-all ${
+                className={`w-4 h-4 rounded-full ${label.color} transition-all ${
                   photo.color_label === label.value
                     ? 'ring-2 ring-offset-2 ring-offset-black ring-white scale-110'
                     : 'opacity-40 hover:opacity-80'
@@ -200,41 +261,37 @@ export function Lightbox({
             ))}
           </div>
 
-          <div className="w-px h-3 bg-card/30" />
+          <div className="w-px h-3 bg-edit-paper/15" />
 
-          {/* 챕터 추가 / 정보 표시 */}
+          {/* 챕터 */}
           <div className="flex items-center" onClick={e => e.stopPropagation()}>
             {inChapter ? (
-              <span className="flex items-center gap-1.5 text-small text-blue-400 px-3 py-1.5 border border-transparent font-medium">
+              <span className={`${chipBase} ${chipActive}`}>
                 <BookOpen size={13} strokeWidth={1.5} />{getAssignedChapterInfo()}
               </span>
             ) : (
               <button
                 onClick={() => setShowChapterMenu(v => !v)}
-                className="flex items-center gap-1.5 text-small px-3 py-1.5 border border-card/20 text-faint hover:text-white hover:border-white/50 rounded transition-[background,color,border] duration-150 ease-out"
+                className={`${chipBase} ${chipIdle}`}
               >
                 <BookOpen size={13} strokeWidth={1.5} />{t('story.addToChapter')}
               </button>
             )}
           </div>
 
-          <div className="w-px h-3 bg-card/30" />
+          <div className="w-px h-3 bg-edit-paper/15" />
 
-          {/* 노트 버튼 */}
+          {/* 노트 */}
           <button
             onClick={() => setShowNotePanel(v => !v)}
-            className={`flex items-center gap-1.5 text-small px-3 py-1.5 border rounded-card transition-[background,color,border] duration-150 ease-out ${
-              showNotePanel
-                ? 'border-card/50 text-card'
-                : 'border-card/20 text-card/60 hover:text-card hover:border-card/50'
-            }`}
+            className={`${chipBase} ${showNotePanel ? chipActive : chipIdle}`}
           >
             <FileText size={13} strokeWidth={1.5} />{t('note.title')}
           </button>
 
-          <div className="w-px h-3 bg-card/30" />
+          <div className="w-px h-3 bg-edit-paper/15" />
 
-          {/* 회전 버튼 */}
+          {/* 회전 */}
           <div className="flex items-center gap-1">
             <button
               onClick={async () => {
@@ -243,15 +300,10 @@ export function Lightbox({
                 try { await onRotate(photo, 'left') } finally { setRotating(false) }
               }}
               disabled={rotating}
-              title="왼쪽으로 90° 회전"
-              className={`flex items-center gap-1 text-small px-2.5 py-1.5 border rounded-card transition-[background,color,border] duration-150 ease-out ${
-                rotating ? 'border-card/10 text-card/20 cursor-not-allowed' : 'border-card/20 text-card/60 hover:text-card hover:border-card/50'
-              }`}
+              title={t('photo.rotateLeft')}
+              className={`${chipBase} ${rotating ? 'border-edit-paper/10 text-edit-paper/20 cursor-not-allowed' : chipIdle}`}
             >
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/>
-                <path d="M3 3v5h5"/>
-              </svg>
+              <RotateCcw size={13} strokeWidth={1.5} />
             </button>
             <button
               onClick={async () => {
@@ -260,22 +312,17 @@ export function Lightbox({
                 try { await onRotate(photo, 'right') } finally { setRotating(false) }
               }}
               disabled={rotating}
-              title="오른쪽으로 90° 회전"
-              className={`flex items-center gap-1 text-small px-2.5 py-1.5 border rounded-card transition-[background,color,border] duration-150 ease-out ${
-                rotating ? 'border-card/10 text-card/20 cursor-not-allowed' : 'border-card/20 text-card/60 hover:text-card hover:border-card/50'
-              }`}
+              title={t('photo.rotateRight')}
+              className={`${chipBase} ${rotating ? 'border-edit-paper/10 text-edit-paper/20 cursor-not-allowed' : chipIdle}`}
             >
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M21 12a9 9 0 1 1-9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/>
-                <path d="M21 3v5h-5"/>
-              </svg>
+              <RotateCw size={13} strokeWidth={1.5} />
             </button>
           </div>
         </div>
 
-        {/* 3. 오른쪽: 닫기 버튼 (flex-1로 남는 공간 차지하며 우측 정렬) */}
+        {/* 오른쪽: 닫기 */}
         <div className="flex-1 flex justify-end">
-          <button onClick={onClose} className="text-card/70 hover:text-card text-h2 p-3 rounded-full">✕</button>
+          <button onClick={onClose} className="text-edit-paper/60 hover:text-edit-paper text-h2 p-3">✕</button>
         </div>
       </div>
 
@@ -283,7 +330,7 @@ export function Lightbox({
       <div className="flex-1 flex items-center justify-center mt-0 relative min-h-0">
         {idx > 0 && (
           <button
-            className="absolute left-4 z-10 text-card/70 hover:text-card text-h1 select-none p-4"
+            className="absolute left-4 z-10 text-edit-paper/60 hover:text-edit-paper text-h1 select-none p-4"
             onClick={e => { e.stopPropagation(); onNavigate(photos[idx - 1]) }}
           >‹</button>
         )}
@@ -295,29 +342,29 @@ export function Lightbox({
         />
         {idx < photos.length - 1 && (
           <button
-            className="absolute right-4 z-10 text-card/70 hover:text-card text-h1 select-none p-4"
+            className="absolute right-4 z-10 text-edit-paper/60 hover:text-edit-paper text-h1 select-none p-4"
             onClick={e => { e.stopPropagation(); onNavigate(photos[idx + 1]) }}
           >›</button>
         )}
       </div>
 
-      {/* 하단 정보 바 */}
-      <div className="shrink-0 bg-black/30 border-t border-white/10 px-6 py-4" onClick={e => e.stopPropagation()}>
-        <div className="max-w-[calc(100%-8rem)] mx-auto space-y-3">
+      {/* 하단 EXIF */}
+      <div
+        className={`shrink-0 bg-black/30 border-t border-edit-paper/10 px-6 py-4 transition-opacity duration-300 ${chromeVisible ? 'opacity-100' : 'opacity-0'}`}
+        onClick={e => e.stopPropagation()}
+      >
+        <div className="max-w-[calc(100%-8rem)] mx-auto">
           <div className="flex items-center justify-center gap-4 flex-wrap">
-            {/* EXIF */}
             {showExif && (photo.camera || photo.focal_length || photo.taken_at) && (
-              <>
-                <span className="text-small text-card/40">
-                  {[
-                    photo.taken_at
-                      ? new Date(photo.taken_at).toLocaleDateString(i18n.language === 'ko' ? 'ko-KR' : 'en-US')
-                      : null,
-                    photo.camera, photo.lens, photo.focal_length,
-                    photo.aperture, photo.shutter_speed, photo.iso,
-                  ].filter(Boolean).join(' · ')}
-                </span>
-              </>
+              <span className="text-small text-edit-paper/40">
+                {[
+                  photo.taken_at
+                    ? new Date(photo.taken_at).toLocaleDateString(i18n.language === 'ko' ? 'ko-KR' : 'en-US')
+                    : null,
+                  photo.camera, photo.lens, photo.focal_length,
+                  photo.aperture, photo.shutter_speed, photo.iso,
+                ].filter(Boolean).join(' · ')}
+              </span>
             )}
           </div>
         </div>
@@ -326,36 +373,33 @@ export function Lightbox({
       {/* 챕터 메뉴 */}
       {showChapterMenu && !inChapter && (
         <div
-          className="fixed inset-0 z-40"
+          className="fixed inset-0 z-popover"
           onClick={e => { e.stopPropagation(); setShowChapterMenu(false) }}
         >
           <div
-            // min-w-[180px]를 제거하고 w-max를 추가했습니다.
-            className="absolute bg-white rounded shadow z-50 py-1 w-max"
+            className="absolute bg-edit-paper rounded-[2px] py-1 w-max shadow-[0_8px_32px_rgba(0,0,0,0.12)] z-popover"
             style={{ top: '4rem', left: '50%', transform: 'translateX(-50%)' }}
             onClick={e => e.stopPropagation()}
           >
             {chapters.length === 0 ? (
-              // whitespace-nowrap 추가
-              <p className="text-small text-faint px-3 py-2 whitespace-nowrap">{t('story.noChapters')}</p>
+              <p className="text-small text-edit-muted px-3 py-2 whitespace-nowrap">{t('story.noChapters')}</p>
             ) : (
-              chapters.filter(c => !c.parent_id).map((parent, parentIdx) => (
+              chapters.filter(c => !c.parent_id).map((parent) => (
                 <div key={parent.id}>
                   <button
                     onClick={() => { onAddToChapter(photo.id, parent.id); setShowChapterMenu(false) }}
-                    // whitespace-nowrap 추가
-                    className="w-full text-left text-small px-3 py-2 hover:bg-hair text-ink-2 font-base whitespace-nowrap"
+                    className="w-full text-left px-3 py-2 text-small rounded-[1px] hover:bg-edit-paper-2 text-edit-ink flex items-center gap-3 whitespace-nowrap"
                   >
-                    {t('story.chapter')} {parentIdx + 1}. {parent.title}
+                    <span className="t-eyebrow text-edit-faint">Chapter</span>
+                    <span className="truncate">{parent.title}</span>
                   </button>
-                  {chapters.filter(c => c.parent_id === parent.id).map((child, childIdx) => (
+                  {chapters.filter(c => c.parent_id === parent.id).map((child) => (
                     <button
                       key={child.id}
                       onClick={() => { onAddToChapter(photo.id, child.id); setShowChapterMenu(false) }}
-                      // whitespace-nowrap 추가
-                      className="w-full text-left text-small px-3 py-2 hover:bg-hair/60 text-muted pl-6 whitespace-nowrap"
+                      className="w-full text-left px-3 py-2 text-small rounded-[1px] hover:bg-edit-paper-2 text-edit-muted pl-9 whitespace-nowrap"
                     >
-                      ↳ {t('story.chapter')} {parentIdx + 1}.{childIdx + 1}. {child.title}
+                      {child.title}
                     </button>
                   ))}
                 </div>
@@ -401,26 +445,28 @@ interface PhotoCardProps {
 
 export const PhotoCard = memo(function PhotoCard({
   photo, project, onSetCover, onDelete, onSetRating, onSetColorLabel,
-  onOpenLightbox, showExif, gridCols, colorLabels, chapterPhotoIds,
+  onOpenLightbox, showExif, colorLabels, chapterPhotoIds,
   selectionMode, isSelected, onToggleSelect
 }: PhotoCardProps) {
   const { t, i18n } = useTranslation()
   const isAlreadyInStory = chapterPhotoIds.has(photo.id)
 
   return (
-    <div className={`rounded-photo overflow-hidden bg-gray-100 transition-all ${isSelected ? 'ring-4 ring-blue-500 shadow' : ''}`}>
+    <div className={`rounded-[2px] overflow-hidden bg-edit-paper-2 transition-[box-shadow] ${
+      isSelected ? 'ring-2 ring-edit-ink ring-offset-2 ring-offset-edit-paper' : ''
+    }`}>
       <div className="relative group">
 
         {/* 이미지 */}
         <img
           src={cfUrl(photo.image_url, 'grid')}
           alt={photo.caption || 'photo'}
-          className={`w-full aspect-[3/2] object-contain transition-all ${
+          className={`w-full aspect-[3/2] object-cover transition-[opacity,transform] duration-500 ${
             selectionMode && isAlreadyInStory
               ? 'opacity-30 grayscale cursor-not-allowed'
               : isSelected
               ? 'opacity-70 scale-[0.98] cursor-pointer'
-              : 'hover:opacity-95 cursor-pointer'
+              : 'group-hover:scale-[1.01] cursor-pointer'
           }`}
           onClick={() => {
             if (selectionMode) {
@@ -432,116 +478,97 @@ export const PhotoCard = memo(function PhotoCard({
           }}
         />
 
-        {/* 미싱 파일 경고 */}
+        {/* 미싱 칩 */}
         {photo.local_missing && (
-          <div className="absolute top-2 left-2 z-10 bg-yellow-400 text-ink-2 text-eyebrow font-semibold px-2 py-0.5 rounded-full flex items-center gap-1">
-            <AlertTriangle size={11} strokeWidth={1.5} />{t('project.noLocalFile')}
+          <div className="absolute top-2 left-2 t-eyebrow inline-flex items-center gap-1 px-2 py-0.5 rounded-[1px] bg-black/45 text-edit-warning backdrop-blur-sm">
+            <AlertTriangle size={10} strokeWidth={1.5} />{t('project.noLocalFile')}
           </div>
         )}
 
-        {/* 선택 모드 체크박스 */}
+        {/* ⋯ 메뉴 (호버 시만 등장) */}
+        {!selectionMode && (
+          <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 focus-within:opacity-100 transition-opacity z-photo-controls">
+            <PhotoCardMenu
+              photo={photo}
+              isCover={project?.cover_image_url === photo.image_url}
+              onSetCover={onSetCover}
+              onDelete={onDelete}
+            />
+          </div>
+        )}
+
+        {/* 선택 모드 체크 */}
         {selectionMode && !isAlreadyInStory && (
           <div
-            className="absolute top-3 left-3 z-20 cursor-pointer"
+            className="absolute top-3 left-3 z-photo-controls cursor-pointer"
             onClick={e => { e.stopPropagation(); onToggleSelect(photo.id) }}
           >
-            <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition-[background,color,border] duration-150 ease-out shadow ${
-              isSelected ? 'bg-blue-500/50 border-blue-500/30' : 'bg-ink-2/40 border-card/80'
+            <div className={`w-5 h-5 rounded-full flex items-center justify-center ${
+              isSelected ? 'bg-edit-ink text-edit-paper' : 'bg-black/35 ring-1 ring-edit-paper/70'
             }`}>
-              {isSelected && <Check size={12} strokeWidth={1.5} className="text-card" />}
-            </div>
-          </div>
-        )}
-
-        {/* 호버 컨트롤 레이어 */}
-        {!selectionMode && (
-          <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none z-10">
-            <div className="absolute inset-x-0 top-0 h-12 bg-gradient-to-b from-black/50 to-transparent" />
-            <div className="absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-black/60 to-transparent" />
-            <div className="absolute inset-0 pointer-events-auto" onClick={() => onOpenLightbox(photo)} />
-
-            {/* 커버 / 삭제 버튼 */}
-            <div className="absolute top-2 right-2 flex gap-1 pointer-events-auto">
-              <button
-                onClick={e => { e.stopPropagation(); onSetCover(photo) }}
-                className={`${gridCols >= 4 ? 'px-1.5 py-1 text-eyebrow' : 'px-2 py-1 text-eyebrow'} rounded-card shadow transition-[background,color,border] duration-150 ease-out font-base ${
-                  project?.cover_image_url === photo.image_url
-                    ? 'bg-yellow-400 text-ink-2'
-                    : 'bg-ink/30 hover:bg-ink-2/90 text-card'
-                }`}
-              >
-                {project?.cover_image_url === photo.image_url ? t('photo.isCover') : t('photo.setCover')}
-              </button>
-              <button
-                onClick={e => { e.stopPropagation(); onDelete(photo.id) }}
-                className="w-5 h-5 flex items-center justify-center bg-red-500/30 hover:bg-red-600 text-card rounded-full shadow text-xs font-bold transition-[background,color,border] duration-150 ease-out"
-              >✕</button>
-            </div>
-
-            {/* 별점 / 컬러 라벨 */}
-            <div className="absolute bottom-2 left-2 flex flex-col gap-1.5 pointer-events-auto">
-              <div className="flex gap-0.5">
-                {[1, 2, 3, 4, 5].map(star => {
-                  const isActive = photo.rating && photo.rating >= star
-                  return (
-                    <button
-                      key={star}
-                      onClick={e => { e.stopPropagation(); onSetRating(photo, star) }}
-                      className={`transition-all duration-150 drop-shadow ${gridCols >= 4 ? 'text-small' : 'text-small'} ${
-                        isActive
-                          ? 'text-yellow-400 scale-110'
-                          : 'text-white/40 hover:text-yellow-200 hover:scale-125'
-                      }`}
-                    >★</button>
-                  )
-                })}
-              </div>
-              <div className="flex gap-1.5 items-center">
-                {colorLabels.map(label => {
-                  const isActive = photo.color_label === label.value
-                  return (
-                    <button
-                      key={label.value}
-                      onClick={e => { e.stopPropagation(); onSetColorLabel(photo, label.value) }}
-                      title={label.label}
-                      className={`rounded-full ${label.color} transition-all duration-150 shadow border border-card/10 ${
-                        gridCols >= 4 ? 'w-2.5 h-2.5' : 'w-2.5 h-2.5'
-                      } ${
-                        isActive
-                          ? 'ring-2 ring-offset-1 ring-offset-black/40 ring-white scale-125'
-                          : 'opacity-40 hover:opacity-100 hover:scale-125'
-                      }`}
-                    />
-                  )
-                })}
-              </div>
+              {isSelected && <Check size={11} strokeWidth={2} />}
             </div>
           </div>
         )}
       </div>
 
-      {/* EXIF 영역 */}
-      <div className={`bg-card rounded-card transition-opacity ${selectionMode ? 'opacity-40 pointer-events-none' : ''}`}>
-        {showExif && (photo.camera || photo.taken_at) && (
-          <div className="px-2 pb-2">
-            <div className="border-t border-gray-100 pt-1 mt-1 space-y-1">
-              {photo.taken_at && (
-                <p className="text-eyebrow text-faint font-mono">
-                  {new Date(photo.taken_at).toLocaleDateString(i18n.language === 'ko' ? 'ko-KR' : 'en-US')}
-                  {photo.camera && <span> · {photo.camera}</span>}
-                </p>
-              )}
-              {!photo.taken_at && photo.camera && (
-                <p className="text-eyebrow text-faint font-mono">{photo.camera}</p>
-              )}
-              {photo.lens && <p className="text-eyebrow text-faint font-mono">{photo.lens}</p>}
-              {(photo.focal_length || photo.aperture || photo.shutter_speed || photo.iso) && (
-                <p className="text-eyebrow text-faint font-mono">
-                  {[photo.focal_length, photo.aperture, photo.shutter_speed, photo.iso].filter(Boolean).join(' · ')}
-                </p>
-              )}
-            </div>
+      {/* 하단 메타 — 항상 표시 */}
+      <div className={`bg-edit-paper px-3 py-2 border-t border-edit-line transition-opacity ${
+        selectionMode ? 'opacity-40 pointer-events-none' : ''
+      }`}>
+        <div className="flex items-center justify-between gap-2">
+          {/* 별점 */}
+          <div className="flex gap-0.5">
+            {[1, 2, 3, 4, 5].map(star => {
+              const isActive = !!(photo.rating && photo.rating >= star)
+              return (
+                <button
+                  key={star}
+                  onClick={e => { e.stopPropagation(); onSetRating(photo, star) }}
+                  className="p-0.5"
+                >
+                  <Star size={10} strokeWidth={1.25}
+                    className={`transition-colors ${
+                      isActive
+                        ? 'fill-label-yellow text-label-yellow'
+                        : 'text-edit-line-strong hover:text-label-yellow'
+                    }`}
+                  />
+                </button>
+              )
+            })}
           </div>
+          {/* 컬러 dot */}
+          <div className="flex gap-1.5 items-center">
+            {colorLabels.map(label => {
+              const isActive = photo.color_label === label.value
+              return (
+                <button
+                  key={label.value}
+                  onClick={e => { e.stopPropagation(); onSetColorLabel(photo, label.value) }}
+                  title={label.label}
+                  className={`w-2.5 h-2.5 rounded-full ${label.color} transition-all ${
+                    isActive
+                      ? 'ring-2 ring-offset-1 ring-offset-edit-paper ring-edit-ink scale-125'
+                      : 'opacity-50 hover:opacity-100 hover:scale-110'
+                  }`}
+                />
+              )
+            })}
+          </div>
+        </div>
+        {/* EXIF */}
+        {showExif && (photo.camera || photo.taken_at) && (
+          <p className="t-caption text-edit-faint font-mono mt-1.5 truncate">
+            {[
+              photo.taken_at
+                ? new Date(photo.taken_at).toLocaleDateString(i18n.language === 'ko' ? 'ko-KR' : 'en-US')
+                : null,
+              photo.camera,
+              photo.lens,
+              [photo.focal_length, photo.aperture, photo.shutter_speed, photo.iso].filter(Boolean).join(' '),
+            ].filter(Boolean).join(' · ')}
+          </p>
         )}
       </div>
     </div>
