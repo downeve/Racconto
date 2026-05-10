@@ -23,6 +23,18 @@ with engine.connect() as conn:
     conn.execute(text(
         "ALTER TABLE users ADD COLUMN IF NOT EXISTS token_invalidated_at TIMESTAMP"
     ))
+    # 인덱스 추가 (기존 DB에 누락된 인덱스 생성)
+    conn.execute(text("CREATE INDEX IF NOT EXISTS ix_users_oauth_id ON users(oauth_id)"))
+    conn.execute(text("CREATE INDEX IF NOT EXISTS ix_users_verify_token ON users(verify_token)"))
+    conn.execute(text("CREATE INDEX IF NOT EXISTS ix_users_reset_token ON users(reset_token)"))
+    conn.execute(text("CREATE INDEX IF NOT EXISTS ix_projects_user_id ON projects(user_id)"))
+    conn.execute(text("CREATE INDEX IF NOT EXISTS ix_projects_deleted_at ON projects(deleted_at)"))
+    conn.execute(text("CREATE INDEX IF NOT EXISTS ix_photos_project_id ON photos(project_id)"))
+    conn.execute(text("CREATE INDEX IF NOT EXISTS ix_photos_deleted_at ON photos(deleted_at)"))
+    conn.execute(text("CREATE INDEX IF NOT EXISTS ix_notes_project_id ON notes(project_id)"))
+    conn.execute(text("CREATE INDEX IF NOT EXISTS ix_notes_deleted_at ON notes(deleted_at)"))
+    conn.execute(text("CREATE INDEX IF NOT EXISTS ix_chapters_project_id ON chapters(project_id)"))
+    conn.execute(text("CREATE INDEX IF NOT EXISTS ix_chapter_items_chapter_id ON chapter_items(chapter_id)"))
     conn.commit()
 
 app = FastAPI(title="Racconto API")

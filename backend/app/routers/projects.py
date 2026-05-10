@@ -6,7 +6,7 @@ from app import models
 from pydantic import BaseModel
 from typing import Optional
 from datetime import datetime
-from app.auth import get_current_user
+from app.auth import get_current_user, get_current_user_id
 from app.routers.photos import delete_from_cloudflare, delete_cf_files_parallel
 import uuid
 import os
@@ -69,10 +69,10 @@ class ProjectResponse(BaseModel):
 @router.get("/", response_model=list[ProjectResponse])
 def get_projects(
     db: Session = Depends(get_db),
-    current_user: models.User = Depends(get_current_user)
+    current_user_id: str = Depends(get_current_user_id)
 ):
     return db.query(models.Project).filter(
-        models.Project.user_id == current_user.id,
+        models.Project.user_id == current_user_id,
         models.Project.deleted_at == None
     ).order_by(models.Project.order_num.asc(), models.Project.created_at.desc()).all()
 
@@ -81,14 +81,14 @@ def get_projects(
 def reorder_projects(
     body: ReorderRequest,
     db: Session = Depends(get_db),
-    current_user: models.User = Depends(get_current_user)
+    current_user_id: str = Depends(get_current_user_id)
 ):
     if not body.ids:
         return {"ok": True}
     db.execute(
         sa_update(models.Project)
         .where(models.Project.id.in_(body.ids))
-        .where(models.Project.user_id == current_user.id)
+        .where(models.Project.user_id == current_user_id)
         .values(order_num=case(
             *[(models.Project.id == pid, i) for i, pid in enumerate(body.ids)]
         ))
@@ -100,10 +100,10 @@ def reorder_projects(
 @router.get("/trash", response_model=list[ProjectResponse])
 def get_trash(
     db: Session = Depends(get_db),
-    current_user: models.User = Depends(get_current_user)
+    current_user_id: str = Depends(get_current_user_id)
 ):
     return db.query(models.Project).filter(
-        models.Project.user_id == current_user.id,
+        models.Project.user_id == current_user_id,
         models.Project.deleted_at != None
     ).order_by(models.Project.deleted_at.desc()).all()
 
@@ -152,10 +152,10 @@ def create_project(
 def get_project(
     project_id: str,
     db: Session = Depends(get_db),
-    current_user: models.User = Depends(get_current_user)
+    current_user_id: str = Depends(get_current_user_id)
 ):
     project = db.query(models.Project).filter(
-        models.Project.user_id == current_user.id,
+        models.Project.user_id == current_user_id,
         models.Project.deleted_at == None,
         (models.Project.id == project_id) | (models.Project.slug == project_id)
     ).first()
@@ -169,11 +169,11 @@ def update_project(
     project_id: str,
     project: ProjectCreate,
     db: Session = Depends(get_db),
-    current_user: models.User = Depends(get_current_user)
+    current_user_id: str = Depends(get_current_user_id)
 ):
     db_project = db.query(models.Project).filter(
         models.Project.id == project_id,
-        models.Project.user_id == current_user.id,
+        models.Project.user_id == current_user_id,
         models.Project.deleted_at == None
     ).first()
     if not db_project:
@@ -192,11 +192,11 @@ def update_project(
 def delete_project(
     project_id: str,
     db: Session = Depends(get_db),
-    current_user: models.User = Depends(get_current_user)
+    current_user_id: str = Depends(get_current_user_id)
 ):
     project = db.query(models.Project).filter(
         models.Project.id == project_id,
-        models.Project.user_id == current_user.id,
+        models.Project.user_id == current_user_id,
         models.Project.deleted_at == None
     ).first()
     if not project:
@@ -297,11 +297,11 @@ def permanent_delete(
     project_id: str,
     background_tasks: BackgroundTasks, # 💡 3. 파라미터에 background_tasks 추가
     db: Session = Depends(get_db),
-    current_user: models.User = Depends(get_current_user)
+    current_user_id: str = Depends(get_current_user_id)
 ):
     project = db.query(models.Project).filter(
         models.Project.id == project_id,
-        models.Project.user_id == current_user.id,
+        models.Project.user_id == current_user_id,
         models.Project.deleted_at != None
     ).first()
     if not project:

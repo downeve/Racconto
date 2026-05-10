@@ -10,14 +10,14 @@ class User(Base):
     email = Column(String, unique=True, nullable=False, index=True)
     password_hash = Column(String, nullable=True)
     oauth_provider = Column(String, nullable=True)
-    oauth_id = Column(String, nullable=True)
+    oauth_id = Column(String, nullable=True, index=True)
     apple_refresh_token = Column(String, nullable=True)
     projects = relationship("Project", back_populates="owner", cascade="all, delete-orphan")
     settings = relationship("Setting", back_populates="owner", cascade="all, delete-orphan")
     is_verified = Column(Boolean, default=False)
-    verify_token = Column(String, nullable=True)
+    verify_token = Column(String, nullable=True, index=True)
     verify_token_expires_at = Column(DateTime, nullable=True)
-    reset_token = Column(String, nullable=True)
+    reset_token = Column(String, nullable=True, index=True)
     reset_token_expires_at = Column(DateTime, nullable=True)
     photo_limit = Column(Integer, default=1000)
     project_limit = Column(Integer, default=3)
@@ -36,7 +36,7 @@ class ProjectStatus(enum.Enum):
 class Project(Base):
     __tablename__ = "projects"
     id = Column(String, primary_key=True)
-    user_id = Column(String, ForeignKey("users.id"), nullable=False)
+    user_id = Column(String, ForeignKey("users.id"), nullable=False, index=True)
     owner = relationship("User", back_populates="projects")
     title = Column(String, nullable=False)
     title_en = Column(String)
@@ -55,12 +55,12 @@ class Project(Base):
     slug = Column(String, unique=True, nullable=True, index=True)
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
-    deleted_at = Column(DateTime, nullable=True, default=None)
+    deleted_at = Column(DateTime, nullable=True, default=None, index=True)
 
 class Photo(Base):
     __tablename__ = "photos"
     id = Column(String, primary_key=True)
-    project_id = Column(String, ForeignKey("projects.id"))
+    project_id = Column(String, ForeignKey("projects.id"), index=True)
     image_url = Column(String, nullable=False)
     caption = Column(Text)
     caption_en = Column(Text)
@@ -78,7 +78,7 @@ class Photo(Base):
     color_label = Column(String, nullable=True)
     project = relationship("Project", back_populates="photos")
     created_at = Column(DateTime, default=datetime.utcnow)
-    deleted_at = Column(DateTime, nullable=True)
+    deleted_at = Column(DateTime, nullable=True, index=True)
     folder = Column(String, nullable=True)
     original_filename = Column(String, nullable=True)
     local_missing = Column(Boolean, default=False, nullable=False)
@@ -100,12 +100,12 @@ class Pitch(Base):
 class Note(Base):
     __tablename__ = "notes"
     id = Column(String, primary_key=True)
-    project_id = Column(String, ForeignKey("projects.id"))
+    project_id = Column(String, ForeignKey("projects.id"), index=True)
     content = Column(Text, nullable=False)
     project = relationship("Project", back_populates="notes")
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
-    deleted_at = Column(DateTime, nullable=True, default=None)
+    deleted_at = Column(DateTime, nullable=True, default=None, index=True)
     note_type = Column(String, nullable=True, default='memo')
     is_pinned = Column(Boolean, default=False, nullable=False)
     photo_id = Column(String, ForeignKey("photos.id", ondelete="SET NULL"), nullable=True)
@@ -113,7 +113,7 @@ class Note(Base):
 class Chapter(Base):
     __tablename__ = "chapters"
     id = Column(String, primary_key=True)
-    project_id = Column(String, ForeignKey("projects.id"))
+    project_id = Column(String, ForeignKey("projects.id"), index=True)
     parent_id = Column(String, ForeignKey("chapters.id", ondelete="CASCADE"), nullable=True)
     title = Column(String, nullable=False)
     description = Column(Text, nullable=True)
@@ -133,7 +133,7 @@ class Chapter(Base):
 class ChapterItem(Base):
     __tablename__ = "chapter_items"
     id = Column(String, primary_key=True)
-    chapter_id = Column(String, ForeignKey("chapters.id", ondelete="CASCADE"), nullable=False)
+    chapter_id = Column(String, ForeignKey("chapters.id", ondelete="CASCADE"), nullable=False, index=True)
     order_num = Column(Integer, default=0, nullable=False)
 
     # 아이템 타입 구분

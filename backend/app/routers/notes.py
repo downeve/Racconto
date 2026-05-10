@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from app.database import get_db
 from app import models
-from app.auth import get_current_user
+from app.auth import get_current_user, get_current_user_id
 from pydantic import BaseModel
 from typing import Optional
 from datetime import datetime
@@ -60,11 +60,11 @@ def get_owned_note_or_404(note_id: str, user_id: str, db: Session) -> models.Not
 def create_note(
     note: NoteCreate,
     db: Session = Depends(get_db),
-    current_user: models.User = Depends(get_current_user)
+    current_user_id: str = Depends(get_current_user_id)
 ):
     project = db.query(models.Project).filter(
         models.Project.id == note.project_id,
-        models.Project.user_id == current_user.id,
+        models.Project.user_id == current_user_id,
     ).first()
     if not project:
         raise HTTPException(status_code=403, detail="FORBIDDEN")
@@ -89,9 +89,9 @@ def update_note(
     note_id: str,
     note: NoteUpdate,
     db: Session = Depends(get_db),
-    current_user: models.User = Depends(get_current_user)
+    current_user_id: str = Depends(get_current_user_id)
 ):
-    db_note = get_owned_note_or_404(note_id, current_user.id, db)
+    db_note = get_owned_note_or_404(note_id, current_user_id, db)
     db_note.content = note.content
     db_note.note_type = note.note_type
     db_note.is_pinned = note.is_pinned
@@ -106,9 +106,9 @@ def update_note(
 def toggle_pin(
     note_id: str,
     db: Session = Depends(get_db),
-    current_user: models.User = Depends(get_current_user)
+    current_user_id: str = Depends(get_current_user_id)
 ):
-    db_note = get_owned_note_or_404(note_id, current_user.id, db)
+    db_note = get_owned_note_or_404(note_id, current_user_id, db)
     db_note.is_pinned = not db_note.is_pinned
     db.commit()
     db.refresh(db_note)
@@ -119,9 +119,9 @@ def toggle_pin(
 def delete_note(
     note_id: str,
     db: Session = Depends(get_db),
-    current_user: models.User = Depends(get_current_user)
+    current_user_id: str = Depends(get_current_user_id)
 ):
-    db_note = get_owned_note_or_404(note_id, current_user.id, db)
+    db_note = get_owned_note_or_404(note_id, current_user_id, db)
     touch_project(db_note.project_id, db)
     db.delete(db_note)
     db.commit()
@@ -132,11 +132,11 @@ def delete_note(
 def get_notes(
     project_id: str,
     db: Session = Depends(get_db),
-    current_user: models.User = Depends(get_current_user)
+    current_user_id: str = Depends(get_current_user_id)
 ):
     project = db.query(models.Project).filter(
         models.Project.id == project_id,
-        models.Project.user_id == current_user.id,
+        models.Project.user_id == current_user_id,
     ).first()
     if not project:
         raise HTTPException(status_code=403, detail="FORBIDDEN")

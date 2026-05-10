@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 from sqlalchemy import case, update as sa_update
 from app.database import get_db
 from app import models
-from app.auth import get_current_user
+from app.auth import get_current_user, get_current_user_id
 from pydantic import BaseModel
 from typing import Optional, List, Literal
 from datetime import datetime
@@ -179,9 +179,9 @@ def build_item_response(item: models.ChapterItem) -> dict:
 def get_chapters(
     project_id: str,
     db: Session = Depends(get_db),
-    current_user: models.User = Depends(get_current_user)
+    current_user_id: str = Depends(get_current_user_id)
 ):
-    get_owned_project_or_403(project_id, current_user.id, db)
+    get_owned_project_or_403(project_id, current_user_id, db)
     return db.query(models.Chapter).filter(
         models.Chapter.project_id == project_id
     ).order_by(models.Chapter.order_num, models.Chapter.created_at).all()
@@ -192,9 +192,9 @@ def get_chapters(
 def create_chapter(
     chapter: ChapterCreate,
     db: Session = Depends(get_db),
-    current_user: models.User = Depends(get_current_user)
+    current_user_id: str = Depends(get_current_user_id)
 ):
-    get_owned_project_or_403(chapter.project_id, current_user.id, db)
+    get_owned_project_or_403(chapter.project_id, current_user_id, db)
 
     if chapter.parent_id:
         parent = db.query(models.Chapter).filter(models.Chapter.id == chapter.parent_id).first()
@@ -233,9 +233,9 @@ def create_chapter(
 def get_all_chapter_photo_ids(
     project_id: str,
     db: Session = Depends(get_db),
-    current_user: models.User = Depends(get_current_user)
+    current_user_id: str = Depends(get_current_user_id)
 ):
-    get_owned_project_or_403(project_id, current_user.id, db)
+    get_owned_project_or_403(project_id, current_user_id, db)
 
     chapters = db.query(models.Chapter).filter(
         models.Chapter.project_id == project_id
@@ -264,9 +264,9 @@ def get_all_chapter_photo_ids(
 def get_all_chapter_items(
     project_id: str,
     db: Session = Depends(get_db),
-    current_user: models.User = Depends(get_current_user)
+    current_user_id: str = Depends(get_current_user_id)
 ):
-    get_owned_project_or_403(project_id, current_user.id, db)
+    get_owned_project_or_403(project_id, current_user_id, db)
 
     chapters = db.query(models.Chapter).filter(
         models.Chapter.project_id == project_id
@@ -300,12 +300,12 @@ def get_all_chapter_items(
 def reorder_chapters(
     body: ChapterReorder,
     db: Session = Depends(get_db),
-    current_user: models.User = Depends(get_current_user)
+    current_user_id: str = Depends(get_current_user_id)
 ):
     if body.chapter_ids:
         owned_count = db.query(models.Chapter).join(models.Project).filter(
             models.Chapter.id.in_(body.chapter_ids),
-            models.Project.user_id == current_user.id
+            models.Project.user_id == current_user_id
         ).count()
         if owned_count != len(body.chapter_ids):
             raise HTTPException(status_code=403, detail="FORBIDDEN")
@@ -333,9 +333,9 @@ def update_chapter(
     chapter_id: str,
     chapter: ChapterUpdate,
     db: Session = Depends(get_db),
-    current_user: models.User = Depends(get_current_user)
+    current_user_id: str = Depends(get_current_user_id)
 ):
-    db_chapter = get_owned_chapter_or_404(chapter_id, current_user.id, db)
+    db_chapter = get_owned_chapter_or_404(chapter_id, current_user_id, db)
 
     update_data = chapter.dict(exclude_unset=True)
 
@@ -365,9 +365,9 @@ def update_chapter(
 def delete_chapter(
     chapter_id: str,
     db: Session = Depends(get_db),
-    current_user: models.User = Depends(get_current_user)
+    current_user_id: str = Depends(get_current_user_id)
 ):
-    db_chapter = get_owned_chapter_or_404(chapter_id, current_user.id, db)
+    db_chapter = get_owned_chapter_or_404(chapter_id, current_user_id, db)
 
     # 서브챕터 및 그 아이템 삭제 (CASCADE가 걸려 있지만 명시적으로 처리)
     sub_chapters = db.query(models.Chapter).filter(models.Chapter.parent_id == chapter_id).all()
@@ -395,9 +395,9 @@ def delete_chapter(
 def get_chapter_items(
     chapter_id: str,
     db: Session = Depends(get_db),
-    current_user: models.User = Depends(get_current_user)
+    current_user_id: str = Depends(get_current_user_id)
 ):
-    get_owned_chapter_or_404(chapter_id, current_user.id, db)
+    get_owned_chapter_or_404(chapter_id, current_user_id, db)
 
     # 변경 후
     items = db.query(models.ChapterItem).filter(
@@ -413,9 +413,9 @@ def add_photo_to_chapter(
     chapter_id: str,
     body: ChapterItemPhotoAdd,
     db: Session = Depends(get_db),
-    current_user: models.User = Depends(get_current_user)
+    current_user_id: str = Depends(get_current_user_id)
 ):
-    db_chapter = get_owned_chapter_or_404(chapter_id, current_user.id, db)
+    db_chapter = get_owned_chapter_or_404(chapter_id, current_user_id, db)
 
     # 동일 챕터에 동일 사진 중복 방지
     existing = db.query(models.ChapterItem).filter(
@@ -455,9 +455,9 @@ def add_text_to_chapter(
     chapter_id: str,
     body: ChapterItemTextAdd,
     db: Session = Depends(get_db),
-    current_user: models.User = Depends(get_current_user)
+    current_user_id: str = Depends(get_current_user_id)
 ):
-    db_chapter = get_owned_chapter_or_404(chapter_id, current_user.id, db)
+    db_chapter = get_owned_chapter_or_404(chapter_id, current_user_id, db)
 
     if not body.text_content.strip():
         raise HTTPException(status_code=400, detail="TEXT_CONTENT_EMPTY")
@@ -485,9 +485,9 @@ def update_text_item(
     item_id: str,
     body: ChapterItemTextUpdate,
     db: Session = Depends(get_db),
-    current_user: models.User = Depends(get_current_user)
+    current_user_id: str = Depends(get_current_user_id)
 ):
-    db_chapter = get_owned_chapter_or_404(chapter_id, current_user.id, db)
+    db_chapter = get_owned_chapter_or_404(chapter_id, current_user_id, db)
 
     item = db.query(models.ChapterItem).filter(
         models.ChapterItem.id == item_id,
@@ -512,9 +512,9 @@ def delete_chapter_item(
     chapter_id: str,
     item_id: str,
     db: Session = Depends(get_db),
-    current_user: models.User = Depends(get_current_user)
+    current_user_id: str = Depends(get_current_user_id)
 ):
-    db_chapter = get_owned_chapter_or_404(chapter_id, current_user.id, db)
+    db_chapter = get_owned_chapter_or_404(chapter_id, current_user_id, db)
 
     item = db.query(models.ChapterItem).filter(
         models.ChapterItem.id == item_id,
@@ -535,9 +535,9 @@ def reorder_chapter_items(
     chapter_id: str,
     body: ChapterItemReorder,
     db: Session = Depends(get_db),
-    current_user: models.User = Depends(get_current_user)
+    current_user_id: str = Depends(get_current_user_id)
 ):
-    db_chapter = get_owned_chapter_or_404(chapter_id, current_user.id, db)
+    db_chapter = get_owned_chapter_or_404(chapter_id, current_user_id, db)
 
     if not body.items:
         return {"message": "변경할 아이템이 없습니다."}
@@ -568,9 +568,9 @@ def set_side_by_side(
     chapter_id: str,
     body: ChapterItemSideBySide,
     db: Session = Depends(get_db),
-    current_user: models.User = Depends(get_current_user)
+    current_user_id: str = Depends(get_current_user_id)
 ):
-    db_chapter = get_owned_chapter_or_404(chapter_id, current_user.id, db)
+    db_chapter = get_owned_chapter_or_404(chapter_id, current_user_id, db)
 
     # 텍스트 아이템 확인
     text_item = db.query(models.ChapterItem).filter(
@@ -608,10 +608,10 @@ def cancel_side_by_side(
     chapter_id: str,
     body: dict,
     db: Session = Depends(get_db),
-    current_user: models.User = Depends(get_current_user)
+    current_user_id: str = Depends(get_current_user_id)
 ):
     """Side-by-Side 해제 — 텍스트를 독립 블록으로 분리"""
-    db_chapter = get_owned_chapter_or_404(chapter_id, current_user.id, db)
+    db_chapter = get_owned_chapter_or_404(chapter_id, current_user_id, db)
 
     text_item_id = body.get("text_item_id")
     text_item = db.query(models.ChapterItem).filter(
@@ -651,9 +651,9 @@ def bulk_add_photos_to_chapter(
     chapter_id: str,
     body: ChapterItemPhotoBulkAdd,
     db: Session = Depends(get_db),
-    current_user: models.User = Depends(get_current_user)
+    current_user_id: str = Depends(get_current_user_id)
 ):
-    db_chapter = get_owned_chapter_or_404(chapter_id, current_user.id, db)
+    db_chapter = get_owned_chapter_or_404(chapter_id, current_user_id, db)
 
     if not body.photo_ids:
         raise HTTPException(status_code=400, detail="PHOTO_IDS_EMPTY")
@@ -706,10 +706,10 @@ def move_item_to_block(
     chapter_id: str,
     body: ChapterItemMoveToBlock,
     db: Session = Depends(get_db),
-    current_user: models.User = Depends(get_current_user)
+    current_user_id: str = Depends(get_current_user_id)
 ):
     """블록 간 사진 이동 — block_id 변경 + 빈 블록 정리"""
-    db_chapter = get_owned_chapter_or_404(chapter_id, current_user.id, db)
+    db_chapter = get_owned_chapter_or_404(chapter_id, current_user_id, db)
 
     item = db.query(models.ChapterItem).filter(
         models.ChapterItem.id == body.item_id,
@@ -774,10 +774,10 @@ def bulk_sync_chapter_items(
     chapter_id: str,
     body: ChapterItemBulkSync,
     db: Session = Depends(get_db),
-    current_user: models.User = Depends(get_current_user)
+    current_user_id: str = Depends(get_current_user_id)
 ):
     """드래그 앤 드롭 후 출발지/도착지 블록의 변경된 순서와 소속을 통째로 DB에 동기화합니다."""
-    db_chapter = get_owned_chapter_or_404(chapter_id, current_user.id, db)
+    db_chapter = get_owned_chapter_or_404(chapter_id, current_user_id, db)
 
     checked_source_blocks = set()
 
@@ -826,9 +826,9 @@ def reorder_block_photos(
     block_id: str,
     body: ChapterItemBlockReorder,
     db: Session = Depends(get_db),
-    current_user: models.User = Depends(get_current_user)
+    current_user_id: str = Depends(get_current_user_id)
 ):
-    db_chapter = get_owned_chapter_or_404(chapter_id, current_user.id, db)
+    db_chapter = get_owned_chapter_or_404(chapter_id, current_user_id, db)
 
     for index, item_id in enumerate(body.item_ids):
         db.query(models.ChapterItem).filter(
@@ -850,10 +850,10 @@ def update_block_layout(
     block_id: str,
     body: ChapterBlockLayoutUpdate,
     db: Session = Depends(get_db),
-    current_user: models.User = Depends(get_current_user)
+    current_user_id: str = Depends(get_current_user_id)
 ):
     """블록 단위 레이아웃 변경 — 같은 block_id를 공유하는 모든 아이템에 일괄 적용."""
-    db_chapter = get_owned_chapter_or_404(chapter_id, current_user.id, db)
+    db_chapter = get_owned_chapter_or_404(chapter_id, current_user_id, db)
 
     updated = db.query(models.ChapterItem).filter(
         models.ChapterItem.chapter_id == chapter_id,
@@ -876,10 +876,10 @@ def update_block_layout(
 def get_chapter_photos_legacy(
     chapter_id: str,
     db: Session = Depends(get_db),
-    current_user: models.User = Depends(get_current_user)
+    current_user_id: str = Depends(get_current_user_id)
 ):
     """[Deprecated] /items 로 마이그레이션 예정. PHOTO 타입 아이템만 반환."""
-    get_owned_chapter_or_404(chapter_id, current_user.id, db)
+    get_owned_chapter_or_404(chapter_id, current_user_id, db)
 
     items = db.query(models.ChapterItem).filter(
         models.ChapterItem.chapter_id == chapter_id,
@@ -894,10 +894,10 @@ def remove_photo_legacy(
     chapter_id: str,
     photo_id: str,
     db: Session = Depends(get_db),
-    current_user: models.User = Depends(get_current_user)
+    current_user_id: str = Depends(get_current_user_id)
 ):
     """[Deprecated] /items/{item_id} 로 마이그레이션 예정."""
-    db_chapter = get_owned_chapter_or_404(chapter_id, current_user.id, db)
+    db_chapter = get_owned_chapter_or_404(chapter_id, current_user_id, db)
 
     item = db.query(models.ChapterItem).filter(
         models.ChapterItem.chapter_id == chapter_id,
@@ -919,10 +919,10 @@ def update_photo_order_legacy(
     photo_id: str,
     body: dict,
     db: Session = Depends(get_db),
-    current_user: models.User = Depends(get_current_user)
+    current_user_id: str = Depends(get_current_user_id)
 ):
     """[Deprecated] /items/reorder 로 마이그레이션 예정."""
-    db_chapter = get_owned_chapter_or_404(chapter_id, current_user.id, db)
+    db_chapter = get_owned_chapter_or_404(chapter_id, current_user_id, db)
 
     item = db.query(models.ChapterItem).filter(
         models.ChapterItem.chapter_id == chapter_id,

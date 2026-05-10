@@ -4,7 +4,7 @@ from app.database import get_db
 from app import models
 from pydantic import BaseModel
 from typing import Dict
-from app.auth import get_current_user
+from app.auth import get_current_user, get_current_user_id
 
 SETTING_KEY_MAX_LEN = 100
 SETTING_VALUE_MAX_LEN = 5000
@@ -24,10 +24,10 @@ class SettingUpdate(BaseModel):
 @router.get("/")
 def get_settings(
     db: Session = Depends(get_db),
-    current_user: models.User = Depends(get_current_user)
+    current_user_id: str = Depends(get_current_user_id)
 ):
     settings = db.query(models.Setting).filter(
-        models.Setting.user_id == current_user.id
+        models.Setting.user_id == current_user_id
     ).all()
     return {s.key: s.value for s in settings}
 
@@ -37,18 +37,18 @@ def update_setting(
     key: str,
     setting: SettingUpdate,
     db: Session = Depends(get_db),
-    current_user: models.User = Depends(get_current_user)
+    current_user_id: str = Depends(get_current_user_id)
 ):
     _validate_setting(key, setting.value)
     db_setting = db.query(models.Setting).filter(
-        models.Setting.user_id == current_user.id,
+        models.Setting.user_id == current_user_id,
         models.Setting.key == key
     ).first()
     if db_setting:
         db_setting.value = setting.value
     else:
         db_setting = models.Setting(
-            user_id=current_user.id,
+            user_id=current_user_id,
             key=key,
             value=setting.value
         )
@@ -61,19 +61,19 @@ def update_setting(
 def update_settings_batch(
     settings: Dict[str, str],
     db: Session = Depends(get_db),
-    current_user: models.User = Depends(get_current_user)
+    current_user_id: str = Depends(get_current_user_id)
 ):
     for key, value in settings.items():
         _validate_setting(key, value)
         db_setting = db.query(models.Setting).filter(
-            models.Setting.user_id == current_user.id,
+            models.Setting.user_id == current_user_id,
             models.Setting.key == key
         ).first()
         if db_setting:
             db_setting.value = value
         else:
             db_setting = models.Setting(
-                user_id=current_user.id,
+                user_id=current_user_id,
                 key=key,
                 value=value
             )

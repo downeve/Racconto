@@ -59,3 +59,20 @@ def get_current_user(
             raise credentials_exception
 
     return user
+
+
+def get_current_user_id(token: str = Depends(oauth2_scheme)) -> str:
+    """JWT에서 user_id만 추출. DB 조회 없음. 조회성 엔드포인트에 사용."""
+    credentials_exception = HTTPException(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        detail="AUTH_INVALID_TOKEN",
+        headers={"WWW-Authenticate": "Bearer"},
+    )
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        user_id: str = payload.get("sub")
+        if user_id is None:
+            raise credentials_exception
+    except jwt.InvalidTokenError:
+        raise credentials_exception
+    return user_id
