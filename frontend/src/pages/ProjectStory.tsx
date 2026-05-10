@@ -509,6 +509,15 @@ function ProjectStory({
     }
   }, [blocksPerChapter, handleSideBySide])
 
+  const handleSlotInsertText = useCallback((chapterId: string, insertIndex: number) => {
+    setInsertSlotActive({ chapterId, insertIndex })
+    setInsertTextDraft('')
+  }, [])
+
+  const handleSlotSideBySide = useCallback((chapterId: string, insertIndex: number) => {
+    handleSideBySideFromSlot(chapterId, insertIndex - 1)
+  }, [handleSideBySideFromSlot])
+
   const handleBlockLayoutChange = useCallback(async (
     chapterId: string,
     blockId: string,
@@ -814,9 +823,12 @@ function ProjectStory({
 
     return (
       <InsertSlot
-        key={`slot-${insertIndex}`}
-        onInsertText={() => setInsertSlotActive({ chapterId: targetChapterId, insertIndex })}
-        onSideBySide={canSideBySide ? () => handleSideBySideFromSlot(targetChapterId, insertIndex - 1) : undefined}
+        key={`slot-${targetChapterId}-${insertIndex}`}
+        chapterId={targetChapterId}
+        insertIndex={insertIndex}
+        canSideBySide={canSideBySide}
+        onInsertText={handleSlotInsertText}
+        onSideBySide={canSideBySide ? handleSlotSideBySide : undefined}
       />
     )
   }

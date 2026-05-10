@@ -1,8 +1,9 @@
 import { useTranslation } from 'react-i18next'
 // import { memo, useState, useMemo } from 'react'  // useState, useMemo: GhostFrameGrid 전용
-import { memo, useRef, useState, useEffect } from 'react'
+import { memo, useRef, useState, useEffect, useCallback } from 'react'
 // import { computePortfolioRows } from '../utils/portfolioRows'  // GhostFrameGrid 전용
-import { FileText, ArrowLeftRight, Check } from 'lucide-react'
+import { FileText, ArrowLeftRight, Check, Plus } from 'lucide-react'
+import { useHoverCapable } from '../hooks/useHoverCapable'
 import MarkdownRenderer from './MarkdownRenderer'
 import { cfUrl } from '../utils/cfImage'
 import {
@@ -55,15 +56,43 @@ function DragHandleDots({ size = 12, color = '#999' }: { size?: number; color?: 
 // ── InsertSlot ──────────────────────────────────────────────
 
 export interface InsertSlotProps {
-  onInsertText: () => void
-  onSideBySide?: () => void
+  chapterId: string
+  insertIndex: number
+  canSideBySide?: boolean
+  onInsertText: (chapterId: string, insertIndex: number) => void
+  onSideBySide?: (chapterId: string, insertIndex: number) => void
 }
 
-export function InsertSlot({ onInsertText }: InsertSlotProps) {
+export const InsertSlot = memo(function InsertSlot({
+  chapterId, insertIndex, onInsertText,
+}: InsertSlotProps) {
   const [hovered, setHovered] = useState(false)
   const [open, setOpen] = useState(false)
   const ref = useRef<HTMLDivElement>(null)
+  const leaveTimer = useRef<number | undefined>(undefined)
   const { t } = useTranslation()
+  const isHoverEnv = useHoverCapable()
+
+  const onEnter = useCallback(() => {
+    if (leaveTimer.current) {
+      window.clearTimeout(leaveTimer.current)
+      leaveTimer.current = undefined
+    }
+    setHovered(true)
+  }, [])
+
+  const onLeave = useCallback(() => {
+    if (leaveTimer.current) window.clearTimeout(leaveTimer.current)
+    leaveTimer.current = window.setTimeout(() => {
+      setHovered(prev => (open ? prev : false))
+      leaveTimer.current = undefined
+    }, 80)
+  }, [open])
+
+  // 언마운트 시 타이머 정리
+  useEffect(() => () => {
+    if (leaveTimer.current) window.clearTimeout(leaveTimer.current)
+  }, [])
 
   useEffect(() => {
     if (!open) return
@@ -77,48 +106,69 @@ export function InsertSlot({ onInsertText }: InsertSlotProps) {
     return () => document.removeEventListener('mousedown', handler)
   }, [open])
 
+  // non-hover 환경: 항상 보이는 작은 + 핸들
+  if (!isHoverEnv) {
+    return (
+      <div className="relative h-6 flex items-center justify-center my-0.5">
+        <div className="absolute inset-x-0 top-1/2 -translate-y-1/2 h-px bg-stone-200 pointer-events-none" />
+        <button
+          onClick={() => onInsertText(chapterId, insertIndex)}
+          className="relative z-10 h-6 w-6 rounded-full bg-white border border-stone-300 text-stone-500 shadow-sm flex items-center justify-center"
+          aria-label={t('story.insertText')}
+        >
+          <Plus size={14} strokeWidth={1.5} />
+        </button>
+      </div>
+    )
+  }
+
+  // hover 환경: 높이 고정, opacity/scale로만 등장
   return (
     <div
       ref={ref}
-      className={`relative flex items-center justify-center transition-[height] duration-150 mb-1 ${hovered || open ? 'h-6' : 'h-2'}`}
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => { if (!open) setHovered(false) }}
+      className="relative h-6 flex items-center justify-center my-0.5"
+      onMouseEnter={onEnter}
+      onMouseLeave={onLeave}
     >
-      {(hovered || open) && (
-        <>
-          <div className="absolute inset-x-0 top-1/2 h-px bg-stone-300 pointer-events-none" />
-          <button
-            onClick={() => { onInsertText(); setOpen(false); setHovered(false) }}
-            className="relative z-10 h-6 flex items-center justify-center px-2 rounded-btn bg-white border border-stone-300 text-stone-400 hover:text-stone-600 hover:border-stone-400 shadow-sm text-sm leading-none"
-            aria-label={t('story.insertText')}
-            tabIndex={0}
-          ><FileText size={13} strokeWidth={1.5} /> {t('story.insertText')}</button>
-        </>
-      )}
+      {/* hairline — 항상 mount, opacity로만 토글 */}
+      <div
+        className={`absolute inset-x-0 top-1/2 -translate-y-1/2 h-px bg-stone-300
+                    pointer-events-none transition-opacity duration-150
+                    ${hovered || open ? 'opacity-100' : 'opacity-0'}`}
+      />
 
+      {/* 버튼 — 항상 mount, opacity + scale-y로 등장. pointer-events로 클릭만 차단 */}
+      <button
+        onClick={() => { onInsertText(chapterId, insertIndex); setOpen(false); setHovered(false) }}
+        className={`relative z-10 h-6 px-2 rounded-btn bg-white border border-stone-300
+                    text-stone-500 hover:text-stone-700 hover:border-stone-400
+                    shadow-sm text-sm leading-none flex items-center gap-1
+                    transition-[opacity,transform] duration-150 ease-out origin-center
+                    ${hovered || open
+                      ? 'opacity-100 scale-y-100 pointer-events-auto'
+                      : 'opacity-0 scale-y-50 pointer-events-none'}`}
+        aria-label={t('story.insertText')}
+        tabIndex={hovered || open ? 0 : -1}
+      >
+        <FileText size={13} strokeWidth={1.5} />
+        {t('story.insertText')}
+      </button>
+
+      {/* popover — open일 때만 mount (현재 side-by-side 옵션 비활성) */}
       {open && (
         <div className="absolute top-full left-1/2 -translate-x-1/2 mt-1 z-50 bg-white border border-stone-200 rounded-card shadow-lg py-1 min-w-[160px]">
           <button
-            onClick={() => { onInsertText(); setOpen(false); setHovered(false) }}
+            onClick={() => { onInsertText(chapterId, insertIndex); setOpen(false); setHovered(false) }}
             className="w-full text-left px-3 py-1.5 text-sm text-stone-700 hover:bg-stone-50 flex items-center gap-2"
           >
             <FileText size={13} strokeWidth={1.5} />
             {t('story.insertText')}
           </button>
-          {/*{onSideBySide && (
-            <button
-              onClick={() => { onSideBySide(); setOpen(false); setHovered(false) }}
-              className="w-full text-left px-3 py-1.5 text-sm text-stone-700 hover:bg-stone-50 flex items-center gap-2"
-            >
-              <ArrowLeftRight size={13} strokeWidth={1.5} />
-              {t('story.insertSideBySide')}
-            </button>
-          )}*/}
         </div>
       )}
     </div>
   )
-}
+})
 
 // ── 타입 추가 ──────────────────────────────────────────────
 export interface OtherBlock {
