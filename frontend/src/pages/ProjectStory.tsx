@@ -1596,7 +1596,7 @@ function ProjectStory({
                 ref={el => { chapterRefs.current[chapter.id] = el }}
               >
                 {/* 최상위 챕터 */}
-                <div className="bg-card rounded-card shadow overflow-hidden">
+                <div className="bg-card rounded-card shadow overflow-hidden pl-4">
                   <div className="p-4 border-b">
                     {editingChapter === chapter.id ? (
                       <div>
