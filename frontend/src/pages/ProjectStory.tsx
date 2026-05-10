@@ -2241,7 +2241,7 @@ function ProjectStory({
               <div className={`shrink-0 sticky top-0 z-10 backdrop-blur-sm border-b ${headerBg}`}>
                 <div className="px-5 h-12 flex items-center justify-between">
                   <div className="flex items-center gap-2 min-w-0">
-                    <span className="text-sm font-semibold truncate">{targetChapter.title}</span>
+                    <span className="font-serif text-h3 tracking-tight truncate">{targetChapter.title}</span>
                     {isSubChapter && parentChapter && (
                       <span className={`text-xs shrink-0 ${subText}`}>↑ {parentChapter.title}</span>
                     )}
