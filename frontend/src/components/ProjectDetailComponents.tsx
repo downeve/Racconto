@@ -190,10 +190,10 @@ export function Lightbox({
       const parent = chapters.find(c => c.id === assignedChapter.parent_id)
       const parentIdx = chapters.filter(c => !c.parent_id).findIndex(c => c.id === parent?.id) + 1
       const childIdx = chapters.filter(c => c.parent_id === parent?.id).findIndex(c => c.id === assignedChapter.id) + 1
-      return `${parentIdx}.${childIdx}. ${assignedChapter.title}`
+      return `Ch. ${parentIdx}.${childIdx}. ${assignedChapter.title}`
     } else {
       const parentIdx = chapters.filter(c => !c.parent_id).findIndex(c => c.id === assignedChapter.id) + 1
-      return `${parentIdx}. ${assignedChapter.title}`
+      return `Ch. ${parentIdx}. ${assignedChapter.title}`
     }
   }
 
@@ -206,9 +206,8 @@ export function Lightbox({
         style={{ paddingTop: window.racconto ? '2rem' : undefined }}
         onClick={e => e.stopPropagation()}
       >
-        {/* 왼쪽: 인덱스 + 경고 */}
+        {/* 왼쪽: 경고 */}
         <div className="flex-1 flex items-center gap-3 justify-start min-w-0">
-          <span className="text-edit-paper/60 text-small whitespace-nowrap">{idx + 1} / {photos.length}</span>
           {photo.local_missing && (
             <span className={`${chipBase} bg-edit-warning/10 border-edit-warning/30 text-edit-warning`}>
               <AlertTriangle size={10} strokeWidth={1.5} />{t('project.noLocalFile')}
@@ -314,8 +313,9 @@ export function Lightbox({
           </div>
         </div>
 
-        {/* 오른쪽: 닫기 */}
-        <div className="flex-1 flex justify-end">
+        {/* 오른쪽: 카운트 + 닫기 */}
+        <div className="flex-1 flex items-center justify-end gap-2">
+          <span className="text-edit-paper/60 text-small whitespace-nowrap">{idx + 1} / {photos.length}</span>
           <button onClick={onClose} className="text-edit-paper/80 hover:text-edit-paper text-h2 p-3">✕</button>
         </div>
       </div>
@@ -378,22 +378,21 @@ export function Lightbox({
             {chapters.length === 0 ? (
               <p className="text-small text-edit-muted px-3 py-2 whitespace-nowrap">{t('story.noChapters')}</p>
             ) : (
-              chapters.filter(c => !c.parent_id).map((parent) => (
+              chapters.filter(c => !c.parent_id).map((parent, pIdx) => (
                 <div key={parent.id}>
                   <button
                     onClick={() => { onAddToChapter(photo.id, parent.id); setShowChapterMenu(false) }}
-                    className="w-full text-left px-3 py-2 text-small rounded-[1px] hover:bg-edit-paper-2 text-edit-ink flex items-center gap-3 whitespace-nowrap"
+                    className="w-full text-left px-3 py-2 text-small rounded-[1px] hover:bg-edit-paper-2 text-edit-ink whitespace-nowrap"
                   >
-                    <span className="t-eyebrow text-edit-faint">Chapter</span>
-                    <span className="truncate">{parent.title}</span>
+                    Ch. {pIdx + 1}. {parent.title}
                   </button>
-                  {chapters.filter(c => c.parent_id === parent.id).map((child) => (
+                  {chapters.filter(c => c.parent_id === parent.id).map((child, cIdx) => (
                     <button
                       key={child.id}
                       onClick={() => { onAddToChapter(photo.id, child.id); setShowChapterMenu(false) }}
                       className="w-full text-left px-3 py-2 text-small rounded-[1px] hover:bg-edit-paper-2 text-edit-muted pl-9 whitespace-nowrap"
                     >
-                      {child.title}
+                      Ch. {pIdx + 1}.{cIdx + 1}. {child.title}
                     </button>
                   ))}
                 </div>

@@ -1020,19 +1020,18 @@ export default function ProjectDetail({
                   <p className="mt-1">{t('story.noChapter2')}</p>
                 </div>
               ) : (
-                chapters.filter(c => !c.parent_id).map((parent) => (
+                chapters.filter(c => !c.parent_id).map((parent, pIdx) => (
                   <div key={parent.id}>
                     <button
                       onClick={() => handleAddToChapter(chapterMenuPhoto!, parent.id)}
-                      className="w-full text-left px-3 py-2 text-small rounded-[1px] hover:bg-edit-paper-2 text-edit-ink flex items-center gap-3 whitespace-nowrap">
-                      <span className="t-eyebrow text-edit-faint">Chapter</span>
-                      <span className="truncate">{parent.title}</span>
+                      className="w-full text-left px-3 py-2 text-small rounded-[1px] hover:bg-edit-paper-2 text-edit-ink whitespace-nowrap">
+                      Ch. {pIdx + 1}. {parent.title}
                     </button>
-                    {chapters.filter(child => child.parent_id === parent.id).map((child) => (
+                    {chapters.filter(child => child.parent_id === parent.id).map((child, cIdx) => (
                       <button key={child.id}
                         onClick={() => handleAddToChapter(chapterMenuPhoto!, child.id)}
                         className="w-full text-left px-3 py-2 text-small rounded-[1px] hover:bg-edit-paper-2 text-edit-muted pl-9 whitespace-nowrap">
-                        {child.title}
+                        Ch. {pIdx + 1}.{cIdx + 1}. {child.title}
                       </button>
                     ))}
                   </div>
@@ -1379,9 +1378,9 @@ export default function ProjectDetail({
                     <div key={parent.id}>
                       <button
                         onClick={() => handleBulkAddToChapter(parent.id)}
-                        className="w-full text-left px-3 py-1.5 rounded-card hover:bg-hair text-menu font-semibold text-ink-2 whitespace-nowrap"
+                        className="w-full text-left px-3 py-1.5 rounded-card hover:bg-hair text-menu text-ink-2 whitespace-nowrap"
                       >
-                        {t('story.chapter')} {pIdx + 1}. {parent.title}
+                        Ch. {pIdx + 1}. {parent.title}
                       </button>
                       {chapters.filter(c => c.parent_id === parent.id).map((child, cIdx) => (
                         <button
@@ -1389,7 +1388,7 @@ export default function ProjectDetail({
                           onClick={() => handleBulkAddToChapter(child.id)}
                           className="w-full text-left px-3 py-1.5 rounded-card hover:bg-hair text-menu text-muted pl-8 whitespace-nowrap"
                         >
-                          ↳ {pIdx + 1}.{cIdx + 1}. {child.title}
+                          Ch. {pIdx + 1}.{cIdx + 1}. {child.title}
                         </button>
                       ))}
                     </div>
