@@ -291,7 +291,7 @@ export default function PublicPortfolio() {
                 <div className={`aspect-[4/5] overflow-hidden ${darkMode ? 'bg-d-surface' : 'bg-[oklch(0.92_0.012_75)]'}`}>
                   {project.cover_image_url ? (
                     <img
-                      src={cfUrl(project.cover_image_url, 'thumb')}
+                      src={cfUrl(project.cover_image_url, 'cover')}
                       alt={project.title}
                       className="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-[1.02]"
                     />

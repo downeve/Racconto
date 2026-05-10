@@ -1,4 +1,4 @@
-export type CfVariant = 'public' | 'grid' | 'thumb'
+export type CfVariant = 'public' | 'grid' | 'thumb' | 'cover'
 
 export const cfUrl = (
   imageUrl: string | null | undefined,
