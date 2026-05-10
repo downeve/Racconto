@@ -63,7 +63,7 @@ export default function Register() {
       <div className="min-h-screen bg-edit-canvas flex items-center justify-center px-4 py-12">
         <div className="w-full max-w-sm text-center">
           <div className="mb-12">
-            <Wordmark asLink={false} />
+            <Wordmark />
           </div>
           <CheckCircle size={28} strokeWidth={1.25} className="mx-auto mb-6 text-edit-ink/60" />
           <p className="t-eyebrow text-edit-muted mb-3">{t('register.success.eyebrow')}</p>
