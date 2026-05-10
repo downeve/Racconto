@@ -7,32 +7,31 @@ interface Props {
   className?: string
 }
 
+type Provider = 'google' | 'apple' | 'naver' | 'line'
+
+const ORDER_BY_LANG: Record<string, Provider[]> = {
+  ko: ['naver', 'google', 'apple', 'line'],
+  en: ['google', 'apple', 'naver', 'line'],
+  ja: ['line', 'apple', 'google', 'naver'],
+}
+
 export function SocialAuthButtons({ mode = 'login', className = '' }: Props) {
-  const { t } = useTranslation()
+  const { t, i18n } = useTranslation()
+  const lang = i18n.language.startsWith('ko') ? 'ko' : i18n.language.startsWith('ja') ? 'ja' : 'en'
+  const order = ORDER_BY_LANG[lang]
+
   return (
     <div className={className}>
       <Divider label={t('auth.or')} />
       <div className="mt-6 space-y-2.5">
-        <SocialButton
-          href={`${API_BASE}/auth/google/${mode}`}
-          variant="google"
-          label={t('auth.google')}
-        />
-        <SocialButton
-          href={`${API_BASE}/auth/apple/${mode}`}
-          variant="apple"
-          label={t('auth.apple')}
-        />
-        <SocialButton
-          href={`${API_BASE}/auth/naver/${mode}`}
-          variant="naver"
-          label={t('auth.naver')}
-        />
-        <SocialButton
-          href={`${API_BASE}/auth/line/${mode}`}
-          variant="line"
-          label={t('auth.line')}
-        />
+        {order.map(provider => (
+          <SocialButton
+            key={provider}
+            href={`${API_BASE}/auth/${provider}/${mode}`}
+            variant={provider}
+            label={t(`auth.${provider}`)}
+          />
+        ))}
       </div>
     </div>
   )
@@ -51,7 +50,7 @@ function Divider({ label }: { label: string }) {
   )
 }
 
-type Variant = 'google' | 'apple' | 'naver' | 'line'
+type Variant = Provider
 
 interface SocialButtonProps {
   href: string
