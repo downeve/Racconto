@@ -32,7 +32,7 @@ export default function ProjectCard({ project }: { project: Project }) {
         <div className="h-48 bg-hair flex items-center justify-center">
           {project.cover_image_url ? (
             <img
-              src={cfUrl(project.cover_image_url, 'cover')}
+              src={cfUrl(project.cover_image_url, 'grid')}
               alt={project.title}
               className="w-full h-full object-cover"
             />
