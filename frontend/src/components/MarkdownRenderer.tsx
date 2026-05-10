@@ -1,5 +1,5 @@
 import ReactMarkdown from 'react-markdown'
-//import remarkBreaks from 'remark-breaks'
+import remarkBreaks from 'remark-breaks'
 
 interface Props {
   content: string
@@ -14,7 +14,7 @@ export default function MarkdownRenderer({ content, className = '', darkMode = f
   return (
     <div className={className}>
     <ReactMarkdown
-      //remarkPlugins={[remarkBreaks]}
+      remarkPlugins={[remarkBreaks]}
       components={{
         p: ({ children }) => (
         <p className={`text-body mb-4 last:mb-0 whitespace-pre-wrap break-words ${baseText}`}>
@@ -36,6 +36,7 @@ export default function MarkdownRenderer({ content, className = '', darkMode = f
             {children}
           </a>
         ),
+        br: () => <br />,
         // 코드블록은 포트폴리오에 불필요하므로 plain text로 fallback
         code: ({ children }) => <span className="font-mono text-small">{children}</span>,
         pre:  ({ children }) => <div className="font-mono text-small overflow-x-hidden break-words">{children}</div>,
