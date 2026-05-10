@@ -10,6 +10,7 @@ import DeliveryManager from '../components/DeliveryManager'
 import { useTranslation } from 'react-i18next'
 import ProjectNotes from './ProjectNotes'
 import { useElectronSidebar } from '../context/ElectronSidebarContext'
+import { resizeImageInWorker } from '../utils/resizeImageWorker'
 import ConfirmModal from '../components/ConfirmModal'
 import ToastNotification from '../components/ToastNotification'
 import { Lightbox, PhotoCard } from '../components/ProjectDetailComponents'
@@ -423,43 +424,6 @@ export default function ProjectDetail({
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeTab, filterFolder, filterRating, filterColor, sortBy])
 
-  const resizeImage = (file: File): Promise<Blob> => {
-    const MAX_SIZE = 3200
-    return new Promise((resolve, reject) => {
-      const img = new Image()
-      const url = URL.createObjectURL(file)
-      img.onload = () => {
-        URL.revokeObjectURL(url)
-        const { width, height } = img
-        let newW = width, newH = height
-        if (Math.max(width, height) > MAX_SIZE) {
-          if (width >= height) {
-            newW = MAX_SIZE
-            newH = Math.round(height * MAX_SIZE / width)
-          } else {
-            newH = MAX_SIZE
-            newW = Math.round(width * MAX_SIZE / height)
-          }
-        }
-        if (newW === width && newH === height) {
-          resolve(file)
-          return
-        }
-        const canvas = document.createElement('canvas')
-        canvas.width = newW
-        canvas.height = newH
-        canvas.getContext('2d')!.drawImage(img, 0, 0, newW, newH)
-        canvas.toBlob(
-          blob => blob ? resolve(blob) : reject(new Error('toBlob failed')),
-          'image/jpeg',
-          0.88
-        )
-      }
-      img.onerror = reject
-      img.src = url
-    })
-  }
-
   const doUpload = async (validFiles: File[]) => {
     setUploading(true)
 
@@ -518,7 +482,7 @@ export default function ProjectDetail({
         }
 
         // 2. Canvas 리사이즈 (장변 2400px, JPEG q88)
-        const resizedBlob = await resizeImage(file)
+        const resizedBlob = await resizeImageInWorker(file)
 
         // 3. CF 업로드 URL 발급 (photo_limit 체크 포함)
         const { data: urlData } = await axios.get(`${API}/photos/cf-upload-url`)

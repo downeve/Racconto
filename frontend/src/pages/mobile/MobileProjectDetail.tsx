@@ -16,6 +16,7 @@ import ConfirmModal from '../../components/ConfirmModal'
 import ToastNotification from '../../components/ToastNotification'
 import ProjectNotes from '../ProjectNotes'
 import type { Photo, Project, ChapterPhotoResponse, NoteResponse, ColorLabel } from '../../components/ProjectDetailComponents'
+import { resizeImageInWorker } from '../../utils/resizeImageWorker'
 
 const API = import.meta.env.VITE_API_URL
 
@@ -145,29 +146,6 @@ export default function MobileProjectDetail() {
     return sortOrder === 'desc' ? (b.order ?? 0) - (a.order ?? 0) : (a.order ?? 0) - (b.order ?? 0)
   }), [photos, filterRating, filterColor, sortBy, sortOrder])
 
-  const resizeImage = (file: File): Promise<Blob> => {
-    const MAX_SIZE = 3200
-    return new Promise((resolve, reject) => {
-      const img = new Image()
-      const url = URL.createObjectURL(file)
-      img.onload = () => {
-        URL.revokeObjectURL(url)
-        const { width, height } = img
-        let newW = width, newH = height
-        if (Math.max(width, height) > MAX_SIZE) {
-          if (width >= height) { newW = MAX_SIZE; newH = Math.round(height * MAX_SIZE / width) }
-          else { newH = MAX_SIZE; newW = Math.round(width * MAX_SIZE / height) }
-        }
-        const canvas = document.createElement('canvas')
-        canvas.width = newW; canvas.height = newH
-        canvas.getContext('2d')!.drawImage(img, 0, 0, newW, newH)
-        canvas.toBlob(blob => blob ? resolve(blob) : reject(new Error('toBlob failed')), 'image/jpeg', 0.88)
-      }
-      img.onerror = reject
-      img.src = url
-    })
-  }
-
   const doUpload = async (validFiles: File[]) => {
     setUploading(true)
     let failedCount = 0, successCount = 0, limitExceeded = false, skipCount = 0
@@ -200,7 +178,7 @@ export default function MobileProjectDetail() {
               if (parsed.GPSLongitude) exifData.gps_lng = String(parsed.GPSLongitude)
             }
           } catch {}
-          const resizedBlob = await resizeImage(file)
+          const resizedBlob = await resizeImageInWorker(file)
           const { data: urlData } = await axios.get(`${API}/photos/cf-upload-url`)
           const formData = new FormData()
           formData.append('file', resizedBlob, file.name)
