@@ -137,27 +137,20 @@ export default function Dashboard() {
               ) : (
                 <div className="absolute inset-0 grid grid-cols-3 grid-rows-2 gap-2">
                   {publicProjects[0] && (
-                    <Link
-                      to={`/projects/${publicProjects[0].slug ?? publicProjects[0].id}`}
-                      className="col-span-2 row-span-2 overflow-hidden bg-hair/50 block"
-                    >
+                    <div className="col-span-2 row-span-2 overflow-hidden bg-hair/50">
                       {publicProjects[0].cover_image_url
-                        ? <img src={publicProjects[0].cover_image_url} alt={publicProjects[0].title} className="w-full h-full object-cover hover:opacity-90 transition-opacity" />
+                        ? <img src={publicProjects[0].cover_image_url} alt={publicProjects[0].title} className="w-full h-full object-cover" />
                         : <CoverFallback title={publicProjects[0].title} />
                       }
-                    </Link>
+                    </div>
                   )}
                   {publicProjects.slice(1, 3).map(p => (
-                    <Link
-                      key={p.id}
-                      to={`/projects/${p.slug ?? p.id}`}
-                      className="overflow-hidden bg-hair/50 block"
-                    >
+                    <div key={p.id} className="overflow-hidden bg-hair/50">
                       {p.cover_image_url
-                        ? <img src={p.cover_image_url} alt={p.title} className="w-full h-full object-cover hover:opacity-90 transition-opacity" />
+                        ? <img src={p.cover_image_url} alt={p.title} className="w-full h-full object-cover" />
                         : <CoverFallback title={p.title} />
                       }
-                    </Link>
+                    </div>
                   ))}
                 </div>
               )}
