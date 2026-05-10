@@ -80,13 +80,10 @@ export default function Projects() {
     setToast({ message, type })
     toastTimer.current = setTimeout(() => setToast(null), 4000)
   }
-  const [title, setTitle] = useState('')
-  const [titleEn, setTitleEn] = useState('')
-  const [description, setDescription] = useState('')
-  const [descriptionEn, setDescriptionEn] = useState('')
-  const [location, setLocation] = useState('')
-  const [status, setStatus] = useState('in_progress')
-  const [isPublic, setIsPublic] = useState('false')
+  const FORM_INITIAL = { title: '', description: '', location: '', status: 'in_progress', isPublic: 'false' }
+  const [formData, setFormData] = useState(FORM_INITIAL)
+  const setField = (key: keyof typeof FORM_INITIAL, value: string) =>
+    setFormData(prev => ({ ...prev, [key]: value }))
   const { triggerRefresh } = useElectronSidebar()
   const { t } = useTranslation()
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 8 } }))
@@ -136,16 +133,16 @@ export default function Projects() {
   }, [dashboardOpen.state])
 
   const handleSubmit = async () => {
-    if (!title) return
+    if (!formData.title) return
     try {
       await axios.post(`${API}/projects/`, {
-        title, title_en: titleEn,
-        description, description_en: descriptionEn,
-        location, status, is_public: isPublic
+        title: formData.title,
+        description: formData.description,
+        location: formData.location,
+        status: formData.status,
+        is_public: formData.isPublic,
       })
-      setTitle(''); setTitleEn(''); setDescription('')
-      setDescriptionEn(''); setLocation('')
-      setStatus('in_progress'); setIsPublic('false')
+      setFormData(FORM_INITIAL)
       setShowForm(false)
       fetchProjects()
       triggerRefresh()
@@ -191,7 +188,7 @@ export default function Projects() {
           <div className="pt-0 pb-5 border-b border-edit-line-strong">
             <p className="t-eyebrow text-edit-muted mb-2">{t('project.labelTitle')}<span className="text-edit-danger ml-1">*</span></p>
             <input
-              value={title} onChange={e => setTitle(e.target.value)}
+              value={formData.title} onChange={e => setField('title', e.target.value)}
               placeholder={t('project.projectName')}
               className="w-full font-serif text-body bg-transparent border-0 border-b border-edit-line focus:border-edit-ink focus:outline-none py-2 transition-colors duration-150 placeholder:text-edit-faint"
             />
@@ -201,7 +198,7 @@ export default function Projects() {
           <div className="py-5 border-b border-edit-line-strong">
             <p className="t-eyebrow text-edit-muted mb-2">{t('project.labelDescription')}</p>
             <textarea
-              value={description} onChange={e => setDescription(e.target.value)}
+              value={formData.description} onChange={e => setField('description', e.target.value)}
               placeholder={t('project.description')}
               rows={3}
               className="w-full font-serif text-body bg-transparent border-0 border-b border-edit-line focus:border-edit-ink focus:outline-none py-2 resize-none transition-colors duration-150 placeholder:text-edit-faint"
@@ -212,7 +209,7 @@ export default function Projects() {
           <div className="py-5 border-b border-edit-line-strong">
             <p className="t-eyebrow text-edit-muted mb-2">{t('project.labelLocation')}</p>
             <input
-              value={location} onChange={e => setLocation(e.target.value)}
+              value={formData.location} onChange={e => setField('location', e.target.value)}
               placeholder={t('project.location')}
               className="w-full font-serif text-body bg-transparent border-0 border-b border-edit-line focus:border-edit-ink focus:outline-none py-2 transition-colors duration-150 placeholder:text-edit-faint"
             />
@@ -229,8 +226,8 @@ export default function Projects() {
                   { value: 'published',   label: t('project.statusPublished') },
                   { value: 'archived',    label: t('project.statusArchived') },
                 ].map(opt => (
-                  <button key={opt.value} type="button" onClick={() => setStatus(opt.value)}
-                    className={`t-caption px-3 py-1.5 rounded-[1px] transition-colors duration-150 ${status === opt.value ? 'bg-edit-ink text-edit-paper' : 'text-edit-muted hover:text-edit-ink'}`}>
+                  <button key={opt.value} type="button" onClick={() => setField('status', opt.value)}
+                    className={`t-caption px-3 py-1.5 rounded-[1px] transition-colors duration-150 ${formData.status === opt.value ? 'bg-edit-ink text-edit-paper' : 'text-edit-muted hover:text-edit-ink'}`}>
                     {opt.label}
                   </button>
                 ))}
@@ -243,8 +240,8 @@ export default function Projects() {
                   { value: 'false', label: t('project.privateProject') },
                   { value: 'true',  label: t('project.publicProject') },
                 ].map(opt => (
-                  <button key={opt.value} type="button" onClick={() => setIsPublic(opt.value)}
-                    className={`t-caption px-3 py-1.5 rounded-[1px] transition-colors duration-150 ${isPublic === opt.value ? 'bg-edit-ink text-edit-paper' : 'text-edit-muted hover:text-edit-ink'}`}>
+                  <button key={opt.value} type="button" onClick={() => setField('isPublic', opt.value)}
+                    className={`t-caption px-3 py-1.5 rounded-[1px] transition-colors duration-150 ${formData.isPublic === opt.value ? 'bg-edit-ink text-edit-paper' : 'text-edit-muted hover:text-edit-ink'}`}>
                     {opt.label}
                   </button>
                 ))}
@@ -254,17 +251,12 @@ export default function Projects() {
 
           <div className="mt-8 flex justify-end gap-2">
             <button
-              onClick={() => {
-                setShowForm(false)
-                setTitle(''); setTitleEn(''); setDescription('')
-                setDescriptionEn(''); setLocation('')
-                setStatus('in_progress'); setIsPublic('false')
-              }}
+              onClick={() => { setShowForm(false); setFormData(FORM_INITIAL) }}
               className="t-caption px-4 py-2 text-edit-muted hover:text-edit-ink transition-colors"
             >{t('common.cancel')}</button>
             <button
               onClick={handleSubmit}
-              disabled={!title}
+              disabled={!formData.title}
               className="t-caption px-5 py-2 bg-edit-ink text-edit-paper rounded-[1px] hover:bg-edit-ink/85 transition-colors disabled:opacity-40"
             >{t('common.save')}</button>
           </div>
