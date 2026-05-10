@@ -2,7 +2,8 @@ import { useTranslation } from 'react-i18next'
 // import { memo, useState, useMemo } from 'react'  // useState, useMemo: GhostFrameGrid 전용
 import { memo, useRef, useState, useEffect, useCallback } from 'react'
 // import { computePortfolioRows } from '../utils/portfolioRows'  // GhostFrameGrid 전용
-import { FileText, ArrowLeftRight, Check, Plus } from 'lucide-react'
+import { FileText, ArrowLeftRight, Check, Plus, Grid3X3, Rows3, Square, X } from 'lucide-react'
+import { PhotoActionMenu } from './PhotoActionMenu'
 import { useHoverCapable } from '../hooks/useHoverCapable'
 import MarkdownRenderer from './MarkdownRenderer'
 import { cfUrl } from '../utils/cfImage'
@@ -40,7 +41,8 @@ export interface ChapterItem {
 
 // ── DragHandle SVG (공통) ──────────────────────────────────
 
-function DragHandleDots({ size = 12, color = '#999' }: { size?: number; color?: string }) {
+function DragHandleDots({ size = 12, tone = 'on-paper' }: { size?: number; tone?: 'on-paper' | 'on-photo' }) {
+  const color = tone === 'on-photo' ? 'rgba(255,255,255,0.85)' : 'currentColor'
   return (
     <svg width={size} height={Math.round(size * 1.67)} viewBox="0 0 12 20" fill="none">
       <circle cx="3" cy="4" r="1.5" fill={color}/>
@@ -226,7 +228,8 @@ export function SortablePhotoChapter({
           className="absolute inset-0 w-full h-full object-contain cursor-pointer"
           onClick={onClick}
         />
-        <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity z-block-handle pointer-events-none" />
+        <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity z-block-handle pointer-events-none
+                        bg-[radial-gradient(ellipse_at_center,transparent_60%,rgba(0,0,0,0.32)_100%)]" />
 
         {/* 체크박스 — 선택 시 상시, 미선택 시 hover 또는 anySelected일 때 표시 */}
         {onToggleSelect && (
@@ -249,7 +252,7 @@ export function SortablePhotoChapter({
             {...listeners}
             className="absolute top-1.5 left-1.5 p-1.5 rounded cursor-grab opacity-30 group-hover:opacity-100 transition-opacity z-photo-controls"
           >
-            <DragHandleDots size={12} color="white" />
+            <DragHandleDots size={12} tone="on-photo" />
           </div>
         )}
         {onToggleSelect && (
@@ -258,31 +261,16 @@ export function SortablePhotoChapter({
             {...listeners}
             className="absolute top-1.5 left-8 p-1.5 rounded cursor-grab opacity-0 group-hover:opacity-60 transition-opacity z-photo-controls"
           >
-            <DragHandleDots size={12} color="white" />
+            <DragHandleDots size={12} tone="on-photo" />
           </div>
         )}
 
-        {/* 삭제 버튼 */}
-        <button
-          onClick={(e) => { e.stopPropagation(); onRemove(chapterId, id) }}
-          className="absolute top-1 right-1 bg-edit-ink/70 text-white rounded w-5 h-5 opacity-40 group-hover:opacity-100 flex items-center justify-center transition-opacity z-photo-controls hover:bg-edit-ink"
-          aria-label="삭제"
-        >
-          <svg width="10" height="10" viewBox="0 0 10 10" fill="none" strokeWidth="1.5" stroke="currentColor">
-            <line x1="1" y1="1" x2="9" y2="9" />
-            <line x1="9" y1="1" x2="1" y2="9" />
-          </svg>
-        </button>
-
-        {/* 블록 이동 버튼 */}
-        <div className="absolute bottom-1 right-1 z-photo-controls">
-          <button
-            onClick={(e) => { e.stopPropagation(); onRequestMove(id) }}
-            className="opacity-0 group-hover:opacity-100 transition-opacity border border-edit-line bg-edit-paper text-edit-muted hover:text-edit-ink rounded-[2px] px-1.5 py-0.5 text-eyebrow leading-tight"
-            title="다른 블록으로 이동"
-          >
-            {t('story.toOtherBlock')}
-          </button>
+        {/* 액션 메뉴 (이동 + 삭제) */}
+        <div className="absolute top-1 right-1 opacity-0 group-hover:opacity-100 transition-opacity z-photo-controls">
+          <PhotoActionMenu
+            onMove={() => onRequestMove(id)}
+            onDelete={() => onRemove(chapterId, id)}
+          />
         </div>
 
         {/* 풀너비 힌트 배지 */}
@@ -601,94 +589,73 @@ export const SortablePhotoBlock = memo(function SortablePhotoBlock({
         <DragHandleDots />
       </div>
 
-      {/* 레이아웃 아이콘 — hover 아닐 때 상시 표시 */}
-      <div className="absolute top-0 left-1 opacity-100 group-hover/block:opacity-100 transition-opacity z-block-toolbar pointer-events-none">
-        {blockLayout === 'grid' && (
-          <svg width="16" height="11" viewBox="0 0 16 12" fill="none" className="text-muted">
-            <rect x="0" y="0" width="4.5" height="5" rx="0.8" fill="currentColor"/>
-            <rect x="5.75" y="0" width="4.5" height="5" rx="0.8" fill="currentColor"/>
-            <rect x="11.5" y="0" width="4.5" height="5" rx="0.8" fill="currentColor"/>
-            <rect x="0" y="6.5" width="4.5" height="5" rx="0.8" fill="currentColor"/>
-            <rect x="5.75" y="6.5" width="4.5" height="5" rx="0.8" fill="currentColor"/>
-            <rect x="11.5" y="6.5" width="4.5" height="5" rx="0.8" fill="currentColor"/>
-          </svg>
-        )}
-        {blockLayout === 'wide' && (
-          <svg width="16" height="11" viewBox="0 0 16 12" fill="none" className="text-muted">
-            <rect x="0" y="0" width="7" height="5" rx="0.8" fill="currentColor"/>
-            <rect x="8.5" y="0" width="7" height="5" rx="0.8" fill="currentColor"/>
-            <rect x="0" y="6.5" width="7" height="5" rx="0.8" fill="currentColor"/>
-            <rect x="8.5" y="6.5" width="7" height="5" rx="0.8" fill="currentColor"/>
-          </svg>
-        )}
-        {blockLayout === 'single' && (
-          <svg width="16" height="11" viewBox="0 0 16 12" fill="none" className="text-muted">
-            <rect x="0" y="0" width="16" height="5" rx="0.8" fill="currentColor"/>
-            <rect x="0" y="6.5" width="16" height="5" rx="0.8" fill="currentColor"/>
-          </svg>
-        )}
+      {/* 레이아웃 아이콘 — 좌측 세로 스택, hover 시 표시 */}
+      <div className="absolute -left-5 top-7 z-block-toolbar
+                      opacity-0 group-hover/block:opacity-100 transition-opacity
+                      flex flex-col gap-0.5">
+        {(['grid', 'wide', 'single'] as const).map(l => {
+          const Icon = l === 'grid' ? Grid3X3 : l === 'wide' ? Rows3 : Square
+          return (
+            <button
+              key={l}
+              onClick={() => onLayoutChange(blockId, l)}
+              title={layoutLabels[l]}
+              aria-label={layoutLabels[l]}
+              className={`w-5 h-5 flex items-center justify-center rounded-[1px]
+                          transition-colors focus-visible:opacity-100 focus-visible:outline-2 focus-visible:outline-edit-accent ${
+                blockLayout === l
+                  ? 'bg-edit-ink text-edit-paper'
+                  : 'text-edit-muted hover:text-edit-ink'
+              }`}
+            >
+              <Icon size={11} strokeWidth={1.5} />
+            </button>
+          )
+        })}
       </div>
 
-      {/* 레이아웃 툴바 — hover 시 표시 */}
-      <div className="absolute -top-4 right-5 opacity-0 group-hover/block:opacity-100 transition-opacity z-block-toolbar flex items-center gap-1 bg-edit-paper border border-edit-line rounded-[2px] shadow-sm px-1.5 py-0.5">
-        {!isFirst && (
-          <button
-            onClick={() => { onMoveBlock?.('up'); scrollToSelf() }}
-            className="text-eyebrow px-2 py-1 rounded font-bold text-edit-muted hover:bg-edit-paper-2"
-            title="위로 이동"
-          >↑</button>
-        )}
-        {!isLast && (
-          <button
-            onClick={() => { onMoveBlock?.('down'); scrollToSelf() }}
-            className="text-eyebrow px-2 py-1 rounded font-bold text-edit-muted hover:bg-edit-paper-2"
-            title="아래로 이동"
-          >↓</button>
-        )}
-        {(!isFirst || !isLast) && <span className="text-eyebrow text-edit-line select-none">|</span>}
-        <span className="text-eyebrow text-edit-faint mr-1">{t('portfolio.column')}</span>
-        {(['grid', 'wide', 'single'] as const).map(l => (
-          <button
-            key={l}
-            onClick={() => onLayoutChange(blockId, l)}
-            className={`text-eyebrow px-2 py-1 rounded transition-[background,color] duration-150 ease-out ${
-              blockLayout === l ? 'bg-edit-ink text-edit-paper' : 'text-edit-muted hover:bg-edit-paper-2'
-            }`}
-          >
-            {layoutLabels[l]}
-          </button>
-        ))}
-        {(hasTextAbove || hasTextBelow) && (
-          <>
-            <span className="text-eyebrow text-edit-line select-none">|</span>
-            {hasTextAbove && (
-              <button
-                onClick={onSideBySideAbove}
-                className="text-eyebrow px-2 py-1 rounded font-bold text-edit-accent hover:text-edit-ink hover:bg-edit-paper-2 flex items-center gap-0.5"
-                title={t('story.sideBySideAbove')}
-              >
-                <ArrowLeftRight size={10} strokeWidth={1.5} />↑
-              </button>
-            )}
-            {hasTextBelow && (
-              <button
-                onClick={onSideBySideBelow}
-                className="text-eyebrow px-2 py-1 rounded font-bold text-edit-accent hover:text-edit-ink hover:bg-edit-paper-2 flex items-center gap-0.5"
-                title={t('story.sideBySideBelow')}
-              >
-                <ArrowLeftRight size={10} strokeWidth={1.5} />↓
-              </button>
-            )}
-          </>
-        )}
-        {/*
-        {ghostMode && photoCount > 0 && (
-          <span className="text-eyebrow text-stone-400 border-l border-stone-200 pl-1.5 ml-0.5">
-            {cols}열 · {photoCount}장{hasLastFullWidth ? ` · ${t('story.blockHint.lastFullWidth')}` : ''}
-          </span>
-        )}
-        */}
-      </div>
+      {/* 블록 툴바 — hover 시 표시 (위/아래 이동 + 나란히) */}
+      {((!isFirst || !isLast) || hasTextAbove || hasTextBelow) && (
+        <div className="absolute -top-4 right-5 opacity-0 group-hover/block:opacity-100 transition-opacity z-block-toolbar flex items-center gap-1 bg-edit-paper border border-edit-line rounded-[2px] shadow-sm px-1.5 py-0.5">
+          {!isFirst && (
+            <button
+              onClick={() => { onMoveBlock?.('up'); scrollToSelf() }}
+              className="text-eyebrow px-2 py-1 rounded font-bold text-edit-muted hover:bg-edit-paper-2 focus-visible:opacity-100"
+              title="위로 이동"
+            >↑</button>
+          )}
+          {!isLast && (
+            <button
+              onClick={() => { onMoveBlock?.('down'); scrollToSelf() }}
+              className="text-eyebrow px-2 py-1 rounded font-bold text-edit-muted hover:bg-edit-paper-2 focus-visible:opacity-100"
+              title="아래로 이동"
+            >↓</button>
+          )}
+          {(hasTextAbove || hasTextBelow) && (
+            <>
+              {(!isFirst || !isLast) && <span className="text-eyebrow text-edit-line select-none">|</span>}
+              {hasTextAbove && (
+                <button
+                  onClick={onSideBySideAbove}
+                  className="text-eyebrow px-2 py-1 rounded font-bold text-edit-accent hover:text-edit-ink hover:bg-edit-paper-2 flex items-center gap-0.5 focus-visible:opacity-100"
+                  title={t('story.sideBySideAbove')}
+                >
+                  <ArrowLeftRight size={10} strokeWidth={1.5} />↑
+                </button>
+              )}
+              {hasTextBelow && (
+                <button
+                  onClick={onSideBySideBelow}
+                  className="text-eyebrow px-2 py-1 rounded font-bold text-edit-accent hover:text-edit-ink hover:bg-edit-paper-2 flex items-center gap-0.5 focus-visible:opacity-100"
+                  title={t('story.sideBySideBelow')}
+                >
+                  <ArrowLeftRight size={10} strokeWidth={1.5} />↓
+                </button>
+              )}
+            </>
+          )}
+        </div>
+      )}
 
       <DndContext
         sensors={sensors}
@@ -792,13 +759,13 @@ export const SortableSideBySideBlock = memo(function SortableSideBySideBlock({
             />
             <button
               onClick={(e) => { e.stopPropagation(); onRemoveItem(chapterId, item.id) }}
-              className="absolute top-1 right-1 bg-edit-ink/70 text-white rounded w-5 h-5 opacity-40 group-hover:opacity-100 flex items-center justify-center transition-opacity z-photo-controls hover:bg-edit-ink"
+              className="absolute top-1 right-1 w-6 h-6 flex items-center justify-center rounded-[1px]
+                         bg-black/40 hover:bg-edit-danger backdrop-blur-sm
+                         text-white/85 hover:text-white transition-colors
+                         opacity-0 group-hover:opacity-100 z-photo-controls"
               aria-label="삭제"
             >
-              <svg width="10" height="10" viewBox="0 0 10 10" fill="none" strokeWidth="1.5" stroke="currentColor">
-                <line x1="1" y1="1" x2="9" y2="9" />
-                <line x1="9" y1="1" x2="1" y2="9" />
-              </svg>
+              <X size={12} strokeWidth={1.5} />
             </button>
           </div>
         ))}

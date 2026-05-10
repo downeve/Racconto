@@ -786,29 +786,39 @@ function ProjectStory({
   const renderInsertSlot = (insertIndex: number) => {
     if (insertSlotActive?.chapterId === targetChapterId && insertSlotActive.insertIndex === insertIndex) {
       return (
-        <div className="bg-card border border-hair rounded-card p-3 my-2 shadow animate-in fade-in zoom-in-95" key={`form-${insertIndex}`}>
-          <div className="flex flex-col gap-3">
-            <textarea
-              className="w-full h-32 p-3 text-body rounded-card border border-hair focus:ring-1 focus:ring-faint/80 focus:outline-none resize-none bg-stone-50/50 whitespace-pre-wrap overflow-x-hidden break-words"
-              value={insertTextDraft}
-              onChange={(e) => setInsertTextDraft(e.target.value)}
-              placeholder={t('story.textBlockPlaceholder')}
-              autoFocus
-            />
-            <div className="flex gap-2 justify-end">
-              <button
-                onClick={() => handleAddTextBlockAt(targetChapterId, insertIndex, insertTextDraft)}
-                className="text-small btn-primary"
-              >
-                {t('common.save')}
-              </button>
-              <button
-                onClick={() => { setInsertSlotActive(null); setInsertTextDraft('') }}
-                className="text-small btn-secondary-on-card"
-              >
-                {t('common.cancel')}
-              </button>
-            </div>
+        <div className="my-2 px-4 py-3 bg-edit-paper border border-edit-line
+                        rounded-[2px] shadow-[0_1px_0_rgba(0,0,0,0.04)]
+                        animate-in fade-in slide-in-from-top-1 duration-150" key={`form-${insertIndex}`}>
+          <textarea
+            className="w-full h-32 p-3 font-serif text-[15px] leading-[1.6]
+                       bg-edit-paper border-0 border-b border-edit-line
+                       focus:border-edit-ink focus:outline-none
+                       resize-none placeholder:text-edit-faint
+                       whitespace-pre-wrap overflow-x-hidden break-words
+                       transition-colors duration-150"
+            value={insertTextDraft}
+            onChange={(e) => setInsertTextDraft(e.target.value)}
+            placeholder={t('story.textBlockPlaceholder')}
+            autoFocus
+          />
+          <div className="flex gap-2 justify-end mt-3">
+            <button
+              onClick={() => { setInsertSlotActive(null); setInsertTextDraft('') }}
+              className="px-4 py-1.5 text-[12px] tracking-[0.04em] uppercase
+                         text-edit-muted hover:text-edit-ink
+                         bg-transparent border border-edit-line rounded-[2px]
+                         transition-colors"
+            >
+              {t('common.cancel')}
+            </button>
+            <button
+              onClick={() => handleAddTextBlockAt(targetChapterId, insertIndex, insertTextDraft)}
+              className="px-4 py-1.5 text-[12px] tracking-[0.04em] uppercase
+                         bg-edit-ink text-edit-paper hover:bg-edit-ink/85
+                         rounded-[2px] transition-colors"
+            >
+              {t('common.save')}
+            </button>
           </div>
         </div>
       )
@@ -1092,14 +1102,14 @@ function ProjectStory({
         </SortableContext>
         <DragOverlay dropAnimation={{ duration: 250, easing: 'cubic-bezier(0.18, 0.67, 0.6, 1.22)' }}>
           {activeBlockId && !draggingItemId ? (
-            <div className="bg-stone-50 border border-stone-300 rounded-card p-3 opacity-90 shadow">
+            <div className="bg-edit-paper border border-edit-line rounded-[2px] p-3 opacity-90 shadow-[0_8px_24px_rgba(0,0,0,0.12)]">
               <div className="grid grid-cols-3 gap-2">
                 {activeBlockItems.map(item => (
-                  <div key={item.id} className={item.item_type === 'PHOTO' ? "aspect-[3/2] overflow-hidden bg-gray-100" : "col-span-3 bg-stone-50 border border-stone-200 rounded-card px-5 py-4"}>
+                  <div key={item.id} className={item.item_type === 'PHOTO' ? "aspect-[3/2] overflow-hidden bg-edit-paper-2" : "col-span-3 bg-edit-paper border border-edit-line rounded-[2px] px-5 py-4"}>
                     {item.item_type === 'PHOTO' ? (
-                      item.image_url ? <img src={item.image_url} className="w-full h-full object-contain" alt="" /> : <div className="w-full h-full bg-gray-200" />
+                      item.image_url ? <img src={item.image_url} className="w-full h-full object-contain" alt="" /> : <div className="w-full h-full bg-edit-paper-2" />
                     ) : (
-                      <p className="text-sm text-gray-700 line-clamp-3">{item.text_content}</p>
+                      <p className="text-sm text-edit-ink line-clamp-3">{item.text_content}</p>
                     )}
                   </div>
                 ))}
@@ -1110,12 +1120,12 @@ function ProjectStory({
             const draggedItem = Object.values(chapterPhotos).flat().find(i => i.id === draggingItemId)
             if (!draggedItem) return null
             if (draggedItem.item_type === 'TEXT') return (
-              <div className="w-180 bg-stone-50 border border-stone-200 rounded-card px-5 py-4 shadow rotate-1 scale-105 opacity-95">
-                <p className="text-sm text-gray-700 line-clamp-3">{draggedItem.text_content}</p>
+              <div className="w-180 bg-edit-paper border border-edit-line rounded-[2px] px-5 py-4 shadow-[0_8px_24px_rgba(0,0,0,0.12)] rotate-1 scale-105 opacity-95">
+                <p className="text-sm text-edit-ink line-clamp-3">{draggedItem.text_content}</p>
               </div>
             )
             return (
-              <div className="aspect-[3/2] w-60 rounded-card overflow-hidden shadow rotate-3 scale-105 bg-gray-100 opacity-60 cursor-grabbing">
+              <div className="aspect-[3/2] w-60 rounded-[2px] overflow-hidden shadow-[0_8px_24px_rgba(0,0,0,0.12)] rotate-3 scale-105 bg-edit-paper-2 opacity-60 cursor-grabbing">
                 {draggedItem.image_url && <img src={draggedItem.image_url} className="w-full h-full object-contain" />}
               </div>
             )
