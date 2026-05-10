@@ -86,7 +86,7 @@ export default function LandingPage() {
         />
 
         <div className="relative max-w-5xl mx-auto text-center w-full">
-          <p className="text-[0.8125rem] font-mono tracking-[0.18em] uppercase text-edit-muted mb-6">
+          <p className="text-menu md:text-small font-mono tracking-[0.18em] uppercase text-edit-muted mb-6">
             {t('landing.heroEyebrow')}
           </p>
           <h1 className="font-serif text-h1 md:text-display text-edit-ink
@@ -116,7 +116,7 @@ export default function LandingPage() {
                          className="transition-transform group-hover:translate-y-0.5" />
             </button>
           </div>
-          <p className="mt-8 t-eyebrow text-edit-faint">{t('landing.betaBadge')}</p>
+          <p className="mt-8 text-caption font-mono tracking-[0.18em] uppercase font-medium text-edit-faint">{t('landing.betaBadge')}</p>
         </div>
 
         <div className="absolute bottom-10 left-1/2 -translate-x-1/2 flex flex-col items-center opacity-30">
@@ -127,7 +127,7 @@ export default function LandingPage() {
       {/* App Demo */}
       <section className="px-6 md:px-12 py-24 max-w-6xl mx-auto">
         <div className="text-center mb-12">
-          <p className="t-eyebrow text-edit-muted mb-3">{t('landing.demoEyebrow')}</p>
+          <p className="text-caption font-mono tracking-[0.18em] uppercase font-medium text-edit-muted mb-3">{t('landing.demoEyebrow')}</p>
           <h2 className="font-serif text-h2 text-edit-ink font-normal tracking-tight">
             {t('landing.demoTitle')}
           </h2>
@@ -147,13 +147,13 @@ export default function LandingPage() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-12 md:gap-16">
           <figure>
             <img src={ss('screenshot-lightbox')} alt="Lightbox view" className="w-full block" />
-            <figcaption className="t-caption text-edit-faint mt-3 break-keep">
+            <figcaption className="t-caption text-edit-faint mt-3 text-center break-keep">
               {t('landing.lightboxCaption')}
             </figcaption>
           </figure>
           <figure>
             <img src={ss('screenshot-note-panel')} alt="Note panel" className="w-full block" />
-            <figcaption className="t-caption text-edit-faint mt-3 break-keep">
+            <figcaption className="t-caption text-edit-faint mt-3 text-center break-keep">
               {t('landing.coverCaption')}
             </figcaption>
           </figure>
@@ -163,7 +163,7 @@ export default function LandingPage() {
       {/* Features Z-pattern */}
       <section ref={featuresRef} className="px-6 md:px-12 py-24 max-w-6xl mx-auto">
         <header className="text-center mb-20">
-          <p className="t-eyebrow text-edit-muted mb-4">{t('landing.featuresEyebrow')}</p>
+          <p className="text-caption font-mono tracking-[0.18em] uppercase font-medium text-edit-muted mb-4">{t('landing.featuresEyebrow')}</p>
           <h2 className="font-serif text-h1 text-edit-ink font-normal tracking-tight break-keep">
             {t('landing.featuresTitle')}
           </h2>
@@ -182,7 +182,7 @@ export default function LandingPage() {
               </div>
               {/* 텍스트 — 35% */}
               <div className="md:col-span-4">
-                <p className="t-eyebrow text-edit-muted mb-4">{f.label}</p>
+                <p className="text-caption font-mono tracking-[0.18em] uppercase font-medium text-edit-muted mb-4">{f.label}</p>
                 <h3 className="font-serif text-h2 text-edit-ink font-normal tracking-tight mb-4 break-keep">
                   {f.title}
                 </h3>
@@ -199,14 +199,14 @@ export default function LandingPage() {
       {/* Beta CTA — 다크 섹션 */}
       <section className="bg-edit-ink text-edit-paper px-6 md:px-12 py-32">
         <div className="max-w-3xl mx-auto text-center">
-          <p className="t-eyebrow text-edit-paper/60 mb-4">{t('landing.betaEyebrow')}</p>
+          <p className="text-caption font-mono tracking-[0.18em] uppercase font-medium text-edit-paper/60 mb-4">{t('landing.betaEyebrow')}</p>
           <h2 className="font-serif text-h1 md:text-display font-normal tracking-tight mb-6 break-keep">
             {t('landing.betaTitle')}
           </h2>
           <p className="font-serif text-body md:text-h3 text-edit-paper/75 leading-[1.65] mb-4 break-keep">
             {t('landing.betaDesc')}
           </p>
-          <p className="t-eyebrow text-edit-paper/40 mb-12">{t('landing.betaLimit')}</p>
+          <p className="text-caption font-mono tracking-[0.18em] uppercase font-medium text-edit-paper/40 mb-12">{t('landing.betaLimit')}</p>
           <Link
             to="/register"
             className="inline-block px-10 py-4 bg-edit-paper text-edit-ink
@@ -238,7 +238,7 @@ export default function LandingPage() {
 function DesktopAppInlineLink({ t }: { t: (key: string) => string }) {
   return (
     <div className="mt-8 pt-6 border-t border-edit-line">
-      <p className="t-eyebrow text-edit-muted mb-3">
+      <p className="text-caption font-mono tracking-[0.18em] uppercase font-medium text-edit-muted mb-3">
         {t('landing.desktopApp')} · Beta
       </p>
       <Link

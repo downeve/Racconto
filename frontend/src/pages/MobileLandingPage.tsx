@@ -65,17 +65,17 @@ export default function MobileLandingPage() {
           }}
           aria-hidden
         />
-        <p className="relative text-[0.8125rem] font-mono tracking-[0.18em] uppercase text-edit-muted mb-5">{t('landing.heroEyebrow')}</p>
+        <p className="relative text-menu font-mono tracking-[0.18em] uppercase text-edit-muted mb-5 text-center">{t('landing.heroEyebrow')}</p>
         <h1 className="relative font-serif text-h1 text-edit-ink font-normal tracking-tight
-                       leading-[1.1] mb-6 break-keep">
+                       leading-[1.1] mb-6 break-keep text-center">
           {t('landing.heroTitle')}<br />{t('landing.heroTitle2')}
         </h1>
-        <p className="relative font-serif text-h2 text-edit-ink/75 leading-[1.65] mb-10 break-keep">
+        <p className="relative font-serif text-h2 text-edit-ink/75 leading-[1.65] mb-10 break-keep text-center">
           {t('landing.heroSubtitle')}
         </p>
         <Link
           to="/register"
-          className="block w-full max-w-xs px-6 py-4
+          className="block w-full max-w-xs mx-auto px-6 py-4
                      bg-edit-ink text-edit-paper text-center
                      t-caption tracking-[0.08em] rounded-[1px]
                      hover:bg-edit-ink/85 transition-colors mb-3"
@@ -84,16 +84,16 @@ export default function MobileLandingPage() {
         </Link>
         <button
           onClick={scrollToFeatures}
-          className="flex items-center gap-2 t-caption text-edit-muted hover:text-edit-ink transition-colors"
+          className="flex items-center justify-center gap-2 w-full t-caption text-edit-muted hover:text-edit-ink transition-colors"
         >
           {t('landing.ctaSecondary')}
           <ArrowDown size={11} strokeWidth={1.5} />
         </button>
-        <p className="mt-5 t-eyebrow text-edit-faint">{t('landing.betaBadge')}</p>
+        <p className="mt-5 t-eyebrow text-edit-faint text-center">{t('landing.betaBadge')}</p>
       </section>
 
       {/* Demo screenshot */}
-      <section className="px-6 pb-16">
+      <section className="px-6 pb-16 text-center">
         <p className="t-eyebrow text-edit-muted mb-3">{t('landing.demoEyebrow')}</p>
         <h2 className="font-serif text-h2 text-edit-ink font-normal tracking-tight mb-5">
           {t('landing.demoTitle')}
@@ -116,7 +116,7 @@ export default function MobileLandingPage() {
 
         <div className="space-y-16">
           {features.map(f => (
-            <div key={f.key}>
+            <div key={f.key} className="text-center">
               <p className="t-eyebrow text-edit-muted mb-3">{t('landing.featureLabel')}</p>
               <h3 className="font-serif text-h2 text-edit-ink font-normal
                              tracking-tight leading-[1.15] mb-4 break-keep">
