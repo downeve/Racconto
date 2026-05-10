@@ -164,7 +164,7 @@ export default function Dashboard() {
         {/* 3. Recent Projects: Projects.tsx의 그리드 디자인 활용 */}
         <section>
           <div className="flex items-end justify-between mb-space-sm border-b border-hair pb-4">
-            <p className="t-eyebrow text-muted">{t('dashboard.recent')}</p>
+            <p className="text-body text-muted">{t('dashboard.recent')}</p>
             <Link to="/projects" className="text-muted text-body hover:text-ink transition-colors">
               {t('dashboard.viewAll')} →
             </Link>
