@@ -46,7 +46,7 @@ export default function VerifyEmail() {
     <div className="min-h-screen bg-edit-canvas flex items-center justify-center px-4 py-12">
       <div className="w-full max-w-sm text-center">
         <div className="mb-12">
-          <Wordmark asLink={false} />
+          <Wordmark size="lg" asLink={false} />
         </div>
 
         {status === 'verifying' && (

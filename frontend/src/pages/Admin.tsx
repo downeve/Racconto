@@ -635,7 +635,7 @@ export default function Admin() {
       <header className="border-b border-edit-line bg-edit-canvas/95 backdrop-blur-sm sticky top-0 z-30">
         <div className="px-6 py-4 flex items-center justify-between max-w-5xl mx-auto">
           <div className="flex items-center gap-3">
-            <Wordmark size="sm" />
+            <Wordmark size="md" />
             <span className="t-eyebrow text-edit-muted">Admin</span>
           </div>
           <button

@@ -6,6 +6,7 @@ import { useElectronSidebar } from '../context/ElectronSidebarContext'
 import { useAuth } from '../context/AuthContext'
 import { Camera, BookOpen, FileText, LayoutDashboard, Aperture, Settings, ChevronDown, ChevronRight } from 'lucide-react'
 import { cfUrl } from '../utils/cfImage'
+import { Wordmark } from './Wordmark'
 import { applyFontScale, getStoredFontScale, type FontScale } from '../utils/fontScale'
 
 const API = import.meta.env.VITE_API_URL
@@ -172,12 +173,10 @@ export default function ElectronSidebar({ activeTab, onTabChange, showTabs, widt
 
       {/* §11.5 Racconto 로고 */}
       <div
-        className="shrink-0 px-2 pt-3 pb-2 cursor-pointer transition-opacity duration-150 ease-out"
+        className="shrink-0 px-4 pt-3 pb-2 cursor-pointer transition-opacity duration-150 ease-out"
         onClick={() => navigate('/dashboard')}
       >
-        <span className="font-serif font-bold text-h3 text-edit-ink px-2 tracking-[0.08em] translate-y-px inline-block">
-          Racconto
-        </span>
+        <Wordmark size="md" tone="on-paper" asLink={false} />
       </div>
 
       <div className="mx-3 border-t border-edit-line shrink-0" />

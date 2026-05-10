@@ -52,7 +52,7 @@ export default function ResetPassword() {
       <div className="min-h-screen bg-edit-canvas flex items-center justify-center px-4 py-12">
         <div className="w-full max-w-sm text-center">
           <div className="mb-12">
-            <Wordmark asLink={false} />
+            <Wordmark size="lg" asLink={false} />
           </div>
           <AlertCircle size={24} strokeWidth={1.25} className="mx-auto mb-4 text-edit-danger" />
           <p className="t-eyebrow text-edit-danger mb-3">{t('reset.invalid.eyebrow')}</p>
@@ -75,7 +75,7 @@ export default function ResetPassword() {
     <div className="min-h-screen bg-edit-canvas flex items-center justify-center px-4 py-12">
       <div className="w-full max-w-sm">
         <div className="text-center mb-12">
-          <Wordmark asLink={false} />
+          <Wordmark size="lg" asLink={false} />
         </div>
 
         <header className="text-center mb-10">
