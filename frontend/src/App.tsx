@@ -139,6 +139,7 @@ function AppRoutes() {
           <Route path="/racconto-admin" element={<AdminRoute><Admin /></AdminRoute>} />
           <Route path="/download" element={<AppDownload />} />
           <Route path="/delivery/:linkId" element={<DeliveryPage />} />
+          <Route path="/:username/:slug" element={<PublicPortfolio />} />
           <Route path="/:username" element={<PublicPortfolio />} />
         </Routes>
       </div>

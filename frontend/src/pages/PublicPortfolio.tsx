@@ -40,6 +40,7 @@ interface Chapter {
 
 interface PortfolioProject {
   id: string
+  slug: string | null
   title: string
   description: string | null
   cover_image_url: string | null
@@ -50,7 +51,7 @@ interface PortfolioProject {
 }
 
 export default function PublicPortfolio() {
-  const { username } = useParams()
+  const { username, slug } = useParams<{ username: string; slug?: string }>()
   const [projects, setProjects] = useState<PortfolioProject[]>([])
   const [selectedProject, setSelectedProject] = useState<PortfolioProject | null>(null)
   const [darkMode, setDarkMode] = useState(false)
@@ -87,24 +88,45 @@ export default function PublicPortfolio() {
       setNotFound(false)
       return
     }
-    axios.get(`${API}/portfolio/${username}`)
-      .then(res => {
-        setProjects(res.data.projects)
-        setDarkMode(res.data.theme === 'dark')
-      })
-      .catch(err => {
-        if (err.response?.status === 404) setNotFound(true)
-      })
-  }, [username])
+    if (slug) {
+      // 개별 프로젝트 직접 접근
+      axios.get(`${API}/portfolio/${username}/${slug}`)
+        .then(res => {
+          setSelectedProject(res.data.project)
+          setDarkMode(res.data.theme === 'dark')
+        })
+        .catch(err => {
+          if (err.response?.status === 404) setNotFound(true)
+        })
+    } else {
+      // 전체 포트폴리오 목록
+      axios.get(`${API}/portfolio/${username}`)
+        .then(res => {
+          setProjects(res.data.projects)
+          setDarkMode(res.data.theme === 'dark')
+        })
+        .catch(err => {
+          if (err.response?.status === 404) setNotFound(true)
+        })
+    }
+  }, [username, slug])
 
   const openProject = (project: PortfolioProject) => {
-    setSelectedProject(project)
-    window.scrollTo(0, 0)
+    if (project.slug) {
+      navigate(`/${username}/${project.slug}`)
+    } else {
+      setSelectedProject(project)
+      window.scrollTo(0, 0)
+    }
   }
 
   const goBackToList = () => {
-    setSelectedProject(null)
-    window.scrollTo(0, 0)
+    if (slug) {
+      navigate(`/${username}`)
+    } else {
+      setSelectedProject(null)
+      window.scrollTo(0, 0)
+    }
   }
 
   const getAllChapterItems = (project: PortfolioProject) => {

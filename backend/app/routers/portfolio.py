@@ -125,6 +125,7 @@ def _build_project_result(project, db: Session) -> dict:
 
     return {
         "id": project.id,
+        "slug": project.slug,
         "title": project.title,
         "description": project.description,
         "cover_image_url": project.cover_image_url,
@@ -132,6 +133,34 @@ def _build_project_result(project, db: Session) -> dict:
         "photos": [{"id": p.id, "image_url": p.image_url, "caption": p.caption} for p in all_photos],
         "chapters": chapter_list,
         "extra_photos": extra_photos
+    }
+
+
+@router.get("/{username}/{slug}")
+def get_public_project_by_slug(username: str, slug: str, db: Session = Depends(get_db)):
+    user = db.query(models.User).filter(models.User.username == username).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="USER_NOT_FOUND")
+
+    theme_setting = db.query(models.Setting).filter(
+        models.Setting.user_id == user.id,
+        models.Setting.key == "portfolio_theme"
+    ).first()
+    theme = theme_setting.value if theme_setting else "light"
+
+    project = db.query(models.Project).filter(
+        models.Project.user_id == user.id,
+        models.Project.slug == slug,
+        models.Project.is_public == "true",
+        models.Project.deleted_at == None
+    ).first()
+    if not project:
+        raise HTTPException(status_code=404, detail="PROJECT_NOT_FOUND")
+
+    return {
+        "username": username,
+        "theme": theme,
+        "project": _build_project_result(project, db)
     }
 
 

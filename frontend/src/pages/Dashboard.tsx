@@ -136,22 +136,29 @@ export default function Dashboard() {
                 </div>
               ) : (
                 <div className="absolute inset-0 grid grid-cols-3 grid-rows-2 gap-2">
-                  {publicProjects[0] && (
-                    <div className="col-span-2 row-span-2 overflow-hidden bg-hair/50">
-                      {publicProjects[0].cover_image_url
-                        ? <img src={publicProjects[0].cover_image_url} alt={publicProjects[0].title} className="w-full h-full object-cover" />
-                        : <CoverFallback title={publicProjects[0].title} />
-                      }
-                    </div>
-                  )}
-                  {publicProjects.slice(1, 3).map(p => (
-                    <div key={p.id} className="overflow-hidden bg-hair/50">
-                      {p.cover_image_url
-                        ? <img src={p.cover_image_url} alt={p.title} className="w-full h-full object-cover" />
-                        : <CoverFallback title={p.title} />
-                      }
-                    </div>
-                  ))}
+                  {publicProjects[0] && (() => {
+                    const p = publicProjects[0]
+                    const to = p.slug ? `/${user?.username}/${p.slug}` : `/${user?.username}`
+                    return (
+                      <Link to={to} className="col-span-2 row-span-2 overflow-hidden bg-hair/50 block">
+                        {p.cover_image_url
+                          ? <img src={p.cover_image_url} alt={p.title} className="w-full h-full object-cover hover:opacity-90 transition-opacity" />
+                          : <CoverFallback title={p.title} />
+                        }
+                      </Link>
+                    )
+                  })()}
+                  {publicProjects.slice(1, 3).map(p => {
+                    const to = p.slug ? `/${user?.username}/${p.slug}` : `/${user?.username}`
+                    return (
+                      <Link key={p.id} to={to} className="overflow-hidden bg-hair/50 block">
+                        {p.cover_image_url
+                          ? <img src={p.cover_image_url} alt={p.title} className="w-full h-full object-cover hover:opacity-90 transition-opacity" />
+                          : <CoverFallback title={p.title} />
+                        }
+                      </Link>
+                    )
+                  })}
                 </div>
               )}
             </div>
