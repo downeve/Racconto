@@ -67,6 +67,16 @@ export default function LandingPage() {
 
       {/* Hero */}
       <section className="relative min-h-[88vh] flex items-center px-6 md:px-12 overflow-hidden">
+        {/* Grid lines */}
+        <div
+          className="absolute inset-0 pointer-events-none"
+          style={{
+            backgroundImage: 'linear-gradient(to right, rgba(0,0,0,0.04) 1px, transparent 1px), linear-gradient(to bottom, rgba(0,0,0,0.04) 1px, transparent 1px)',
+            backgroundSize: '80px 80px',
+          }}
+          aria-hidden
+        />
+        {/* Radial vignette */}
         <div
           className="absolute inset-0 pointer-events-none"
           style={{
@@ -76,14 +86,14 @@ export default function LandingPage() {
         />
 
         <div className="relative max-w-5xl mx-auto text-center w-full">
-          <p className="t-eyebrow text-edit-muted mb-6">
+          <p className="text-[0.8125rem] font-mono tracking-[0.18em] uppercase text-edit-muted mb-6">
             {t('landing.heroEyebrow')}
           </p>
           <h1 className="font-serif text-h1 md:text-display text-edit-ink
                          font-normal tracking-tight leading-[1.05] mb-8 break-keep">
             {t('landing.heroTitle')}<br />{t('landing.heroTitle2')}
           </h1>
-          <p className="font-serif text-body md:text-h3 text-edit-muted
+          <p className="font-serif text-h3 md:text-h2 text-edit-muted
                         leading-[1.65] mb-12 max-w-xl mx-auto break-keep">
             {t('landing.heroSubtitle')}
           </p>

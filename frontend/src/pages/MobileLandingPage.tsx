@@ -55,13 +55,22 @@ export default function MobileLandingPage() {
       <PublicNavbar />
 
       {/* Hero */}
-      <section className="px-6 pt-28 pb-16">
-        <p className="t-eyebrow text-edit-muted mb-5">{t('landing.heroEyebrow')}</p>
-        <h1 className="font-serif text-h1 text-edit-ink font-normal tracking-tight
+      <section className="relative px-6 pt-28 pb-16 overflow-hidden">
+        {/* Grid lines */}
+        <div
+          className="absolute inset-0 pointer-events-none"
+          style={{
+            backgroundImage: 'linear-gradient(to right, rgba(0,0,0,0.04) 1px, transparent 1px), linear-gradient(to bottom, rgba(0,0,0,0.04) 1px, transparent 1px)',
+            backgroundSize: '64px 64px',
+          }}
+          aria-hidden
+        />
+        <p className="relative text-[0.8125rem] font-mono tracking-[0.18em] uppercase text-edit-muted mb-5">{t('landing.heroEyebrow')}</p>
+        <h1 className="relative font-serif text-h1 text-edit-ink font-normal tracking-tight
                        leading-[1.1] mb-6 break-keep">
           {t('landing.heroTitle')}<br />{t('landing.heroTitle2')}
         </h1>
-        <p className="font-serif text-h3 text-edit-ink/75 leading-[1.65] mb-10 break-keep">
+        <p className="relative font-serif text-h2 text-edit-ink/75 leading-[1.65] mb-10 break-keep">
           {t('landing.heroSubtitle')}
         </p>
         <Link

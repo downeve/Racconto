@@ -46,12 +46,12 @@ export default function AppDownload() {
     setRecommendArm(isArmLikely)
   }, [])
 
-  const macSteps = [
+  type Step = { title: string; desc: string; detail?: string }
+  const macSteps: Step[] = [
     { title: t('download.mac.step1Title'), desc: t('download.mac.step1Desc') },
-    { title: t('download.mac.step3Title'), desc: t('download.mac.step3Desc'), detail: t('download.mac.step3Detail') },
     { title: t('download.mac.step4Title'), desc: t('download.mac.step4Desc') },
   ]
-  const winSteps = [
+  const winSteps: Step[] = [
     { title: t('download.win.step1Title'), desc: t('download.win.step1Desc') },
     { title: t('download.win.step2Title'), desc: t('download.win.step2Desc'), detail: t('download.win.step2Detail') },
     { title: t('download.win.step3Title'), desc: t('download.win.step3Desc') },
@@ -151,15 +151,17 @@ export default function AppDownload() {
         )}
       </div>
 
-      {/* 안내 박스 */}
-      <div className="px-6 md:px-12 mb-10 max-w-3xl mx-auto">
-        <div className="border-l-2 border-edit-warning bg-edit-warning/[0.04] px-4 py-3 flex gap-3">
-          <Info size={14} strokeWidth={1.5} className="shrink-0 mt-0.5 text-edit-warning" />
-          <p className="text-body text-edit-ink/80 leading-relaxed break-keep">
-            {t('download.notarizationNote')}
-          </p>
+      {/* 안내 박스 — Windows 전용 */}
+      {platform === 'win' && (
+        <div className="px-6 md:px-12 mb-10 max-w-3xl mx-auto">
+          <div className="border-l-2 border-edit-warning bg-edit-warning/[0.04] px-4 py-3 flex gap-3">
+            <Info size={14} strokeWidth={1.5} className="shrink-0 mt-0.5 text-edit-warning" />
+            <p className="text-body text-edit-ink/80 leading-relaxed break-keep">
+              {t('download.notarizationNote')}
+            </p>
+          </div>
         </div>
-      </div>
+      )}
 
       {/* 설치 안내 아코디언 */}
       <section className="px-6 md:px-12 py-8 max-w-3xl mx-auto">
