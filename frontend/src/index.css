@@ -39,6 +39,18 @@
   to   { opacity: 1; }
 }
 
+/* PhotoReveal 초기 상태 — 마운트 시점부터 숨겨서 첫 프레임 깜빡 방지 */
+.photo-reveal-init {
+  opacity: 0;
+  transform: translateY(8px);
+}
+@media (prefers-reduced-motion: reduce) {
+  .photo-reveal-init {
+    opacity: 1 !important;
+    transform: none !important;
+  }
+}
+
 @layer components {
   .photo-enter {
     animation: fadeUp .6s cubic-bezier(.2,.7,.2,1) both;

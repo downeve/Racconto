@@ -36,7 +36,7 @@ export default function PhotoReveal({
   }, [delay])
 
   return (
-    <div ref={ref} className={className} style={style} onClick={onClick}>
+    <div ref={ref} className={`photo-reveal-init${className ? ' ' + className : ''}`} style={style} onClick={onClick}>
       {children}
     </div>
   )
