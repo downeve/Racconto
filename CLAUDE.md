@@ -211,3 +211,11 @@ style: 이모지 아이콘 → Lucide 아이콘 교체 (ProjectDetail, Navbar)
 
 
 앞으로 git commit을 생성할 때, 내 로컬 git config에 설정된 이름과 이메일만 사용해. 커밋 메시지 본문이나 하단에 Co-authored-by 같은 AI 기여자 태그를 절대 추가하지 마. 오직 내 기여로만 남게 해줘.
+
+## Claude Code 워킹 트리 관리
+
+Claude Code는 작업 시 `.claude/worktrees/` 아래에 git worktree를 자동 생성한다.
+
+- **`.gitignore`**: `.claude/worktrees/` 제외 처리됨 — 내용물이 git에 추적되지 않음
+- **`.vscode/settings.json`**: `git.repositoryScanIgnoredFolders`와 `git.ignoredRepositories`로 VSCode source control에서 제외 처리됨
+- **주의**: 워킹 트리 브랜치는 자동으로 정리되지 않으므로, 불필요한 브랜치가 쌓이면 `git worktree list` 및 `git worktree remove`로 수동 정리할 것
