@@ -149,7 +149,7 @@ export function Lightbox({
 
   // chip vocabulary
   const chipBase = "inline-flex items-center gap-1.5 t-caption px-3 py-1.5 rounded-[1px] border transition-colors duration-150"
-  const chipIdle = "border-edit-paper/15 text-edit-paper/60 hover:text-edit-paper hover:border-edit-paper/40"
+  const chipIdle = "border-edit-paper/30 text-edit-paper/80 hover:text-edit-paper hover:border-edit-paper/60"
   const chipActive = "border-edit-paper/50 text-edit-paper bg-edit-paper/5"
 
   useEffect(() => {
@@ -235,7 +235,7 @@ export function Lightbox({
                     className={`transition-colors ${
                       isHoveredStar ? 'fill-label-yellow text-label-yellow' :
                       isRatedStar   ? 'fill-edit-paper text-edit-paper' :
-                                       'text-edit-paper/25'
+                                       'text-edit-paper/50'
                     }`}
                   />
                 </button>
@@ -316,7 +316,7 @@ export function Lightbox({
 
         {/* 오른쪽: 닫기 */}
         <div className="flex-1 flex justify-end">
-          <button onClick={onClose} className="text-edit-paper/60 hover:text-edit-paper text-h2 p-3">✕</button>
+          <button onClick={onClose} className="text-edit-paper/80 hover:text-edit-paper text-h2 p-3">✕</button>
         </div>
       </div>
 
@@ -324,7 +324,7 @@ export function Lightbox({
       <div className="flex-1 flex items-center justify-center mt-0 relative min-h-0">
         {idx > 0 && (
           <button
-            className="absolute left-4 z-10 text-edit-paper/60 hover:text-edit-paper text-h1 select-none p-4"
+            className="absolute left-4 z-10 text-edit-paper/80 hover:text-edit-paper text-h1 select-none p-4"
             onClick={e => { e.stopPropagation(); onNavigate(photos[idx - 1]) }}
           >‹</button>
         )}
@@ -336,7 +336,7 @@ export function Lightbox({
         />
         {idx < photos.length - 1 && (
           <button
-            className="absolute right-4 z-10 text-edit-paper/60 hover:text-edit-paper text-h1 select-none p-4"
+            className="absolute right-4 z-10 text-edit-paper/80 hover:text-edit-paper text-h1 select-none p-4"
             onClick={e => { e.stopPropagation(); onNavigate(photos[idx + 1]) }}
           >›</button>
         )}
