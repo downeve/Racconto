@@ -683,9 +683,10 @@ def restore_photo(
     db: Session = Depends(get_db),
     current_user: models.User = Depends(get_current_user)
 ):
-    photo = db.query(models.Photo).filter(
+    photo = db.query(models.Photo).join(models.Project).filter(
         models.Photo.id == photo_id,
-        models.Photo.deleted_at != None
+        models.Photo.deleted_at != None,
+        models.Project.user_id == current_user.id
     ).first()
     if not photo:
         raise HTTPException(status_code=404, detail="PHOTO_NOT_FOUND")

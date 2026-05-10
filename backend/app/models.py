@@ -25,6 +25,7 @@ class User(Base):
     is_admin = Column(Boolean, default=False, nullable=False, server_default='false')
     tier = Column(String, default='open_beta', nullable=False, server_default='open_beta')
     created_at = Column(DateTime, default=datetime.utcnow)
+    token_invalidated_at = Column(DateTime, nullable=True, default=None)
 
 class ProjectStatus(enum.Enum):
     IN_PROGRESS = "in_progress"

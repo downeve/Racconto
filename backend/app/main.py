@@ -20,6 +20,9 @@ with engine.connect() as conn:
     conn.execute(text(
         "ALTER TABLE projects ADD COLUMN IF NOT EXISTS order_num INTEGER NOT NULL DEFAULT 0"
     ))
+    conn.execute(text(
+        "ALTER TABLE users ADD COLUMN IF NOT EXISTS token_invalidated_at TIMESTAMP"
+    ))
     conn.commit()
 
 app = FastAPI(title="Racconto API")

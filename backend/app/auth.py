@@ -25,8 +25,9 @@ def get_password_hash(password: str) -> str:
 
 def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
     to_encode = data.copy()
-    expire = datetime.utcnow() + (expires_delta or timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES))
-    to_encode.update({"exp": expire})
+    now = datetime.utcnow()
+    expire = now + (expires_delta or timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES))
+    to_encode.update({"exp": expire, "iat": now})
     return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
 
 # 기존 verify_token 함수 전체를 아래로 교체
@@ -42,6 +43,7 @@ def get_current_user(
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         user_id: str = payload.get("sub")
+        token_iat: Optional[int] = payload.get("iat")
         if user_id is None:
             raise credentials_exception
     except jwt.InvalidTokenError:
@@ -50,4 +52,10 @@ def get_current_user(
     user = db.query(models.User).filter(models.User.id == user_id).first()
     if user is None:
         raise credentials_exception
+
+    # 비밀번호 변경 후 발급된 토큰인지 검증
+    if user.token_invalidated_at and token_iat is not None:
+        if datetime.utcfromtimestamp(token_iat) < user.token_invalidated_at:
+            raise credentials_exception
+
     return user

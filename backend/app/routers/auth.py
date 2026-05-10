@@ -13,8 +13,12 @@ from app.routers.photos import delete_cf_files_parallel
 import secrets
 import httpx
 import jwt as pyjwt
+from jwt import PyJWKClient
 import time
 import os
+
+_google_jwks_client = PyJWKClient("https://www.googleapis.com/oauth2/v3/certs", cache_keys=True)
+_apple_jwks_client = PyJWKClient("https://appleid.apple.com/auth/keys", cache_keys=True)
 from starlette.requests import Request
 from starlette.responses import RedirectResponse, Response
 
@@ -203,6 +207,7 @@ def change_password(
             detail="WRONG_PASSWORD"
         )
     current_user.password_hash = get_password_hash(body.new_password)
+    current_user.token_invalidated_at = datetime.utcnow()
     db.commit()
     return {"message": "PASSWORD_CHANGED"}
 
@@ -315,7 +320,11 @@ async def google_callback(request: Request, background_tasks: BackgroundTasks, s
         raise HTTPException(status_code=400, detail="GOOGLE_TOKEN_ERROR")
 
     id_token = token_data.get("id_token")
-    payload = pyjwt.decode(id_token, options={"verify_signature": False})
+    try:
+        signing_key = _google_jwks_client.get_signing_key_from_jwt(id_token)
+        payload = pyjwt.decode(id_token, signing_key.key, algorithms=["RS256"], audience=GOOGLE_CLIENT_ID)
+    except Exception:
+        raise HTTPException(status_code=400, detail="INVALID_GOOGLE_TOKEN")
 
     google_id = payload["sub"]
     email = payload.get("email")
@@ -449,7 +458,11 @@ async def apple_callback(request: Request, background_tasks: BackgroundTasks, db
         raise HTTPException(status_code=400, detail="APPLE_TOKEN_ERROR")
 
     id_token = token_data.get("id_token")
-    payload = pyjwt.decode(id_token, options={"verify_signature": False})
+    try:
+        signing_key = _apple_jwks_client.get_signing_key_from_jwt(id_token)
+        payload = pyjwt.decode(id_token, signing_key.key, algorithms=["RS256"], audience=APPLE_CLIENT_ID)
+    except Exception:
+        raise HTTPException(status_code=400, detail="INVALID_APPLE_TOKEN")
 
     apple_id = payload["sub"]
     email = payload.get("email")
@@ -744,7 +757,8 @@ async def apple_ios_login(request: Request, background_tasks: BackgroundTasks, d
         raise HTTPException(status_code=400, detail="MISSING_IDENTITY_TOKEN")
 
     try:
-        payload = pyjwt.decode(identity_token, options={"verify_signature": False})
+        signing_key = _apple_jwks_client.get_signing_key_from_jwt(identity_token)
+        payload = pyjwt.decode(identity_token, signing_key.key, algorithms=["RS256"], audience=APPLE_CLIENT_ID)
     except Exception:
         raise HTTPException(status_code=400, detail="INVALID_IDENTITY_TOKEN")
 
