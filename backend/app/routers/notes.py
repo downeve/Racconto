@@ -39,12 +39,6 @@ class Config:
     from_attributes = True
 
 
-def touch_project(project_id: str, db: Session):
-    db.query(models.Project).filter(models.Project.id == project_id).update(
-        {"updated_at": datetime.utcnow()}, synchronize_session=False
-    )
-
-
 def get_owned_note_or_404(note_id: str, user_id: str, db: Session) -> models.Note:
     note = db.query(models.Note).join(models.Project).filter(
         models.Note.id == note_id,
@@ -78,7 +72,6 @@ def create_note(
         photo_id=note.photo_id,
     )
     db.add(db_note)
-    touch_project(note.project_id, db)
     db.commit()
     db.refresh(db_note)
     return db_note
@@ -96,7 +89,6 @@ def update_note(
     db_note.note_type = note.note_type
     db_note.is_pinned = note.is_pinned
     db_note.photo_id = note.photo_id
-    touch_project(db_note.project_id, db)
     db.commit()
     db.refresh(db_note)
     return db_note
@@ -122,7 +114,6 @@ def delete_note(
     current_user_id: str = Depends(get_current_user_id)
 ):
     db_note = get_owned_note_or_404(note_id, current_user_id, db)
-    touch_project(db_note.project_id, db)
     db.delete(db_note)
     db.commit()
     return {"message": "NOTE_DELETED"}

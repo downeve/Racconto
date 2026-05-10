@@ -15,30 +15,42 @@ from app.routers.photos import delete_from_cloudflare
 
 models.Base.metadata.create_all(bind=engine)
 
-# projects.order_num 컬럼 마이그레이션 (기존 DB에 없을 경우 추가)
-with engine.connect() as conn:
-    conn.execute(text(
-        "ALTER TABLE projects ADD COLUMN IF NOT EXISTS order_num INTEGER NOT NULL DEFAULT 0"
-    ))
-    conn.execute(text(
-        "ALTER TABLE users ADD COLUMN IF NOT EXISTS token_invalidated_at TIMESTAMP"
-    ))
-    # 인덱스 추가 (기존 DB에 누락된 인덱스 생성)
-    conn.execute(text("CREATE INDEX IF NOT EXISTS ix_users_oauth_id ON users(oauth_id)"))
-    conn.execute(text("CREATE INDEX IF NOT EXISTS ix_users_verify_token ON users(verify_token)"))
-    conn.execute(text("CREATE INDEX IF NOT EXISTS ix_users_reset_token ON users(reset_token)"))
-    conn.execute(text("CREATE INDEX IF NOT EXISTS ix_projects_user_id ON projects(user_id)"))
-    conn.execute(text("CREATE INDEX IF NOT EXISTS ix_projects_deleted_at ON projects(deleted_at)"))
-    conn.execute(text("CREATE INDEX IF NOT EXISTS ix_photos_project_id ON photos(project_id)"))
-    conn.execute(text("CREATE INDEX IF NOT EXISTS ix_photos_deleted_at ON photos(deleted_at)"))
-    conn.execute(text("CREATE INDEX IF NOT EXISTS ix_notes_project_id ON notes(project_id)"))
-    conn.execute(text("CREATE INDEX IF NOT EXISTS ix_notes_deleted_at ON notes(deleted_at)"))
-    conn.execute(text("CREATE INDEX IF NOT EXISTS ix_chapters_project_id ON chapters(project_id)"))
-    conn.execute(text("CREATE INDEX IF NOT EXISTS ix_chapter_items_chapter_id ON chapter_items(chapter_id)"))
-    conn.execute(text("ALTER TABLE photos ADD COLUMN IF NOT EXISTS rotation INTEGER NOT NULL DEFAULT 0"))
-    conn.execute(text("ALTER TABLE photos ADD COLUMN IF NOT EXISTS original_image_url VARCHAR"))
-    conn.execute(text("ALTER TABLE photos ADD COLUMN IF NOT EXISTS is_rotating BOOLEAN NOT NULL DEFAULT false"))
-    conn.commit()
+# 스키마 마이그레이션 — 버전이 올라간 경우에만 실행
+SCHEMA_VERSION = 3
+
+def _run_schema_migrations():
+    with engine.connect() as conn:
+        conn.execute(text(
+            "CREATE TABLE IF NOT EXISTS _schema_version (version INTEGER NOT NULL)"
+        ))
+        row = conn.execute(text("SELECT version FROM _schema_version LIMIT 1")).fetchone()
+        current = row[0] if row else 0
+        if current >= SCHEMA_VERSION:
+            return
+
+        conn.execute(text("ALTER TABLE projects ADD COLUMN IF NOT EXISTS order_num INTEGER NOT NULL DEFAULT 0"))
+        conn.execute(text("ALTER TABLE users ADD COLUMN IF NOT EXISTS token_invalidated_at TIMESTAMP"))
+        conn.execute(text("CREATE INDEX IF NOT EXISTS ix_users_oauth_id ON users(oauth_id)"))
+        conn.execute(text("CREATE INDEX IF NOT EXISTS ix_users_verify_token ON users(verify_token)"))
+        conn.execute(text("CREATE INDEX IF NOT EXISTS ix_users_reset_token ON users(reset_token)"))
+        conn.execute(text("CREATE INDEX IF NOT EXISTS ix_projects_user_id ON projects(user_id)"))
+        conn.execute(text("CREATE INDEX IF NOT EXISTS ix_projects_deleted_at ON projects(deleted_at)"))
+        conn.execute(text("CREATE INDEX IF NOT EXISTS ix_photos_project_id ON photos(project_id)"))
+        conn.execute(text("CREATE INDEX IF NOT EXISTS ix_photos_deleted_at ON photos(deleted_at)"))
+        conn.execute(text("CREATE INDEX IF NOT EXISTS ix_notes_project_id ON notes(project_id)"))
+        conn.execute(text("CREATE INDEX IF NOT EXISTS ix_notes_deleted_at ON notes(deleted_at)"))
+        conn.execute(text("CREATE INDEX IF NOT EXISTS ix_chapters_project_id ON chapters(project_id)"))
+        conn.execute(text("CREATE INDEX IF NOT EXISTS ix_chapter_items_chapter_id ON chapter_items(chapter_id)"))
+        conn.execute(text("ALTER TABLE photos ADD COLUMN IF NOT EXISTS rotation INTEGER NOT NULL DEFAULT 0"))
+        conn.execute(text("ALTER TABLE photos ADD COLUMN IF NOT EXISTS original_image_url VARCHAR"))
+        conn.execute(text("ALTER TABLE photos ADD COLUMN IF NOT EXISTS is_rotating BOOLEAN NOT NULL DEFAULT false"))
+
+        conn.execute(text("DELETE FROM _schema_version"))
+        conn.execute(text(f"INSERT INTO _schema_version (version) VALUES ({SCHEMA_VERSION})"))
+        conn.commit()
+        print(f"스키마 마이그레이션 완료: version {SCHEMA_VERSION}")
+
+_run_schema_migrations()
 
 app = FastAPI(title="Racconto API")
 

@@ -65,18 +65,18 @@ def update_settings_batch(
 ):
     for key, value in settings.items():
         _validate_setting(key, value)
-        db_setting = db.query(models.Setting).filter(
+
+    existing = {
+        s.key: s
+        for s in db.query(models.Setting).filter(
             models.Setting.user_id == current_user_id,
-            models.Setting.key == key
-        ).first()
-        if db_setting:
-            db_setting.value = value
+            models.Setting.key.in_(settings.keys())
+        ).all()
+    }
+    for key, value in settings.items():
+        if key in existing:
+            existing[key].value = value
         else:
-            db_setting = models.Setting(
-                user_id=current_user_id,
-                key=key,
-                value=value
-            )
-            db.add(db_setting)
+            db.add(models.Setting(user_id=current_user_id, key=key, value=value))
     db.commit()
     return {"message": "저장되었습니다"}

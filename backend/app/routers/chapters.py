@@ -141,12 +141,6 @@ def get_next_order_num(chapter_id: str, db: Session) -> int:
     return (last.order_num + 1) if last else 0
 
 
-def touch_project(project_id: str, db: Session):
-    db.query(models.Project).filter(models.Project.id == project_id).update(
-        {"updated_at": datetime.utcnow()}, synchronize_session=False
-    )
-
-
 def build_item_response(item: models.ChapterItem) -> dict:
     """ChapterItem ORM 객체를 응답 딕셔너리로 변환."""
     base = {
@@ -224,7 +218,6 @@ def create_chapter(
         parent_id=chapter.parent_id
     )
     db.add(db_chapter)
-    touch_project(chapter.project_id, db)
     db.commit()
     db.refresh(db_chapter)
     return db_chapter
@@ -321,8 +314,6 @@ def reorder_chapters(
         first = db.query(models.Chapter.project_id).filter(
             models.Chapter.id == body.chapter_ids[0]
         ).first()
-        if first:
-            touch_project(first.project_id, db)
     db.commit()
     return {"message": "순서가 성공적으로 변경되었습니다."}
 
@@ -354,7 +345,6 @@ def update_chapter(
     for key, value in update_data.items():
         setattr(db_chapter, key, value)
 
-    touch_project(db_chapter.project_id, db)
     db.commit()
     db.refresh(db_chapter)
     return db_chapter
@@ -382,7 +372,6 @@ def delete_chapter(
         models.ChapterItem.chapter_id == chapter_id
     ).delete(synchronize_session=False)
 
-    touch_project(db_chapter.project_id, db)
     db.delete(db_chapter)
     db.commit()
     return {"message": "챕터와 관련된 하위 데이터가 모두 안전하게 삭제되었습니다."}
@@ -443,7 +432,6 @@ def add_photo_to_chapter(
         block_layout='grid'  # 단건 추가 기본값
     )
     db.add(db_item)
-    touch_project(db_chapter.project_id, db)
     db.commit()
     db.refresh(db_item)
     return build_item_response(db_item)
@@ -472,7 +460,6 @@ def add_text_to_chapter(
         order_num=order
     )
     db.add(db_item)
-    touch_project(db_chapter.project_id, db)
     db.commit()
     db.refresh(db_item)
     return build_item_response(db_item)
@@ -501,7 +488,6 @@ def update_text_item(
         raise HTTPException(status_code=400, detail="TEXT_CONTENT_EMPTY")
 
     item.text_content = body.text_content
-    touch_project(db_chapter.project_id, db)
     db.commit()
     return build_item_response(item)
 
@@ -524,7 +510,6 @@ def delete_chapter_item(
         raise HTTPException(status_code=404, detail="ITEM_NOT_FOUND")
 
     db.delete(item)
-    touch_project(db_chapter.project_id, db)
     db.commit()
     return {"message": "삭제되었습니다"}
 
@@ -553,7 +538,6 @@ def reorder_chapter_items(
             "block_id": item_data.block_id
         }, synchronize_session=False)
 
-    touch_project(db_chapter.project_id, db)
     db.commit()
     return {"message": "순서와 블록 정보가 성공적으로 반영되었습니다."}
 
@@ -598,7 +582,6 @@ def set_side_by_side(
     for photo_item in photo_items:
         photo_item.block_type = body.position
 
-    touch_project(db_chapter.project_id, db)
     db.commit()
     return {"message": "나란히 배치가 설정되었습니다."}
 
@@ -637,7 +620,6 @@ def cancel_side_by_side(
         for photo_item in photo_items:
             photo_item.block_type = 'default'
 
-    touch_project(db_chapter.project_id, db)
     db.commit()
     return {"message": "나란히 배치가 해제되었습니다."}
 
@@ -692,7 +674,6 @@ def bulk_add_photos_to_chapter(
     # next_order는 블록 하나이므로 1만 증가
     next_order += 1
 
-    touch_project(db_chapter.project_id, db)
     db.commit()
     return {"message": f"{added}장이 추가되었습니다.", "added": added, "skipped": len(body.photo_ids) - added}
 
@@ -765,7 +746,6 @@ def move_item_to_block(
             text_item.block_id = text_item.id
             text_item.block_type = 'default'
 
-    touch_project(db_chapter.project_id, db)
     db.commit()
     return {"message": "이동되었습니다."}
 
@@ -797,7 +777,6 @@ def bulk_sync_chapter_items(
             item.order_in_block = item_data.order_in_block
             item.order_num = item_data.order_num
 
-    touch_project(db_chapter.project_id, db)
     db.commit()
 
     # 2. 기존 로직 복원: 사진이 다 빠져나가서 빈 블록이 된 곳의 텍스트를 자동 분리
@@ -835,7 +814,6 @@ def reorder_block_photos(
             models.ChapterItem.id == item_id,
             models.ChapterItem.block_id == block_id
         ).update({"order_in_block": index}, synchronize_session=False)
-    touch_project(db_chapter.project_id, db)
     db.commit()
     return {"message": "블록 내 순서가 변경되었습니다."}
 
@@ -863,7 +841,6 @@ def update_block_layout(
     if updated == 0:
         raise HTTPException(status_code=404, detail="BLOCK_NOT_FOUND")
 
-    touch_project(db_chapter.project_id, db)
     db.commit()
     return {"message": "블록 레이아웃이 변경되었습니다.", "block_layout": body.block_layout}
 
@@ -908,7 +885,6 @@ def remove_photo_legacy(
         raise HTTPException(status_code=404, detail="PHOTO_NOT_FOUND")
 
     db.delete(item)
-    touch_project(db_chapter.project_id, db)
     db.commit()
     return {"message": "제거되었습니다"}
 
@@ -933,6 +909,5 @@ def update_photo_order_legacy(
         raise HTTPException(status_code=404, detail="PHOTO_NOT_IN_CHAPTER")
 
     item.order_num = body.get("order_num", item.order_num)
-    touch_project(db_chapter.project_id, db)
     db.commit()
     return {"message": "순서가 업데이트되었습니다"}

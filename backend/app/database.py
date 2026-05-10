@@ -9,7 +9,13 @@ load_dotenv()
 
 DATABASE_URL = os.getenv("DATABASE_URL")
 
-engine = create_engine(DATABASE_URL)
+engine = create_engine(
+    DATABASE_URL,
+    pool_size=10,       # 기본 커넥션 수 (기본값 5)
+    max_overflow=20,    # 초과 허용 커넥션 수 (기본값 10) → 최대 30개 동시 처리
+    pool_timeout=30,    # 커넥션 대기 최대 시간(초)
+    pool_recycle=1800,  # 30분마다 커넥션 재생성 (DB 세션 만료 방지)
+)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()
 
