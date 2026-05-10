@@ -172,12 +172,9 @@ export default function ProjectDetail({
 
   useEffect(() => {
     if (!numericId) return
-    fetchPhotos()
-    fetchTrash()
-    fetchPhotoNoteIds()
+    Promise.all([fetchPhotos(), fetchTrash(), fetchPhotoNoteIds(), fetchChapterPhotoIds()])
+      .catch(err => console.error('초기 데이터 로드 실패:', err))
   }, [numericId])
-
-  useEffect(() => { if (numericId) fetchChapterPhotoIds() }, [numericId])
 
   const numericIdRef = useRef(numericId)
   useEffect(() => { numericIdRef.current = numericId }, [numericId])
@@ -493,12 +490,12 @@ export default function ProjectDetail({
 
       try {
         await axios.delete(`${API}/photos/bulk-delete`, { data: { photo_ids: ids } })
-        fetchPhotos()
-        fetchTrash()
-        Promise.all([
-          axios.get(`${API}/projects/${numericId}`).then(res => setProject(res.data)),
+        await Promise.all([
+          fetchPhotos(),
+          fetchTrash(),
           fetchChapterPhotoIds(),
-          fetchPhotoNoteIds()
+          fetchPhotoNoteIds(),
+          axios.get(`${API}/projects/${numericId}`).then(res => setProject(res.data))
         ])
       } catch (error) {
         console.error('사진 삭제 실패:', error)
@@ -625,11 +622,13 @@ export default function ProjectDetail({
           await axios.delete(`${API}/photos/bulk-delete`, {
             data: { photo_ids: missingPhotos.map(p => p.id) }
           })
-          await fetchPhotos()
-          await fetchTrash()
-          await fetchChapterPhotoIds()
-          await fetchPhotoNoteIds()
-          await axios.get(`${API}/projects/${numericId}`).then(res => setProject(res.data))
+          await Promise.all([
+            fetchPhotos(),
+            fetchTrash(),
+            fetchChapterPhotoIds(),
+            fetchPhotoNoteIds(),
+            axios.get(`${API}/projects/${numericId}`).then(res => setProject(res.data))
+          ])
         } finally {
           setDeletingMissing(false)
         }
@@ -708,11 +707,13 @@ export default function ProjectDetail({
           data: { photo_ids: folderPhotos.map(p => p.id) }
         })
         if (filterFolder === folder) setFilterFolder(null)
-        await fetchPhotos()
-        await fetchTrash()
-        await fetchChapterPhotoIds()
-        await fetchPhotoNoteIds()
-        await axios.get(`${API}/projects/${numericId}`).then(res => setProject(res.data))
+        await Promise.all([
+          fetchPhotos(),
+          fetchTrash(),
+          fetchChapterPhotoIds(),
+          fetchPhotoNoteIds(),
+          axios.get(`${API}/projects/${numericId}`).then(res => setProject(res.data))
+        ])
       },
     })
   }
