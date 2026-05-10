@@ -72,7 +72,7 @@ export default function Dashboard() {
               <div className="flex items-stretch">
                 <div className="flex flex-col justify-between min-w-[140px]">
                   <div>
-                    <p className="t-eyebrow text-muted mb-2">My Stories</p>
+                    <p className="text-body text-muted mb-2">My Stories</p>
                     <p className="font-serif text-[2.5rem] font-normal tracking-tight">{projects.length}</p>
                     <p className="text-muted text-body mt-1">{t('dashboard.totalStories')}</p>
                   </div>
@@ -107,7 +107,7 @@ export default function Dashboard() {
             {/* 하단: Quick Start */}
             <div className="flex flex-col gap-3">
               <div>
-                <p className="t-eyebrow text-muted mb-2">Quick Start</p>
+                <p className="text-body text-muted mb-2">Quick Start</p>
                 {recentProjects[0] && (
                   <p className="text-muted text-body mb-3 truncate">
                     {t('dashboard.lastUpdated')} · {recentProjects[0].title}
@@ -127,7 +127,7 @@ export default function Dashboard() {
 
           {/* 포트폴리오 바로가기 */}
           <div className="border-y border-hair py-8 flex flex-col gap-2">
-            <p className="t-eyebrow text-muted">Portfolio</p>
+            <p className="text-body text-muted">Portfolio</p>
             <div className="relative flex-1 min-h-0">
               {publicProjects.length === 0 ? (
                 <div className="absolute inset-0 flex flex-col items-center justify-center text-center gap-1">
@@ -137,20 +137,27 @@ export default function Dashboard() {
               ) : (
                 <div className="absolute inset-0 grid grid-cols-3 grid-rows-2 gap-2">
                   {publicProjects[0] && (
-                    <div className="col-span-2 row-span-2 overflow-hidden bg-hair/50">
+                    <Link
+                      to={`/projects/${publicProjects[0].slug ?? publicProjects[0].id}`}
+                      className="col-span-2 row-span-2 overflow-hidden bg-hair/50 block"
+                    >
                       {publicProjects[0].cover_image_url
-                        ? <img src={publicProjects[0].cover_image_url} alt={publicProjects[0].title} className="w-full h-full object-cover" />
+                        ? <img src={publicProjects[0].cover_image_url} alt={publicProjects[0].title} className="w-full h-full object-cover hover:opacity-90 transition-opacity" />
                         : <CoverFallback title={publicProjects[0].title} />
                       }
-                    </div>
+                    </Link>
                   )}
                   {publicProjects.slice(1, 3).map(p => (
-                    <div key={p.id} className="overflow-hidden bg-hair/50">
+                    <Link
+                      key={p.id}
+                      to={`/projects/${p.slug ?? p.id}`}
+                      className="overflow-hidden bg-hair/50 block"
+                    >
                       {p.cover_image_url
-                        ? <img src={p.cover_image_url} alt={p.title} className="w-full h-full object-cover" />
+                        ? <img src={p.cover_image_url} alt={p.title} className="w-full h-full object-cover hover:opacity-90 transition-opacity" />
                         : <CoverFallback title={p.title} />
                       }
-                    </div>
+                    </Link>
                   ))}
                 </div>
               )}
