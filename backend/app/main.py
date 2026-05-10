@@ -81,26 +81,43 @@ def auto_delete_trash():
             models.Project.deleted_at != None,
             models.Project.deleted_at < threshold
         ).all()
+        if not old_projects:
+            return
+
+        project_ids = [p.id for p in old_projects]
+
+        # 모든 프로젝트의 사진을 한 번에 조회
+        photos = db.query(models.Photo).filter(
+            models.Photo.project_id.in_(project_ids)
+        ).all()
+
+        # CF URL / 로컬 파일 분류
+        cf_urls = [
+            p.image_url for p in photos
+            if p.image_url and "imagedelivery.net" in p.image_url
+        ]
+        local_paths = [
+            f"app/uploads/{p.image_url.split('/uploads/')[-1]}"
+            for p in photos
+            if p.image_url and "imagedelivery.net" not in p.image_url
+        ]
+
+        # CF 병렬 삭제
+        if cf_urls:
+            delete_cf_files_parallel(cf_urls)
+
+        # 로컬 파일 삭제
+        for path in local_paths:
+            try:
+                if os.path.exists(path):
+                    os.remove(path)
+            except Exception as e:
+                print(f"로컬 파일 삭제 오류: {e}")
+
         for project in old_projects:
-            photos = db.query(models.Photo).filter(models.Photo.project_id == project.id).all()
-            for photo in photos:
-                try:
-                    # [수정됨] 클라우드플레어 이미지인지 확인 후 삭제
-                    if photo.image_url and "imagedelivery.net" in photo.image_url:
-                        delete_from_cloudflare(photo.image_url)
-                    else:
-                        # 로컬 이미지 삭제 로직
-                        file_path = photo.image_url.split('/uploads/')[-1]
-                        full_path = f"app/uploads/{file_path}"
-                        if os.path.exists(full_path):
-                            os.remove(full_path)
-                except Exception as e:
-                    print(f"자동 삭제 중 이미지 삭제 오류: {e}")
-                    pass
             db.delete(project)
         db.commit()
-        if old_projects:
-            print(f"자동 삭제: {len(old_projects)}개 프로젝트 영구 삭제됨")
+        print(f"자동 삭제: {len(old_projects)}개 프로젝트 영구 삭제됨")
     finally:
         db.close()
 
