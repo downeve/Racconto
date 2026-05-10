@@ -1341,7 +1341,13 @@ function ProjectStory({
                     <span className="text-muted shrink-0">Ch. {idx + 1}</span>
                     <span className="truncate text-ink-2 group-hover:text-ink">{chapter.title}</span>
                   </button>
-                  <div className="flex shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <div className="flex items-center shrink-0 opacity-0 group-hover:opacity-100 transition-opacity gap-0.5">
+                    <button
+                      onClick={() => { setChapterPreviewId(chapter.id); setChapterPreviewOpen(true) }}
+                      className="text-muted hover:text-ink px-0.5"
+                    >
+                      <Eye size={12} strokeWidth={1.5} />
+                    </button>
                     <button onClick={() => handleMoveChapter(chapter.id, 'up')} disabled={idx === 0}
                       className="text-muted hover:text-ink disabled:opacity-20 px-0.5 text-caption">↑</button>
                     <button onClick={() => handleMoveChapter(chapter.id, 'down')} disabled={idx === mainChapters.length - 1}
@@ -1357,7 +1363,13 @@ function ProjectStory({
                           <span className="text-muted shrink-0 text-small">Ch. {idx + 1}.{subIdx + 1}</span>
                           <span className="text-ink-2 hover:text-ink truncate">{sub.title}</span>
                         </button>
-                        <div className="flex shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <div className="flex items-center shrink-0 opacity-0 group-hover:opacity-100 transition-opacity gap-0.5">
+                          <button
+                            onClick={() => { setChapterPreviewId(sub.id); setChapterPreviewOpen(true) }}
+                            className="text-muted hover:text-ink px-0.5"
+                          >
+                            <Eye size={12} strokeWidth={1.5} />
+                          </button>
                           <button onClick={() => handleMoveChapter(sub.id, 'up')} disabled={subIdx === 0}
                             className="text-muted hover:text-ink disabled:opacity-20 px-0.5 text-caption">↑</button>
                           <button onClick={() => handleMoveChapter(sub.id, 'down')} disabled={subIdx === subChapters.length - 1}
