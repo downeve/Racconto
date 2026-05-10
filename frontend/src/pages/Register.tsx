@@ -95,7 +95,7 @@ export default function Register() {
     <div className="min-h-screen bg-edit-canvas flex items-center justify-center px-4 py-12">
       <div className="w-full max-w-sm">
         <div className="text-center mb-12">
-          <Wordmark asLink={false} />
+          <Wordmark />
         </div>
 
         <header className="text-center mb-10">

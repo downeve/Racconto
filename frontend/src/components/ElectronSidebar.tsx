@@ -56,6 +56,9 @@ export default function ElectronSidebar({ activeTab, onTabChange, showTabs, widt
   const currentLang = (i18n.language || 'ko').substring(0, 2)
   const [fontScale, setFontScaleState] = useState<FontScale>(getStoredFontScale)
 
+  // 마운트 시 저장된 폰트 스케일을 DOM에 복원
+  useEffect(() => { applyFontScale(getStoredFontScale()) }, [])
+
   const changeLanguage = (lang: string) => {
     i18n.changeLanguage(lang)
     localStorage.setItem('app_language', lang)
