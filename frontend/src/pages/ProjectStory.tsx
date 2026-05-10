@@ -1590,40 +1590,41 @@ function ProjectStory({
 
         {/* 챕터 추가 폼 — 사이드바 버튼 클릭 시 표시 */}
         {showAddChapter && !addingSubChapterTo && (
-          <div className="bg-edit-paper border border-edit-line rounded-[2px] p-5 mb-8">
-            <input
-              className="w-full px-3 py-2 text-body bg-edit-paper border border-edit-line rounded-[2px]
-                         focus:border-edit-ink focus:outline-none placeholder:text-edit-faint
-                         transition-colors mb-2"
-              placeholder={t('story.chapterTitle')}
-              value={newTitle}
-              onChange={e => setNewTitle(e.target.value)}
-              autoFocus
-            />
-            <textarea
-              className="w-full px-3 py-2 text-body bg-edit-paper border border-edit-line rounded-[2px]
-                         focus:border-edit-ink focus:outline-none placeholder:text-edit-faint
-                         resize-none transition-colors mb-4"
-              placeholder={t('story.chapterDescription')}
-              rows={2}
-              value={newDesc}
-              onChange={e => setNewDesc(e.target.value)}
-            />
+          <div className="mb-8 pb-8 border-b border-edit-line">
+            <div className="pb-4 border-b border-edit-line-strong">
+              <p className="t-eyebrow text-edit-muted mb-2">{t('project.labelTitle')}</p>
+              <input
+                className="w-full font-serif text-body bg-transparent border-0 border-b border-edit-line
+                           focus:border-edit-ink focus:outline-none py-2 transition-colors duration-150
+                           placeholder:text-edit-faint"
+                placeholder={t('story.chapterTitle')}
+                value={newTitle}
+                onChange={e => setNewTitle(e.target.value)}
+                autoFocus
+              />
+            </div>
+            <div className="py-4">
+              <p className="t-eyebrow text-edit-muted mb-2">{t('project.labelDescription')}</p>
+              <textarea
+                className="w-full font-serif text-body bg-transparent border-0 border-b border-edit-line
+                           focus:border-edit-ink focus:outline-none py-2 resize-none transition-colors duration-150
+                           placeholder:text-edit-faint"
+                placeholder={t('story.chapterDescription')}
+                rows={2}
+                value={newDesc}
+                onChange={e => setNewDesc(e.target.value)}
+              />
+            </div>
             <div className="flex gap-2 justify-end">
               <button
-                onClick={handleAddChapter}
-                className="px-4 py-1.5 t-caption bg-edit-ink text-edit-paper
-                           hover:bg-edit-ink/85 rounded-[2px] transition-colors"
-              >
-                {t('common.add')}
-              </button>
-              <button
                 onClick={() => { setShowAddChapter(false); setAddingSubChapterTo(null); setNewTitle(''); setNewDesc('') }}
-                className="px-4 py-1.5 t-caption border border-edit-line text-edit-muted
-                           hover:text-edit-ink hover:border-edit-line-strong rounded-[2px] transition-colors"
-              >
-                {t('common.cancel')}
-              </button>
+                className="t-caption px-4 py-2 text-edit-muted hover:text-edit-ink transition-colors"
+              >{t('common.cancel')}</button>
+              <button
+                onClick={handleAddChapter}
+                className="t-caption px-5 py-2 bg-edit-ink text-edit-paper rounded-[1px]
+                           hover:bg-edit-ink/85 transition-colors"
+              >{t('common.add')}</button>
             </div>
           </div>
         )}
@@ -1751,42 +1752,43 @@ function ProjectStory({
                 {/* 서브 챕터 추가 폼 */}
                 {addingSubChapterTo === chapter.id && (
                   <div className="ml-6 mt-2 mb-6 pl-5 border-l border-edit-line">
-                    <p className="t-eyebrow text-edit-faint mb-3">
+                    <p className="t-eyebrow text-edit-faint mb-4">
                       ↳ {chapter.title} · {t('story.addSubChapter')}
                     </p>
-                    <input
-                      className="w-full px-3 py-2 text-body bg-edit-paper border border-edit-line rounded-[2px]
-                                 focus:border-edit-ink focus:outline-none placeholder:text-edit-faint
-                                 transition-colors mb-2"
-                      placeholder={t('story.chapterTitle')}
-                      value={newTitle}
-                      onChange={e => setNewTitle(e.target.value)}
-                      autoFocus
-                    />
-                    <textarea
-                      className="w-full px-3 py-2 text-body bg-edit-paper border border-edit-line rounded-[2px]
-                                 focus:border-edit-ink focus:outline-none placeholder:text-edit-faint
-                                 resize-none transition-colors mb-3"
-                      placeholder={t('story.chapterDescription')}
-                      rows={2}
-                      value={newDesc}
-                      onChange={e => setNewDesc(e.target.value)}
-                    />
+                    <div className="pb-4 border-b border-edit-line-strong">
+                      <p className="t-eyebrow text-edit-muted mb-2">{t('project.labelTitle')}</p>
+                      <input
+                        className="w-full font-serif text-body bg-transparent border-0 border-b border-edit-line
+                                   focus:border-edit-ink focus:outline-none py-2 transition-colors duration-150
+                                   placeholder:text-edit-faint"
+                        placeholder={t('story.chapterTitle')}
+                        value={newTitle}
+                        onChange={e => setNewTitle(e.target.value)}
+                        autoFocus
+                      />
+                    </div>
+                    <div className="py-4">
+                      <p className="t-eyebrow text-edit-muted mb-2">{t('project.labelDescription')}</p>
+                      <textarea
+                        className="w-full font-serif text-body bg-transparent border-0 border-b border-edit-line
+                                   focus:border-edit-ink focus:outline-none py-2 resize-none transition-colors duration-150
+                                   placeholder:text-edit-faint"
+                        placeholder={t('story.chapterDescription')}
+                        rows={2}
+                        value={newDesc}
+                        onChange={e => setNewDesc(e.target.value)}
+                      />
+                    </div>
                     <div className="flex gap-2 justify-end">
                       <button
-                        onClick={handleAddChapter}
-                        className="px-4 py-1.5 t-caption bg-edit-ink text-edit-paper
-                                   hover:bg-edit-ink/85 rounded-[2px] transition-colors"
-                      >
-                        {t('common.add')}
-                      </button>
+                        onClick={() => { setShowAddChapter(false); setAddingSubChapterTo(null); setNewTitle(''); setNewDesc('') }}
+                        className="t-caption px-4 py-2 text-edit-muted hover:text-edit-ink transition-colors"
+                      >{t('common.cancel')}</button>
                       <button
-                        onClick={() => { setShowAddChapter(false); setAddingSubChapterTo(null) }}
-                        className="px-4 py-1.5 t-caption border border-edit-line text-edit-muted
-                                   hover:text-edit-ink hover:border-edit-line-strong rounded-[2px] transition-colors"
-                      >
-                        {t('common.cancel')}
-                      </button>
+                        onClick={handleAddChapter}
+                        className="t-caption px-5 py-2 bg-edit-ink text-edit-paper rounded-[1px]
+                                   hover:bg-edit-ink/85 transition-colors"
+                      >{t('common.add')}</button>
                     </div>
                   </div>
                 )}
