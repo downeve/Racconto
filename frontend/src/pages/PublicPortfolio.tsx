@@ -452,6 +452,7 @@ export default function PublicPortfolio() {
             <button
               aria-label="이전 사진"
               className={`absolute left-4 top-1/2 -translate-y-1/2 z-10 p-3 text-d-faint hover:text-d-hair hover:bg-d-line/50 transition-[opacity,color,background] duration-500 ${chromeOn ? 'opacity-100' : 'opacity-0'}`}
+              onMouseDown={e => e.preventDefault()}
               onClick={e => { e.stopPropagation(); setLightboxIndex(lightboxIndex - 1) }}
             >
               <ChevronLeft size={28} strokeWidth={1.5} />
@@ -474,6 +475,7 @@ export default function PublicPortfolio() {
             <button
               aria-label="다음 사진"
               className={`absolute right-4 top-1/2 -translate-y-1/2 z-10 p-3 text-d-faint hover:text-d-hair hover:bg-d-line/50 transition-[opacity,color,background] duration-500 ${chromeOn ? 'opacity-100' : 'opacity-0'}`}
+              onMouseDown={e => e.preventDefault()}
               onClick={e => { e.stopPropagation(); setLightboxIndex(lightboxIndex + 1) }}
             >
               <ChevronRight size={28} strokeWidth={1.5} />
