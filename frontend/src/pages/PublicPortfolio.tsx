@@ -403,7 +403,7 @@ export default function PublicPortfolio() {
           ref={lightboxRef}
           role="dialog"
           aria-modal="true"
-          className="fixed inset-0 bg-[oklch(0.12_0.012_60)]/[.98] z-50 flex flex-col transition-[background,color,border] duration-150 ease-out"
+          className="fixed inset-0 bg-[oklch(0.12_0.012_60/0.98)] z-50 flex flex-col"
           onClick={() => setLightboxIndex(null)}
         >
           {/* Thin top bar: chapter title, counter, close */}

@@ -329,7 +329,7 @@ export default function MobilePublicPortfolio() {
       {/* Lightbox */}
       {lightboxIndex !== null && lightboxItems[lightboxIndex] && (
         <div
-          className="fixed inset-0 bg-[oklch(0.12_0.012_60)]/[.98] z-50 flex flex-col"
+          className="fixed inset-0 bg-[oklch(0.12_0.012_60/0.98)] z-50 flex flex-col"
           style={{ paddingTop: 'env(safe-area-inset-top)', paddingBottom: 'env(safe-area-inset-bottom)' }}
         >
           <div className="flex items-center justify-between px-4 py-2 shrink-0">
