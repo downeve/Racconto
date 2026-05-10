@@ -14,5 +14,7 @@
     ".claude": true
   },
   "git.repositoryScanIgnoredFolders": [".claude"],
-  "git.ignoredRepositories": ["/Users/dawoon/Racconto/.claude/worktrees"]
+  "git.ignoredRepositories": [
+    "/Users/dawoon/Racconto/.claude/worktrees/wizardly-sanderson-350564"
+  ]
 }
