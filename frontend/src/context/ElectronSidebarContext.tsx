@@ -1,8 +1,6 @@
 import { createContext, useContext, useState, type ReactNode } from 'react'
 
 interface ElectronSidebarContextType {
-  sidebarContent: ReactNode
-  setSidebarContent: (content: ReactNode) => void
   refreshTrigger: number
   triggerRefresh: () => void
   uploadInProgress: boolean
@@ -10,8 +8,6 @@ interface ElectronSidebarContextType {
 }
 
 const ElectronSidebarContext = createContext<ElectronSidebarContextType>({
-  sidebarContent: null,
-  setSidebarContent: () => {},
   refreshTrigger: 0,
   triggerRefresh: () => {},
   uploadInProgress: false,
@@ -19,7 +15,6 @@ const ElectronSidebarContext = createContext<ElectronSidebarContextType>({
 })
 
 export function ElectronSidebarProvider({ children }: { children: ReactNode }) {
-  const [sidebarContent, setSidebarContent] = useState<ReactNode>(null)
   const [refreshTrigger, setRefreshTrigger] = useState(0)
   const [uploadInProgress, setUploadInProgress] = useState(false)
 
@@ -28,7 +23,7 @@ export function ElectronSidebarProvider({ children }: { children: ReactNode }) {
 
   return (
     <ElectronSidebarContext.Provider
-      value={{ sidebarContent, setSidebarContent, refreshTrigger, triggerRefresh, uploadInProgress, setUploadInProgress }}
+      value={{ refreshTrigger, triggerRefresh, uploadInProgress, setUploadInProgress }}
     >
       {children}
     </ElectronSidebarContext.Provider>

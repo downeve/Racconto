@@ -12,13 +12,16 @@ from typing import Optional
 from app.routers.photos import delete_cf_files_parallel
 import secrets
 import httpx
+import ssl
+import certifi
 import jwt as pyjwt
 from jwt import PyJWKClient
 import time
 import os
 
-_google_jwks_client = PyJWKClient("https://www.googleapis.com/oauth2/v3/certs", cache_keys=True)
-_apple_jwks_client = PyJWKClient("https://appleid.apple.com/auth/keys", cache_keys=True)
+_ssl_ctx = ssl.create_default_context(cafile=certifi.where())
+_google_jwks_client = PyJWKClient("https://www.googleapis.com/oauth2/v3/certs", cache_keys=True, ssl_context=_ssl_ctx)
+_apple_jwks_client = PyJWKClient("https://appleid.apple.com/auth/keys", cache_keys=True, ssl_context=_ssl_ctx)
 from starlette.requests import Request
 from starlette.responses import RedirectResponse, Response
 

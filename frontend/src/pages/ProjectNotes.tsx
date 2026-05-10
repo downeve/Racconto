@@ -1,8 +1,8 @@
 import { useEffect, useState, useRef, useMemo, memo } from 'react'
+import { createPortal } from 'react-dom'
 import axios from 'axios'
 import MarkdownRenderer from '../components/MarkdownRenderer'
 import { useTranslation } from 'react-i18next'
-import { useElectronSidebar } from '../context/ElectronSidebarContext'
 import ConfirmModal from '../components/ConfirmModal'
 import { Pencil, Eye, Pin } from 'lucide-react'
 
@@ -17,6 +17,78 @@ interface Note {
   photo_id: string | null
   created_at: string
   updated_at: string
+}
+
+interface NotesSidebarContentProps {
+  notes: Note[]
+  filterType: string | null
+  filterPinned: boolean
+  setFilterType: (v: string | null) => void
+  setFilterPinned: (v: boolean) => void
+  scrollToNote: (noteId: string) => void
+}
+
+function NotesSidebarContent({ notes, filterType, filterPinned, setFilterType, setFilterPinned, scrollToNote }: NotesSidebarContentProps) {
+  const { t } = useTranslation()
+
+  const NOTE_TYPES = [
+    { value: 'memo',     label: t('note.labelWork'),     dot: 'bg-edit-faint' },
+    { value: 'concept',  label: t('note.labelConcept'),  dot: 'bg-edit-accent' },
+    { value: 'research', label: t('note.labelResearch'), dot: 'bg-label-green' },
+    { value: 'client',   label: t('note.labelClient'),   dot: 'bg-label-yellow' },
+  ]
+
+  const si = (active: boolean) =>
+    `relative w-full text-left px-2 py-1 rounded-[1px] flex items-center justify-between text-[0.75rem] font-sans font-medium transition-colors duration-150 ${
+      active
+        ? 'bg-edit-ink/[0.06] text-edit-ink before:absolute before:left-0 before:top-1 before:bottom-1 before:w-[2px] before:bg-edit-ink'
+        : 'text-edit-muted hover:bg-edit-paper hover:text-edit-ink'
+    }`
+
+  return (
+    <div className="p-4">
+      <button onClick={() => { setFilterType(null); setFilterPinned(false) }}
+        className={si(!filterType && !filterPinned)}>
+        <span>{t('note.filterAll')}</span>
+        <span>{notes.length}</span>
+      </button>
+      <button onClick={() => { setFilterPinned(!filterPinned); setFilterType(null) }}
+        className={`${si(filterPinned)} mt-0.5 mb-3`}>
+        <span className="flex items-center gap-1"><Pin size={12} strokeWidth={1.5} />{t('note.pinned')}</span>
+        <span>{notes.filter(n => n.is_pinned).length}</span>
+      </button>
+      <div className="border-t border-edit-line my-2" />
+      <div className="space-y-0.5">
+        {NOTE_TYPES.map(type => (
+          <button key={type.value}
+            onClick={() => { setFilterType(filterType === type.value ? null : type.value); setFilterPinned(false) }}
+            className={si(filterType === type.value)}>
+            <span className="flex items-center gap-1.5">
+              <span className={`w-1.5 h-1.5 rounded-full ${type.dot}`} />
+              {type.label}
+            </span>
+            <span>{notes.filter(n => n.note_type === type.value).length}</span>
+          </button>
+        ))}
+      </div>
+      {notes.filter(n => n.is_pinned).length > 0 && (
+        <>
+          <div className="border-t border-edit-line my-3" />
+          <p className="t-eyebrow text-edit-muted mb-2 flex items-center gap-1">
+            <Pin size={11} strokeWidth={1.5} />{t('note.pinned2')}
+          </p>
+          <div className="space-y-0.5">
+            {notes.filter(n => n.is_pinned).map(note => (
+              <button key={note.id} onClick={() => scrollToNote(note.id)}
+                className="w-full text-left px-2 py-1.5 text-[0.75rem] font-sans rounded-[1px] hover:bg-edit-paper text-edit-muted hover:text-edit-ink truncate">
+                {note.content.slice(0, 30)}{note.content.length > 30 ? '...' : ''}
+              </button>
+            ))}
+          </div>
+        </>
+      )}
+    </div>
+  )
 }
 
 interface NoteItemProps {
@@ -205,8 +277,6 @@ function ProjectNotes({
   const [filterPinned, setFilterPinned] = useState(false)
   const noteRefs = useRef<Record<string, HTMLDivElement | null>>({})
 
-  const { setSidebarContent } = useElectronSidebar()
-
   const scrollToNote = (noteId: string) => {
     const el = noteRefs.current[noteId]
     if (!el) return
@@ -301,64 +371,22 @@ function ProjectNotes({
     setEditPreviewMode(false)
   }
 
-  // sidebar — dot 토큰 통일
-  const sidebarItem = (active: boolean) =>
-    `relative w-full text-left px-2 py-1 rounded-[1px] flex items-center justify-between text-[0.75rem] font-sans font-medium transition-colors duration-150 ${
-      active
-        ? 'bg-edit-ink/[0.06] text-edit-ink before:absolute before:left-0 before:top-1 before:bottom-1 before:w-[2px] before:bg-edit-ink'
-        : 'text-edit-muted hover:bg-edit-paper hover:text-edit-ink'
-    }`
 
-  useEffect(() => {
-    if (activeTab !== 'notes') return
-    setSidebarContent(
-      <div className="p-4">
-        <button onClick={() => { setFilterType(null); setFilterPinned(false) }}
-          className={sidebarItem(!filterType && !filterPinned)}>
-          <span>{t('note.filterAll')}</span>
-          <span>{notes.length}</span>
-        </button>
-        <button onClick={() => { setFilterPinned(!filterPinned); setFilterType(null) }}
-          className={`${sidebarItem(filterPinned)} mt-0.5 mb-3`}>
-          <span className="flex items-center gap-1"><Pin size={12} strokeWidth={1.5} />{t('note.pinned')}</span>
-          <span>{notes.filter(n => n.is_pinned).length}</span>
-        </button>
-        <div className="border-t border-edit-line my-2" />
-        <div className="space-y-0.5">
-          {NOTE_TYPES.map(type => (
-            <button key={type.value}
-              onClick={() => { setFilterType(filterType === type.value ? null : type.value); setFilterPinned(false) }}
-              className={sidebarItem(filterType === type.value)}>
-              <span className="flex items-center gap-1.5">
-                <span className={`w-1.5 h-1.5 rounded-full ${type.dot}`} />
-                {type.label}
-              </span>
-              <span>{notes.filter(n => n.note_type === type.value).length}</span>
-            </button>
-          ))}
-        </div>
-        {notes.filter(n => n.is_pinned).length > 0 && (
-          <>
-            <div className="border-t border-edit-line my-3" />
-            <p className="t-eyebrow text-edit-muted mb-2 flex items-center gap-1">
-              <Pin size={11} strokeWidth={1.5} />{t('note.pinned2')}
-            </p>
-            <div className="space-y-0.5">
-              {notes.filter(n => n.is_pinned).map(note => (
-                <button key={note.id} onClick={() => scrollToNote(note.id)}
-                  className="w-full text-left px-2 py-1.5 text-[0.75rem] font-sans rounded-[1px] hover:bg-edit-paper text-edit-muted hover:text-edit-ink truncate">
-                  {note.content.slice(0, 30)}{note.content.length > 30 ? '...' : ''}
-                </button>
-              ))}
-            </div>
-          </>
-        )}
-      </div>
-    )
-  }, [activeTab, notes, filterType, filterPinned, t])
+  const sidebarSlot = document.getElementById('sidebar-content-slot')
 
   return (
     <>
+      {sidebarSlot && activeTab === 'notes' && createPortal(
+        <NotesSidebarContent
+          notes={notes}
+          filterType={filterType}
+          filterPinned={filterPinned}
+          setFilterType={setFilterType}
+          setFilterPinned={setFilterPinned}
+          scrollToNote={scrollToNote}
+        />,
+        sidebarSlot
+      )}
       {confirmModal && (
         <ConfirmModal
           message={confirmModal.message}

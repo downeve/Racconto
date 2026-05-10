@@ -1,4 +1,5 @@
 import { useEffect, useState, useMemo, useCallback, useRef } from 'react'
+import { createPortal } from 'react-dom'
 import { useParams } from 'react-router-dom'
 import axios from 'axios'
 import exifr from 'exifr'
@@ -24,6 +25,183 @@ const getFolderDisplayName = (folder: string) =>
 const isLocalSyncFolder = (folder: string) =>
   folder.startsWith('/') || /^[A-Za-z]:\\/.test(folder)
 
+interface PhotosSidebarContentProps {
+  photos: Photo[]
+  trashedPhotos: Photo[]
+  uploading: boolean
+  photoSubTab: 'all' | 'folder' | 'trash'
+  filterFolder: string | null
+  filterRating: number | null
+  filterColor: string | null
+  filterHasNote: boolean
+  photoNoteIds: Set<string>
+  colorLabels: { value: string; color: string; label: string }[]
+  isAllActive: boolean
+  selectionMode: boolean
+  handleUpload: (e: React.ChangeEvent<HTMLInputElement>) => void
+  handleResetAll: () => void
+  handleDeleteFolder: (folder: string) => void
+  setFilterFolder: React.Dispatch<React.SetStateAction<string | null>>
+  setPhotoSubTab: React.Dispatch<React.SetStateAction<'all' | 'folder' | 'trash'>>
+  fetchTrash: () => void
+  setSelectionMode: React.Dispatch<React.SetStateAction<boolean>>
+  setSelectedPhotoIds: React.Dispatch<React.SetStateAction<Set<string>>>
+  setShowBulkChapterMenu: React.Dispatch<React.SetStateAction<boolean>>
+  exitTrash: () => void
+  setFilterHasNote: React.Dispatch<React.SetStateAction<boolean>>
+  setFilterRating: React.Dispatch<React.SetStateAction<number | null>>
+  handleClearRatings: () => void
+  setFilterColor: React.Dispatch<React.SetStateAction<string | null>>
+  handleClearColorLabels: () => void
+}
+
+function PhotosSidebarContent({
+  photos, trashedPhotos, uploading,
+  photoSubTab, filterFolder, filterRating, filterColor, filterHasNote,
+  photoNoteIds, colorLabels, isAllActive, selectionMode,
+  handleUpload, handleResetAll, handleDeleteFolder,
+  setFilterFolder, setPhotoSubTab, fetchTrash,
+  setSelectionMode, setSelectedPhotoIds, setShowBulkChapterMenu,
+  exitTrash, setFilterHasNote, setFilterRating, handleClearRatings,
+  setFilterColor, handleClearColorLabels,
+}: PhotosSidebarContentProps) {
+  const { t } = useTranslation()
+
+  const si = (active: boolean) =>
+    `relative w-full text-left px-2 py-1 rounded-[1px] flex items-center justify-between text-[0.75rem] font-sans font-medium transition-colors duration-150 ${
+      active
+        ? 'bg-edit-ink/[0.06] text-edit-ink before:absolute before:left-0 before:top-1 before:bottom-1 before:w-[2px] before:bg-edit-ink'
+        : 'text-edit-muted hover:bg-edit-paper hover:text-edit-ink'
+    }`
+
+  const base = photos.filter(p => !p.deleted_at && (filterFolder === null || p.folder === filterFolder))
+
+  return (
+    <div className="p-4">
+      {/* 업로드 버튼 */}
+      <div className="mb-4 flex gap-1">
+        <label className={`flex-1 cursor-pointer text-[0.75rem] font-sans font-medium px-2 py-2 inline-flex items-center justify-center gap-1.5 bg-edit-ink text-edit-paper hover:bg-edit-ink/85 rounded-[1px] transition-colors ${uploading ? 'opacity-60 cursor-not-allowed' : ''}`}>
+          {uploading
+            ? <><div className="w-3 h-3 border border-edit-paper/40 border-t-edit-paper rounded-full animate-spin shrink-0" />{t('photo.uploading')}</>
+            : <><Upload size={12} strokeWidth={1.5} />{t('photo.uploadPhotos')}</>}
+          <input type="file" accept="image/jpeg, image/png, image/webp" multiple className="hidden" onChange={handleUpload} disabled={uploading} />
+        </label>
+        <label className={`flex-1 cursor-pointer text-[0.75rem] font-sans font-medium px-2 py-2 inline-flex items-center justify-center gap-1.5 bg-edit-ink text-edit-paper hover:bg-edit-ink/85 rounded-[1px] transition-colors ${uploading ? 'opacity-60 cursor-not-allowed' : ''}`}>
+          {uploading
+            ? <div className="w-3 h-3 border border-edit-paper/40 border-t-edit-paper rounded-full animate-spin shrink-0" />
+            : <><FolderUp size={12} strokeWidth={1.5} />{t('photo.uploadFolder')}</>}
+          <input type="file" accept="image/jpeg, image/png, image/webp" multiple className="hidden" onChange={handleUpload} disabled={uploading} {...{ webkitdirectory: '' } as any} />
+        </label>
+      </div>
+
+      {/* 라이브러리 */}
+      <div className="mb-3">
+        <p className="t-eyebrow text-edit-faint mb-1.5">{t('photo.library')}</p>
+        <div className="flex flex-col gap-0.5">
+          <button onClick={handleResetAll} className={si(isAllActive)}>
+            <span>{t('photo.allPhotos')}</span>
+            <span>{photos.filter(p => !p.deleted_at).length}</span>
+          </button>
+          {photos.some(p => p.folder) && (
+            <div className="flex flex-col gap-0.5">
+              {[...new Set(photos.filter(p => p.folder).map(p => p.folder))].map(folder => (
+                <div key={folder} className="relative group/folder">
+                  <button onClick={() => {
+                    setFilterFolder(filterFolder === folder ? null : folder!)
+                    setPhotoSubTab(filterFolder === folder ? 'all' : 'folder')
+                  }} className={si(filterFolder === folder)}>
+                    <span className="flex items-center gap-1.5 min-w-0">
+                      <Folder size={11} strokeWidth={1.5} className="shrink-0" />
+                      <span className="truncate">{getFolderDisplayName(folder!)}</span>
+                      {isLocalSyncFolder(folder!) && <Monitor size={10} strokeWidth={1.5} className="shrink-0 opacity-50" />}
+                    </span>
+                    <span>{photos.filter(p => p.folder === folder && !p.deleted_at).length}</span>
+                  </button>
+                  <button
+                    onClick={() => handleDeleteFolder(folder!)}
+                    className="absolute right-0 top-0 bottom-0 px-1.5 text-edit-line hover:text-edit-danger opacity-0 group-hover/folder:opacity-100 transition-opacity"
+                    title={t('photo.moveToTrash')}
+                  ><Trash2 size={11} strokeWidth={1.5} /></button>
+                </div>
+              ))}
+            </div>
+          )}
+          <button onClick={() => { handleResetAll(); setPhotoSubTab('trash'); fetchTrash() }}
+            className={`${si(photoSubTab === 'trash')} ${photoSubTab !== 'trash' ? 'hover:text-edit-danger' : ''}`}>
+            <span>{t('photo.trash')}</span>
+            <span>{trashedPhotos.length}</span>
+          </button>
+        </div>
+      </div>
+
+      <div className="border-t border-edit-line my-3" />
+
+      {/* 챕터 추가 다중 선택 토글 */}
+      <div className="my-3">
+        <button
+          onClick={() => { setSelectionMode(v => !v); setSelectedPhotoIds(new Set()); setShowBulkChapterMenu(false) }}
+          className={`w-full px-3 py-2 text-left text-[0.75rem] font-sans font-medium inline-flex items-center justify-between rounded-[1px] transition-colors ${
+            selectionMode
+              ? 'bg-edit-ink text-edit-paper'
+              : 'border border-edit-line text-edit-muted hover:text-edit-ink hover:border-edit-line-strong'
+          }`}>
+          <span>{t('filter.addToChapter')}</span>
+          <span className="t-eyebrow opacity-70">{selectionMode ? t('common.cancel') : t('common.select')}</span>
+        </button>
+      </div>
+
+      <div className="border-t border-edit-line my-3" />
+
+      {/* 노트 있는 사진 */}
+      <button onClick={() => { exitTrash(); setFilterHasNote(!filterHasNote) }}
+        className={`${si(filterHasNote)} mb-0.5`}>
+        <span className="flex items-center gap-1.5"><FileText size={11} strokeWidth={1.5} />{t('photo.hasNote')}</span>
+        <span>{base.filter(p => photoNoteIds.has(p.id)).length}</span>
+      </button>
+
+      {/* 별점 필터 */}
+      <div className="mb-4 mt-3">
+        <div className="flex items-center justify-between mb-1.5">
+          <p className="t-eyebrow text-edit-faint">{t('filter.rating')}</p>
+          <button onClick={handleClearRatings} className="text-[0.75rem] font-sans text-edit-faint hover:text-edit-danger transition-colors">{t('common.reset')}</button>
+        </div>
+        {[5, 4, 3, 2, 1].map(star => (
+          <button key={star} onClick={() => { exitTrash(); setFilterRating(filterRating === star ? null : star) }}
+            className={si(filterRating === star)}>
+            <span className="flex gap-0.5">
+              {[1,2,3,4,5].map(i => (
+                <Star key={i} size={11} strokeWidth={1.25}
+                  className={i <= star ? 'fill-edit-ink text-edit-ink' : 'text-edit-line-strong'} />
+              ))}
+            </span>
+            <span>{base.filter(p => p.rating === star).length}</span>
+          </button>
+        ))}
+        <button onClick={() => { exitTrash(); setFilterRating(filterRating === 0 ? null : 0) }}
+          className={si(filterRating === 0)}>
+          <span>{t('filter.unrated')}</span>
+          <span>{base.filter(p => !p.rating).length}</span>
+        </button>
+      </div>
+
+      {/* 컬러 라벨 필터 */}
+      <div className="mb-2">
+        <div className="flex items-center justify-between mb-1.5">
+          <p className="t-eyebrow text-edit-faint">{t('filter.colors')}</p>
+          <button onClick={handleClearColorLabels} className="text-[0.75rem] font-sans text-edit-faint hover:text-edit-danger transition-colors">{t('common.reset')}</button>
+        </div>
+        {colorLabels.map(label => (
+          <button key={label.value} onClick={() => { exitTrash(); setFilterColor(filterColor === label.value ? null : label.value) }}
+            className={si(filterColor === label.value)}>
+            <span className="flex items-center gap-2"><span className={`w-2.5 h-2.5 rounded-full ${label.color}`} />{label.label}</span>
+            <span>{base.filter(p => p.color_label === label.value).length}</span>
+          </button>
+        ))}
+      </div>
+    </div>
+  )
+}
+
 export default function ProjectDetail({
     electronTab,
   }: {
@@ -35,7 +213,7 @@ export default function ProjectDetail({
   const [numericId, setNumericId] = useState<string | null>(null)
   const [project, setProject] = useState<Project | null>(null)
   const [photos, setPhotos] = useState<Photo[]>([])
-  const { setSidebarContent, triggerRefresh, uploadInProgress: uploading, setUploadInProgress: setUploading } = useElectronSidebar()
+  const { triggerRefresh, uploadInProgress: uploading, setUploadInProgress: setUploading } = useElectronSidebar()
 
   const [activeTab, setActiveTab] = useState<'photos' | 'story' | 'notes' | 'delivery'>('photos')
 
@@ -812,144 +990,6 @@ export default function ProjectDetail({
     }
   }
 
-  useEffect(() => {
-    if (activeTab !== 'photos') return
-
-    const si = (active: boolean) =>
-      `relative w-full text-left px-2 py-1 rounded-[1px] flex items-center justify-between text-[0.75rem] font-sans font-medium transition-colors duration-150 ${
-        active
-          ? 'bg-edit-ink/[0.06] text-edit-ink before:absolute before:left-0 before:top-1 before:bottom-1 before:w-[2px] before:bg-edit-ink'
-          : 'text-edit-muted hover:bg-edit-paper hover:text-edit-ink'
-      }`
-
-    const base = photos.filter(p => !p.deleted_at && (filterFolder === null || p.folder === filterFolder))
-
-    setSidebarContent(
-      <div className="p-4">
-        {/* 9.9 업로드 버튼 — 분할 primary */}
-        <div className="mb-4 flex gap-1">
-          <label className={`flex-1 cursor-pointer text-[0.75rem] font-sans font-medium px-2 py-2 inline-flex items-center justify-center gap-1.5 bg-edit-ink text-edit-paper hover:bg-edit-ink/85 rounded-[1px] transition-colors ${uploading ? 'opacity-60 cursor-not-allowed' : ''}`}>
-            {uploading
-              ? <><div className="w-3 h-3 border border-edit-paper/40 border-t-edit-paper rounded-full animate-spin shrink-0" />{t('photo.uploading')}</>
-              : <><Upload size={12} strokeWidth={1.5} />{t('photo.uploadPhotos')}</>}
-            <input type="file" accept="image/jpeg, image/png, image/webp" multiple className="hidden" onChange={handleUpload} disabled={uploading} />
-          </label>
-          <label className={`flex-1 cursor-pointer text-[0.75rem] font-sans font-medium px-2 py-2 inline-flex items-center justify-center gap-1.5 bg-edit-ink text-edit-paper hover:bg-edit-ink/85 rounded-[1px] transition-colors ${uploading ? 'opacity-60 cursor-not-allowed' : ''}`}>
-            {uploading
-              ? <div className="w-3 h-3 border border-edit-paper/40 border-t-edit-paper rounded-full animate-spin shrink-0" />
-              : <><FolderUp size={12} strokeWidth={1.5} />{t('photo.uploadFolder')}</>}
-            <input type="file" accept="image/jpeg, image/png, image/webp" multiple className="hidden" onChange={handleUpload} disabled={uploading} {...{ webkitdirectory: '' } as any} />
-          </label>
-        </div>
-
-        {/* 라이브러리 */}
-        <div className="mb-3">
-          <p className="t-eyebrow text-edit-faint mb-1.5">{t('photo.library')}</p>
-          <div className="flex flex-col gap-0.5">
-            <button onClick={handleResetAll} className={si(isAllActive)}>
-              <span>{t('photo.allPhotos')}</span>
-              <span>{photos.filter(p => !p.deleted_at).length}</span>
-            </button>
-            {photos.some(p => p.folder) && (
-              <div className="flex flex-col gap-0.5">
-                {[...new Set(photos.filter(p => p.folder).map(p => p.folder))].map(folder => (
-                  <div key={folder} className="relative group/folder">
-                    <button onClick={() => {
-                      setFilterFolder(filterFolder === folder ? null : folder!)
-                      setPhotoSubTab(filterFolder === folder ? 'all' : 'folder')
-                    }} className={si(filterFolder === folder)}>
-                      <span className="flex items-center gap-1.5 min-w-0">
-                        <Folder size={11} strokeWidth={1.5} className="shrink-0" />
-                        <span className="truncate">{getFolderDisplayName(folder!)}</span>
-                        {isLocalSyncFolder(folder!) && <Monitor size={10} strokeWidth={1.5} className="shrink-0 opacity-50" />}
-                      </span>
-                      <span>{photos.filter(p => p.folder === folder && !p.deleted_at).length}</span>
-                    </button>
-                    <button
-                      onClick={() => handleDeleteFolder(folder!)}
-                      className="absolute right-0 top-0 bottom-0 px-1.5 text-edit-line hover:text-edit-danger opacity-0 group-hover/folder:opacity-100 transition-opacity"
-                      title={t('photo.moveToTrash')}
-                    ><Trash2 size={11} strokeWidth={1.5} /></button>
-                  </div>
-                ))}
-              </div>
-            )}
-            {/* 9.4 휴지통 — red 풀배경 제거 */}
-            <button onClick={() => { handleResetAll(); setPhotoSubTab('trash'); fetchTrash() }}
-              className={`${si(photoSubTab === 'trash')} ${photoSubTab !== 'trash' ? 'hover:text-edit-danger' : ''}`}>
-              <span>{t('photo.trash')}</span>
-              <span>{trashedPhotos.length}</span>
-            </button>
-          </div>
-        </div>
-
-        <div className="border-t border-edit-line my-3" />
-
-        {/* 9.7 챕터 추가 다중 선택 토글 */}
-        <div className="my-3">
-          <button
-            onClick={() => { setSelectionMode(v => !v); setSelectedPhotoIds(new Set()); setShowBulkChapterMenu(false) }}
-            className={`w-full px-3 py-2 text-left text-[0.75rem] font-sans font-medium inline-flex items-center justify-between rounded-[1px] transition-colors ${
-              selectionMode
-                ? 'bg-edit-ink text-edit-paper'
-                : 'border border-edit-line text-edit-muted hover:text-edit-ink hover:border-edit-line-strong'
-            }`}>
-            <span>{t('filter.addToChapter')}</span>
-            <span className="t-eyebrow opacity-70">{selectionMode ? t('common.cancel') : t('common.select')}</span>
-          </button>
-        </div>
-
-        <div className="border-t border-edit-line my-3" />
-
-        {/* 노트 있는 사진 */}
-        <button onClick={() => { exitTrash(); setFilterHasNote(!filterHasNote) }}
-          className={`${si(filterHasNote)} mb-0.5`}>
-          <span className="flex items-center gap-1.5"><FileText size={11} strokeWidth={1.5} />{t('photo.hasNote')}</span>
-          <span>{base.filter(p => photoNoteIds.has(p.id)).length}</span>
-        </button>
-
-        {/* 9.5 별점 필터 — lucide Star */}
-        <div className="mb-4 mt-3">
-          <div className="flex items-center justify-between mb-1.5">
-            <p className="t-eyebrow text-edit-faint">{t('filter.rating')}</p>
-            <button onClick={handleClearRatings} className="text-[0.75rem] font-sans text-edit-faint hover:text-edit-danger transition-colors">{t('common.reset')}</button>
-          </div>
-          {[5, 4, 3, 2, 1].map(star => (
-            <button key={star} onClick={() => { exitTrash(); setFilterRating(filterRating === star ? null : star) }}
-              className={si(filterRating === star)}>
-              <span className="flex gap-0.5">
-                {[1,2,3,4,5].map(i => (
-                  <Star key={i} size={11} strokeWidth={1.25}
-                    className={i <= star ? 'fill-edit-ink text-edit-ink' : 'text-edit-line-strong'} />
-                ))}
-              </span>
-              <span>{base.filter(p => p.rating === star).length}</span>
-            </button>
-          ))}
-          <button onClick={() => { exitTrash(); setFilterRating(filterRating === 0 ? null : 0) }}
-            className={si(filterRating === 0)}>
-            <span>{t('filter.unrated')}</span>
-            <span>{base.filter(p => !p.rating).length}</span>
-          </button>
-        </div>
-
-        {/* 컬러 라벨 필터 */}
-        <div className="mb-2">
-          <div className="flex items-center justify-between mb-1.5">
-            <p className="t-eyebrow text-edit-faint">{t('filter.colors')}</p>
-            <button onClick={handleClearColorLabels} className="text-[0.75rem] font-sans text-edit-faint hover:text-edit-danger transition-colors">{t('common.reset')}</button>
-          </div>
-          {colorLabels.map(label => (
-            <button key={label.value} onClick={() => { exitTrash(); setFilterColor(filterColor === label.value ? null : label.value) }}
-              className={si(filterColor === label.value)}>
-              <span className="flex items-center gap-2"><span className={`w-2.5 h-2.5 rounded-full ${label.color}`} />{label.label}</span>
-              <span>{base.filter(p => p.color_label === label.value).length}</span>
-            </button>
-          ))}
-        </div>
-      </div>
-    )
-  }, [activeTab, photoSubTab, photos, trashedPhotos, uploading, filterRating, filterColor, filterFolder, filterHasNote, photoNoteIds, colorLabels, isAllActive, selectionMode, t])
 
 
   if (!project) return (
@@ -958,8 +998,42 @@ export default function ProjectDetail({
     </div>
   )
 
+  const sidebarSlot = document.getElementById('sidebar-content-slot')
+
   return (
     <div className="p-6 max-w-7xl mx-auto px-6">
+      {sidebarSlot && activeTab === 'photos' && createPortal(
+        <PhotosSidebarContent
+          photos={photos}
+          trashedPhotos={trashedPhotos}
+          uploading={uploading}
+          photoSubTab={photoSubTab}
+          filterFolder={filterFolder}
+          filterRating={filterRating}
+          filterColor={filterColor}
+          filterHasNote={filterHasNote}
+          photoNoteIds={photoNoteIds}
+          colorLabels={colorLabels}
+          isAllActive={isAllActive}
+          selectionMode={selectionMode}
+          handleUpload={handleUpload}
+          handleResetAll={handleResetAll}
+          handleDeleteFolder={handleDeleteFolder}
+          setFilterFolder={setFilterFolder}
+          setPhotoSubTab={setPhotoSubTab}
+          fetchTrash={fetchTrash}
+          setSelectionMode={setSelectionMode}
+          setSelectedPhotoIds={setSelectedPhotoIds}
+          setShowBulkChapterMenu={setShowBulkChapterMenu}
+          exitTrash={exitTrash}
+          setFilterHasNote={setFilterHasNote}
+          setFilterRating={setFilterRating}
+          handleClearRatings={handleClearRatings}
+          setFilterColor={setFilterColor}
+          handleClearColorLabels={handleClearColorLabels}
+        />,
+        sidebarSlot
+      )}
       {confirmModal && (
         <ConfirmModal
           message={confirmModal.message}
@@ -1050,7 +1124,7 @@ export default function ProjectDetail({
         </div>
       )}
 
-      {/* 사진 탭 — 필터/업로드 패널은 사이드바(setSidebarContent)로 렌더 */}
+      {/* 사진 탭 — 필터/업로드 패널은 사이드바(Portal)로 렌더 */}
       <div style={{ display: activeTab === 'photos' ? 'block' : 'none' }}>
 
           {/* 사진 갤러리 */}

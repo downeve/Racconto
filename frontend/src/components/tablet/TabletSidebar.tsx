@@ -31,7 +31,7 @@ export default function TabletSidebar({ activeTab, onTabChange, showTabs, width 
   const navigate = useNavigate()
   const location = useLocation()
   const { t, i18n } = useTranslation()
-  const { sidebarContent, refreshTrigger } = useElectronSidebar()
+  const { refreshTrigger } = useElectronSidebar()
   const { user, logout } = useAuth()
   const [dropdownOpen, setDropdownOpen] = useState(false)
   const dropdownRef = useRef<HTMLDivElement>(null)
@@ -190,10 +190,9 @@ export default function TabletSidebar({ activeTab, onTabChange, showTabs, width 
         </div>
       )}
 
-      {sidebarContent && isOnProjectDetail && (
-        <div className="border-t border-faint/30 overflow-y-scroll flex-1 [&::-webkit-scrollbar]:w-0">
-          {sidebarContent}
-        </div>
+      {/* 탭별 사이드바 내용 — Portal 슬롯 */}
+      {isOnProjectDetail && (
+        <div id="sidebar-content-slot" className="border-t border-faint/30 overflow-y-scroll flex-1 [&::-webkit-scrollbar]:w-0" />
       )}
 
       <div ref={dropdownRef} className="shrink-0 mt-auto border-t border-faint/30 relative" style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}>

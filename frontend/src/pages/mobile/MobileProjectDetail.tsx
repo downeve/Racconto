@@ -27,7 +27,7 @@ export default function MobileProjectDetail() {
   const [numericId, setNumericId] = useState<string | null>(null)
   const [project, setProject] = useState<Project | null>(null)
   const [photos, setPhotos] = useState<Photo[]>([])
-  const { setSidebarContent, triggerRefresh, setUploadInProgress: setUploading } = useElectronSidebar()
+  const { triggerRefresh, setUploadInProgress: setUploading } = useElectronSidebar()
   const { setBottomSheetContent, setFabAction } = useMobileLayout()
   const [activeTab, setActiveTab] = useState<Tab>('photos')
   const [gridCols, setGridCols] = useState(2)
@@ -119,9 +119,6 @@ export default function MobileProjectDetail() {
     fetchChapterPhotoIds()
   }, [numericId])
 
-  useEffect(() => {
-    setSidebarContent(null)
-  }, [setSidebarContent])
 
   const colorLabels: ColorLabel[] = useMemo(() => [
     { value: 'red', color: 'bg-red-500', label: labelSettings['color_label_red'] },

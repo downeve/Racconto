@@ -38,7 +38,7 @@ export default function ElectronSidebar({ activeTab, onTabChange, showTabs, widt
   const navigate = useNavigate()
   const location = useLocation()
   const { t, i18n } = useTranslation()
-  const { sidebarContent, refreshTrigger } = useElectronSidebar()
+  const { refreshTrigger } = useElectronSidebar()
   const { user, logout } = useAuth()
   const [dropdownOpen, setDropdownOpen] = useState(false)
   const dropdownRef = useRef<HTMLDivElement>(null)
@@ -268,11 +268,9 @@ export default function ElectronSidebar({ activeTab, onTabChange, showTabs, widt
         </div>
       )}
 
-      {/* 탭별 사이드바 내용 */}
-      {sidebarContent && isOnProjectDetail && (
-        <div className="border-t border-edit-line overflow-y-scroll flex-1 [&::-webkit-scrollbar]:w-0">
-          {sidebarContent}
-        </div>
+      {/* 탭별 사이드바 내용 — Portal 슬롯 */}
+      {isOnProjectDetail && (
+        <div id="sidebar-content-slot" className="border-t border-edit-line overflow-y-scroll flex-1 [&::-webkit-scrollbar]:w-0" />
       )}
 
       {/* §11.3 사용자 dropdown */}
