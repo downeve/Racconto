@@ -92,19 +92,26 @@ export default function MobilePortfolioChapterItems({
     if (!group) return
 
     // Side-by-side → 모바일에서 세로 스택
+    // side-left: 텍스트|사진 → 텍스트 위, 사진 아래
+    // side-right: 사진|텍스트 → 사진 위, 텍스트 아래
     if (group.type === 'SIDE') {
+      const isTextFirst = group.blockType === 'side-left'
+      const photoBlock = (
+        <div className="space-y-2">
+          {group.photos.map(photo => (
+            <div key={photo.id} className="rounded-photo overflow-hidden cursor-pointer" onClick={() => onLightbox?.(photo as PortfolioPhoto, allLightboxItems)}>
+              <img src={photo.image_url} alt={photo.caption || ''} loading="lazy" className="w-full block rounded-photo" />
+            </div>
+          ))}
+        </div>
+      )
+      const textBlock = group.text?.text_content ? (
+        <MarkdownRenderer content={group.text.text_content} darkMode={darkMode} className="leading-[2.1] [word-break:keep-all] font-serif px-2" />
+      ) : null
       result.push(
         <div key={`side-${bid}`} className="flex flex-col gap-3 my-4">
-          <div className="space-y-2">
-            {group.photos.map(photo => (
-              <div key={photo.id} className="rounded-photo overflow-hidden cursor-pointer" onClick={() => onLightbox?.(photo as PortfolioPhoto, allLightboxItems)}>
-                <img src={photo.image_url} alt={photo.caption || ''} loading="lazy" className="w-full block rounded-photo" />
-              </div>
-            ))}
-          </div>
-          {group.text?.text_content && (
-            <MarkdownRenderer content={group.text.text_content} darkMode={darkMode} className="leading-[2.1] [word-break:keep-all] font-serif px-2" />
-          )}
+          {isTextFirst ? textBlock : photoBlock}
+          {isTextFirst ? photoBlock : textBlock}
         </div>
       )
       return
