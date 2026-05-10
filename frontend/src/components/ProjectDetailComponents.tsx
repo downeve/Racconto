@@ -455,7 +455,7 @@ export const PhotoCard = memo(function PhotoCard({
         <img
           src={cfUrl(photo.image_url, 'grid')}
           alt={photo.caption || 'photo'}
-          className={`w-full aspect-[3/2] object-cover transition-[opacity,transform] duration-500 ${
+          className={`w-full aspect-[3/2] object-contain transition-[opacity,transform] duration-500 ${
             selectionMode && isAlreadyInStory
               ? 'opacity-30 grayscale cursor-not-allowed'
               : isSelected
