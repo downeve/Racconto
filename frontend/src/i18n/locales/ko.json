@@ -345,7 +345,8 @@
     "sideBySideBelow": "아래 텍스트와 나란히",
     "selected": "{{count}}장 선택됨",
     "deselectAll": "선택 해제",
-    "bulkDeleteConfirm": "선택한 {{count}}장을 삭제할까요? 연결도 해제됩니다."
+    "bulkDeleteConfirm": "선택한 {{count}}장을 삭제할까요? 연결도 해제됩니다.",
+    "layoutGuide": "PHOTO 블록 레이아웃"
   },
   "note": {
     "title": "노트",

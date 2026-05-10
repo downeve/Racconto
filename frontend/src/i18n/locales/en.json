@@ -345,7 +345,8 @@
     "sideBySideBelow": "Side by side with text below",
     "selected": "{{count}} photos selected",
     "deselectAll": "Deselect All",
-    "bulkDeleteConfirm": "Delete {{count}} selected photos? Connections will also be removed."
+    "bulkDeleteConfirm": "Delete {{count}} selected photos? Connections will also be removed.",
+    "layoutGuide": "PHOTO Block Layouts"
   },
   "note": {
     "title": "Note",

@@ -1,7 +1,7 @@
 import { useEffect, useState, useMemo, useRef, memo, useCallback } from 'react'
 import axios from 'axios'
 import { useTranslation } from 'react-i18next'
-import { Eye, Plus, FileText, Sun, Moon } from 'lucide-react'
+import { Eye, Plus, FileText, Sun, Moon, Grid3X3, Rows3, Square } from 'lucide-react'
 import { cfUrl } from '../utils/cfImage'
 //import { Rows3 } from 'lucide-react'
 import PhotoNotePanel from '../components/PhotoNotePanel'
@@ -1278,8 +1278,8 @@ function ProjectStory({
         {/* 챕터 추가 */}
         <button
           onClick={() => { setShowAddChapter(true); setAddingSubChapterTo(null) }}
-          className="w-full mb-1 px-2 py-1.5 rounded-[1px] flex items-center gap-2 t-caption
-                     text-edit-muted hover:bg-edit-paper-2 hover:text-edit-ink
+          className="w-full mb-1.5 px-3 py-2 rounded-[1px] inline-flex items-center gap-2 t-caption
+                     border border-edit-line text-edit-muted hover:text-edit-ink hover:border-edit-line-strong
                      transition-colors duration-150"
         >
           <Plus size={13} strokeWidth={1.5} />
@@ -1289,15 +1289,36 @@ function ProjectStory({
         {/* 미리보기 */}
         <button
           onClick={() => setShowPreview(true)}
-          className="w-full mb-3 px-2 py-1.5 rounded-[1px] flex items-center gap-2 t-caption
-                     text-edit-muted hover:bg-edit-paper-2 hover:text-edit-ink
+          className="w-full mb-3 px-3 py-2 rounded-[1px] inline-flex items-center gap-2 t-caption
+                     border border-edit-line text-edit-muted hover:text-edit-ink hover:border-edit-line-strong
                      transition-colors duration-150"
         >
           <Eye size={13} strokeWidth={1.5} />
           <span>{t('story.preview')}</span>
         </button>
 
-        <div className="mx-1 mb-2 border-t border-edit-line" />
+        <div className="mx-1 mb-3 border-t border-edit-line" />
+
+        {/* PHOTO 블록 레이아웃 안내 */}
+        <div className="px-1 mb-4">
+          <p className="t-eyebrow text-edit-faint mb-2">{t('story.layoutGuide')}</p>
+          <div className="flex gap-1.5">
+            {([
+              { icon: <Grid3X3 size={14} strokeWidth={1.5} />, key: 'portfolio.columnGrid' },
+              { icon: <Rows3 size={14} strokeWidth={1.5} />, key: 'portfolio.columnWide' },
+              { icon: <Square size={14} strokeWidth={1.5} />, key: 'portfolio.columnSingle' },
+            ] as const).map(({ icon, key }) => (
+              <div
+                key={key}
+                className="flex-1 flex flex-col items-center gap-1.5 py-2.5
+                           border border-edit-line rounded-[1px] text-edit-faint"
+              >
+                {icon}
+                <span className="t-eyebrow">{t(key)}</span>
+              </div>
+            ))}
+          </div>
+        </div>
 
         {/* 챕터 목록 */}
         <div className="space-y-0.5">
@@ -1326,7 +1347,7 @@ function ProjectStory({
                   )}
                   <button
                     onClick={() => scrollToChapter(chapter.id)}
-                    className="flex-1 text-left px-1 py-1.5 t-caption text-edit-muted
+                    className="flex-1 text-left px-1 py-1.5 text-[0.75rem] font-sans text-edit-muted
                                group-hover:text-edit-ink truncate min-w-0
                                transition-colors duration-150"
                   >
@@ -1363,7 +1384,7 @@ function ProjectStory({
                       <div key={sub.id} className="flex items-center gap-0.5 group rounded-[1px] hover:bg-edit-paper-2">
                         <button
                           onClick={() => scrollToChapter(sub.id)}
-                          className="flex-1 text-left pl-2 py-1 t-caption text-edit-faint
+                          className="flex-1 text-left pl-2 py-1 text-[0.75rem] font-sans text-edit-faint
                                      group-hover:text-edit-muted truncate min-w-0
                                      transition-colors duration-150"
                         >
@@ -1672,9 +1693,16 @@ function ProjectStory({
                   ) : (
                     <>
                       <div className="flex items-baseline justify-between gap-4">
-                        <h3 className="font-serif text-h3 text-edit-ink tracking-tight [word-break:keep-all]">
-                          {chapter.title}
-                        </h3>
+                        <div className="flex items-baseline gap-3 min-w-0">
+                          <h3 className="font-serif text-h3 text-edit-ink tracking-tight [word-break:keep-all]">
+                            {chapter.title}
+                          </h3>
+                          {getChapterPhotoCount(chapter.id) > 0 && (
+                            <span className="t-eyebrow text-edit-faint shrink-0">
+                              {t('story.chapterPhotoCount', { count: getChapterPhotoCount(chapter.id) })}
+                            </span>
+                          )}
+                        </div>
                         {/* 컨트롤 — hover 시에만 노출 */}
                         <div className="flex items-center gap-3 shrink-0
                                         opacity-0 group-hover/chapter:opacity-100 focus-within:opacity-100
@@ -1720,20 +1748,11 @@ function ProjectStory({
                         </div>
                       </div>
 
-                      {/* 메타 행: description + 사진 수 */}
-                      {(chapter.description || getChapterPhotoCount(chapter.id) > 0) && (
-                        <div className="flex items-baseline gap-3 mt-1.5">
-                          {chapter.description && (
-                            <p className="font-serif text-small text-edit-muted max-w-xl [word-break:keep-all] flex-1">
-                              {chapter.description}
-                            </p>
-                          )}
-                          {getChapterPhotoCount(chapter.id) > 0 && (
-                            <span className="t-eyebrow text-edit-faint shrink-0">
-                              {t('story.chapterPhotoCount', { count: getChapterPhotoCount(chapter.id) })}
-                            </span>
-                          )}
-                        </div>
+                      {/* description */}
+                      {chapter.description && (
+                        <p className="font-serif text-small text-edit-muted max-w-xl [word-break:keep-all] mt-1.5">
+                          {chapter.description}
+                        </p>
                       )}
 
                       {/* hairline divider */}
@@ -1838,9 +1857,16 @@ function ProjectStory({
                       ) : (
                         <>
                           <div className="flex items-baseline justify-between gap-4">
-                            <h4 className="font-serif text-h3 text-edit-ink tracking-tight [word-break:keep-all]">
-                              {subChapter.title}
-                            </h4>
+                            <div className="flex items-baseline gap-3 min-w-0">
+                              <h4 className="font-serif text-h3 text-edit-ink tracking-tight [word-break:keep-all]">
+                                {subChapter.title}
+                              </h4>
+                              {getChapterPhotoCount(subChapter.id) > 0 && (
+                                <span className="t-eyebrow text-edit-faint shrink-0">
+                                  {t('story.chapterPhotoCount', { count: getChapterPhotoCount(subChapter.id) })}
+                                </span>
+                              )}
+                            </div>
                             <div className="flex items-center gap-3 shrink-0
                                             opacity-0 group-hover/chapter:opacity-100 focus-within:opacity-100
                                             transition-opacity duration-150">
@@ -1878,19 +1904,10 @@ function ProjectStory({
                               </button>
                             </div>
                           </div>
-                          {(subChapter.description || getChapterPhotoCount(subChapter.id) > 0) && (
-                            <div className="flex items-baseline gap-3 mt-1.5">
-                              {subChapter.description && (
-                                <p className="font-serif text-small text-edit-muted max-w-xl [word-break:keep-all] flex-1">
-                                  {subChapter.description}
-                                </p>
-                              )}
-                              {getChapterPhotoCount(subChapter.id) > 0 && (
-                                <span className="t-eyebrow text-edit-faint shrink-0">
-                                  {t('story.chapterPhotoCount', { count: getChapterPhotoCount(subChapter.id) })}
-                                </span>
-                              )}
-                            </div>
+                          {subChapter.description && (
+                            <p className="font-serif text-small text-edit-muted max-w-xl [word-break:keep-all] mt-1.5">
+                              {subChapter.description}
+                            </p>
                           )}
                           <div className="mt-4 h-px bg-edit-line" />
                         </>
