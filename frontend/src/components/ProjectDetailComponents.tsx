@@ -446,7 +446,7 @@ export const PhotoCard = memo(function PhotoCard({
   const [hoverStar, setHoverStar] = useState<number | null>(null)
 
   return (
-    <div className={`rounded-[2px] overflow-hidden bg-edit-paper-2 transition-[box-shadow] ${
+    <div className={`rounded-[2px] overflow-hidden transition-[box-shadow] ${
       isSelected ? 'ring-2 ring-edit-ink ring-offset-2 ring-offset-edit-paper' : ''
     }`}>
       <div className="relative group">
@@ -507,7 +507,7 @@ export const PhotoCard = memo(function PhotoCard({
       </div>
 
       {/* 하단 메타 — 항상 표시 */}
-      <div className={`bg-edit-paper px-3 py-2 border-t border-edit-line transition-opacity ${
+      <div className={`px-3 py-2 transition-opacity ${
         selectionMode ? 'opacity-40 pointer-events-none' : ''
       }`}>
         <div className="flex items-center justify-between gap-2">
