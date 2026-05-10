@@ -849,14 +849,12 @@ def bulk_update_local_missing(
     current_user: models.User = Depends(get_current_user)
 ):
     """앱 시작 시 local_missing 일괄 동기화 (Electron용)"""
-    updated = 0
-    for item in body.updates:
-        photo = db.query(models.Photo).filter(
-            models.Photo.project_id == project_id,
-            models.Photo.original_filename == item["filename"],
-        ).first()
-        if photo:
-            photo.local_missing = item["local_missing"]
-            updated += 1
+    filename_to_missing = {item["filename"]: item["local_missing"] for item in body.updates}
+    photos = db.query(models.Photo).filter(
+        models.Photo.project_id == project_id,
+        models.Photo.original_filename.in_(filename_to_missing.keys())
+    ).all()
+    for photo in photos:
+        photo.local_missing = filename_to_missing[photo.original_filename]
     db.commit()
-    return {"updated": updated}
+    return {"updated": len(photos)}
