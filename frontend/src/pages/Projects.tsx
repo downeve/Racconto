@@ -160,10 +160,8 @@ export default function Projects() {
     }
   }
 
-  const isElectron = !!window.racconto
-
   return (
-    <div className={`${isElectron ? 'w-full' : 'max-w-7xl mx-auto'} p-6`}>
+    <div className="max-w-7xl mx-auto p-6">
       {confirmModal && (
         <ConfirmModal
           message={confirmModal.message}
