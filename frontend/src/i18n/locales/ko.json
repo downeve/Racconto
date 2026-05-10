@@ -287,7 +287,7 @@
     "preview": "포트폴리오 전체 미리보기",
     "chapter": "챕터",
     "chapters": "챕터 목록",
-    "addChapter": "+ 챕터 추가",
+    "addChapter": "챕터 추가",
     "addSubChapter": "의 서브 챕터 추가",
     "deleteChapter": "챕터 삭제",
     "chapterTitle": "챕터 제목을 입력하세요 (필수)",
@@ -346,7 +346,7 @@
     "selected": "{{count}}장 선택됨",
     "deselectAll": "선택 해제",
     "bulkDeleteConfirm": "선택한 {{count}}장을 삭제할까요? 연결도 해제됩니다.",
-    "layoutGuide": "PHOTO 블록 레이아웃"
+    "layoutGuide": "포트폴리오 레이아웃 안내"
   },
   "note": {
     "title": "노트",
