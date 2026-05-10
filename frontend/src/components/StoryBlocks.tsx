@@ -338,7 +338,7 @@ export const SortableTextBlock = memo(function SortableTextBlock({
   const isEditing = editingTextItemId === itemId;
 
   return (
-    <div ref={setRef} style={style} className="w-full group relative mb-1 min-w-0 border-l-2 border-edit-line/40 hover:border-edit-line-strong hover:bg-edit-paper/50 transition-[background-color,border-color] duration-150">
+    <div ref={setRef} style={style} className="w-full group relative mb-3 min-w-0 rounded-[2px] border border-edit-line/40 hover:border-edit-line hover:bg-edit-paper/40 transition-[background-color,border-color] duration-150">
       {/* 드래그 핸들 — 외부 좌측 (PHOTO/SIDE 블록과 동일 위치) */}
       {!isEditing && (
         <div
