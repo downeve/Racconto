@@ -202,7 +202,7 @@ export function Lightbox({
 
       {/* 상단 바 */}
       <div
-        className={`flex items-center justify-between px-6 pt-3 pb-0 shrink-0 relative transition-opacity duration-300 ${chromeVisible ? 'opacity-100' : 'opacity-0'}`}
+        className="flex items-center justify-between px-6 pt-3 pb-0 shrink-0 relative"
         style={{ paddingTop: window.racconto ? '2rem' : undefined }}
         onClick={e => e.stopPropagation()}
       >
