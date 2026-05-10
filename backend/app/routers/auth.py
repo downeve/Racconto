@@ -29,6 +29,9 @@ APPLE_PRIVATE_KEY = os.getenv("APPLE_PRIVATE_KEY", "")
 NAVER_CLIENT_ID = os.getenv("NAVER_CLIENT_ID")
 NAVER_CLIENT_SECRET = os.getenv("NAVER_CLIENT_SECRET")
 
+LINE_CLIENT_ID = os.getenv("LINE_CLIENT_ID")
+LINE_CLIENT_SECRET = os.getenv("LINE_CLIENT_SECRET")
+
 BACKEND_URL = os.getenv("BACKEND_URL", "https://racconto.app")
 FRONTEND_URL = os.getenv("BASE_URL", "https://racconto.app")
 
@@ -615,6 +618,114 @@ async def naver_callback(
         db.refresh(user)
 
     if is_new_user and email:
+        background_tasks.add_task(send_social_welcome_email, email)
+
+    access_token_jwt = create_access_token(data={"sub": user.id, "is_admin": user.is_admin})
+    platform = request.session.get("oauth_platform", "web")
+    if platform in ("ios", "electron"):
+        return RedirectResponse(f"racconto://auth/callback?token={access_token_jwt}")
+    return RedirectResponse(f"{FRONTEND_URL}/auth/social-callback?token={access_token_jwt}")
+
+
+@router.get("/line/login")
+async def line_login(request: Request, platform: str = "web"):
+    state = secrets.token_urlsafe(16)
+    request.session["oauth_state"] = state
+    request.session["oauth_platform"] = platform
+    redirect_uri = f"{BACKEND_URL}/auth/line/callback"
+    line_auth_url = (
+        "https://access.line.me/oauth2/v2.1/authorize"
+        f"?client_id={LINE_CLIENT_ID}"
+        f"&redirect_uri={redirect_uri}"
+        "&response_type=code"
+        "&scope=profile%20openid"
+        f"&state={state}"
+    )
+    return RedirectResponse(line_auth_url)
+
+
+@router.get("/line/callback")
+async def line_callback(
+    request: Request,
+    background_tasks: BackgroundTasks,
+    state: str,
+    code: Optional[str] = None,
+    error: Optional[str] = None,
+    db: Session = Depends(get_db)
+):
+    if error:
+        return RedirectResponse(f"{FRONTEND_URL}/login?error=cancelled")
+
+    saved_state = request.session.get("oauth_state")
+    if not saved_state or saved_state != state:
+        raise HTTPException(status_code=400, detail="INVALID_STATE")
+
+    redirect_uri = f"{BACKEND_URL}/auth/line/callback"
+
+    async with httpx.AsyncClient() as client:
+        token_resp = await client.post(
+            "https://api.line.me/oauth2/v2.1/token",
+            data={
+                "grant_type": "authorization_code",
+                "code": code,
+                "redirect_uri": redirect_uri,
+                "client_id": LINE_CLIENT_ID,
+                "client_secret": LINE_CLIENT_SECRET,
+            },
+            headers={"Content-Type": "application/x-www-form-urlencoded"},
+        )
+        token_data = token_resp.json()
+
+    if "error" in token_data:
+        raise HTTPException(status_code=400, detail="LINE_TOKEN_ERROR")
+
+    line_access_token = token_data.get("access_token")
+
+    async with httpx.AsyncClient() as client:
+        profile_resp = await client.get(
+            "https://api.line.me/v2/profile",
+            headers={"Authorization": f"Bearer {line_access_token}"}
+        )
+        profile_data = profile_resp.json()
+
+    line_user_id = profile_data.get("userId")
+    if not line_user_id:
+        raise HTTPException(status_code=400, detail="LINE_PROFILE_ERROR")
+
+    # LINE 기본 프로필에는 이메일이 없으므로 고유 식별자로 대체
+    email = f"line_{line_user_id}@line.racconto"
+
+    user = db.query(models.User).filter(
+        models.User.oauth_provider == "line",
+        models.User.oauth_id == line_user_id
+    ).first()
+
+    is_new_user = False
+    if not user:
+        display_name = profile_data.get("displayName", "")
+        username_base = display_name.replace(" ", "_").lower() if display_name else f"user_{line_user_id[:8]}"
+        # 영문/숫자/언더스코어만 허용
+        import re
+        username_base = re.sub(r"[^a-z0-9_]", "", username_base) or f"user_{line_user_id[:8]}"
+        username = username_base
+        existing = db.query(models.User).filter(models.User.username == username).first()
+        if existing:
+            username = f"{username}_{secrets.token_hex(3)}"
+        user = models.User(
+            id=str(uuid.uuid4()),
+            email=email,
+            username=username,
+            password_hash=None,
+            oauth_provider="line",
+            oauth_id=line_user_id,
+            is_verified=True,
+        )
+        db.add(user)
+        is_new_user = True
+        db.commit()
+        db.refresh(user)
+
+    if is_new_user:
         background_tasks.add_task(send_social_welcome_email, email)
 
     access_token_jwt = create_access_token(data={"sub": user.id, "is_admin": user.is_admin})
