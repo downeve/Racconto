@@ -11,7 +11,7 @@ function FormField({ label, required, children }: {
   label: string; required?: boolean; children: React.ReactNode
 }) {
   return (
-    <div className="py-5 border-b border-edit-line first:pt-0 last:border-b-0">
+    <div className="py-5 border-b border-edit-line-strong first:pt-0 last:border-b-0">
       <label className="block t-eyebrow text-edit-muted mb-2">
         {label}{required && <span className="text-edit-danger ml-1">*</span>}
       </label>
@@ -147,7 +147,7 @@ export default function ProjectEdit() {
         <FormField label={t('project.labelLocation')}>
           <FormInput value={location} onChange={setLocation} placeholder={t('project.location')} />
         </FormField>
-        <div className="py-5 border-b border-edit-line last:border-b-0 grid grid-cols-2 gap-8">
+        <div className="py-5 border-b border-edit-line-strong last:border-b-0 grid grid-cols-2 gap-8">
           <div>
             <p className="t-eyebrow text-edit-muted mb-2">{t('project.labelStatus')}</p>
             <SegmentedControl value={status} onChange={setStatus} options={STATUS_OPTIONS} />

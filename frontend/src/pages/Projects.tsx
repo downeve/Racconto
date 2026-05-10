@@ -186,11 +186,11 @@ export default function Projects() {
       </div>
 
       {showForm && (
-        <div className="max-w-2xl bg-card rounded-card shadow p-6 mb-8">
+        <div className="max-w-2xl mb-8 pb-8 border-b border-hair">
           <h3 className="font-serif text-h2 font-normal tracking-tight mb-8">{t('project.createProject')}</h3>
 
           {/* 제목 */}
-          <div className="py-5 border-b border-edit-line first:pt-0">
+          <div className="pt-0 pb-5 border-b border-edit-line-strong">
             <p className="t-eyebrow text-edit-muted mb-2">{t('project.labelTitle')}<span className="text-edit-danger ml-1">*</span></p>
             <input
               value={title} onChange={e => setTitle(e.target.value)}
@@ -200,7 +200,7 @@ export default function Projects() {
           </div>
 
           {/* 설명 */}
-          <div className="py-5 border-b border-edit-line">
+          <div className="py-5 border-b border-edit-line-strong">
             <p className="t-eyebrow text-edit-muted mb-2">{t('project.labelDescription')}</p>
             <textarea
               value={description} onChange={e => setDescription(e.target.value)}
@@ -211,7 +211,7 @@ export default function Projects() {
           </div>
 
           {/* 장소 */}
-          <div className="py-5 border-b border-edit-line">
+          <div className="py-5 border-b border-edit-line-strong">
             <p className="t-eyebrow text-edit-muted mb-2">{t('project.labelLocation')}</p>
             <input
               value={location} onChange={e => setLocation(e.target.value)}
@@ -221,7 +221,7 @@ export default function Projects() {
           </div>
 
           {/* 상태 + 공개 여부 */}
-          <div className="py-5 border-b border-edit-line grid grid-cols-2 gap-8">
+          <div className="py-5 grid grid-cols-2 gap-8">
             <div>
               <p className="t-eyebrow text-edit-muted mb-2">{t('project.labelStatus')}</p>
               <div className="inline-flex border border-edit-line rounded-[1px] p-0.5 flex-wrap gap-0.5">
