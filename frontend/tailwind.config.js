@@ -31,6 +31,17 @@ export default {
         'd-faint':   'oklch(0.55 0.008 75)',  // 다크 microcopy
         'd-soft':    'oklch(0.78 0.010 75)',  // 다크 secondary body
         'd-hair':    'oklch(0.94 0.008 75)',  // 다크 body
+        // 편집기 전용 의미 토큰 (ProjectStory / StoryBlocks)
+        'edit-paper':       'oklch(0.98 0.005 75)',
+        'edit-paper-2':     'oklch(0.94 0.005 75)',
+        'edit-line':        'oklch(0.88 0.008 75)',
+        'edit-line-strong': 'oklch(0.78 0.010 75)',
+        'edit-ink':         'oklch(0.22 0.012 60)',
+        'edit-muted':       'oklch(0.55 0.012 65)',
+        'edit-faint':       'oklch(0.72 0.010 75)',
+        'edit-accent':      'oklch(0.45 0.10 240)',
+        'edit-danger':      'oklch(0.50 0.15 25)',
+        'edit-drop':        'oklch(0.95 0.04 240)',
         // 하위 호환 (기존 PublicPortfolio 다크 헬퍼에서 사용)
         'card-cover': colors.stone[800],
         'card-surface': colors.stone[900],
@@ -84,6 +95,14 @@ export default {
         'btn': '2px',   // 버튼용
         'card': '3px',  // 카드, 모달, 패널용
         // 뱃지용 'full'은 Tailwind 기본값(rounded-full)이 이미 있으므로 안 적어도 됩니다!
+      },
+      zIndex: {
+        'block-handle':   '10',
+        'photo-controls': '20',
+        'block-toolbar':  '25',
+        'popover':        '40',
+        'dragging':       '50',
+        'modal':          '60',
       },
       fontFamily: {
         // 콘텐츠/에디토리얼 — 포트폴리오 본문, 제목

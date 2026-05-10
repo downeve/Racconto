@@ -113,7 +113,7 @@ export const InsertSlot = memo(function InsertSlot({
         <div className="absolute inset-x-0 top-1/2 -translate-y-1/2 h-px bg-stone-200 pointer-events-none" />
         <button
           onClick={() => onInsertText(chapterId, insertIndex)}
-          className="relative z-10 h-6 w-6 rounded-full bg-white border border-stone-300 text-stone-500 shadow-sm flex items-center justify-center"
+          className="relative z-block-handle h-6 w-6 rounded-full bg-white border border-stone-300 text-stone-500 shadow-sm flex items-center justify-center"
           aria-label={t('story.insertText')}
         >
           <Plus size={14} strokeWidth={1.5} />
@@ -146,7 +146,7 @@ export const InsertSlot = memo(function InsertSlot({
       <button
         onClick={() => { onInsertText(chapterId, insertIndex); setOpen(false); setHovered(false) }}
         className={`absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2
-                    z-10 h-6 px-2 rounded-btn bg-white border border-stone-300
+                    z-block-handle h-6 px-2 rounded-btn bg-white border border-stone-300
                     text-stone-500 hover:text-stone-700 hover:border-stone-400
                     shadow-sm text-sm leading-none flex items-center gap-1
                     transition-[opacity,transform] duration-150 ease-out origin-center
@@ -162,7 +162,7 @@ export const InsertSlot = memo(function InsertSlot({
 
       {/* popover — open일 때만 mount (현재 side-by-side 옵션 비활성) */}
       {open && (
-        <div className="absolute top-full left-1/2 -translate-x-1/2 mt-1 z-50 bg-white border border-stone-200 rounded-card shadow-lg py-1 min-w-[160px]">
+        <div className="absolute top-full left-1/2 -translate-x-1/2 mt-1 z-popover bg-white border border-stone-200 rounded-card shadow-lg py-1 min-w-[160px]">
           <button
             onClick={() => { onInsertText(chapterId, insertIndex); setOpen(false); setHovered(false) }}
             className="w-full text-left px-3 py-1.5 text-sm text-stone-700 hover:bg-stone-50 flex items-center gap-2"
@@ -226,7 +226,7 @@ export function SortablePhotoChapter({
           className="absolute inset-0 w-full h-full object-contain cursor-pointer"
           onClick={onClick}
         />
-        <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity z-10 pointer-events-none" />
+        <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity z-block-handle pointer-events-none" />
 
         {/* 체크박스 — 선택 시 상시, 미선택 시 hover 또는 anySelected일 때 표시 */}
         {onToggleSelect && (
@@ -247,7 +247,7 @@ export function SortablePhotoChapter({
           <div
             {...attributes}
             {...listeners}
-            className="absolute top-1.5 left-1.5 p-1.5 rounded cursor-grab opacity-30 group-hover:opacity-100 transition-opacity z-20"
+            className="absolute top-1.5 left-1.5 p-1.5 rounded cursor-grab opacity-30 group-hover:opacity-100 transition-opacity z-photo-controls"
           >
             <DragHandleDots size={12} color="white" />
           </div>
@@ -256,7 +256,7 @@ export function SortablePhotoChapter({
           <div
             {...attributes}
             {...listeners}
-            className="absolute top-1.5 left-8 p-1.5 rounded cursor-grab opacity-0 group-hover:opacity-60 transition-opacity z-20"
+            className="absolute top-1.5 left-8 p-1.5 rounded cursor-grab opacity-0 group-hover:opacity-60 transition-opacity z-photo-controls"
           >
             <DragHandleDots size={12} color="white" />
           </div>
@@ -265,7 +265,7 @@ export function SortablePhotoChapter({
         {/* 삭제 버튼 */}
         <button
           onClick={(e) => { e.stopPropagation(); onRemove(chapterId, id) }}
-          className="absolute top-1 right-1 bg-stone-900/70 text-white rounded w-5 h-5 opacity-40 group-hover:opacity-100 flex items-center justify-center transition-opacity z-20 hover:bg-stone-900"
+          className="absolute top-1 right-1 bg-stone-900/70 text-white rounded w-5 h-5 opacity-40 group-hover:opacity-100 flex items-center justify-center transition-opacity z-photo-controls hover:bg-stone-900"
           aria-label="삭제"
         >
           <svg width="10" height="10" viewBox="0 0 10 10" fill="none" strokeWidth="1.5" stroke="currentColor">
@@ -275,7 +275,7 @@ export function SortablePhotoChapter({
         </button>
 
         {/* 블록 이동 버튼 */}
-        <div className="absolute bottom-1 right-1 z-20">
+        <div className="absolute bottom-1 right-1 z-photo-controls">
           <button
             onClick={(e) => { e.stopPropagation(); onRequestMove(id) }}
             className="opacity-0 group-hover:opacity-100 transition-opacity border border-stone-300 bg-card text-muted hover:text-ink rounded px-1.5 py-0.5 text-eyebrow leading-tight"
@@ -288,7 +288,7 @@ export function SortablePhotoChapter({
         {/* 풀너비 힌트 배지 */}
         {fullWidthHint && (
           <span
-            className="absolute bottom-1 left-1 z-10 inline-flex items-center gap-0.5 px-1.5 py-[3px] rounded font-mono text-eyebrow tracking-wider uppercase bg-stone-900/75 text-white backdrop-blur-sm pointer-events-none"
+            className="absolute bottom-1 left-1 z-block-handle inline-flex items-center gap-0.5 px-1.5 py-[3px] rounded font-mono text-eyebrow tracking-wider uppercase bg-stone-900/75 text-white backdrop-blur-sm pointer-events-none"
             title="포트폴리오에서 가로 풀너비로 표시됩니다"
           >
             ↔ {t('story.row.fullWidth')}
@@ -344,7 +344,7 @@ export const SortableTextBlock = memo(function SortableTextBlock({
         <div
           {...attributes}
           {...listeners}
-          className="absolute -left-5 top-1/2 -translate-y-1/2 cursor-grab opacity-30 group-hover:opacity-100 transition-opacity z-10 p-1"
+          className="absolute -left-5 top-1/2 -translate-y-1/2 cursor-grab opacity-30 group-hover:opacity-100 transition-opacity z-block-handle p-1"
         >
           <DragHandleDots />
         </div>
@@ -382,7 +382,7 @@ export const SortableTextBlock = memo(function SortableTextBlock({
 
       {/* 호버 툴바 — inner div 뒤에 배치해야 Safari에서 [overflow-x:clip] stacking context 위에 렌더링됨 */}
       {!isEditing && (
-        <div className="absolute -top-4 right-5 opacity-0 group-hover:opacity-100 transition-opacity z-60 flex items-center gap-1 bg-white border border-gray-200 rounded shadow px-1.5 py-0.5">
+        <div className="absolute -top-4 right-5 opacity-0 group-hover:opacity-100 transition-opacity z-modal flex items-center gap-1 bg-white border border-gray-200 rounded shadow px-1.5 py-0.5">
           {!isFirst && (
             <button
               onClick={() => { onMoveBlock?.('up'); scrollToSelf() }}
@@ -595,13 +595,13 @@ export const SortablePhotoBlock = memo(function SortablePhotoBlock({
       <div
         {...attributes}
         {...listeners}
-        className="absolute -left-5 top-1/2 -translate-y-1/2 cursor-grab opacity-30 group-hover/block:opacity-100 transition-opacity z-10 p-1"
+        className="absolute -left-5 top-1/2 -translate-y-1/2 cursor-grab opacity-30 group-hover/block:opacity-100 transition-opacity z-block-handle p-1"
       >
         <DragHandleDots />
       </div>
 
       {/* 레이아웃 아이콘 — hover 아닐 때 상시 표시 */}
-      <div className="absolute top-0 left-1 opacity-100 group-hover/block:opacity-100 transition-opacity z-20 pointer-events-none">
+      <div className="absolute top-0 left-1 opacity-100 group-hover/block:opacity-100 transition-opacity z-block-toolbar pointer-events-none">
         {blockLayout === 'grid' && (
           <svg width="16" height="11" viewBox="0 0 16 12" fill="none" className="text-muted">
             <rect x="0" y="0" width="4.5" height="5" rx="0.8" fill="currentColor"/>
@@ -629,7 +629,7 @@ export const SortablePhotoBlock = memo(function SortablePhotoBlock({
       </div>
 
       {/* 레이아웃 툴바 — hover 시 표시 */}
-      <div className="absolute -top-4 right-5 opacity-0 group-hover/block:opacity-100 transition-opacity z-20 flex items-center gap-1 bg-white border border-gray-200 rounded shadow px-1.5 py-0.5">
+      <div className="absolute -top-4 right-5 opacity-0 group-hover/block:opacity-100 transition-opacity z-block-toolbar flex items-center gap-1 bg-white border border-gray-200 rounded shadow px-1.5 py-0.5">
         {!isFirst && (
           <button
             onClick={() => { onMoveBlock?.('up'); scrollToSelf() }}
@@ -780,7 +780,7 @@ export const SortableSideBySideBlock = memo(function SortableSideBySideBlock({
 
   const photoCol = (
   <div className="flex-1 min-w-0 relative group/photo">
-    <div className="absolute -top-2 left-2 opacity-0 group-hover/photo:opacity-100 transition-opacity z-20">
+    <div className="absolute -top-2 left-2 opacity-0 group-hover/photo:opacity-100 transition-opacity z-photo-controls">
     </div>
       <div className="grid grid-cols-1 gap-2">
         {photoItems.map(item => (
@@ -792,7 +792,7 @@ export const SortableSideBySideBlock = memo(function SortableSideBySideBlock({
             />
             <button
               onClick={(e) => { e.stopPropagation(); onRemoveItem(chapterId, item.id) }}
-              className="absolute top-1 right-1 bg-stone-900/70 text-white rounded w-5 h-5 opacity-40 group-hover:opacity-100 flex items-center justify-center transition-opacity z-10 hover:bg-stone-900"
+              className="absolute top-1 right-1 bg-stone-900/70 text-white rounded w-5 h-5 opacity-40 group-hover:opacity-100 flex items-center justify-center transition-opacity z-photo-controls hover:bg-stone-900"
               aria-label="삭제"
             >
               <svg width="10" height="10" viewBox="0 0 10 10" fill="none" strokeWidth="1.5" stroke="currentColor">
@@ -855,12 +855,12 @@ export const SortableSideBySideBlock = memo(function SortableSideBySideBlock({
       <div
         {...attributes}
         {...listeners}
-        className="absolute -left-5 top-1/2 -translate-y-1/2 cursor-grab opacity-30 group-hover/block:opacity-100 transition-opacity z-10 p-1"
+        className="absolute -left-5 top-1/2 -translate-y-1/2 cursor-grab opacity-30 group-hover/block:opacity-100 transition-opacity z-block-handle p-1"
       >
         <DragHandleDots />
       </div>
 
-      <div className="absolute -top-4 right-5 opacity-0 group-hover/block:opacity-100 transition-opacity z-20 flex items-center gap-1 bg-white border border-gray-200 rounded shadow px-1.5 py-0.5">
+      <div className="absolute -top-4 right-5 opacity-0 group-hover/block:opacity-100 transition-opacity z-block-toolbar flex items-center gap-1 bg-white border border-gray-200 rounded shadow px-1.5 py-0.5">
         {!isFirst && (
           <button
             onClick={() => { onMoveBlock?.('up'); scrollToSelf() }}
