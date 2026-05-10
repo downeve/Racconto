@@ -99,7 +99,8 @@ export default function PublicPortfolio() {
           if (err.response?.status === 404) setNotFound(true)
         })
     } else {
-      // 전체 포트폴리오 목록
+      // 전체 포트폴리오 목록 — slug 없는 라우트로 돌아올 때 선택 상태 초기화
+      setSelectedProject(null)
       axios.get(`${API}/portfolio/${username}`)
         .then(res => {
           setProjects(res.data.projects)
