@@ -29,6 +29,14 @@ EMAIL_TEMPLATES = {
         'validity': 'This link is valid for 24 hours.',
         'button': 'Verify Email',
         'ignore': 'If you did not request this, please ignore this email.',
+    },
+    'ja': {
+        'subject': 'Racconto メール認証',
+        'title': 'メール認証',
+        'desc': 'Racconto にご登録いただきありがとうございます！以下のボタンをクリックしてメール認証を完了してください。',
+        'validity': '認証リンクの有効期限は24時間です。',
+        'button': 'メールを認証する',
+        'ignore': '心当たりのない場合は、このメールを無視してください。',
     }
 }
 
@@ -48,6 +56,14 @@ RESET_TEMPLATES = {
         'validity': 'This link is valid for 1 hour.',
         'button': 'Reset Password',
         'ignore': 'If you did not request this, please ignore this email.',
+    },
+    'ja': {
+        'subject': 'Racconto パスワード再設定',
+        'title': 'パスワード再設定',
+        'desc': '以下のボタンをクリックして、新しいパスワードを設定してください。',
+        'validity': 'リンクの有効期限は1時間です。',
+        'button': 'パスワードを再設定する',
+        'ignore': '心当たりのない場合は、このメールを無視してください。',
     }
 }
 
@@ -195,6 +211,17 @@ WELCOME_TEMPLATES = {
         'button': 'Get Started',
         'closing': 'We\'re excited to see the stories you\'ll create.',
     },
+    'ja': {
+        'subject': 'Racconto へようこそ',
+        'title': 'メール認証が完了しました。',
+        'body': (
+            'メール認証が正常に完了しました。<br><br>'
+            'Racconto で写真のストーリーを語る準備が整いました。<br>'
+            'プロジェクトを作成して、あなたの写真に物語を添えてみてください。'
+        ),
+        'button': 'Racconto を始める',
+        'closing': 'あなたが生み出す素晴らしいストーリーを楽しみにしています。',
+    },
 }
 
 
@@ -276,6 +303,17 @@ SOCIAL_WELCOME_TEMPLATES = {
         'button': 'Get Started',
         'closing': 'We\'re excited to see the stories you\'ll create.',
     },
+    'ja': {
+        'subject': 'Racconto へようこそ',
+        'title': 'Racconto にご登録いただきありがとうございます。',
+        'body': (
+            'ソーシャルアカウントでの登録が完了しました。<br><br>'
+            'Racconto で写真のストーリーを語る準備が整いました。<br>'
+            'プロジェクトを作成して、あなたの写真に物語を添えてみてください。'
+        ),
+        'button': 'Racconto を始める',
+        'closing': 'あなたが生み出す素晴らしいストーリーを楽しみにしています。',
+    },
 }
 
 
@@ -354,6 +392,16 @@ FAREWELL_TEMPLATES = {
             'You are always welcome to come back.'
         ),
         'closing': 'Thank you sincerely for using Racconto.',
+    },
+    'ja': {
+        'subject': 'Racconto の退会処理が完了しました',
+        'title': 'ご利用ありがとうございました',
+        'body': (
+            'ご要望のとおり、退会処理が正常に完了しました。<br><br>'
+            'アップロードされた写真およびすべての個人データは削除されました。<br>'
+            'またいつでもご利用いただけますので、またのご登録をお待ちしております。'
+        ),
+        'closing': 'これまで Racconto をご利用いただき、誠にありがとうございました。',
     },
 }
 
