@@ -1,290 +1,213 @@
 import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import { useEffect, useRef, useState } from 'react'
+import { useRef } from 'react'
+import { ArrowDown, Monitor, ArrowUpRight } from 'lucide-react'
 import PublicNavbar from '../components/PublicNavbar'
+import { Wordmark } from '../components/Wordmark'
 
 export default function LandingPage() {
   const { t, i18n } = useTranslation()
   const lang = i18n.language.startsWith('ko') ? 'ko' : 'en'
   const ss = (name: string, ext: string = 'webp') => `./screenshots/${name}_${lang}.${ext}`
-  const [scrollY, setScrollY] = useState(0)
   const featuresRef = useRef<HTMLDivElement>(null)
 
-  useEffect(() => {
-    const handleScroll = () => setScrollY(window.scrollY)
-    window.addEventListener('scroll', handleScroll, { passive: true })
-    return () => window.removeEventListener('scroll', handleScroll)
-  }, [])
+  const scrollToFeatures = () => {
+    const el = featuresRef.current
+    if (!el) return
+    const top = el.getBoundingClientRect().top + window.scrollY - 24
+    window.scrollTo({ top, behavior: 'smooth' })
+  }
 
   const features = [
     {
-      number: '01',
+      key: 'story',
+      label: t('landing.featuresEyebrow'),
       title: t('landing.feature1Title'),
       desc: t('landing.feature1Desc'),
-      visual: (
-        <div className="w-full aspect-[16/9] rounded overflow-hidden shadow-md relative">
-          <div
-            className="absolute inset-x-0 top-0"
-            //style={{ animation: 'slowScroll 8s ease-in-out infinite alternate' }}
-          >
-            <img
-              src={ss('screenshot-story', 'gif')}
-              alt="Story structure"
-              className="w-full h-full object-cover object-top"
-            />
-          </div>
-        </div>
-      ),
+      image: ss('screenshot-story', 'gif'),
+      imageAlt: 'Story structure',
     },
     {
-      number: '02',
+      key: 'desktop',
+      label: t('landing.featuresEyebrow'),
       title: t('landing.feature2Title'),
       desc: t('landing.feature2Desc'),
-      visual: (
-        <div className="w-full aspect-[16/9] rounded overflow-hidden shadow-md">
-          <img
-            src={ss('screenshot-electron-1', 'gif')}
-            alt="Desktop app"
-            className="w-full h-full object-cover object-top"
-          />
-        </div>
-      ),
+      image: ss('screenshot-electron-1', 'gif'),
+      imageAlt: 'Desktop app',
     },
     {
-      number: '03',
+      key: 'notes',
+      label: t('landing.featuresEyebrow'),
       title: t('landing.feature3Title'),
       desc: t('landing.feature3Desc'),
-      visual: (
-        <div className="w-full aspect-[16/9] rounded overflow-hidden shadow-md">
-          <img
-            src={ss('screenshot-notes')}
-            alt="Project notes"
-            className="w-full h-full object-cover object-top"
-          />
-        </div>
-      ),
+      image: ss('screenshot-notes'),
+      imageAlt: 'Project notes',
     },
     {
-      number: '04',
+      key: 'curation',
+      label: t('landing.featuresEyebrow'),
       title: t('landing.feature4Title'),
       desc: t('landing.feature4Desc'),
-      visual: (
-        <div className="w-full aspect-[16/9] rounded overflow-hidden shadow-md">
-          <img
-            src={ss('screenshot-photos')}
-            alt="Photo curation workflow"
-            className="w-full h-full object-cover object-top"
-          />
-        </div>
-      ),
+      image: ss('screenshot-photos'),
+      imageAlt: 'Photo curation',
     },
     {
-      number: '05',
+      key: 'portfolio',
+      label: t('landing.featuresEyebrow'),
       title: t('landing.feature5Title'),
       desc: t('landing.feature5Desc'),
-      visual: (
-        <div className="w-full aspect-[16/9] rounded overflow-hidden shadow-md">
-          <img
-            src={ss('screenshot-portfolio', 'gif')}
-            alt="Public portfolio"
-            className="w-full h-full object-cover object-top"
-          />
-        </div>
-      ),
+      image: ss('screenshot-portfolio', 'gif'),
+      imageAlt: 'Public portfolio',
     },
   ]
 
   return (
-    <div className="min-h-screen bg-canvas text-ink">
-
-      {/* ─── 아래 스타일 코드를 추가하세요 ─── */}
-      <style>{`
-        @keyframes slowScroll {
-          from { transform: translateY(0); }
-          to   { transform: translateY(-15%); } /* -20%에서 -12%로 변경: 숫자를 줄일수록 덜 올라갑니다 */
-        }
-      `}</style>
-      {/* ─────────────────────────────────── */}
-
+    <div className="min-h-screen bg-edit-canvas text-edit-ink">
       <PublicNavbar />
 
       {/* Hero */}
-      <section className="min-h-screen flex flex-col items-center justify-center px-6 pt-20 pb-32 relative overflow-hidden">
-
-        {/* 배경 그리드 장식 */}
+      <section className="relative min-h-[88vh] flex items-center px-6 md:px-12 overflow-hidden">
         <div
           className="absolute inset-0 pointer-events-none"
           style={{
-            backgroundImage: 'linear-gradient(to bottom, #E7E3DE 1px, transparent 1px), linear-gradient(90deg, #e7e3de 1px, transparent 1px)',
-            backgroundSize: '60px 60px',
-            opacity: 0.4,
-            transform: `translateY(${scrollY * 0.1}px)`,
+            backgroundImage: 'radial-gradient(circle at 50% 20%, rgba(0,0,0,0.025) 0%, transparent 60%)',
           }}
+          aria-hidden
         />
 
-        {/* 메인 텍스트 */}
-        <div className="relative z-10 text-center max-w-4xl">
-          <p className="text-body md:text-h3 tracking-[0.3em] text-faint uppercase mb-6">
+        <div className="relative max-w-5xl mx-auto text-center w-full">
+          <p className="t-eyebrow text-edit-muted mb-6">
             {t('landing.heroEyebrow')}
           </p>
-          <h1
-            className="text-h1 md:text-display font-serif font-bold leading-tight mb-6 text-ink break-keep"
-            style={{ letterSpacing: '-0.02em' }}
-          >
-            {t('landing.heroTitle')}
+          <h1 className="font-serif text-h1 md:text-display text-edit-ink
+                         font-normal tracking-tight leading-[1.05] mb-8 break-keep">
+            {t('landing.heroTitle')}<br />{t('landing.heroTitle2')}
           </h1>
-          <h1
-            className="text-h1 md:text-display font-serif font-bold leading-tight mb-8 text-ink break-keep"
-            style={{ letterSpacing: '-0.02em' }}
-          >
-            {t('landing.heroTitle2')}
-          </h1>
-          <p className="text-h3 md:text-h2 text-muted leading-relaxed mb-10 max-w-xl mx-auto break-keep">
+          <p className="font-serif text-body md:text-h3 text-edit-muted
+                        leading-[1.65] mb-12 max-w-xl mx-auto break-keep">
             {t('landing.heroSubtitle')}
           </p>
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-4 sm:gap-8">
             <Link
               to="/register"
-              className="px-8 py-3.5 min-w-48 text-body font-serif font-semibold btn-primary tracking-widest transition-all duration-200 shadow rounded"
+              className="px-8 py-3.5 bg-edit-ink text-edit-paper
+                         t-caption tracking-[0.08em] rounded-[1px]
+                         hover:bg-edit-ink/85 transition-colors duration-150"
             >
               {t('landing.ctaPrimary')}
             </Link>
             <button
-              onClick={() => featuresRef.current?.scrollIntoView({ behavior: 'smooth' })}
-              className="px-8 py-3.5 min-w-48 text-body font-serif font-semibold btn-secondary-on-card transition-all duration-200 rounded"
+              onClick={scrollToFeatures}
+              className="t-caption tracking-[0.08em] text-edit-muted hover:text-edit-ink
+                         inline-flex items-center gap-2 transition-colors group"
             >
               {t('landing.ctaSecondary')}
+              <ArrowDown size={11} strokeWidth={1.5}
+                         className="transition-transform group-hover:translate-y-0.5" />
             </button>
           </div>
-          <p className="mt-6 text-base text-muted tracking-wider">
-            {t('landing.betaBadge')}
-          </p>
+          <p className="mt-8 t-eyebrow text-edit-faint">{t('landing.betaBadge')}</p>
         </div>
 
-        {/* 스크롤 힌트 */}
-        <div className="absolute bottom-10 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 opacity-40">
-          <div className="w-px h-12 bg-muted animate-pulse" />
+        <div className="absolute bottom-10 left-1/2 -translate-x-1/2 flex flex-col items-center opacity-30">
+          <div className="w-px h-12 bg-edit-ink animate-pulse" />
         </div>
       </section>
 
       {/* App Demo */}
-      <section className="py-16 px-6 bg-canvas">
-        <div className="max-w-6xl mx-auto">
-          <div className="text-center mb-10">
-            <p className="text-xs tracking-[0.3em] text-stone-400 uppercase mb-3">{t('landing.demoEyebrow')}</p>
-            <h2 className="text-2xl md:text-3xl font-bold text-ink">
-              {t('landing.demoTitle')}
-            </h2>
-          </div>
+      <section className="px-6 md:px-12 py-24 max-w-6xl mx-auto">
+        <div className="text-center mb-12">
+          <p className="t-eyebrow text-edit-muted mb-3">{t('landing.demoEyebrow')}</p>
+          <h2 className="font-serif text-h2 text-edit-ink font-normal tracking-tight">
+            {t('landing.demoTitle')}
+          </h2>
+        </div>
 
-          {/* 메인 스크린샷 */}
-          <div className="rounded-card overflow-hidden shadow border border-hair mb-6">
-            <img
-              src={ss('screenshot-main')}
-              alt="Racconto app"
-              className="w-full object-cover object-top"
-            />
-          </div>
+        <figure className="mb-12">
+          <img
+            src={ss('screenshot-main')}
+            alt="Racconto app"
+            className="w-full block"
+          />
+          <figcaption className="t-caption text-edit-faint mt-4 text-center max-w-md mx-auto break-keep">
+            {t('landing.mainCaption')}
+          </figcaption>
+        </figure>
 
-          {/* 서브 스크린샷 2개 */}
-          <div className="grid grid-cols-2 gap-4">
-            <div className="rounded-card overflow-hidden shadow border border-hair">
-              <img
-                src={ss('screenshot-lightbox')}
-                alt="Lightbox view"
-                className="w-full object-cover"
-              />
-            </div>
-            <div className="rounded-card overflow-hidden shadow border border-hair">
-              <img
-                src={ss('screenshot-note-panel')}
-                alt="Note panel"
-                className="w-full object-cover"
-              />
-            </div>
-          </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-12 md:gap-16">
+          <figure>
+            <img src={ss('screenshot-lightbox')} alt="Lightbox view" className="w-full block" />
+            <figcaption className="t-caption text-edit-faint mt-3 break-keep">
+              {t('landing.lightboxCaption')}
+            </figcaption>
+          </figure>
+          <figure>
+            <img src={ss('screenshot-note-panel')} alt="Note panel" className="w-full block" />
+            <figcaption className="t-caption text-edit-faint mt-3 break-keep">
+              {t('landing.coverCaption')}
+            </figcaption>
+          </figure>
         </div>
       </section>
 
-      {/* Features */}
-      <section ref={featuresRef} className="py-24 px-6 bg-canvas-2">
-        <div className="max-w-6xl mx-auto">
-          <div className="text-center mb-16">
-            <p className="text-small tracking-[0.3em] text-faint uppercase mb-3">
-              {t('landing.featuresEyebrow')}
-            </p>
-            <h2 className="text-3xl md:text-4xl font-bold text-ink">
-              {t('landing.featuresTitle')}
-            </h2>
-          </div>
+      {/* Features Z-pattern */}
+      <section ref={featuresRef} className="px-6 md:px-12 py-24 max-w-6xl mx-auto">
+        <header className="text-center mb-20">
+          <p className="t-eyebrow text-edit-muted mb-4">{t('landing.featuresEyebrow')}</p>
+          <h2 className="font-serif text-h1 text-edit-ink font-normal tracking-tight break-keep">
+            {t('landing.featuresTitle')}
+          </h2>
+        </header>
 
-          <div className="flex flex-col gap-20">
-            {features.map((feature, index) => (
-              <div
-                key={feature.number}
-                className={`flex flex-col md:flex-row md:items-center gap-10 md:gap-16 ${index % 2 === 1 ? 'md:flex-row-reverse' : ''}`}
-              >
-                <div className="w-full md:w-3/5 shrink-0 shadow">
-                  {feature.visual}
-                </div>
-                <div className="w-full md:w-2/5">
-                  <span className="text-menu text-faint font-mono tracking-widest block mb-3">{feature.number}</span>
-                  <h3 className="text-h2 font-semibold text-ink mb-3">{feature.title}</h3>
-                  <p className="text-h3 text-muted [word-break:keep-all] leading-relaxed">{feature.desc}</p>
-                  {feature.number === '02' && (
-                  <div className="mt-4 rounded border border-stone-200 bg-canvas px-6 py-5 flex flex-col sm:items-center sm:justify-between gap-4">
-                  <div>
-                    <p className="text-small tracking-[0.2em] text-muted font-semibold uppercase mb-2">Desktop App · Beta</p>
-                    <p className="text-small text-ink-2 leading-relaxed mb-4">
-                      Free Download for macOS(.dmg) & Windows(.exe).
-                    </p>
-                    <div className="flex flex-wrap gap-3">
-                    <Link
-                      to="/download"
-                      className="inline-flex items-center gap-2 px-4 py-2 border border-stone-300 text-stone-700 text-xs tracking-widest rounded hover:border-stone-500 hover:text-stone-900 transition-[background,color,border] duration-150 ease-out"
-                    >
-                      <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="currentColor">
-                        <path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.8-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z" />
-                      </svg>
-                      macOS /
-                      <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="currentColor">
-                        <path d="M3 12V6.75l6-1.32v6.57H3zm17 0V5l-9 1.68V12h9zm-17 1h6v6.08L3 17.75V13zm17 0v7l-9-1.71V13h9z" />
-                      </svg>
-                      Windows Download
-                    </Link>
-                    </div>
-                  </div>
-                  </div>
-                  )}
-                </div>
+        <div className="space-y-32">
+          {features.map((f, i) => (
+            <div
+              key={f.key}
+              className={`grid grid-cols-1 md:grid-cols-12 gap-8 md:gap-12 items-center
+                          ${i % 2 === 1 ? 'md:[&>*:first-child]:order-2' : ''}`}
+            >
+              {/* 이미지 — 65% */}
+              <div className="md:col-span-8">
+                <img src={f.image} alt={f.imageAlt} className="w-full block" />
               </div>
-            ))}
-          </div>
+              {/* 텍스트 — 35% */}
+              <div className="md:col-span-4">
+                <p className="t-eyebrow text-edit-muted mb-4">{f.label}</p>
+                <h3 className="font-serif text-h2 text-edit-ink font-normal tracking-tight mb-4 break-keep">
+                  {f.title}
+                </h3>
+                <p className="font-serif text-body text-edit-ink/80 leading-[1.7] break-keep">
+                  {f.desc}
+                </p>
+                {f.key === 'desktop' && <DesktopAppInlineLink t={t} />}
+              </div>
+            </div>
+          ))}
         </div>
       </section>
 
-      {/* Beta CTA */}
-      <section className="py-24 px-6 bg-ink text-white">
-        <div className="max-w-2xl mx-auto text-center">
-          <p className="text-small tracking-[0.3em] text-faint uppercase mb-4">{t('landing.betaEyebrow')}</p>
-          <h2 className="text-2xl md:text-4xl font-semibold mb-4">
+      {/* Beta CTA — 다크 섹션 */}
+      <section className="bg-edit-ink text-edit-paper px-6 md:px-12 py-32">
+        <div className="max-w-3xl mx-auto text-center">
+          <p className="t-eyebrow text-edit-paper/60 mb-4">{t('landing.betaEyebrow')}</p>
+          <h2 className="font-serif text-h1 md:text-display font-normal tracking-tight mb-6 break-keep">
             {t('landing.betaTitle')}
           </h2>
-          <p className="text-faint mb-2 text-small leading-relaxed">
+          <p className="font-serif text-body md:text-h3 text-edit-paper/75 leading-[1.65] mb-4 break-keep">
             {t('landing.betaDesc')}
           </p>
-          <p className="text-faint mb-10 text-menu">
-            {t('landing.betaLimit')}
-          </p>
+          <p className="t-eyebrow text-edit-paper/40 mb-12">{t('landing.betaLimit')}</p>
           <Link
             to="/register"
-            className="inline-block px-10 py-4 bg-card text-ink-2 text-body font-serif font-semibold tracking-widest hover:bg-ink-2 hover:text-hair transition-[background,color,border] duration-150 ease-out rounded"
+            className="inline-block px-10 py-4 bg-edit-paper text-edit-ink
+                       t-caption tracking-[0.08em] rounded-[1px]
+                       hover:bg-edit-paper/90 transition-colors duration-150"
           >
             {t('landing.ctaPrimary')}
           </Link>
-          <p className="mt-6 text-menu text-faint">
+          <p className="mt-6 t-caption text-edit-paper/50">
             {t('landing.alreadyHaveAccount')}{' '}
-            <Link to="/login" className="text-menu hover:text-muted underline underline-offset-2">
+            <Link to="/login" className="text-edit-paper/70 hover:text-edit-paper underline underline-offset-2 transition-colors">
               {t('auth.login')}
             </Link>
           </p>
@@ -292,14 +215,36 @@ export default function LandingPage() {
       </section>
 
       {/* Footer */}
-      <footer className="py-8 px-6 bg-ink border-t border-hair">
-        <div className="max-w-6xl mx-auto flex items-center justify-between">
-          <span className="text-faint text-small font-serif font-bold tracking-widest">
-            Racconto
-          </span>
-          <p className="text-muted text-caption">© 2026 Racconto. All rights reserved.</p>
+      <footer className="px-6 md:px-12 py-16 border-t border-edit-line bg-edit-canvas">
+        <div className="max-w-6xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6">
+          <Wordmark size="sm" asLink={false} />
+          <p className="t-caption text-edit-faint">© {new Date().getFullYear()} Racconto</p>
         </div>
       </footer>
+    </div>
+  )
+}
+
+function DesktopAppInlineLink({ t }: { t: (key: string) => string }) {
+  return (
+    <div className="mt-8 pt-6 border-t border-edit-line">
+      <p className="t-eyebrow text-edit-muted mb-3">
+        {t('landing.desktopApp')} · Beta
+      </p>
+      <Link
+        to="/download"
+        className="inline-flex items-center gap-2 t-caption text-edit-ink
+                   hover:text-edit-muted transition-colors group"
+      >
+        <Monitor size={13} strokeWidth={1.5} />
+        macOS · Windows
+        <ArrowUpRight size={11} strokeWidth={1.5}
+          className="ml-1 transition-transform
+                     group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+      </Link>
+      <p className="t-caption text-edit-faint mt-2 break-keep">
+        {t('landing.dlNote')}
+      </p>
     </div>
   )
 }
