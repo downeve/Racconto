@@ -450,6 +450,7 @@ export const PhotoCard = memo(function PhotoCard({
 }: PhotoCardProps) {
   const { t, i18n } = useTranslation()
   const isAlreadyInStory = chapterPhotoIds.has(photo.id)
+  const [hoverStar, setHoverStar] = useState<number | null>(null)
 
   return (
     <div className={`rounded-[2px] overflow-hidden bg-edit-paper-2 transition-[box-shadow] ${
@@ -518,20 +519,24 @@ export const PhotoCard = memo(function PhotoCard({
       }`}>
         <div className="flex items-center justify-between gap-2">
           {/* 별점 */}
-          <div className="flex gap-0.5">
+          <div className="flex gap-0.5" onMouseLeave={() => setHoverStar(null)}>
             {[1, 2, 3, 4, 5].map(star => {
-              const isActive = !!(photo.rating && photo.rating >= star)
+              const isHovered = hoverStar !== null && star <= hoverStar
+              const isActive  = !!(photo.rating && photo.rating >= star)
               return (
                 <button
                   key={star}
+                  onMouseEnter={() => setHoverStar(star)}
                   onClick={e => { e.stopPropagation(); onSetRating(photo, star) }}
                   className="p-0.5"
                 >
                   <Star size={10} strokeWidth={1.25}
                     className={`transition-colors ${
-                      isActive
+                      isHovered
                         ? 'fill-label-yellow text-label-yellow'
-                        : 'text-edit-line-strong hover:text-label-yellow'
+                        : isActive
+                        ? 'fill-label-yellow text-label-yellow'
+                        : 'text-edit-line-strong'
                     }`}
                   />
                 </button>
@@ -559,7 +564,7 @@ export const PhotoCard = memo(function PhotoCard({
         </div>
         {/* EXIF */}
         {showExif && (photo.camera || photo.taken_at) && (
-          <p className="t-caption text-edit-faint font-mono mt-1.5 truncate">
+          <div className="mt-1.5 space-y-0.5">
             {[
               photo.taken_at
                 ? new Date(photo.taken_at).toLocaleDateString(i18n.language === 'ko' ? 'ko-KR' : 'en-US')
@@ -567,8 +572,10 @@ export const PhotoCard = memo(function PhotoCard({
               photo.camera,
               photo.lens,
               [photo.focal_length, photo.aperture, photo.shutter_speed, photo.iso].filter(Boolean).join(' '),
-            ].filter(Boolean).join(' · ')}
-          </p>
+            ].filter(Boolean).map((line, i) => (
+              <p key={i} className="t-caption text-edit-faint font-mono leading-snug">{line}</p>
+            ))}
+          </div>
         )}
       </div>
     </div>
