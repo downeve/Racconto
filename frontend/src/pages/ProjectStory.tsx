@@ -1302,20 +1302,15 @@ function ProjectStory({
         {/* PHOTO 블록 레이아웃 안내 */}
         <div className="px-1 mb-4">
           <p className="t-eyebrow text-edit-faint mb-2">{t('story.layoutGuide')}</p>
-          <div className="flex gap-1.5">
+          <div className="flex items-center flex-wrap gap-x-2.5 gap-y-1">
             {([
-              { icon: <Grid3X3 size={14} strokeWidth={1.5} />, key: 'portfolio.columnGrid' },
-              { icon: <Rows3 size={14} strokeWidth={1.5} />, key: 'portfolio.columnWide' },
-              { icon: <Square size={14} strokeWidth={1.5} />, key: 'portfolio.columnSingle' },
+              { icon: <Grid3X3 size={11} strokeWidth={1.5} />, key: 'portfolio.columnGrid' },
+              { icon: <Rows3 size={11} strokeWidth={1.5} />, key: 'portfolio.columnWide' },
+              { icon: <Square size={11} strokeWidth={1.5} />, key: 'portfolio.columnSingle' },
             ] as const).map(({ icon, key }) => (
-              <div
-                key={key}
-                className="flex-1 flex flex-col items-center gap-1.5 py-2.5
-                           border border-edit-line rounded-[1px] text-edit-faint"
-              >
-                {icon}
-                <span className="t-eyebrow">{t(key)}</span>
-              </div>
+              <span key={key} className="inline-flex items-center gap-1 t-eyebrow text-edit-faint">
+                {t(key)}<span className="opacity-40 mx-0.5">/</span>{icon}
+              </span>
             ))}
           </div>
         </div>
