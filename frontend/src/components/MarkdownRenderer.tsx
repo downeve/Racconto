@@ -1,10 +1,15 @@
 import ReactMarkdown from 'react-markdown'
-import remarkBreaks from 'remark-breaks'
 
 interface Props {
   content: string
   className?: string
   darkMode?: boolean
+}
+
+// 단일 \n → 마크다운 hard break (줄 끝 공백 2개 + \n)
+// 연속 \n은 그대로 유지 (단락 구분)
+function applyHardBreaks(text: string): string {
+  return text.replace(/([^\n])\n([^\n])/g, '$1  \n$2')
 }
 
 export default function MarkdownRenderer({ content, className = '', darkMode = false }: Props) {
@@ -14,10 +19,9 @@ export default function MarkdownRenderer({ content, className = '', darkMode = f
   return (
     <div className={className}>
     <ReactMarkdown
-      remarkPlugins={[remarkBreaks]}
       components={{
         p: ({ children }) => (
-        <p className={`text-body mb-4 last:mb-0 whitespace-pre-wrap break-words ${baseText}`}>
+        <p className={`text-body mb-4 last:mb-0 break-words ${baseText}`}>
           {children}
         </p>),
         strong: ({ children }) => <strong className="font-bold">{children}</strong>,
@@ -42,7 +46,7 @@ export default function MarkdownRenderer({ content, className = '', darkMode = f
         pre:  ({ children }) => <div className="font-mono text-small overflow-x-hidden break-words">{children}</div>,
       }}
     >
-      {content}
+      {applyHardBreaks(content)}
     </ReactMarkdown>
     </div>
   )
