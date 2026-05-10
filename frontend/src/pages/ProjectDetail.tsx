@@ -163,6 +163,7 @@ export default function ProjectDetail({
   useEffect(() => {
     if (!id) return
     setNumericId(null)
+    setActiveTab('photos')
     axios.get(`${API}/projects/${id}`).then(res => {
       setProject(res.data)
       setNumericId(String(res.data.id))
