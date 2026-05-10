@@ -177,10 +177,11 @@ export default function PortfolioChapterItems({
           {sidePhotoContent}
         </div>
       )
+      const isPhotoRight = group.blockType === 'side-right'
       const textCol = group.text ? (
         <div
           className="min-w-0 flex items-start w-full text-left"
-          style={{ flex: '2' }}
+          style={{ flex: '2', paddingLeft: isPhotoRight ? '40px' : undefined }}
         >
           <MarkdownRenderer
             content={group.text.text_content || ''}
@@ -191,7 +192,7 @@ export default function PortfolioChapterItems({
       ) : null
 
       result.push(
-        <div key={`side-${bid}`} className="flex my-space-md items-center" style={{ gap: '28px', width: `${effectiveWidth}px` }}>
+        <div key={`side-${bid}`} className="flex my-space-md items-start" style={{ gap: '28px', width: `${effectiveWidth}px` }}>
           {group.blockType === 'side-right' ? <>{photoCol}{textCol}</> : <>{textCol}{photoCol}</>}
         </div>
       )
