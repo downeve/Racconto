@@ -122,33 +122,39 @@ export const InsertSlot = memo(function InsertSlot({
     )
   }
 
-  // hover 환경: 높이 고정, opacity/scale로만 등장
+  const active = hovered || open
+
+  // hover 환경: 시각 간격 4px, hit-zone을 위·아래 10px씩 확장해 총 24px
   return (
     <div
       ref={ref}
-      className="relative h-6 flex items-center justify-center my-0.5"
+      className="relative h-1 my-0.5"
       onMouseEnter={onEnter}
       onMouseLeave={onLeave}
     >
-      {/* hairline — 항상 mount, opacity로만 토글 */}
+      {/* 1) 투명 hit-zone — 컨테이너 위·아래 10px 확장 (총 24px) */}
+      <div className="absolute inset-x-0 -top-2.5 -bottom-2.5 z-0" aria-hidden="true" />
+
+      {/* 2) hairline — 컨테이너 가운데, opacity로만 토글 */}
       <div
         className={`absolute inset-x-0 top-1/2 -translate-y-1/2 h-px bg-stone-300
                     pointer-events-none transition-opacity duration-150
-                    ${hovered || open ? 'opacity-100' : 'opacity-0'}`}
+                    ${active ? 'opacity-100' : 'opacity-0'}`}
       />
 
-      {/* 버튼 — 항상 mount, opacity + scale-y로 등장. pointer-events로 클릭만 차단 */}
+      {/* 3) 버튼 — absolute로 띄워 레이아웃에 영향 없음 */}
       <button
         onClick={() => { onInsertText(chapterId, insertIndex); setOpen(false); setHovered(false) }}
-        className={`relative z-10 h-6 px-2 rounded-btn bg-white border border-stone-300
+        className={`absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2
+                    z-10 h-6 px-2 rounded-btn bg-white border border-stone-300
                     text-stone-500 hover:text-stone-700 hover:border-stone-400
                     shadow-sm text-sm leading-none flex items-center gap-1
                     transition-[opacity,transform] duration-150 ease-out origin-center
-                    ${hovered || open
+                    ${active
                       ? 'opacity-100 scale-y-100 pointer-events-auto'
                       : 'opacity-0 scale-y-50 pointer-events-none'}`}
         aria-label={t('story.insertText')}
-        tabIndex={hovered || open ? 0 : -1}
+        tabIndex={active ? 0 : -1}
       >
         <FileText size={13} strokeWidth={1.5} />
         {t('story.insertText')}
