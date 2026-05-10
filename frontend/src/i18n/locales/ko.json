@@ -10,6 +10,8 @@
     "create": "생성",
     "creating": "생성 중...",
     "confirm": "확인",
+    "warning": "경고",
+    "processing": "처리 중…",
     "reset": "초기화",
     "all": "전체",
     "copied": "복사됨!",
@@ -17,6 +19,15 @@
     "select": "선택"
   },
   "auth": {
+    "eyebrow": {
+      "login": "로그인",
+      "register": "계정 만들기"
+    },
+    "title": {
+      "login": "다시 만나서 반가워요",
+      "register": "당신의 사진집을 시작하세요"
+    },
+    "signup": "회원 가입",
     "login": "로그인",
     "mail": "이메일",
     "password": "비밀번호",
@@ -61,6 +72,7 @@
     "resendEmail": "인증 메일 다시 받기",
     "goToLogin": "로그인 페이지로 가기",
     "success": {
+      "eyebrow": "이메일을 확인하세요",
       "resend": "인증 메일을 다시 보냈습니다.",
       "title": "회원 가입 성공",
       "desc": "이메일을 통해 인증해 주세요."
@@ -72,14 +84,40 @@
       "resendFailed": "인증 메일을 보내는데 실패하였습니다."
     }
   },
+  "forgot": {
+    "eyebrow": "비밀번호 재설정",
+    "title": "비밀번호를 잊으셨나요?",
+    "sent": {
+      "eyebrow": "메일을 확인하세요",
+      "desc": "{{email}} 주소로 재설정 링크를 보냈습니다."
+    }
+  },
+  "reset": {
+    "invalid": {
+      "eyebrow": "링크가 유효하지 않습니다",
+      "retry": "다시 요청하기"
+    },
+    "success": {
+      "eyebrow": "비밀번호 변경 완료"
+    }
+  },
   "verify": {
-    "loading": "이메일 인증 진행 중...",
-    "login": "인증에 성공하였습니다.",
-    "goToLogin": "로그인 하기!",
+    "verifying": {
+      "eyebrow": "확인 중",
+      "desc": "잠시만 기다려주세요…"
+    },
+    "success": {
+      "eyebrow": "환영합니다",
+      "title": "이메일이 확인되었습니다"
+    },
     "error": {
+      "eyebrow": "확인 실패",
       "invalidToken": "유효한 접근이 아닙니다.",
       "failed": "이메일 인증에 실패하였습니다."
-    }
+    },
+    "loading": "이메일 인증 진행 중...",
+    "login": "인증에 성공하였습니다.",
+    "goToLogin": "로그인으로 이동"
   },
   "api": {
     "success": {

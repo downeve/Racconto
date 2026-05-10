@@ -10,6 +10,8 @@
     "create": "作成",
     "creating": "作成中...",
     "confirm": "確認",
+    "warning": "警告",
+    "processing": "処理中…",
     "reset": "リセット",
     "all": "すべて",
     "copied": "コピーしました！",
@@ -17,6 +19,15 @@
     "select": "選択"
   },
   "auth": {
+    "eyebrow": {
+      "login": "サインイン",
+      "register": "アカウント作成"
+    },
+    "title": {
+      "login": "おかえりなさい",
+      "register": "フォトブックを始めましょう"
+    },
+    "signup": "会員登録",
     "login": "ログイン",
     "mail": "メールアドレス",
     "password": "パスワード",
@@ -61,6 +72,7 @@
     "resendEmail": "認証メールを再送",
     "goToLogin": "ログインへ移動",
     "success": {
+      "eyebrow": "メールを確認してください",
       "resend": "認証メールが再送されました。",
       "title": "会員登録完了",
       "desc": "会員登録が完了しました。メールでアカウント認証を完了してください。"
@@ -72,14 +84,40 @@
       "resendFailed": "認証メールの送信に失敗しました。"
     }
   },
+  "forgot": {
+    "eyebrow": "パスワード再設定",
+    "title": "パスワードをお忘れですか？",
+    "sent": {
+      "eyebrow": "メールを確認してください",
+      "desc": "{{email}} 宛に再設定リンクを送信しました。"
+    }
+  },
+  "reset": {
+    "invalid": {
+      "eyebrow": "リンクが無効です",
+      "retry": "再試行する"
+    },
+    "success": {
+      "eyebrow": "パスワード変更完了"
+    }
+  },
   "verify": {
-    "loading": "メール認証を処理中...",
-    "login": "認証が完了しました。",
-    "goToLogin": "ログイン！",
+    "verifying": {
+      "eyebrow": "確認中",
+      "desc": "しばらくお待ちください…"
+    },
+    "success": {
+      "eyebrow": "ようこそ",
+      "title": "メールアドレスが確認されました"
+    },
     "error": {
+      "eyebrow": "確認失敗",
       "invalidToken": "正しくないアクセスです。",
       "failed": "メール認証に失敗しました。"
-    }
+    },
+    "loading": "メール認証を処理中...",
+    "login": "認証が完了しました。",
+    "goToLogin": "ログインへ移動"
   },
   "api": {
     "success": {

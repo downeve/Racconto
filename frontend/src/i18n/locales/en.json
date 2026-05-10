@@ -10,6 +10,8 @@
     "create": "Create",
     "creating": "Creating...",
     "confirm": "Confirm",
+    "warning": "Warning",
+    "processing": "Processing…",
     "reset": "Reset",
     "all": "All",
     "copied": "Copied!",
@@ -17,6 +19,15 @@
     "select": "Select"
   },
   "auth": {
+    "eyebrow": {
+      "login": "Sign in",
+      "register": "Create account"
+    },
+    "title": {
+      "login": "Welcome back",
+      "register": "Start your photo book"
+    },
+    "signup": "Sign up",
     "login": "Login",
     "mail": "Email",
     "password": "Password",
@@ -61,6 +72,7 @@
     "resendEmail": "Resend verification email",
     "goToLogin": "Go to Login",
     "success": {
+      "eyebrow": "Check your email",
       "resend": "Verification email sent.",
       "title": "Registration Successful",
       "desc": "Successfully registered. Please verify your account via email."
@@ -72,14 +84,40 @@
       "resendFailed": "Failed to send verification email."
     }
   },
+  "forgot": {
+    "eyebrow": "Password reset",
+    "title": "Forgot your password?",
+    "sent": {
+      "eyebrow": "Check your email",
+      "desc": "We've sent a reset link to {{email}}."
+    }
+  },
+  "reset": {
+    "invalid": {
+      "eyebrow": "Link is invalid",
+      "retry": "Request again"
+    },
+    "success": {
+      "eyebrow": "Password changed"
+    }
+  },
   "verify": {
-    "loading": "Processing email verification...",
-    "login": "Verification successful.",
-    "goToLogin": "Log in!",
+    "verifying": {
+      "eyebrow": "Verifying",
+      "desc": "Please wait a moment…"
+    },
+    "success": {
+      "eyebrow": "Welcome",
+      "title": "Email verified"
+    },
     "error": {
+      "eyebrow": "Verification failed",
       "invalidToken": "Invalid access.",
       "failed": "Email verification failed."
-    }
+    },
+    "loading": "Processing email verification...",
+    "login": "Verification successful.",
+    "goToLogin": "Go to login"
   },
   "api": {
     "success": {
