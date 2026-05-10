@@ -7,10 +7,10 @@ from typing import Optional
 from datetime import datetime
 import uuid
 import os
-import requests
+import asyncio
+import httpx
 from PIL import Image as PilImage
 from app.auth import get_current_user
-from concurrent.futures import ThreadPoolExecutor
 import io
 
 from PIL import Image
@@ -117,10 +117,10 @@ def rotate_and_upload_to_cloudflare(image_bytes: bytes, filename: str, angle: in
     buf = io.BytesIO()
     img.convert('RGB').save(buf, format='JPEG', quality=88, optimize=True)
     buf.seek(0)
-    res = requests.post(
+    res = httpx.post(
         CF_UPLOAD_URL,
         headers={"Authorization": f"Bearer {CF_API_TOKEN}"},
-        files={"file": (filename, buf, "image/jpeg")},
+        files={"file": (filename, buf.read(), "image/jpeg")},
     )
     data = res.json()
     if not data.get("success"):
@@ -128,23 +128,28 @@ def rotate_and_upload_to_cloudflare(image_bytes: bytes, filename: str, angle: in
     return data["result"]["variants"][0]
 
 
-def delete_from_cloudflare(image_url: str):
-    """CF Images에서 이미지 삭제"""
-    # CF URL에서 이미지 ID 추출
-    # URL 형식: https://imagedelivery.net/{hash}/{image_id}/public
+async def _cf_delete_one(client: httpx.AsyncClient, image_url: str):
+    """CF 이미지 단건 삭제 (공유 클라이언트 사용)"""
     try:
         image_id = image_url.rstrip('/').split('/')[-2]
-        requests.delete(
+        await client.delete(
             f"{CF_UPLOAD_URL}/{image_id}",
             headers={"Authorization": f"Bearer {CF_API_TOKEN}"},
         )
     except Exception as e:
         print(f"CF 이미지 삭제 실패 (무시): {e}")
 
-def delete_cf_files_parallel(urls: list[str]):
-    """CF 이미지 병렬 삭제 (최대 10개 동시)"""
-    with ThreadPoolExecutor(max_workers=10) as executor:
-        executor.map(delete_from_cloudflare, urls)
+
+async def delete_from_cloudflare(image_url: str):
+    """CF Images에서 이미지 단건 삭제"""
+    async with httpx.AsyncClient() as client:
+        await _cf_delete_one(client, image_url)
+
+
+async def delete_cf_files_parallel(urls: list[str]):
+    """CF 이미지 병렬 삭제 (단일 AsyncClient 공유)"""
+    async with httpx.AsyncClient() as client:
+        await asyncio.gather(*[_cf_delete_one(client, url) for url in urls])
 
 
 def clear_cover_if_deleted(project_id: str, image_url: str, db: Session):
@@ -289,7 +294,7 @@ def get_photos(
 
 
 @router.get("/cf-upload-url")
-def get_upload_url(
+async def get_upload_url(
     db: Session = Depends(get_db),
     current_user: models.User = Depends(get_current_user)
 ):
@@ -304,14 +309,15 @@ def get_upload_url(
             detail={"code": "PHOTO_LIMIT_EXCEEDED", "limit": current_user.photo_limit}
         )
 
-    res = requests.post(
-        f"https://api.cloudflare.com/client/v4/accounts/{CF_ACCOUNT_ID}/images/v2/direct_upload",
-        headers={"Authorization": f"Bearer {CF_API_TOKEN}"},
-    )
+    async with httpx.AsyncClient() as client:
+        res = await client.post(
+            f"https://api.cloudflare.com/client/v4/accounts/{CF_ACCOUNT_ID}/images/v2/direct_upload",
+            headers={"Authorization": f"Bearer {CF_API_TOKEN}"},
+        )
     data = res.json()
     if not data.get("success"):
         raise HTTPException(status_code=500, detail="CF_UPLOAD_URL_FAILED")
-    
+
     return {
         "uploadURL": data["result"]["uploadURL"],
         "id": data["result"]["id"]
@@ -768,7 +774,7 @@ def rotate_photo(
         else:
             # 항상 원본에서 회전 (재압축 누적 방지)
             try:
-                resp = requests.get(original_url, timeout=30)
+                resp = httpx.get(original_url, timeout=30, follow_redirects=True)
                 resp.raise_for_status()
                 image_bytes = resp.content
             except Exception as e:

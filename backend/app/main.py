@@ -9,9 +9,9 @@ from app.routers import projects, photos, portfolio, notes, auth, chapters, sett
 from apscheduler.schedulers.background import BackgroundScheduler
 from datetime import datetime, timedelta
 import os
+import asyncio
 import logging
-# ⭕️ 다음과 같이 수정 (app.routers.photos 로 변경)
-from app.routers.photos import delete_from_cloudflare
+from app.routers.photos import delete_cf_files_parallel
 
 models.Base.metadata.create_all(bind=engine)
 
@@ -117,9 +117,9 @@ def auto_delete_trash():
             if p.image_url and "imagedelivery.net" not in p.image_url
         ]
 
-        # CF 병렬 삭제
+        # CF 병렬 삭제 (APScheduler 스레드에서 실행되므로 asyncio.run 사용)
         if cf_urls:
-            delete_cf_files_parallel(cf_urls)
+            asyncio.run(delete_cf_files_parallel(cf_urls))
 
         # 로컬 파일 삭제
         for path in local_paths:

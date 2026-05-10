@@ -7,7 +7,8 @@ from pydantic import BaseModel
 from typing import Optional
 from datetime import datetime
 from app.auth import get_current_user, get_current_user_id
-from app.routers.photos import delete_from_cloudflare, delete_cf_files_parallel
+from app.routers.photos import delete_cf_files_parallel
+import asyncio
 import uuid
 import os
 import re
@@ -277,9 +278,9 @@ def delete_photo_files_in_background(photo_urls: list[str]):
     cf_urls = [u for u in photo_urls if "imagedelivery.net" in u]
     local_urls = [u for u in photo_urls if "imagedelivery.net" not in u]
     
-    # CF 이미지 병렬 삭제
+    # CF 이미지 병렬 삭제 (백그라운드 스레드에서 실행되므로 asyncio.run 사용)
     if cf_urls:
-        delete_cf_files_parallel(cf_urls)
+        asyncio.run(delete_cf_files_parallel(cf_urls))
     
     # 로컬 파일 삭제
     for url in local_urls:
