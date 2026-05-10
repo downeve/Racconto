@@ -35,6 +35,9 @@ with engine.connect() as conn:
     conn.execute(text("CREATE INDEX IF NOT EXISTS ix_notes_deleted_at ON notes(deleted_at)"))
     conn.execute(text("CREATE INDEX IF NOT EXISTS ix_chapters_project_id ON chapters(project_id)"))
     conn.execute(text("CREATE INDEX IF NOT EXISTS ix_chapter_items_chapter_id ON chapter_items(chapter_id)"))
+    conn.execute(text("ALTER TABLE photos ADD COLUMN IF NOT EXISTS rotation INTEGER NOT NULL DEFAULT 0"))
+    conn.execute(text("ALTER TABLE photos ADD COLUMN IF NOT EXISTS original_image_url VARCHAR"))
+    conn.execute(text("ALTER TABLE photos ADD COLUMN IF NOT EXISTS is_rotating BOOLEAN NOT NULL DEFAULT false"))
     conn.commit()
 
 app = FastAPI(title="Racconto API")

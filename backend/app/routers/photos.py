@@ -100,15 +100,10 @@ def extract_exif(file_path: str) -> dict:
     return exif_data
 
 
-def rotate_and_upload_to_cloudflare(image_bytes: bytes, filename: str, direction: str) -> str:
-    """이미지 바이트를 받아 회전 후 CF Images에 업로드, 새 CF URL 반환. exif_transpose 적용 없음."""
+def rotate_and_upload_to_cloudflare(image_bytes: bytes, filename: str, angle: int) -> str:
+    """이미지 바이트를 받아 시계 방향 angle도 회전 후 CF Images에 업로드, 새 CF URL 반환."""
     img = PilImage.open(io.BytesIO(image_bytes))
-    if direction == "left":
-        img = img.rotate(90, expand=True)
-    elif direction == "right":
-        img = img.rotate(-90, expand=True)
-    else:
-        raise ValueError(f"Invalid direction: {direction}")
+    img = img.rotate(-angle, expand=True)  # PIL은 반시계 방향 기준이므로 부호 반전
 
     max_size = 3200
     w, h = img.size
@@ -237,6 +232,8 @@ class PhotoResponse(BaseModel):
     source: Optional[str] = 'web'
     local_missing: bool = False
     deleted_at: Optional[datetime] = None
+    rotation: int = 0
+    original_image_url: Optional[str] = None
 
     class Config:
         from_attributes = True
@@ -760,33 +757,67 @@ def rotate_photo(
     if body.direction not in ("left", "right"):
         raise HTTPException(status_code=400, detail="INVALID_DIRECTION")
 
-    try:
-        response = requests.get(photo.image_url, timeout=30)
-        response.raise_for_status()
-        image_bytes = response.content
-    except Exception as e:
-        raise HTTPException(status_code=502, detail=f"이미지 다운로드 실패: {e}")
+    # 동시 중복 회전 방지
+    if photo.is_rotating:
+        raise HTTPException(status_code=409, detail="ROTATION_IN_PROGRESS")
 
-    old_image_url = photo.image_url
-    filename = f"{photo_id}_rotated.jpg"
-    try:
-        new_image_url = rotate_and_upload_to_cloudflare(image_bytes, filename, body.direction)
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"회전 업로드 실패: {e}")
-
-    photo.image_url = new_image_url
-
-    project = db.query(models.Project).filter(models.Project.id == photo.project_id).first()
-    if project and project.cover_image_url == old_image_url:
-        project.cover_image_url = new_image_url
-
+    photo.is_rotating = True
     db.commit()
-    db.refresh(photo)
 
-    if "imagedelivery.net" in old_image_url:
-        background_tasks.add_task(delete_from_cloudflare, old_image_url)
+    delta = 90 if body.direction == "right" else -90
 
-    return photo
+    try:
+        prev_url = photo.image_url
+        # 최초 회전: 원본 URL 보존
+        original_url = photo.original_image_url
+        if original_url is None:
+            original_url = prev_url
+            photo.original_image_url = prev_url
+
+        new_rotation = (photo.rotation + delta) % 360
+
+        if new_rotation == 0:
+            # 원본으로 복귀 — CF 업로드 없음
+            photo.image_url = original_url
+            photo.original_image_url = None
+            photo.rotation = 0
+        else:
+            # 항상 원본에서 회전 (재압축 누적 방지)
+            try:
+                resp = requests.get(original_url, timeout=30)
+                resp.raise_for_status()
+                image_bytes = resp.content
+            except Exception as e:
+                raise HTTPException(status_code=502, detail=f"이미지 다운로드 실패: {e}")
+
+            filename = f"{photo_id}_rotated.jpg"
+            new_image_url = rotate_and_upload_to_cloudflare(image_bytes, filename, new_rotation)
+            photo.image_url = new_image_url
+            photo.rotation = new_rotation
+
+        # 커버 이미지 업데이트
+        project = db.query(models.Project).filter(models.Project.id == photo.project_id).first()
+        if project and project.cover_image_url == prev_url:
+            project.cover_image_url = photo.image_url
+
+        photo.is_rotating = False
+        db.commit()
+        db.refresh(photo)
+
+        # 이전 회전 이미지 삭제 (원본과 다를 경우에만)
+        if prev_url != original_url and prev_url and "imagedelivery.net" in prev_url:
+            background_tasks.add_task(delete_from_cloudflare, prev_url)
+
+        return photo
+
+    except HTTPException:
+        photo.is_rotating = False
+        db.commit()
+        raise
+    except Exception as e:
+        photo.is_rotating = False
+        db.commit()
+        raise HTTPException(status_code=500, detail=f"회전 처리 실패: {e}")
 
 
 @router.patch("/{photo_id}/local-missing")

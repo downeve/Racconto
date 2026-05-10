@@ -83,6 +83,9 @@ class Photo(Base):
     original_filename = Column(String, nullable=True)
     local_missing = Column(Boolean, default=False, nullable=False)
     source = Column(String, nullable=True, default='web')
+    rotation = Column(Integer, default=0, nullable=False, server_default='0')
+    original_image_url = Column(String, nullable=True)
+    is_rotating = Column(Boolean, default=False, nullable=False, server_default='false')
 
 class Pitch(Base):
     __tablename__ = "pitches"
