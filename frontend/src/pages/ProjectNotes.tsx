@@ -305,9 +305,9 @@ function ProjectNotes({
 
   // sidebar — dot 토큰 통일
   const sidebarItem = (active: boolean) =>
-    `relative w-full text-left px-2 py-1.5 rounded-[1px] flex items-center justify-between text-[0.75rem] font-sans font-medium transition-colors duration-150 ${
+    `relative w-full text-left px-2 py-1 rounded-[1px] flex items-center justify-between text-[0.75rem] font-sans font-medium transition-colors duration-150 ${
       active
-        ? 'bg-edit-ink/[0.06] text-edit-ink before:absolute before:left-0 before:top-1.5 before:bottom-1.5 before:w-[2px] before:bg-edit-ink'
+        ? 'bg-edit-ink/[0.06] text-edit-ink before:absolute before:left-0 before:top-1 before:bottom-1 before:w-[2px] before:bg-edit-ink'
         : 'text-edit-muted hover:bg-edit-paper hover:text-edit-ink'
     }`
 

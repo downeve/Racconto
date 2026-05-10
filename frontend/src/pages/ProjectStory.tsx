@@ -1331,7 +1331,7 @@ function ProjectStory({
                   )}
                   <button
                     onClick={() => scrollToChapter(chapter.id)}
-                    className="flex-1 text-left px-1 py-1.5 text-[0.75rem] font-sans text-edit-muted
+                    className="flex-1 text-left px-1 py-1 text-[0.75rem] font-sans text-edit-muted
                                group-hover:text-edit-ink truncate min-w-0
                                transition-colors duration-150"
                   >
@@ -1370,7 +1370,7 @@ function ProjectStory({
                       <div key={sub.id} className="flex items-center gap-0.5 group rounded-[1px] hover:bg-edit-paper-2">
                         <button
                           onClick={() => scrollToChapter(sub.id)}
-                          className="flex-1 text-left pl-2 py-1 text-[0.75rem] font-sans text-edit-faint
+                          className="flex-1 text-left pl-2 py-0.5 text-[0.75rem] font-sans text-edit-faint
                                      group-hover:text-edit-muted truncate min-w-0
                                      transition-colors duration-150"
                         >
