@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo, useRef } from 'react'
+import { useEffect, useState, useMemo, useCallback, useRef } from 'react'
 import { useParams } from 'react-router-dom'
 import axios from 'axios'
 import exifr from 'exifr'
@@ -16,6 +16,13 @@ import type { Photo, Project, ChapterPhotoResponse, NoteResponse } from '../comp
 
 const API = import.meta.env.VITE_API_URL
 const DELIVERY_ENABLED = import.meta.env.VITE_ENABLE_DELIVERY === 'true'
+
+// state에 의존하지 않는 순수 함수 — 컴포넌트 밖에 정의해 매 렌더 재생성 방지
+const getFolderDisplayName = (folder: string) =>
+  folder.split(/[/\\]/).filter(Boolean).pop() ?? folder
+
+const isLocalSyncFolder = (folder: string) =>
+  folder.startsWith('/') || /^[A-Za-z]:\\/.test(folder)
 
 export default function ProjectDetail({
     electronTab,
@@ -71,11 +78,11 @@ export default function ProjectDetail({
   }>({ ids: [], snapshotPhotos: [], snapshotTrash: [], timer: null })
   const [chapterPhotoVersion, setChapterPhotoVersion] = useState(0)
 
-  const showToast = (message: string, type: 'success' | 'error' | 'warning') => {
+  const showToast = useCallback((message: string, type: 'success' | 'error' | 'warning') => {
     if (toastTimer.current) clearTimeout(toastTimer.current)
     setToast({ message, type })
     toastTimer.current = setTimeout(() => setToast(null), 4000)
-  }
+  }, [])
 
   const fetchPhotos = async () => {
     if (!numericId) return
@@ -636,26 +643,20 @@ export default function ProjectDetail({
     })
   }
 
-  const getFolderDisplayName = (folder: string) =>
-    folder.split(/[/\\]/).filter(Boolean).pop() ?? folder
-
-  const isLocalSyncFolder = (folder: string) =>
-    folder.startsWith('/') || /^[A-Za-z]:\\/.test(folder)
-
-  const canHardDelete = (photo: Photo): boolean => {
+  const canHardDelete = useCallback((photo: Photo): boolean => {
     if (photo.source !== 'electron') return true
     if (!isElectron) return true
     if (!isProjectFolderLinked) return true
     return !!photo.local_missing
-  }
+  }, [isElectron, isProjectFolderLinked])
 
   const webTrashPhotos = useMemo(
     () => trashedPhotos.filter(p => canHardDelete(p)),
-    [trashedPhotos, isElectron, isProjectFolderLinked]
+    [trashedPhotos, canHardDelete]
   )
   const localTrashPhotos = useMemo(
     () => trashedPhotos.filter(p => !canHardDelete(p)),
-    [trashedPhotos, isElectron, isProjectFolderLinked]
+    [trashedPhotos, canHardDelete]
   )
 
   const handleDeleteAllTrash = () => {
@@ -776,17 +777,20 @@ export default function ProjectDetail({
     return sortOrder === 'desc' ? -result : result
   }).map(item => item.photo), [photos, filterRating, filterColor, filterFolder, filterHasNote, photoNoteIds, sortBy, sortOrder])
 
-  const missingCount = photos.filter(p => p.local_missing && !p.deleted_at).length;
+  const missingCount = useMemo(
+    () => photos.filter(p => p.local_missing && !p.deleted_at).length,
+    [photos]
+  )
 
   // 🚀 [추가할 함수] 사진 선택/해제 토글
-  const togglePhotoSelection = (photoId: string) => {
+  const togglePhotoSelection = useCallback((photoId: string) => {
     setSelectedPhotoIds(prev => {
       const next = new Set(prev)
       if (next.has(photoId)) next.delete(photoId)
       else next.add(photoId)
       return next
     })
-  }
+  }, [])
 
   // 🚀 [추가할 함수] 선택된 사진들을 특정 챕터에 일괄 전송
   const handleBulkAddToChapter = async (chapterId: string) => {
