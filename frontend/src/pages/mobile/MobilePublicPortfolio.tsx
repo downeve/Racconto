@@ -21,7 +21,7 @@ interface ChapterItem {
 interface Chapter { id: string; title: string; description: string | null; items: ChapterItem[]; sub_chapters: Chapter[] }
 interface PortfolioProject {
   id: string; title: string; description: string | null; cover_image_url: string | null
-  location: string | null; photos: Photo[]; chapters: Chapter[]; extra_photos: Photo[]
+  location: string | null; updated_at: string | null; photos: Photo[]; chapters: Chapter[]; extra_photos: Photo[]
 }
 
 // ── 심플 아이템 렌더러 ────────────────────────────────────────
@@ -109,6 +109,30 @@ function SimpleMobileItems({ items, darkMode, allLightboxItems, onLightbox }: Si
   return <>{elements}</>
 }
 
+// ── 배너 컴포넌트 ─────────────────────────────────────────────
+
+interface BannerProps {
+  username: string
+  projects: PortfolioProject[]
+  darkMode: boolean
+}
+
+function MobilePortfolioBanner({ username, projects, darkMode }: BannerProps) {
+  const projectCount = projects.length
+  const eyebrowColor = darkMode ? 'text-d-soft' : 'text-muted'
+  return (
+    <div className="pb-2">
+      <p className={`t-eyebrow mb-2 ${eyebrowColor}`}>
+        Portfolio
+        {projectCount > 0 && <span className="ml-2 opacity-70">· {projectCount} {projectCount === 1 ? 'project' : 'projects'}</span>}
+      </p>
+      <h1 className="font-serif font-normal leading-[1.1] tracking-[-0.015em]" style={{ fontSize: 'clamp(24px, 6vw, 32px)' }}>
+        @{username}
+      </h1>
+    </div>
+  )
+}
+
 // ── 메인 컴포넌트 ─────────────────────────────────────────────
 
 export default function MobilePublicPortfolio() {
@@ -139,10 +163,20 @@ export default function MobilePublicPortfolio() {
     axios.get(`${API}/portfolio/${username}`)
       .then(res => {
         setProjects(res.data.projects)
-        setDarkMode(res.data.theme === 'dark')
+        const apiIsDark = res.data.theme === 'dark'
+        const saved = localStorage.getItem(`portfolio_theme_${username}`)
+        setDarkMode(saved !== null ? saved === 'dark' : apiIsDark)
       })
       .catch(err => { if (err.response?.status === 404) setNotFound(true) })
   }, [username])
+
+  const handleToggleDark = () => {
+    setDarkMode(v => {
+      const next = !v
+      if (username) localStorage.setItem(`portfolio_theme_${username}`, next ? 'dark' : 'light')
+      return next
+    })
+  }
 
   const getAllChapterItems = (project: PortfolioProject) => {
     const items: { photo: Photo; title: string }[] = []
@@ -198,7 +232,7 @@ export default function MobilePublicPortfolio() {
             <span className="w-11" />
           )}
           <button
-            onClick={() => setDarkMode(v => !v)}
+            onClick={handleToggleDark}
             aria-label="다크 모드 전환"
             className="min-w-11 min-h-11 flex items-center justify-center opacity-60"
           >
@@ -211,12 +245,13 @@ export default function MobilePublicPortfolio() {
         {!selectedProject ? (
           // ── 프로젝트 목록 ──────────────────────────────────
           <>
-          <section className="pt-10 pb-6">
-            <p className={`t-eyebrow mb-1.5 ${microcopy}`}>Portfolio</p>
-            <h1 className="font-serif text-[28px] leading-[1.05] tracking-tight font-normal">
-              @{username}
-            </h1>
-          </section>
+          <div className="pt-8 pb-6">
+            <MobilePortfolioBanner
+              username={username!}
+              projects={projects}
+              darkMode={darkMode}
+            />
+          </div>
           <div className="flex flex-col gap-12 pb-8">
             {projects.map(project => (
               <article
@@ -252,9 +287,8 @@ export default function MobilePublicPortfolio() {
           </>
         ) : (
           // ── 프로젝트 상세 ──────────────────────────────────
-          <div className="pb-12 pt-4">
+          <div className="pb-12 pt-8">
             {/* 프로젝트 헤더 */}
-            <p className={`t-eyebrow mb-1.5 ${microcopy}`}>Portfolio</p>
             <h1 className="font-serif text-[26px] leading-[1.1] font-normal tracking-tight mb-2 [word-break:keep-all]">
               {selectedProject.title}
             </h1>
@@ -264,8 +298,13 @@ export default function MobilePublicPortfolio() {
               </p>
             )}
             {selectedProject.description && (
-              <p className={`font-serif text-[15px] leading-[1.65] italic mb-6 [word-break:keep-all] ${subText}`}>
+              <p className={`font-serif text-[15px] leading-[1.65] italic mb-4 [word-break:keep-all] ${subText}`}>
                 {selectedProject.description}
+              </p>
+            )}
+            {selectedProject.updated_at && (
+              <p className={`t-eyebrow mb-6 ${microcopy}`}>
+                {new Date(selectedProject.updated_at).toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' })}
               </p>
             )}
 

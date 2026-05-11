@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next'
 import { Sun, Moon } from 'lucide-react'
 import { Wordmark } from './Wordmark'
 
-export default function PublicNavbar({ username, darkMode, compact, onToggleDark }: { username?: string; darkMode?: boolean; compact?: boolean; onToggleDark?: () => void } = {}) {
+export default function PublicNavbar({ username, darkMode, compact, onToggleDark, showUsername }: { username?: string; darkMode?: boolean; compact?: boolean; onToggleDark?: () => void; showUsername?: boolean } = {}) {
   const { t, i18n } = useTranslation()
 
   const [isLangOpen, setIsLangOpen] = useState(false)
@@ -42,7 +42,7 @@ export default function PublicNavbar({ username, darkMode, compact, onToggleDark
         <div className="max-w-4xl mx-auto px-4 sm:px-6 h-14 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <Wordmark size="lg" tone={dm ? 'on-ink' : 'on-paper'} />
-            {username && (
+            {username && showUsername !== false && (
               <Link
                 to={`/${username}`}
                 state={{ resetToList: true }}

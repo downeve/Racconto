@@ -131,6 +131,7 @@ def _build_project_result(project, db: Session) -> dict:
         "description": project.description,
         "cover_image_url": project.cover_image_url,
         "location": project.location,
+        "updated_at": project.updated_at.isoformat() if project.updated_at else None,
         "photos": [{"id": p.id, "image_url": p.image_url, "caption": p.caption} for p in all_photos],
         "chapters": chapter_list,
         "extra_photos": extra_photos
@@ -245,6 +246,7 @@ def _build_project_result_from_cache(
         "description": project.description,
         "cover_image_url": project.cover_image_url,
         "location": project.location,
+        "updated_at": project.updated_at.isoformat() if project.updated_at else None,
         "photos": [{"id": p.id, "image_url": p.image_url, "caption": p.caption} for p in all_photos],
         "chapters": chapter_list,
         "extra_photos": extra_photos

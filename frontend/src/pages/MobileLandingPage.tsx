@@ -93,7 +93,7 @@ export default function MobileLandingPage() {
       </section>
 
       {/* Demo screenshot */}
-      <section className="bg-edit-paper px-6 pb-16 text-center">
+      <section className="bg-edit-canvas px-6 pb-16 text-center">
         <p className="t-eyebrow text-edit-muted mb-3">{t('landing.demoEyebrow')}</p>
         <h2 className="font-serif text-h2 text-edit-ink font-normal tracking-tight mb-5">
           {t('landing.demoTitle')}
@@ -106,7 +106,7 @@ export default function MobileLandingPage() {
       </section>
 
       {/* Features */}
-      <section ref={featuresRef} className="bg-edit-canvas px-6 py-12">
+      <section ref={featuresRef} className="bg-edit-paper px-6 py-12">
         <div className="text-center mb-10">
           <p className="t-eyebrow text-edit-muted mb-2">{t('landing.featuresEyebrow')}</p>
           <h2 className="font-serif text-h2 text-edit-ink font-normal tracking-tight">

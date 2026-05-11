@@ -120,7 +120,7 @@ export default function LandingPage() {
       </section>
 
       {/* App Demo */}
-      <section className="bg-edit-paper px-6 md:px-12 py-24">
+      <section className="bg-edit-canvas px-6 md:px-12 py-24">
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-12">
             <p className="text-caption font-mono tracking-[0.18em] uppercase font-medium text-edit-muted mb-3">{t('landing.demoEyebrow')}</p>
@@ -158,7 +158,7 @@ export default function LandingPage() {
       </section>
 
       {/* Features Z-pattern */}
-      <section ref={featuresRef} className="bg-edit-canvas px-6 md:px-12 py-24">
+      <section ref={featuresRef} className="bg-edit-paper px-6 md:px-12 py-24">
         <div className="max-w-6xl mx-auto">
           <header className="text-center mb-20">
             <p className="text-caption font-mono tracking-[0.18em] uppercase font-medium text-edit-muted mb-4">{t('landing.featuresEyebrow')}</p>

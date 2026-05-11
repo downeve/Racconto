@@ -45,9 +45,32 @@ interface PortfolioProject {
   description: string | null
   cover_image_url: string | null
   location: string | null
+  updated_at: string | null
   photos: Photo[]
   chapters: Chapter[]
   extra_photos: Photo[]
+}
+
+interface BannerProps {
+  username: string
+  projects: PortfolioProject[]
+  darkMode: boolean
+}
+
+function PortfolioBanner({ username, projects, darkMode }: BannerProps) {
+  const projectCount = projects.length
+  const eyebrowColor = darkMode ? 'text-d-soft' : 'text-muted'
+  return (
+    <div className="pb-2">
+      <p className={`t-eyebrow mb-2 ${eyebrowColor}`}>
+        Portfolio
+        {projectCount > 0 && <span className="ml-2 opacity-70">· {projectCount} {projectCount === 1 ? 'project' : 'projects'}</span>}
+      </p>
+      <h1 className="font-serif font-normal leading-[1.1] tracking-[-0.015em]" style={{ fontSize: 'clamp(28px, 4vw, 38px)' }}>
+        @{username}
+      </h1>
+    </div>
+  )
 }
 
 export default function PublicPortfolio() {
@@ -88,12 +111,17 @@ export default function PublicPortfolio() {
       setNotFound(false)
       return
     }
+    const applyTheme = (apiTheme: string) => {
+      const saved = localStorage.getItem(`portfolio_theme_${username}`)
+      setDarkMode(saved !== null ? saved === 'dark' : apiTheme === 'dark')
+    }
+
     if (slug) {
       // 개별 프로젝트 직접 접근
       axios.get(`${API}/portfolio/${username}/${slug}`)
         .then(res => {
           setSelectedProject(res.data.project)
-          setDarkMode(res.data.theme === 'dark')
+          applyTheme(res.data.theme)
         })
         .catch(err => {
           if (err.response?.status === 404) setNotFound(true)
@@ -104,13 +132,21 @@ export default function PublicPortfolio() {
       axios.get(`${API}/portfolio/${username}`)
         .then(res => {
           setProjects(res.data.projects)
-          setDarkMode(res.data.theme === 'dark')
+          applyTheme(res.data.theme)
         })
         .catch(err => {
           if (err.response?.status === 404) setNotFound(true)
         })
     }
   }, [username, slug])
+
+  const handleToggleDark = () => {
+    setDarkMode(v => {
+      const next = !v
+      if (username) localStorage.setItem(`portfolio_theme_${username}`, next ? 'dark' : 'light')
+      return next
+    })
+  }
 
   const openProject = (project: PortfolioProject) => {
     if (project.slug) {
@@ -269,10 +305,12 @@ export default function PublicPortfolio() {
 
   return (
     <div className={`min-h-screen ${bg} transition-[background,color,border] duration-150 ease-out`}>
-      {!isAuthenticated && <PublicNavbar username={username} darkMode={darkMode} compact onToggleDark={() => setDarkMode(!darkMode)} />}
+      {!isAuthenticated && <PublicNavbar username={username} darkMode={darkMode} compact onToggleDark={handleToggleDark} showUsername={!!selectedProject} />}
+      {/* fixed navbar 높이만큼 밀어내는 spacer */}
+      {!isAuthenticated && <div className="h-14" />}
 
-      {/* Sticky top bar: breadcrumb (left) + theme toggle (right) — desktop only breadcrumb */}
-      {(isAuthenticated || !!selectedProject) && <div className={`sticky ${!isAuthenticated ? 'top-14' : 'top-0'} z-10 border-b backdrop-blur-sm ${barBg}`}>
+      {/* Sticky top bar: breadcrumb (left) + theme toggle (right) — 로그인 상태에서만 표시 */}
+      {isAuthenticated && <div className={`sticky top-0 z-10 border-b backdrop-blur-sm ${barBg}`}>
         <div className="max-w-4xl mx-auto px-6 h-10 flex items-center justify-between">
           {selectedProject ? (
             <button
@@ -290,7 +328,7 @@ export default function PublicPortfolio() {
           <div className="md:hidden" />
           {isAuthenticated && (
             <button
-              onClick={() => setDarkMode(!darkMode)}
+              onClick={handleToggleDark}
               aria-label="다크 모드 전환"
               className={`inline-flex items-center gap-1 px-3 py-1 text-xs rounded-btn border ${darkMode ? 'border-ink-2 text-faint' : 'border-faint text-muted'}`}
             >
@@ -302,22 +340,25 @@ export default function PublicPortfolio() {
         </div>
       </div>}
 
-      <div className={`max-w-4xl mx-auto px-6 ${isElectron ? 'pt-4' : 'pt-space-md'} pb-space-xl`}>
+      <div className={`max-w-4xl mx-auto px-6 ${isElectron ? 'pt-4' : 'pt-8'} pb-space-xl`}>
 
         {/* Page title */}
         <div id="portfolio-print-start" className="mb-space-md">
           {selectedProject ? (
+            // ── Detail view: 프로젝트 제목 h1 (기존 유지) ──
             <header>
               <h1 className="font-serif text-[38px] leading-[1.1] tracking-[-0.015em] font-normal">
                 {selectedProject.title}
               </h1>
             </header>
           ) : (
-            <header>
-              <p className={`t-eyebrow mb-2.5 ${microcopy}`}>Portfolio</p>
-              <h1 className="font-serif text-[38px] leading-[1.1] tracking-[-0.015em] font-normal">
-                @{username}
-              </h1>
+            // ── List view: 풀-블리드 커버 배너 ──
+            <header className="mb-space-md">
+              <PortfolioBanner
+                username={username!}
+                projects={projects}
+                darkMode={darkMode}
+              />
             </header>
           )}
         </div>
@@ -380,6 +421,11 @@ export default function PublicPortfolio() {
               {selectedProject.description && (
                 <p className={`font-serif text-[17px] leading-[1.65] italic [word-break:keep-all] ${subText}`}>
                   {selectedProject.description}
+                </p>
+              )}
+              {selectedProject.updated_at && (
+                <p className={`t-eyebrow mt-5 ${microcopy}`}>
+                  {new Date(selectedProject.updated_at).toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' })}
                 </p>
               )}
             </div>
