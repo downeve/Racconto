@@ -2,6 +2,7 @@ const { contextBridge, ipcRenderer } = require('electron')
 
 contextBridge.exposeInMainWorld('racconto', {
   version: process.env.APP_VERSION || '0.0.0',
+  platform: process.platform,
   openFolder: () => ipcRenderer.invoke('dialog:openFolder'),
   startWatcher: (folderPath) => ipcRenderer.invoke('watcher:start', folderPath),
   stopWatcher: () => ipcRenderer.invoke('watcher:stop'),
@@ -27,5 +28,6 @@ contextBridge.exposeInMainWorld('racconto', {
   onMenuAction: (callback) => ipcRenderer.on('menu:action', (_, action) => callback(action)),
   setMenuLanguage: (lang) => ipcRenderer.send('change-language', lang),
   openOAuth: (url) => ipcRenderer.invoke('auth:openOAuth', url),
+  startMove: () => ipcRenderer.invoke('window:startMove'),
   onOAuthToken: (callback) => ipcRenderer.on('auth:oauthToken', (_, token) => callback(token)),
 })

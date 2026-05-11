@@ -3,6 +3,7 @@
 interface Window {
   racconto?: {
     version: string
+    platform: string
     openFolder: () => Promise<string | null>
     startWatcher: (folderPath: string) => Promise<{ success: boolean; path: string }>
     stopWatcher: () => Promise<{ success: boolean }>
@@ -29,5 +30,6 @@ interface Window {
     setMenuLanguage: (lang: string) => void
     openOAuth: (url: string) => Promise<void>
     onOAuthToken: (callback: (token: string) => void) => void
+    startMove: () => Promise<void>
   }
 }

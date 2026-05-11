@@ -45,23 +45,25 @@ const SortableProjectCard = memo(function SortableProjectCard({
     opacity: isDragging ? 0.4 : 1,
   }
   return (
-    <div ref={setNodeRef} style={style} className="relative group">
-      <div
-        {...attributes}
-        {...listeners}
-        className="absolute top-2 left-2 z-10 opacity-0 group-hover:opacity-100 transition-opacity cursor-grab active:cursor-grabbing bg-white/80 rounded p-0.5 text-stone-400 hover:text-stone-700 select-none"
-        title="드래그하여 순서 변경"
-      >
-        <svg width="14" height="14" viewBox="0 0 14 14" fill="currentColor">
-          <circle cx="4" cy="3" r="1.2"/><circle cx="10" cy="3" r="1.2"/>
-          <circle cx="4" cy="7" r="1.2"/><circle cx="10" cy="7" r="1.2"/>
-          <circle cx="4" cy="11" r="1.2"/><circle cx="10" cy="11" r="1.2"/>
-        </svg>
-      </div>
-      <ProjectCard project={project} />
-      <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity flex gap-1">
-        <Link to={`/projects/${project.slug || project.id}/edit`} className="bg-card text-ink px-2 py-1 text-xs rounded shadow hover:bg-muted hover:text-hair" onClick={e => e.stopPropagation()}>{t('common.edit')}</Link>
-        <button onClick={e => { e.preventDefault(); onDelete(project.id) }} className="bg-red-400 text-card px-2 py-1 text-xs rounded shadow hover:bg-red-600">{t('common.delete')}</button>
+    <div ref={setNodeRef} style={style}>
+      <div className={`relative group ${!isDragging ? 'transition-[transform,box-shadow] duration-200 ease-out hover:-translate-y-1 hover:shadow-deep' : ''}`}>
+        <div
+          {...attributes}
+          {...listeners}
+          className="absolute top-2 left-2 z-10 opacity-0 group-hover:opacity-100 transition-opacity cursor-grab active:cursor-grabbing bg-white/80 rounded p-0.5 text-stone-400 hover:text-stone-700 select-none"
+          title="드래그하여 순서 변경"
+        >
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="currentColor">
+            <circle cx="4" cy="3" r="1.2"/><circle cx="10" cy="3" r="1.2"/>
+            <circle cx="4" cy="7" r="1.2"/><circle cx="10" cy="7" r="1.2"/>
+            <circle cx="4" cy="11" r="1.2"/><circle cx="10" cy="11" r="1.2"/>
+          </svg>
+        </div>
+        <ProjectCard project={project} />
+        <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity flex gap-1">
+          <Link to={`/projects/${project.slug || project.id}/edit`} className="bg-card text-ink px-2 py-1 text-xs rounded shadow hover:bg-muted hover:text-hair" onClick={e => e.stopPropagation()}>{t('common.edit')}</Link>
+          <button onClick={e => { e.preventDefault(); onDelete(project.id) }} className="bg-red-400 text-card px-2 py-1 text-xs rounded shadow hover:bg-red-600">{t('common.delete')}</button>
+        </div>
       </div>
     </div>
   )
@@ -181,84 +183,86 @@ export default function Projects() {
       </div>
 
       {showForm && (
-        <div className="max-w-2xl mb-8 pb-8 border-b border-hair">
-          <h3 className="font-serif text-h2 font-normal tracking-tight mb-8">{t('project.createProject')}</h3>
+        <div className="max-w-2xl mb-8">
+          <div className="bg-edit-paper border border-edit-line rounded-btn px-8 py-8">
+            <h3 className="font-serif text-h2 font-normal tracking-tight mb-8">{t('project.createProject')}</h3>
 
-          {/* 제목 */}
-          <div className="pt-0 pb-5 border-b border-edit-line-strong">
-            <p className="t-eyebrow text-edit-muted mb-2">{t('project.labelTitle')}<span className="text-edit-danger ml-1">*</span></p>
-            <input
-              value={formData.title} onChange={e => setField('title', e.target.value)}
-              placeholder={t('project.projectName')}
-              className="w-full font-serif text-body bg-transparent border-0 border-b border-edit-line focus:border-edit-ink focus:outline-none py-2 transition-colors duration-150 placeholder:text-edit-faint"
-            />
-          </div>
+            {/* 제목 */}
+            <div className="pb-5">
+              <p className="t-eyebrow text-edit-muted mb-2">{t('project.labelTitle')}<span className="text-edit-danger ml-1">*</span></p>
+              <input
+                value={formData.title} onChange={e => setField('title', e.target.value)}
+                placeholder={t('project.projectName')}
+                className="w-full font-serif text-body bg-transparent border-0 border-b border-edit-line focus:border-edit-ink focus:outline-none py-2 transition-colors duration-150 placeholder:text-edit-faint"
+              />
+            </div>
 
-          {/* 설명 */}
-          <div className="py-5 border-b border-edit-line-strong">
-            <p className="t-eyebrow text-edit-muted mb-2">{t('project.labelDescription')}</p>
-            <textarea
-              value={formData.description} onChange={e => setField('description', e.target.value)}
-              placeholder={t('project.description')}
-              rows={3}
-              className="w-full font-serif text-body bg-transparent border-0 border-b border-edit-line focus:border-edit-ink focus:outline-none py-2 resize-none transition-colors duration-150 placeholder:text-edit-faint"
-            />
-          </div>
+            {/* 설명 */}
+            <div className="py-5">
+              <p className="t-eyebrow text-edit-muted mb-2">{t('project.labelDescription')}</p>
+              <textarea
+                value={formData.description} onChange={e => setField('description', e.target.value)}
+                placeholder={t('project.description')}
+                rows={3}
+                className="w-full font-serif text-body bg-transparent border-0 border-b border-edit-line focus:border-edit-ink focus:outline-none py-2 resize-none transition-colors duration-150 placeholder:text-edit-faint"
+              />
+            </div>
 
-          {/* 장소 */}
-          <div className="py-5 border-b border-edit-line-strong">
-            <p className="t-eyebrow text-edit-muted mb-2">{t('project.labelLocation')}</p>
-            <input
-              value={formData.location} onChange={e => setField('location', e.target.value)}
-              placeholder={t('project.location')}
-              className="w-full font-serif text-body bg-transparent border-0 border-b border-edit-line focus:border-edit-ink focus:outline-none py-2 transition-colors duration-150 placeholder:text-edit-faint"
-            />
-          </div>
+            {/* 장소 */}
+            <div className="py-5">
+              <p className="t-eyebrow text-edit-muted mb-2">{t('project.labelLocation')}</p>
+              <input
+                value={formData.location} onChange={e => setField('location', e.target.value)}
+                placeholder={t('project.location')}
+                className="w-full font-serif text-body bg-transparent border-0 border-b border-edit-line focus:border-edit-ink focus:outline-none py-2 transition-colors duration-150 placeholder:text-edit-faint"
+              />
+            </div>
 
-          {/* 상태 + 공개 여부 */}
-          <div className="py-5 grid grid-cols-2 gap-8">
-            <div>
-              <p className="t-eyebrow text-edit-muted mb-2">{t('project.labelStatus')}</p>
-              <div className="inline-flex border border-edit-line rounded-[1px] p-0.5 flex-wrap gap-0.5">
-                {[
-                  { value: 'in_progress', label: t('project.statusInProgress') },
-                  { value: 'completed',   label: t('project.statusCompleted') },
-                  { value: 'published',   label: t('project.statusPublished') },
-                  { value: 'archived',    label: t('project.statusArchived') },
-                ].map(opt => (
-                  <button key={opt.value} type="button" onClick={() => setField('status', opt.value)}
-                    className={`t-caption px-3 py-1.5 rounded-[1px] transition-colors duration-150 ${formData.status === opt.value ? 'bg-edit-ink text-edit-paper' : 'text-edit-muted hover:text-edit-ink'}`}>
-                    {opt.label}
-                  </button>
-                ))}
+            {/* 상태 + 공개 여부 */}
+            <div className="py-5 grid grid-cols-2 gap-8">
+              <div>
+                <p className="t-eyebrow text-edit-muted mb-2">{t('project.labelStatus')}</p>
+                <div className="inline-flex border border-edit-line rounded-btn p-0.5 flex-wrap gap-0.5">
+                  {[
+                    { value: 'in_progress', label: t('project.statusInProgress') },
+                    { value: 'completed',   label: t('project.statusCompleted') },
+                    { value: 'published',   label: t('project.statusPublished') },
+                    { value: 'archived',    label: t('project.statusArchived') },
+                  ].map(opt => (
+                    <button key={opt.value} type="button" onClick={() => setField('status', opt.value)}
+                      className={`t-caption px-3 py-1.5 rounded-btn transition-colors duration-150 ${formData.status === opt.value ? 'bg-edit-ink text-edit-paper' : 'text-edit-muted hover:text-edit-ink'}`}>
+                      {opt.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+              <div>
+                <p className="t-eyebrow text-edit-muted mb-2">{t('project.labelVisibility')}</p>
+                <div className="inline-flex border border-edit-line rounded-btn p-0.5 flex-wrap gap-0.5">
+                  {[
+                    { value: 'false', label: t('project.privateProject') },
+                    { value: 'true',  label: t('project.publicProject') },
+                  ].map(opt => (
+                    <button key={opt.value} type="button" onClick={() => setField('isPublic', opt.value)}
+                      className={`t-caption px-3 py-1.5 rounded-btn transition-colors duration-150 ${formData.isPublic === opt.value ? 'bg-edit-ink text-edit-paper' : 'text-edit-muted hover:text-edit-ink'}`}>
+                      {opt.label}
+                    </button>
+                  ))}
+                </div>
               </div>
             </div>
-            <div>
-              <p className="t-eyebrow text-edit-muted mb-2">{t('project.labelVisibility')}</p>
-              <div className="inline-flex border border-edit-line rounded-[1px] p-0.5 flex-wrap gap-0.5">
-                {[
-                  { value: 'false', label: t('project.privateProject') },
-                  { value: 'true',  label: t('project.publicProject') },
-                ].map(opt => (
-                  <button key={opt.value} type="button" onClick={() => setField('isPublic', opt.value)}
-                    className={`t-caption px-3 py-1.5 rounded-[1px] transition-colors duration-150 ${formData.isPublic === opt.value ? 'bg-edit-ink text-edit-paper' : 'text-edit-muted hover:text-edit-ink'}`}>
-                    {opt.label}
-                  </button>
-                ))}
-              </div>
-            </div>
-          </div>
 
-          <div className="mt-8 flex justify-end gap-2">
-            <button
-              onClick={() => { setShowForm(false); setFormData(FORM_INITIAL) }}
-              className="t-caption px-4 py-2 text-edit-muted hover:text-edit-ink transition-colors"
-            >{t('common.cancel')}</button>
-            <button
-              onClick={handleSubmit}
-              disabled={!formData.title}
-              className="t-caption px-5 py-2 bg-edit-ink text-edit-paper rounded-[1px] hover:bg-edit-ink/85 transition-colors disabled:opacity-40"
-            >{t('common.save')}</button>
+            <div className="mt-6 flex justify-end gap-2">
+              <button
+                onClick={() => { setShowForm(false); setFormData(FORM_INITIAL) }}
+                className="t-caption px-4 py-2 text-edit-muted hover:text-edit-ink transition-colors"
+              >{t('common.cancel')}</button>
+              <button
+                onClick={handleSubmit}
+                disabled={!formData.title}
+                className="t-caption px-5 py-2 bg-edit-ink text-edit-paper rounded-btn hover:bg-edit-ink/85 transition-colors disabled:opacity-40"
+              >{t('common.save')}</button>
+            </div>
           </div>
         </div>
       )}

@@ -31,6 +31,8 @@ interface Props {
   onWidthChange: (width: number) => void
 }
 
+const isMac = typeof window !== 'undefined' && window.racconto?.platform === 'darwin'
+
 export default function ElectronSidebar({ activeTab, onTabChange, showTabs, width, onWidthChange }: Props) {
   const [projects, setProjects] = useState<Project[]>([])
   const [confirmModal, setConfirmModal] = useState<{ message: string; onConfirm: () => void } | null>(null)
@@ -181,7 +183,11 @@ export default function ElectronSidebar({ activeTab, onTabChange, showTabs, widt
       />
     )}
     <div
-      className="shrink-0 fixed left-0 top-0 bottom-0 bg-edit-paper border-r border-edit-line flex flex-col z-40 overflow-hidden"
+      className={`shrink-0 fixed bg-edit-paper flex flex-col z-40 overflow-hidden
+        ${isMac
+          ? 'left-1.5 top-1.5 bottom-1.5 border border-edit-line rounded-xl'
+          : 'left-0 top-0 bottom-0 border-r border-edit-line'
+        }`}
       style={{ width }}
     >
       {/* §11.4 드래그 리사이즈 핸들 */}
@@ -193,10 +199,19 @@ export default function ElectronSidebar({ activeTab, onTabChange, showTabs, widt
                    after:transition-colors"
       />
 
-      {/* §11.5 Racconto 로고 */}
+      {/* §11.5 macOS drag zone — 신호등 영역 확보 + 윈도우 드래그 */}
+      {isMac && (
+        <div
+          className="shrink-0 h-10 w-full"
+          style={{ WebkitAppRegion: 'drag' } as React.CSSProperties}
+        />
+      )}
+
+      {/* §11.6 Racconto 로고 */}
       <div
-        className="shrink-0 px-4 pt-3 pb-2 cursor-pointer transition-opacity duration-150 ease-out"
+        className={`shrink-0 px-4 pb-2 cursor-pointer transition-opacity duration-150 ease-out ${isMac ? 'pt-0' : 'pt-3'}`}
         onClick={() => navigate('/dashboard')}
+        style={isMac ? { WebkitAppRegion: 'no-drag' } as React.CSSProperties : undefined}
       >
         <Wordmark size="md" tone="on-paper" asLink={false} />
       </div>

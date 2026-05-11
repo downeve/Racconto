@@ -624,10 +624,12 @@ ipcMain.handle('dialog:openFolder', async () => {
 
 // ── 윈도우 생성 ──────────────────────────────────────
 function createWindow() {
+  const isMac = process.platform === 'darwin'
   mainWindow = new BrowserWindow({
     width: 1280,
     height: 800,
-    titleBarStyle: 'default',
+    titleBarStyle: isMac ? 'hiddenInset' : 'default',
+    ...(isMac ? { trafficLightPosition: { x: 14, y: 16 } } : {}),
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
       contextIsolation: true,
@@ -756,6 +758,12 @@ oauthServer.on('error', (err) => {
 
 ipcMain.handle('auth:openOAuth', (event, url) => {
   shell.openExternal(url)
+})
+
+ipcMain.handle('window:startMove', () => {
+  if (mainWindow && !mainWindow.isDestroyed()) {
+    mainWindow.startInteractiveMove()
+  }
 })
 
 // ── 앱 시작 ──────────────────────────────────────────

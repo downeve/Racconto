@@ -56,6 +56,7 @@ function AppRoutes() {
   const hideNavbar = location.pathname.startsWith('/delivery/')
 
   const isElectron = typeof window !== 'undefined' && !!window.racconto
+  const isMac = isElectron && window.racconto?.platform === 'darwin'
   const isMobileDevice = getDeviceType() === 'mobile'
   const [electronTab, setElectronTab] = useState<'photos' | 'story' | 'notes'>('photos')
   const [sidebarWidth, setSidebarWidth] = useState(() =>
@@ -125,8 +126,18 @@ function AppRoutes() {
         />
       )}
 
-      {/* 메인 콘텐츠 — 사이드바 너비만큼 밀기 */}
-      <div style={!isMobileDevice && isAuthenticated && !hideNavbar ? { marginLeft: sidebarWidth } : {}}>
+      {/* macOS: 메인 콘텐츠 상단 드래그 존 — z-[5]로 낮게 설정해 위에 있는 UI는 정상 클릭됨 */}
+      {isMac && (
+        <div
+          className="fixed top-0 left-0 right-0 h-9 z-[5]"
+          onMouseDown={(e) => {
+            if (e.button === 0) window.racconto?.startMove()
+          }}
+        />
+      )}
+
+      {/* 메인 콘텐츠 — 사이드바 너비만큼 밀기 (macOS floating 오프셋 6px 포함) */}
+      <div style={!isMobileDevice && isAuthenticated && !hideNavbar ? { marginLeft: sidebarWidth + (isMac ? 6 : 0) } : {}}>
         <ScrollToTop />
         <FeedbackWidget />
         <Routes>
