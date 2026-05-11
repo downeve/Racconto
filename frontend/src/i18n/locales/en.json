@@ -394,7 +394,10 @@
     "columnSingle": "1 Column",
     "columnWide": "2 Columns",
     "columnGrid": "3 Columns",
-    "layoutInPort": "(Portfolio Standard)"
+    "layoutInPort": "(Portfolio Standard)",
+    "share": "Share",
+    "copyLink": "Copy Link",
+    "copied": "Copied"
   },
   "delivery": {
     "title": "Delivery",

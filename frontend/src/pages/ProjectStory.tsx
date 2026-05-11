@@ -849,7 +849,7 @@ function ProjectStory({
 
         {/* 챕터 추가 폼 — 사이드바 버튼 클릭 시 표시 */}
         {showAddChapter && !addingSubChapterTo && (
-          <div className="bg-edit-paper border border-edit-line rounded-[2px] px-8 py-10">
+          <div className="bg-edit-paper border border-edit-line rounded-btn px-8 py-10">
             <div className="pb-4">
               <p className="t-eyebrow text-edit-muted mb-2">{t('project.labelTitle')}<span className="text-edit-danger ml-1">*</span></p>
               <input
@@ -888,7 +888,7 @@ function ProjectStory({
           </div>
         )}
 
-        <div className="bg-edit-paper border border-edit-line rounded-[2px] px-8 py-10">
+        <div className="bg-edit-paper border border-edit-line rounded-btn px-8 py-10">
         {/* 챕터 목록 */}
         <div className="space-y-8">
         {chapters

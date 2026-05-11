@@ -11,7 +11,7 @@ function FormField({ label, required, children }: {
   label: string; required?: boolean; children: React.ReactNode
 }) {
   return (
-    <div className="py-5 border-b border-edit-line-strong first:pt-0 last:border-b-0">
+    <div className="py-5 first:pt-0">
       <label className="block t-eyebrow text-edit-muted mb-2">
         {label}{required && <span className="text-edit-danger ml-1">*</span>}
       </label>
@@ -129,50 +129,52 @@ export default function ProjectEdit() {
   ]
 
   return (
-    <div className="max-w-2xl mx-auto px-6 py-12">
-      <div className="mb-12 pb-8 border-b border-edit-line">
-        <p className="t-eyebrow text-edit-muted mb-2">{t('project.editing')}</p>
-        <h1 className="font-serif text-h2 font-normal tracking-tight">
-          {t('project.editProject')}
-        </h1>
-      </div>
+    <div className="max-w-2xl mx-auto py-12">
+      <div className="bg-edit-paper border border-edit-line rounded-btn px-8 py-10">
+        <div className="mb-10 pb-8 border-b border-edit-line">
+          <p className="t-eyebrow text-edit-muted mb-2">{t('project.editing')}</p>
+          <h1 className="font-serif text-h2 font-normal tracking-tight">
+            {t('project.editProject')}
+          </h1>
+        </div>
 
-      <div>
-        <FormField label={t('project.labelTitle')} required>
-          <FormInput value={title} onChange={setTitle} placeholder={t('project.projectName')} />
-        </FormField>
-        <FormField label={t('project.labelDescription')}>
-          <FormTextarea rows={4} value={description} onChange={setDescription} placeholder={t('project.description')} />
-        </FormField>
-        <FormField label={t('project.labelLocation')}>
-          <FormInput value={location} onChange={setLocation} placeholder={t('project.location')} />
-        </FormField>
-        <div className="py-5 border-b border-edit-line-strong last:border-b-0 grid grid-cols-2 gap-8">
-          <div>
-            <p className="t-eyebrow text-edit-muted mb-2">{t('project.labelStatus')}</p>
-            <SegmentedControl value={status} onChange={setStatus} options={STATUS_OPTIONS} />
-          </div>
-          <div>
-            <p className="t-eyebrow text-edit-muted mb-2">{t('project.labelVisibility')}</p>
-            <SegmentedControl value={isPublic} onChange={setIsPublic} options={VISIBILITY_OPTIONS} />
+        <div>
+          <FormField label={t('project.labelTitle')} required>
+            <FormInput value={title} onChange={setTitle} placeholder={t('project.projectName')} />
+          </FormField>
+          <FormField label={t('project.labelDescription')}>
+            <FormTextarea rows={4} value={description} onChange={setDescription} placeholder={t('project.description')} />
+          </FormField>
+          <FormField label={t('project.labelLocation')}>
+            <FormInput value={location} onChange={setLocation} placeholder={t('project.location')} />
+          </FormField>
+          <div className="py-5 grid grid-cols-2 gap-8">
+            <div>
+              <p className="t-eyebrow text-edit-muted mb-2">{t('project.labelStatus')}</p>
+              <SegmentedControl value={status} onChange={setStatus} options={STATUS_OPTIONS} />
+            </div>
+            <div>
+              <p className="t-eyebrow text-edit-muted mb-2">{t('project.labelVisibility')}</p>
+              <SegmentedControl value={isPublic} onChange={setIsPublic} options={VISIBILITY_OPTIONS} />
+            </div>
           </div>
         </div>
-      </div>
 
-      <div className="mt-12 pt-8 border-t border-edit-line flex justify-end gap-2">
-        <button
-          onClick={() => navigate(`/projects/${id}`)}
-          className="t-caption px-4 py-2 text-edit-muted hover:text-edit-ink transition-colors"
-        >
-          {t('common.cancel')}
-        </button>
-        <button
-          onClick={handleSubmit}
-          disabled={!title}
-          className="t-caption px-5 py-2 bg-edit-ink text-edit-paper rounded-[1px] hover:bg-edit-ink/85 transition-colors disabled:opacity-40"
-        >
-          {t('common.save')}
-        </button>
+        <div className="mt-10 pt-8 border-t border-edit-line flex justify-end gap-2">
+          <button
+            onClick={() => navigate(`/projects/${id}`)}
+            className="t-caption px-4 py-2 text-edit-muted hover:text-edit-ink transition-colors"
+          >
+            {t('common.cancel')}
+          </button>
+          <button
+            onClick={handleSubmit}
+            disabled={!title}
+            className="t-caption px-5 py-2 bg-edit-ink text-edit-paper rounded-[1px] hover:bg-edit-ink/85 transition-colors disabled:opacity-40"
+          >
+            {t('common.save')}
+          </button>
+        </div>
       </div>
     </div>
   )

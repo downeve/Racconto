@@ -53,6 +53,7 @@ export default function Settings() {
   const [username, setUsername] = useState('')
   const [usernameStatus, setUsernameStatus] = useState<'idle' | 'checking' | 'available' | 'taken' | 'invalid'>('idle')
   const [usernameSaved, setUsernameSaved] = useState(false)
+  const [urlCopied, setUrlCopied] = useState(false)
   const originalUsername = useRef('')
 
   const [tier, setTier] = useState('')
@@ -256,8 +257,8 @@ export default function Settings() {
             </span>
           )}
         </div>
-        <div className="grid grid-cols-2 gap-4">
-          <div className="py-3">
+        <div className="grid grid-cols-2 gap-0 divide-x divide-hair">
+          <div className="py-3 pr-4">
             <p className="t-eyebrow text-faint mb-1">{t('settings.usage.projects')}</p>
             <p className="text-sm font-medium text-ink">
               {projectCount} / {projectLimit}
@@ -269,7 +270,7 @@ export default function Settings() {
               />
             </div>
           </div>
-          <div className="py-3">
+          <div className="py-3 pl-4">
             <p className="t-eyebrow text-faint mb-1">{t('settings.usage.photos')}</p>
             <p className="text-sm font-medium text-ink">
               {photoCount} / {photoLimit}
@@ -455,9 +456,18 @@ export default function Settings() {
           <p className="text-xs text-red-500 mt-1.5">{t('settings.usernameInvalid')}</p>
         )}
         {username && usernameStatus === 'idle' && (
-          <p className="text-[0.6875rem] text-faint mt-1.5">
-            racconto.app/{username}
-          </p>
+          <button
+            onClick={() => {
+              navigator.clipboard.writeText(`https://racconto.app/${username}`)
+              setUrlCopied(true)
+              setTimeout(() => setUrlCopied(false), 2000)
+            }}
+            className="flex items-center gap-1.5 mt-1.5 text-caption text-faint hover:text-muted transition-colors duration-150"
+          >
+            {urlCopied
+              ? <><Check size={10} strokeWidth={2} className="text-accent" />racconto.app/{username}</>
+              : <>racconto.app/{username}</>}
+          </button>
         )}
       </div>
 

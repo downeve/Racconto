@@ -48,7 +48,7 @@ export default function Dashboard() {
     .slice(0, 3)
 
   return (
-    <div className="min-h-screen bg-canvas text-ink pb-20">
+    <div className="min-h-screen pb-20">
       <div className={`max-w-7xl mx-auto px-6 ${isElectron ? 'pt-4' : 'pt-space-md'}`}>
         
         {/* 1. Welcome Section */}

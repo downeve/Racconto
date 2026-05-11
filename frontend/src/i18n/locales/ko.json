@@ -339,7 +339,7 @@
     "portfolioPreviewPanel": "미리보기 미니 패널",
     "portfolioPreviewTitle": "배치 미리보기",
     "portfolioPreviewText": "텍스트",
-    "chapterPhotoCount": "{{count}}장",
+    "chapterPhotoCount": "사진 {{count}}장",
     "mobileReadOnly": "편집은 데스크톱에서 가능합니다",
     "editMode": "편집",
     "previewMode": "미리보기",
@@ -394,7 +394,10 @@
     "columnSingle": "1열",
     "columnWide": "2열",
     "columnGrid": "3열",
-    "layoutInPort": "(포트폴리오 기준)"
+    "layoutInPort": "(포트폴리오 기준)",
+    "share": "공유",
+    "copyLink": "링크 복사",
+    "copied": "복사됨"
   },
   "delivery": {
     "title": "납품",

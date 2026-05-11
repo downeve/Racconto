@@ -4,9 +4,10 @@ import axios from 'axios'
 import { useTranslation } from 'react-i18next'
 import { useElectronSidebar } from '../context/ElectronSidebarContext'
 import { useAuth } from '../context/AuthContext'
-import { Camera, BookOpen, FileText, LayoutDashboard, Aperture, ChevronDown, ChevronRight, SlidersHorizontal, Trash2 } from 'lucide-react'
+import { Camera, BookOpen, FileText, LayoutDashboard, Aperture, ChevronDown, ChevronRight, SlidersHorizontal, Trash2, Pencil } from 'lucide-react'
 import { cfUrl } from '../utils/cfImage'
 import { Wordmark } from './Wordmark'
+import ConfirmModal from './ConfirmModal'
 import { applyFontScale, getStoredFontScale, type FontScale } from '../utils/fontScale'
 
 const API = import.meta.env.VITE_API_URL
@@ -32,13 +33,14 @@ interface Props {
 
 export default function ElectronSidebar({ activeTab, onTabChange, showTabs, width, onWidthChange }: Props) {
   const [projects, setProjects] = useState<Project[]>([])
+  const [confirmModal, setConfirmModal] = useState<{ message: string; onConfirm: () => void } | null>(null)
   const [showProjects, setShowProjects] = useState(
     () => localStorage.getItem('sidebar_projects_open') !== 'false'
   )
   const navigate = useNavigate()
   const location = useLocation()
   const { t, i18n } = useTranslation()
-  const { refreshTrigger } = useElectronSidebar()
+  const { refreshTrigger, triggerRefresh } = useElectronSidebar()
   const { user, logout } = useAuth()
   const [dropdownOpen, setDropdownOpen] = useState(false)
   const dropdownRef = useRef<HTMLDivElement>(null)
@@ -63,6 +65,24 @@ export default function ElectronSidebar({ activeTab, onTabChange, showTabs, widt
   const changeLanguage = (lang: string) => {
     i18n.changeLanguage(lang)
     localStorage.setItem('app_language', lang)
+  }
+
+  const handleDeleteProject = (e: React.MouseEvent, projectId: string) => {
+    e.stopPropagation()
+    setConfirmModal({
+      message: t('project.deleteConfirm'),
+      onConfirm: async () => {
+        const token = localStorage.getItem('token')
+        await axios.delete(`${API}/projects/${projectId}`, {
+          headers: { Authorization: `Bearer ${token}` }
+        })
+        setConfirmModal(null)
+        triggerRefresh()
+        const deleted = projects.find(p => p.id === projectId)
+        const isViewing = currentProjectId === projectId || (deleted?.slug && currentProjectId === deleted.slug)
+        if (isViewing) navigate('/projects')
+      },
+    })
   }
 
   const handleFontScale = (scale: FontScale) => {
@@ -151,6 +171,15 @@ export default function ElectronSidebar({ activeTab, onTabChange, showTabs, widt
   ]
 
   return (
+    <>
+    {confirmModal && (
+      <ConfirmModal
+        message={confirmModal.message}
+        onConfirm={confirmModal.onConfirm}
+        onCancel={() => setConfirmModal(null)}
+        dangerous
+      />
+    )}
     <div
       className="shrink-0 fixed left-0 top-0 bottom-0 bg-edit-canvas border-r border-edit-line flex flex-col z-40 overflow-hidden"
       style={{ width }}
@@ -201,20 +230,36 @@ export default function ElectronSidebar({ activeTab, onTabChange, showTabs, widt
         {showProjects && (
           <div className="mb-1 space-y-0.5">
             {projects.map(project => (
-              <button
-                key={project.id}
-                onClick={() => navigate(`/projects/${project.slug ?? project.id}`)}
-                className={`pl-6 pr-2 ${navItem(currentProjectId === project.id)}`}
-              >
-                {/* §11.6 프로젝트 cover 썸네일 */}
-                {project.cover_image_url ? (
-                  <img src={cfUrl(project.cover_image_url, 'thumb')}
-                       className="w-4 h-4 rounded-[1px] object-cover shrink-0" />
-                ) : (
-                  <span className="w-4 h-4 rounded-[1px] bg-edit-canvas-2 ring-1 ring-edit-line shrink-0" />
-                )}
-                <span className="truncate">{project.title}</span>
-              </button>
+              <div key={project.id} className="group/proj relative">
+                <button
+                  onClick={() => navigate(`/projects/${project.slug ?? project.id}`)}
+                  className={`pl-6 pr-16 w-full ${navItem(currentProjectId === project.id)}`}
+                >
+                  {project.cover_image_url ? (
+                    <img src={cfUrl(project.cover_image_url, 'thumb')}
+                         className="w-4 h-4 rounded-[1px] object-cover shrink-0" />
+                  ) : (
+                    <span className="w-4 h-4 rounded-[1px] bg-edit-canvas-2 ring-1 ring-edit-line shrink-0" />
+                  )}
+                  <span className="truncate">{project.title}</span>
+                </button>
+                <div className="absolute right-1 top-1/2 -translate-y-1/2 hidden group-hover/proj:flex items-center gap-0.5">
+                  <button
+                    onClick={e => { e.stopPropagation(); navigate(`/projects/${project.slug ?? project.id}/edit`) }}
+                    className="p-1 rounded-[1px] text-edit-faint hover:text-edit-ink hover:bg-edit-canvas-2 transition-colors"
+                    title={t('common.edit')}
+                  >
+                    <Pencil size={11} strokeWidth={1.5} />
+                  </button>
+                  <button
+                    onClick={e => handleDeleteProject(e, project.id)}
+                    className="p-1 rounded-[1px] text-edit-faint hover:text-edit-danger hover:bg-edit-canvas-2 transition-colors"
+                    title={t('common.delete')}
+                  >
+                    <Trash2 size={11} strokeWidth={1.5} />
+                  </button>
+                </div>
+              </div>
             ))}
           </div>
         )}
@@ -338,5 +383,6 @@ export default function ElectronSidebar({ activeTab, onTabChange, showTabs, widt
         )}
       </div>
     </div>
+    </>
   )
 }

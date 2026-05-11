@@ -386,7 +386,10 @@
     "columnSingle": "1列",
     "columnWide": "2列",
     "columnGrid": "3列",
-    "layoutInPort": "(ポートフォリオ基準)"
+    "layoutInPort": "(ポートフォリオ基準)",
+    "share": "シェア",
+    "copyLink": "リンクをコピー",
+    "copied": "コピー済み"
   },
   "delivery": {
     "title": "デリバリー",

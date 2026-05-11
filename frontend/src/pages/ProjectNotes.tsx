@@ -134,10 +134,10 @@ const NoteItem = memo(function NoteItem({
   return (
     <div
       ref={noteRef}
-      className={`group/note relative px-5 py-5 border-b border-edit-line transition-colors duration-150 ${
+      className={`group/note relative px-5 py-5 bg-edit-paper border border-edit-line rounded-btn transition-colors duration-150 ${
         note.is_pinned
           ? 'border-l-2 border-l-edit-ink pl-[18px] bg-edit-ink/[0.035]'
-          : 'border-l-2 border-l-transparent hover:bg-edit-ink/[0.025]'
+          : 'hover:bg-edit-ink/[0.025]'
       }`}
     >
       {editingNote === note.id ? (
@@ -403,9 +403,9 @@ function ProjectNotes({
         />
       )}
 
-      <div className="max-w-3xl bg-edit-paper border border-edit-line rounded-[2px]" data-notes-scroll>
-        {/* 새 노트 작성 — 종이 단락 */}
-        <div className="px-5 py-5 border-b border-edit-line">
+      <div className="max-w-3xl flex flex-col gap-4" data-notes-scroll>
+        {/* 새 노트 작성 */}
+        <div className="bg-edit-paper border border-edit-line rounded-btn px-5 py-5">
           <div className="flex items-center gap-2 mb-3">
             <div className="flex gap-1.5 flex-wrap">
               {NOTE_TYPES.map(type => (
@@ -468,7 +468,7 @@ function ProjectNotes({
         </div>
 
         {/* 노트 목록 */}
-        <div>
+        <div className="flex flex-col gap-3">
           {filteredNotes.map(note => (
             <NoteItem
               key={note.id}
@@ -494,13 +494,13 @@ function ProjectNotes({
 
           {filteredNotes.length === 0 && (
             filterType || filterPinned
-              ? <div className="py-16 text-center">
+              ? <div className="bg-edit-paper border border-edit-line rounded-btn py-16 text-center">
                   <p className="t-caption text-edit-faint">{t('filter.noMatch')}</p>
                 </div>
-              : <div className="text-center py-24 max-w-sm mx-auto">
+              : <div className="bg-edit-paper border border-edit-line rounded-btn text-center py-24 max-w-sm mx-auto" style={{ maxWidth: '100%' }}>
                   <p className="t-caption text-edit-faint mb-3">{t('note.empty')}</p>
-                  <p className="font-serif text-h3 text-edit-ink/80 mb-2 font-normal">{t('note.noNotes')}</p>
-                  <p className="text-body text-edit-muted">{t('note.noNotes2')}</p>
+                  <p className="font-serif text-h2 text-edit-ink/80 mb-3 font-normal">{t('note.noNotes')}</p>
+                  <p className="text-small text-edit-muted">{t('note.noNotes2')}</p>
                 </div>
           )}
         </div>
