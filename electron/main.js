@@ -760,7 +760,7 @@ ipcMain.handle('auth:openOAuth', (event, url) => {
   shell.openExternal(url)
 })
 
-ipcMain.handle('window:startMove', () => {
+ipcMain.on('window:startMove', () => {
   if (mainWindow && !mainWindow.isDestroyed()) {
     mainWindow.startInteractiveMove()
   }

@@ -30,6 +30,6 @@ interface Window {
     setMenuLanguage: (lang: string) => void
     openOAuth: (url: string) => Promise<void>
     onOAuthToken: (callback: (token: string) => void) => void
-    startMove: () => Promise<void>
+    startMove: () => void
   }
 }
