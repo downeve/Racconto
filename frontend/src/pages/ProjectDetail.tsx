@@ -1,4 +1,5 @@
 import { useEffect, useState, useMemo, useCallback, useRef } from 'react'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { createPortal } from 'react-dom'
 import { useParams } from 'react-router-dom'
 import axios from 'axios'
@@ -211,9 +212,7 @@ export default function ProjectDetail({
   const { t } = useTranslation()
 
   const { id } = useParams()
-  const [numericId, setNumericId] = useState<string | null>(null)
-  const [project, setProject] = useState<Project | null>(null)
-  const [photos, setPhotos] = useState<Photo[]>([])
+  const queryClient = useQueryClient()
   const { triggerRefresh, uploadInProgress: uploading, setUploadInProgress: setUploading } = useElectronSidebar()
 
   const [activeTab, setActiveTab] = useState<'photos' | 'story' | 'notes' | 'delivery'>('photos')
@@ -221,30 +220,20 @@ export default function ProjectDetail({
   const isElectron = !!window.racconto
 
   const [photoSubTab, setPhotoSubTab] = useState<'all' | 'folder' | 'trash'>('all')
-  const [trashedPhotos, setTrashedPhotos] = useState<Photo[]>([])
-
-  // 🚀 [추가할 State] 다중 선택 모드 관련 상태
   const [selectionMode, setSelectionMode] = useState(false)
   const [selectedPhotoIds, setSelectedPhotoIds] = useState<Set<string>>(new Set())
   const [showBulkChapterMenu, setShowBulkChapterMenu] = useState(false)
-  
   const [filterRating, setFilterRating] = useState<number | null>(null)
   const [filterColor, setFilterColor] = useState<string | null>(null)
   const [filterFolder, setFilterFolder] = useState<string | null>(null)
   const [showExif, setShowExif] = useState(true)
-  const [chapterPhotoIds, setChapterPhotoIds] = useState<Set<string>>(new Set())
-  const [photoChapterMap, setPhotoChapterMap] = useState<Map<string, string>>(new Map())
-
-  const [notesVersion, setNotesVersion] = useState(0)
   const [lightboxPhoto, setLightboxPhoto] = useState<Photo | null>(null)
   const [chapterMenuPhoto, setChapterMenuPhoto] = useState<string | null>(null)
-  const [chapters, setChapters] = useState<{ id: string; title: string; parent_id?: string | null; order_num?: number }[]>([])
   const [sortBy, setSortBy] = useState<'default' | 'taken_at' | 'name'>('default')
-  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc') // 초기값은 그대로, 아래 useEffect에서 덮어씀
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc')
   const [deletingMissing, setDeletingMissing] = useState(false)
   const [deletingTrash, setDeletingTrash] = useState(false)
   const [isProjectFolderLinked, setIsProjectFolderLinked] = useState(false)
-  const [photoNoteIds, setPhotoNoteIds] = useState<Set<string>>(new Set())
   const [filterHasNote, setFilterHasNote] = useState(false)
   const [confirmModal, setConfirmModal] = useState<{ message: string; onConfirm: () => void } | null>(null)
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' | 'warning' } | null>(null)
@@ -257,59 +246,78 @@ export default function ProjectDetail({
   }>({ ids: [], snapshotPhotos: [], snapshotTrash: [], timer: null })
   const [chapterPhotoVersion, setChapterPhotoVersion] = useState(0)
 
+  // ── React Query ───────────────────────────────────────────
+  const { data: project } = useQuery<Project>({
+    queryKey: ['project', id],
+    queryFn: async () => (await axios.get(`${API}/projects/${id}`)).data,
+    enabled: !!id,
+  })
+  const numericId = project ? String(project.id) : null
+
+  const { data: photos = [] } = useQuery<Photo[]>({
+    queryKey: ['photos', numericId],
+    queryFn: async () => (await axios.get(`${API}/photos/?project_id=${numericId}`)).data,
+    enabled: !!numericId,
+  })
+
+  const { data: trashedPhotos = [] } = useQuery<Photo[]>({
+    queryKey: ['photosTrash', numericId],
+    queryFn: async () => (await axios.get(`${API}/photos/trash/${numericId}`)).data,
+    enabled: !!numericId,
+  })
+
+  const { data: chapterData } = useQuery({
+    queryKey: ['chapterPhotos', numericId],
+    queryFn: async () => (await axios.get(`${API}/chapters/all-photo-ids?project_id=${numericId}`)).data,
+    enabled: !!numericId,
+  })
+
+  const { data: settingsData } = useQuery({
+    queryKey: ['settings'],
+    queryFn: async () => (await axios.get(`${API}/settings/`)).data,
+  })
+
+  const { data: notesData } = useQuery<NoteResponse[]>({
+    queryKey: ['notes', numericId],
+    queryFn: async () => (await axios.get(`${API}/notes/?project_id=${numericId}`)).data,
+    enabled: !!numericId,
+  })
+
+  // ── Derived state ──────────────────────────────────────────
+  const chapters = useMemo<{ id: string; title: string; parent_id?: string | null; order_num?: number }[]>(
+    () => chapterData?.chapters ?? [], [chapterData]
+  )
+  const { chapterPhotoIds, photoChapterMap } = useMemo(() => {
+    const ids = new Set<string>()
+    const map = new Map<string, string>()
+    chapterData?.photo_ids?.forEach((cp: ChapterPhotoResponse) => {
+      if (cp.photo_id) { ids.add(cp.photo_id); map.set(cp.photo_id, cp.chapter_id) }
+    })
+    return { chapterPhotoIds: ids, photoChapterMap: map }
+  }, [chapterData])
+
+  const photoNoteIds = useMemo(() =>
+    new Set<string>((notesData ?? []).filter(n => n.photo_id).map(n => n.photo_id as string)),
+    [notesData]
+  )
+
   const showToast = useCallback((message: string, type: 'success' | 'error' | 'warning') => {
     if (toastTimer.current) clearTimeout(toastTimer.current)
     setToast({ message, type })
     toastTimer.current = setTimeout(() => setToast(null), 4000)
   }, [])
 
-  const fetchPhotos = async () => {
-    if (!numericId) return
-    const res = await axios.get(`${API}/photos/?project_id=${numericId}`)
-    setPhotos(res.data)
-  }
-
-  const fetchTrash = async () => {
-    if (!numericId) return
-    const res = await axios.get(`${API}/photos/trash/${numericId}`)
-    setTrashedPhotos(res.data)
-  }
-
-  const fetchChapterPhotoIds = async () => {
-    if (!numericId) return
-    const res = await axios.get(`${API}/chapters/all-photo-ids?project_id=${numericId}`)
-    setChapters(res.data.chapters)
-    const ids = new Set<string>()
-    const map = new Map<string, string>()
-    res.data.photo_ids.forEach((cp: ChapterPhotoResponse) => {
-      if (cp.photo_id) {
-        ids.add(cp.photo_id)
-        map.set(cp.photo_id, cp.chapter_id)
-      }
-    })
-    setChapterPhotoIds(ids)
-    setPhotoChapterMap(map)
-    setChapterPhotoVersion(v => v + 1)
-  }
-
-  const fetchPhotoNoteIds = async () => {
-    if (!numericId) return
-    const res = await axios.get(`${API}/notes/?project_id=${numericId}`)
-    const ids = new Set<string>(
-      (res.data as NoteResponse[])
-        .filter(n => n.photo_id)
-        .map(n => n.photo_id as string)
-    )
-    setPhotoNoteIds(ids)
-  }
-
   const [gridCols, setGridCols] = useState(3)
   const [openDropdown, setOpenDropdown] = useState<'view' | 'sort' | 'exif' | null>(null)
   const dropdownRef = useRef<HTMLDivElement>(null)
-  const [labelSettings, setLabelSettings] = useState<Record<string, string>>({
-    color_label_red: t('colors.reject'), color_label_yellow: t('colors.hold'), color_label_green: t('colors.select'),
-    color_label_blue: t('colors.clientShare'), color_label_purple: t('colors.finalSelect'),
-  })
+
+  const labelSettings = useMemo(() => ({
+    color_label_red:    settingsData?.['color_label_red']    || t('colors.reject'),
+    color_label_yellow: settingsData?.['color_label_yellow'] || t('colors.hold'),
+    color_label_green:  settingsData?.['color_label_green']  || t('colors.select'),
+    color_label_blue:   settingsData?.['color_label_blue']   || t('colors.clientShare'),
+    color_label_purple: settingsData?.['color_label_purple'] || t('colors.finalSelect'),
+  }), [settingsData, t])
 
   useEffect(() => {
     const handler = (e: MouseEvent) => {
@@ -322,54 +330,28 @@ export default function ProjectDetail({
   }, [])
 
   useEffect(() => {
-    axios.get(`${API}/settings/`).then(res => {
-      setGridCols(parseInt(res.data['default_grid_cols'] || '3'))
-      setShowExif(res.data['default_show_exif'] !== 'false')
-
-      // 설정에서 지정한 기본 정렬 기준 불러오기!
-      if (res.data['default_sort_by']) {
-        setSortBy(res.data['default_sort_by'])
-      }
-      
-      // 오름차순, 내림차순 설정 값 불러오기
-      if (res.data['default_sort_order']) {
-        setSortOrder(res.data['default_sort_order'] as 'asc' | 'desc')
-      }
-
-      setLabelSettings({
-        color_label_red: res.data['color_label_red'] || t('colors.reject'),
-        color_label_yellow: res.data['color_label_yellow'] || t('colors.hold'),
-        color_label_green: res.data['color_label_green'] || t('colors.select'),
-        color_label_blue: res.data['color_label_blue'] || t('colors.clientShare'),
-        color_label_purple: res.data['color_label_purple'] || t('colors.finalSelect'),
-      })
-    })
-  }, [])
+    if (!settingsData) return
+    setGridCols(parseInt(settingsData['default_grid_cols'] || '3'))
+    setShowExif(settingsData['default_show_exif'] !== 'false')
+    if (settingsData['default_sort_by']) setSortBy(settingsData['default_sort_by'])
+    if (settingsData['default_sort_order']) setSortOrder(settingsData['default_sort_order'] as 'asc' | 'desc')
+  }, [settingsData])
 
   useEffect(() => {
-    if (!id) return
-    setNumericId(null)
-    setActiveTab('photos')
-    axios.get(`${API}/projects/${id}`).then(res => {
-      setProject(res.data)
-      setNumericId(String(res.data.id))
-    })
+    if (id) setActiveTab('photos')
   }, [id])
 
   useEffect(() => {
-    if (!numericId) return
-    Promise.all([fetchPhotos(), fetchTrash(), fetchPhotoNoteIds(), fetchChapterPhotoIds()])
-      .catch(err => console.error('초기 데이터 로드 실패:', err))
-  }, [numericId])
+    setChapterPhotoVersion(v => v + 1)
+  }, [chapterData])
 
   const numericIdRef = useRef(numericId)
   useEffect(() => { numericIdRef.current = numericId }, [numericId])
 
   useEffect(() => {
-    const handler = async () => {
+    const handler = () => {
       if (!numericIdRef.current) return
-      const res = await axios.get(`${API}/photos/?project_id=${numericIdRef.current}`)
-      setPhotos(res.data)
+      queryClient.invalidateQueries({ queryKey: ['photos', numericIdRef.current] })
     }
     window.addEventListener('racconto:uploadDone', handler)
     window.addEventListener('racconto:limitExceeded', handler)
@@ -377,15 +359,15 @@ export default function ProjectDetail({
       window.removeEventListener('racconto:uploadDone', handler)
       window.removeEventListener('racconto:limitExceeded', handler)
     }
-  }, []) // ← dependency 빈 배열로 변경
+  }, [queryClient])
 
   useEffect(() => {
     if (!window.racconto) return
     window.racconto.onDeletedFile((filePath: string) => {
       const filename = filePath.split('/').pop()
-      setPhotos(prev => prev.map(p =>
-        p.original_filename === filename ? { ...p, local_missing: true } : p
-      ))
+      queryClient.setQueryData(['photos', numericIdRef.current], (prev: Photo[] | undefined) =>
+        (prev ?? []).map(p => p.original_filename === filename ? { ...p, local_missing: true } : p)
+      )
     })
     return () => window.racconto?.offDeletedFile?.()
   }, [])
@@ -541,9 +523,9 @@ export default function ProjectDetail({
     }
 
     try {
-      await fetchPhotos()
+      await queryClient.invalidateQueries({ queryKey: ['photos', numericId] })
     } catch {
-      // 로그아웃 등으로 fetchPhotos 실패해도 uploading은 반드시 해제
+      // 로그아웃 등으로 invalidate 실패해도 uploading은 반드시 해제
     } finally {
       setUploading(false)
     }
@@ -582,11 +564,8 @@ export default function ProjectDetail({
         cover_image_url: photo.image_url
       })
 
-      // 3. 정보 갱신을 위한 GET 요청에서도 numericId 사용
-      const res = await axios.get(`${API}/projects/${numericId}`)
-      setProject(res.data)
-      
-      // 4. 화면 리프레시 트리거
+      // 3. 캐시 무효화
+      queryClient.invalidateQueries({ queryKey: ['project', id] })
       triggerRefresh()
     } catch (error) {
       console.error('Failed to set cover image:', error)
@@ -603,8 +582,7 @@ export default function ProjectDetail({
       location: project.location, is_public: project.is_public,
       status: statusValue, cover_image_url: null
     })
-    const res = await axios.get(`${API}/projects/${numericId}`)
-    setProject(res.data)
+    queryClient.invalidateQueries({ queryKey: ['project', id] })
     triggerRefresh()
   }
 
@@ -612,19 +590,19 @@ export default function ProjectDetail({
     const batch = pendingDeleteBatchRef.current
     const photoToDelete = photos.find(p => p.id === photoId)
 
-    // 배치 첫 삭제 시 롤백용 스냅샷 캡처
     if (batch.ids.length === 0) {
-      batch.snapshotPhotos = [...photos]
-      batch.snapshotTrash = [...trashedPhotos]
+      batch.snapshotPhotos = queryClient.getQueryData<Photo[]>(['photos', numericId]) ?? []
+      batch.snapshotTrash = queryClient.getQueryData<Photo[]>(['photosTrash', numericId]) ?? []
     }
 
-    // ⚡️ 낙관적 업데이트: 즉시 화면 반영
     if (lightboxPhoto?.id === photoId) setLightboxPhoto(null)
-    setPhotos(prev => prev.filter(p => p.id !== photoId))
+    queryClient.setQueryData(['photos', numericId], (prev: Photo[] | undefined) =>
+      (prev ?? []).filter(p => p.id !== photoId)
+    )
     if (photoToDelete) {
-      setTrashedPhotos(prev => [
-        ...prev,
-        { ...photoToDelete, deleted_at: new Date().toISOString() }
+      queryClient.setQueryData(['photosTrash', numericId], (prev: Photo[] | undefined) => [
+        ...(prev ?? []),
+        { ...photoToDelete, deleted_at: new Date().toISOString() },
       ])
     }
 
@@ -640,16 +618,16 @@ export default function ProjectDetail({
       try {
         await axios.delete(`${API}/photos/bulk-delete`, { data: { photo_ids: ids } })
         await Promise.all([
-          fetchPhotos(),
-          fetchTrash(),
-          fetchChapterPhotoIds(),
-          fetchPhotoNoteIds(),
-          axios.get(`${API}/projects/${numericId}`).then(res => setProject(res.data))
+          queryClient.invalidateQueries({ queryKey: ['photos', numericId] }),
+          queryClient.invalidateQueries({ queryKey: ['photosTrash', numericId] }),
+          queryClient.invalidateQueries({ queryKey: ['chapterPhotos', numericId] }),
+          queryClient.invalidateQueries({ queryKey: ['notes', numericId] }),
+          queryClient.invalidateQueries({ queryKey: ['project', id] }),
         ])
       } catch (error) {
         console.error('사진 삭제 실패:', error)
-        setPhotos(snapshotPhotos)
-        setTrashedPhotos(snapshotTrash)
+        queryClient.setQueryData(['photos', numericId], snapshotPhotos)
+        queryClient.setQueryData(['photosTrash', numericId], snapshotTrash)
       }
     }, 400)
   }
@@ -659,24 +637,23 @@ export default function ProjectDetail({
     const newRating = photo.rating === rating ? null : rating;
     const previousRating = photo.rating;
 
-    // 2. ⚡️ 낙관적 업데이트: 서버 대기 없이 화면(메인 그리드, 라이트박스) 즉시 변경
-    setPhotos(prev => prev.map(p => p.id === photo.id ? { ...p, rating: newRating } : p));
+    queryClient.setQueryData(['photos', numericId], (prev: Photo[] | undefined) =>
+      (prev ?? []).map(p => p.id === photo.id ? { ...p, rating: newRating } : p)
+    )
     if (lightboxPhoto?.id === photo.id) {
-      setLightboxPhoto(prev => prev ? { ...prev, rating: newRating } : null);
+      setLightboxPhoto(prev => prev ? { ...prev, rating: newRating } : null)
     }
 
-    // 3. 백그라운드 서버 통신
     try {
-      await axios.put(`${API}/photos/${photo.id}`, { ...photo, rating: newRating });
+      await axios.put(`${API}/photos/${photo.id}`, { ...photo, rating: newRating })
     } catch (error) {
-      console.error("별점 업데이트 실패, 이전 상태로 롤백합니다.", error);
-      // 4. 🔄 에러 발생 시 롤백 (백업해둔 이전 상태로 화면 원상복구)
-      setPhotos(prev => prev.map(p => p.id === photo.id ? { ...p, rating: previousRating } : p));
+      console.error("별점 업데이트 실패, 롤백합니다.", error)
+      queryClient.setQueryData(['photos', numericId], (prev: Photo[] | undefined) =>
+        (prev ?? []).map(p => p.id === photo.id ? { ...p, rating: previousRating } : p)
+      )
       if (lightboxPhoto?.id === photo.id) {
-        setLightboxPhoto(prev => prev ? { ...prev, rating: previousRating } : null);
+        setLightboxPhoto(prev => prev ? { ...prev, rating: previousRating } : null)
       }
-      // (선택) 여기에 토스트 알림을 추가해도 좋습니다. ex) toast.error("수정에 실패했습니다.")
-    }
   }
 
   const handleSetColorLabel = async (photo: Photo, label: string) => {
@@ -684,21 +661,22 @@ export default function ProjectDetail({
     const newLabel = photo.color_label === label ? null : label;
     const previousLabel = photo.color_label;
 
-    // 2. ⚡️ 낙관적 업데이트: 화면 즉시 변경
-    setPhotos(prev => prev.map(p => p.id === photo.id ? { ...p, color_label: newLabel } : p));
+    queryClient.setQueryData(['photos', numericId], (prev: Photo[] | undefined) =>
+      (prev ?? []).map(p => p.id === photo.id ? { ...p, color_label: newLabel } : p)
+    )
     if (lightboxPhoto?.id === photo.id) {
-      setLightboxPhoto(prev => prev ? { ...prev, color_label: newLabel } : null);
+      setLightboxPhoto(prev => prev ? { ...prev, color_label: newLabel } : null)
     }
 
-    // 3. 백그라운드 서버 통신
     try {
-      await axios.put(`${API}/photos/${photo.id}`, { ...photo, color_label: newLabel });
+      await axios.put(`${API}/photos/${photo.id}`, { ...photo, color_label: newLabel })
     } catch (error) {
-      console.error("컬러 라벨 업데이트 실패, 이전 상태로 롤백합니다.", error);
-      // 4. 🔄 에러 발생 시 롤백 (화면 원상복구)
-      setPhotos(prev => prev.map(p => p.id === photo.id ? { ...p, color_label: previousLabel } : p));
+      console.error("컬러 라벨 업데이트 실패, 롤백합니다.", error)
+      queryClient.setQueryData(['photos', numericId], (prev: Photo[] | undefined) =>
+        (prev ?? []).map(p => p.id === photo.id ? { ...p, color_label: previousLabel } : p)
+      )
       if (lightboxPhoto?.id === photo.id) {
-        setLightboxPhoto(prev => prev ? { ...prev, color_label: previousLabel } : null);
+        setLightboxPhoto(prev => prev ? { ...prev, color_label: previousLabel } : null)
       }
     }
   }
@@ -707,13 +685,14 @@ export default function ProjectDetail({
     try {
       const res = await axios.post(`${API}/photos/${photo.id}/rotate`, { direction })
       const updatedPhoto: Photo = res.data
-      setPhotos(prev => prev.map(p => p.id === photo.id ? { ...p, image_url: updatedPhoto.image_url } : p))
+      queryClient.setQueryData(['photos', numericId], (prev: Photo[] | undefined) =>
+        (prev ?? []).map(p => p.id === photo.id ? { ...p, image_url: updatedPhoto.image_url } : p)
+      )
       if (lightboxPhoto?.id === photo.id) {
         setLightboxPhoto(prev => prev ? { ...prev, image_url: updatedPhoto.image_url } : null)
       }
       if (project?.cover_image_url === photo.image_url) {
-        const projectRes = await axios.get(`${API}/projects/${numericId}`)
-        setProject(projectRes.data)
+        queryClient.invalidateQueries({ queryKey: ['project', id] })
         triggerRefresh()
       }
       showToast(t('photo.rotateSuccess'), 'success')
@@ -731,7 +710,7 @@ export default function ProjectDetail({
         await Promise.all(
           photos.filter(p => p.rating !== null).map(p => axios.put(`${API}/photos/${p.id}`, { ...p, rating: null }))
         )
-        fetchPhotos()
+        queryClient.invalidateQueries({ queryKey: ['photos', numericId] })
       },
     })
   }
@@ -744,7 +723,7 @@ export default function ProjectDetail({
         await Promise.all(
           photos.filter(p => p.color_label !== null).map(p => axios.put(`${API}/photos/${p.id}`, { ...p, color_label: null }))
         )
-        fetchPhotos()
+        queryClient.invalidateQueries({ queryKey: ['photos', numericId] })
       },
     })
   }
@@ -772,11 +751,11 @@ export default function ProjectDetail({
             data: { photo_ids: missingPhotos.map(p => p.id) }
           })
           await Promise.all([
-            fetchPhotos(),
-            fetchTrash(),
-            fetchChapterPhotoIds(),
-            fetchPhotoNoteIds(),
-            axios.get(`${API}/projects/${numericId}`).then(res => setProject(res.data))
+            queryClient.invalidateQueries({ queryKey: ['photos', numericId] }),
+            queryClient.invalidateQueries({ queryKey: ['photosTrash', numericId] }),
+            queryClient.invalidateQueries({ queryKey: ['chapterPhotos', numericId] }),
+            queryClient.invalidateQueries({ queryKey: ['notes', numericId] }),
+            queryClient.invalidateQueries({ queryKey: ['project', id] }),
           ])
         } finally {
           setDeletingMissing(false)
@@ -811,7 +790,7 @@ export default function ProjectDetail({
         await axios.delete(`${API}/photos/bulk-permanent`, {
           data: { photo_ids: webTrashPhotos.map(p => p.id) }
         })
-        await fetchTrash()
+        await queryClient.invalidateQueries({ queryKey: ['photosTrash', numericId] })
       } catch (error) {
         console.error(error)
       } finally {
@@ -851,11 +830,11 @@ export default function ProjectDetail({
         })
         if (filterFolder === folder) setFilterFolder(null)
         await Promise.all([
-          fetchPhotos(),
-          fetchTrash(),
-          fetchChapterPhotoIds(),
-          fetchPhotoNoteIds(),
-          axios.get(`${API}/projects/${numericId}`).then(res => setProject(res.data))
+          queryClient.invalidateQueries({ queryKey: ['photos', numericId] }),
+          queryClient.invalidateQueries({ queryKey: ['photosTrash', numericId] }),
+          queryClient.invalidateQueries({ queryKey: ['chapterPhotos', numericId] }),
+          queryClient.invalidateQueries({ queryKey: ['notes', numericId] }),
+          queryClient.invalidateQueries({ queryKey: ['project', id] }),
         ])
       },
     })
@@ -873,7 +852,7 @@ export default function ProjectDetail({
         }
         await axios.post(`${API}/chapters/${chapterId}/photos`, { photo_id: photoId })
       }
-      await fetchChapterPhotoIds()
+      await queryClient.invalidateQueries({ queryKey: ['chapterPhotos', numericId] })
     } catch {
       // 오류 무시
     }
@@ -946,7 +925,7 @@ export default function ProjectDetail({
       setSelectionMode(false)
       setSelectedPhotoIds(new Set())
       setShowBulkChapterMenu(false)
-      await fetchChapterPhotoIds()
+      await queryClient.invalidateQueries({ queryKey: ['chapterPhotos', numericId] })
       showToast(t('story.addMultiplePhotoSuccess', { count }), 'success')
     } catch (error) {
       console.error("일괄 추가 실패", error)
@@ -985,7 +964,7 @@ export default function ProjectDetail({
           handleDeleteFolder={handleDeleteFolder}
           setFilterFolder={setFilterFolder}
           setPhotoSubTab={setPhotoSubTab}
-          fetchTrash={fetchTrash}
+          fetchTrash={() => queryClient.invalidateQueries({ queryKey: ['photosTrash', numericId] })}
           setSelectionMode={setSelectionMode}
           setSelectedPhotoIds={setSelectedPhotoIds}
           setShowBulkChapterMenu={setShowBulkChapterMenu}
@@ -1021,7 +1000,7 @@ export default function ProjectDetail({
           chapters={chapters}
           projectId={numericId!}
           photoChapterMap={photoChapterMap}
-          onNoteChange={() => { setNotesVersion(v => v + 1); fetchPhotoNoteIds() }}
+          onNoteChange={() => queryClient.invalidateQueries({ queryKey: ['notes', numericId] })}
           onAddToChapter={handleAddToChapter}
           onRotate={handleRotatePhoto}
         />
@@ -1287,25 +1266,22 @@ export default function ProjectDetail({
                           <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity bg-black/70 flex flex-col items-center justify-center gap-2 px-4 z-20">
                             <button
                               onClick={async () => {
-                                // 1. 롤백용 백업
-                                const prevPhotos = [...photos]
-                                const prevTrash = [...trashedPhotos]
+                                const prevPhotos = queryClient.getQueryData<Photo[]>(['photos', numericId]) ?? []
+                                const prevTrash = queryClient.getQueryData<Photo[]>(['photosTrash', numericId]) ?? []
 
-                                // 2. 낙관적 업데이트 — 휴지통에서 제거 + 사진 목록에 복구
-                                setTrashedPhotos(prev => prev.filter(p => p.id !== photo.id))
-                                setPhotos(prev => [...prev, { ...photo, deleted_at: null }])
+                                queryClient.setQueryData(['photosTrash', numericId], (prev: Photo[] | undefined) =>
+                                  (prev ?? []).filter(p => p.id !== photo.id)
+                                )
+                                queryClient.setQueryData(['photos', numericId], (prev: Photo[] | undefined) =>
+                                  [...(prev ?? []), { ...photo, deleted_at: null }]
+                                )
 
                                 try {
                                   await axios.post(`${API}/photos/${photo.id}/restore`)
-
-                                  // 백그라운드 동기화
-                                  Promise.all([
-                                    fetchChapterPhotoIds(),
-                                  ])
+                                  queryClient.invalidateQueries({ queryKey: ['chapterPhotos', numericId] })
                                 } catch (err: any) {
-                                  // 3. 에러 시 롤백
-                                  setPhotos(prevPhotos)
-                                  setTrashedPhotos(prevTrash)
+                                  queryClient.setQueryData(['photos', numericId], prevPhotos)
+                                  queryClient.setQueryData(['photosTrash', numericId], prevTrash)
 
                                   const detail = err.response?.data?.detail
                                   const code = typeof detail === 'object' ? detail.code : detail
@@ -1335,7 +1311,7 @@ export default function ProjectDetail({
                                   onConfirm: async () => {
                                     setConfirmModal(null)
                                     await axios.delete(`${API}/photos/${photo.id}/permanent`)
-                                    fetchTrash()
+                                    queryClient.invalidateQueries({ queryKey: ['photosTrash', numericId] })
                                   },
                                 })
                               }}
@@ -1378,7 +1354,6 @@ export default function ProjectDetail({
         <ProjectNotes
           projectId={numericId!}
           activeTab={activeTab}
-          notesVersion={notesVersion}
           photos={photos.filter(p => !p.deleted_at)}
         />
       </div>

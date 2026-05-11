@@ -1,4 +1,4 @@
-import { useState, useRef, useMemo, memo, useEffect } from 'react'
+import { useState, useRef, useMemo, memo } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { createPortal } from 'react-dom'
 import axios from 'axios'
@@ -261,12 +261,10 @@ const NoteItem = memo(function NoteItem({
 function ProjectNotes({
     projectId,
     activeTab,
-    notesVersion,
     photos,
   }: {
     projectId: string
     activeTab: string
-    notesVersion: number
     photos: { id: string; image_url: string; caption: string | null }[]
   }) {
   const { t } = useTranslation()
@@ -303,12 +301,6 @@ function ProjectNotes({
     },
     enabled: activeTab === 'notes',
   })
-
-  useEffect(() => {
-    if (activeTab === 'notes' && notesVersion > 0) {
-      queryClient.invalidateQueries({ queryKey: ['notes', projectId] })
-    }
-  }, [notesVersion])
 
   const invalidateNotes = () => queryClient.invalidateQueries({ queryKey: ['notes', projectId] })
 
