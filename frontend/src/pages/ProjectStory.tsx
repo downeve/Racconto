@@ -850,7 +850,7 @@ function ProjectStory({
         {/* 챕터 추가 폼 — 사이드바 버튼 클릭 시 표시 */}
         {showAddChapter && !addingSubChapterTo && (
           <div className="mb-8 pb-8 border-b border-edit-line">
-            <div className="pb-4 border-b border-edit-line-strong">
+            <div className="pb-4">
               <p className="t-eyebrow text-edit-muted mb-2">{t('project.labelTitle')}</p>
               <input
                 className="w-full font-serif text-body bg-transparent border-0 border-b border-edit-line
@@ -966,7 +966,7 @@ function ProjectStory({
                   {/* 편집 폼 — 헤더 아래 인라인 */}
                   {editingChapter === chapter.id ? (
                     <div className="mt-5 pt-5 border-t border-edit-line">
-                      <div className="pb-4 border-b border-edit-line-strong">
+                      <div className="pb-4">
                         <p className="t-eyebrow text-edit-muted mb-2">{t('project.labelTitle')}</p>
                         <input
                           className="w-full font-serif text-body bg-transparent border-0 border-b border-edit-line
@@ -1134,7 +1134,7 @@ function ProjectStory({
                           {/* 편집 폼 — 헤더 아래 인라인 */}
                           {editingChapter === subChapter.id ? (
                             <div className="mt-5 pt-5 border-t border-edit-line">
-                              <div className="pb-4 border-b border-edit-line-strong">
+                              <div className="pb-4">
                                 <p className="t-eyebrow text-edit-muted mb-2">{t('project.labelTitle')}</p>
                                 <input
                                   className="w-full font-serif text-body bg-transparent border-0 border-b border-edit-line
