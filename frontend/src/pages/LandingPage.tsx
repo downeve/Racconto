@@ -61,7 +61,7 @@ export default function LandingPage() {
       <PublicNavbar />
 
       {/* Hero */}
-      <section className="relative min-h-[88vh] flex items-center px-6 md:px-12 overflow-hidden">
+      <section className="relative min-h-[88vh] flex items-center pt-14 px-6 md:px-12 overflow-hidden">
         {/* Grid lines */}
         <div
           className="absolute inset-0 pointer-events-none"
