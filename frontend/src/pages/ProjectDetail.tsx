@@ -29,7 +29,7 @@ interface PhotosSidebarContentProps {
   photos: Photo[]
   trashedPhotos: Photo[]
   uploading: boolean
-  uploadProgress: { current: number; total: number } | null
+  uploadProgress: { current: number; total: number; type: 'photo' | 'folder' } | null
   photoSubTab: 'all' | 'folder' | 'trash'
   filterFolder: string | null
   filterRating: number | null
@@ -39,7 +39,7 @@ interface PhotosSidebarContentProps {
   colorLabels: { value: string; color: string; label: string }[]
   isAllActive: boolean
   selectionMode: boolean
-  handleUpload: (e: React.ChangeEvent<HTMLInputElement>) => void
+  handleUpload: (e: React.ChangeEvent<HTMLInputElement>, type: 'photo' | 'folder') => void
   handleResetAll: () => void
   handleDeleteFolder: (folder: string) => void
   setFilterFolder: React.Dispatch<React.SetStateAction<string | null>>
@@ -214,7 +214,7 @@ export default function ProjectDetail({
 
   const { id } = useParams()
   const queryClient = useQueryClient()
-  const { triggerRefresh, uploadInProgress: uploading, setUploadInProgress: setUploading, uploadProgress, startUpload } = useElectronSidebar()
+  const { triggerRefresh, uploadInProgress: uploading, uploadProgress, startUpload } = useElectronSidebar()
 
   const [activeTab, setActiveTab] = useState<'photos' | 'story' | 'notes' | 'delivery'>('photos')
 
@@ -414,7 +414,7 @@ export default function ProjectDetail({
     const validFiles = Array.from(e.target.files).filter(file => allowedTypes.includes(file.type))
     inputEl.value = ''
     if (validFiles.length === 0) return
-    startUpload(validFiles, numericId, photos, type)
+    startUpload(validFiles, numericId, photos.filter(p => p.original_filename != null) as any, type)
   }
 
   // ProjectDetail.tsx 내부의 handleSetCover 수정
@@ -1221,7 +1221,7 @@ export default function ProjectDetail({
           activeTab={activeTab}
           allPhotos={photos.filter(p => !p.deleted_at)}
           chapterPhotoCount={chapterPhotoVersion}
-          onChapterChange={() => fetchChapterPhotoIds()}
+          onChapterChange={() => queryClient.invalidateQueries({ queryKey: ['chapterPhotos', numericId] })}
         />
       </div>
 

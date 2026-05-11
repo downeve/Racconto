@@ -409,7 +409,7 @@ export default function MobileProjectDetail() {
           <ProjectNotes
             projectId={numericId}
             activeTab={activeTab}
-            notesVersion={notesVersion}
+  
             photos={photos.map(p => ({ id: p.id, image_url: p.image_url, caption: p.caption }))}
           />
         </div>
