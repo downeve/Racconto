@@ -217,7 +217,7 @@
       "DeleteAllConfirm": "Are you sure you want to permanently delete all {{count}} photos in the trash?"
     },
     "noPhotos": "No photos yet. Please upload photos.",
-    "setCover": "Cover",
+    "setCover": "Set as Cover",
     "removeCover": "Remove Cover",
     "isCover": "✓Cover",
     "addToPortfolio": "Add to Portfolio",
@@ -245,7 +245,7 @@
     },
     "rotateLeft": "Rotate left",
     "rotateRight": "Rotate right",
-    "moveToTrash": "Move to trash",
+    "moveToTrash": "Delete Photo",
     "rotateSuccess": "Photo rotated successfully.",
     "rotateFail": "Failed to rotate photo.",
     "error": {
@@ -352,7 +352,8 @@
     "selected": "{{count}} photos selected",
     "deselectAll": "Deselect All",
     "bulkDeleteConfirm": "Delete {{count}} selected photos? Connections will also be removed.",
-    "layoutGuide": "Image Layout Guide"
+    "layoutGuide": "Image Layout Guide",
+    "layoutGuide2": "(in Portfolio)"
   },
   "note": {
     "title": "Note",

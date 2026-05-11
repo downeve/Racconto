@@ -217,7 +217,7 @@
       "DeleteAllConfirm": "휴지통 사진 {{count}}개를 모두 삭제할까요?"
     },
     "noPhotos": "사진이 없습니다. 사진을 업로드하세요.",
-    "setCover": "커버",
+    "setCover": "커버 설정",
     "removeCover": "커버 제거",
     "isCover": "✓커버",
     "addToPortfolio": "포트폴리오 추가",
@@ -245,9 +245,9 @@
     },
     "rotateLeft": "왼쪽으로 회전",
     "rotateRight": "오른쪽으로 회전",
-    "moveToTrash": "휴지통으로",
-    "rotateSuccess": "사진이 회전되었습니다.",
-    "rotateFail": "사진 회전에 실패했습니다.",
+    "moveToTrash": "사진 삭제",
+    "rotateSuccess": "사진을 회전하였습니다.",
+    "rotateFail": "회전에 실패했습니다.",
     "error": {
       "OriginalNotFound": "원본 사진 데이터를 찾을 수 없습니다.",
       "SaveCaptionFailed": "캡션 저장 실패:",
@@ -352,7 +352,8 @@
     "selected": "{{count}}장 선택됨",
     "deselectAll": "선택 해제",
     "bulkDeleteConfirm": "선택한 {{count}}장을 삭제할까요? 연결도 해제됩니다.",
-    "layoutGuide": "포트폴리오 레이아웃 안내"
+    "layoutGuide": "이미지 레이아웃 가이드",
+    "layoutGuide2": "(포트폴리오 기준)"
   },
   "note": {
     "title": "노트",

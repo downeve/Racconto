@@ -97,7 +97,8 @@ function StorySidebarContent({
 
       {/* PHOTO 블록 레이아웃 안내 */}
       <div className="px-1 mb-4">
-        <p className="t-caption text-edit-faint mb-2">{t('story.layoutGuide')}</p>
+        <p className="t-caption text-center text-edit-faint mb-2">{t('story.layoutGuide')}</p>
+        <p className="t-caption text-center text-edit-faint mb-2">{t('story.layoutGuide2')}</p>
         <div className="flex gap-1.5">
           {([
             { icon: <Grid3X3 size={12} strokeWidth={1.5} />, key: 'portfolio.columnGrid' },
