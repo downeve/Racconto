@@ -162,13 +162,14 @@ export function Lightbox({
     function onKey(e: KeyboardEvent) {
       const tag = (e.target as HTMLElement).tagName
       if (tag === 'INPUT' || tag === 'TEXTAREA') return
+      if (showNotePanel) return
       if (e.key === 'Escape') onClose()
       if ((e.key === 'ArrowRight' || e.code === 'KeyD') && idx < photos.length - 1) onNavigate(photos[idx + 1])
       if ((e.key === 'ArrowLeft' || e.code === 'KeyA') && idx > 0) onNavigate(photos[idx - 1])
     }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
-  }, [photo, photos, onClose, onNavigate, idx])
+  }, [photo, photos, onClose, onNavigate, idx, showNotePanel])
 
   useEffect(() => {
     const preload = (url: string) => {
@@ -253,7 +254,7 @@ export function Lightbox({
                 title={label.label}
                 className={`w-4 h-4 rounded-full ${label.color} transition-all ${
                   photo.color_label === label.value
-                    ? 'ring-2 ring-offset-2 ring-offset-black ring-white scale-110'
+                    ? 'ring-1 ring-offset-2 ring-offset-black ring-white scale-110'
                     : 'opacity-40 hover:opacity-80'
                 }`}
               />
@@ -322,7 +323,7 @@ export function Lightbox({
 
       {/* 중앙 이미지 */}
       <div className="flex-1 flex items-center justify-center mt-0 relative min-h-0">
-        {idx > 0 && (
+        {idx > 0 && !showNotePanel && (
           <button
             className="absolute left-4 z-10 text-edit-paper/80 hover:text-edit-paper text-h1 select-none p-4"
             onClick={e => { e.stopPropagation(); onNavigate(photos[idx - 1]) }}
@@ -334,7 +335,7 @@ export function Lightbox({
           className="max-w-[calc(100%-8rem)] max-h-full object-contain cursor-default"
           onClick={e => e.stopPropagation()}
         />
-        {idx < photos.length - 1 && (
+        {idx < photos.length - 1 && !showNotePanel && (
           <button
             className="absolute right-4 z-10 text-edit-paper/80 hover:text-edit-paper text-h1 select-none p-4"
             onClick={e => { e.stopPropagation(); onNavigate(photos[idx + 1]) }}
@@ -547,7 +548,7 @@ export const PhotoCard = memo(function PhotoCard({
                   title={label.label}
                   className={`w-2.5 h-2.5 rounded-full ${label.color} transition-all ${
                     isActive
-                      ? 'ring-2 ring-offset-1 ring-offset-edit-paper ring-edit-ink scale-125'
+                      ? 'ring-1 ring-offset-1 ring-offset-edit-paper ring-edit-ink scale-110'
                       : 'opacity-50 hover:opacity-100 hover:scale-110'
                   }`}
                 />

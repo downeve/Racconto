@@ -17,6 +17,7 @@ type ExistingPhoto = {
 export interface UploadProgress {
   current: number
   total: number
+  type: 'photo' | 'folder'
 }
 
 interface ElectronSidebarContextType {
@@ -25,7 +26,7 @@ interface ElectronSidebarContextType {
   uploadInProgress: boolean
   setUploadInProgress: (v: boolean) => void
   uploadProgress: UploadProgress | null
-  startUpload: (files: File[], projectId: string, existingPhotos: ExistingPhoto[]) => void
+  startUpload: (files: File[], projectId: string, existingPhotos: ExistingPhoto[], type: 'photo' | 'folder') => void
 }
 
 const ElectronSidebarContext = createContext<ElectronSidebarContextType>({
@@ -54,9 +55,9 @@ export function ElectronSidebarProvider({ children }: { children: ReactNode }) {
     toastTimer.current = setTimeout(() => setToast(null), 4000)
   }
 
-  const startUpload = async (files: File[], projectId: string, existingPhotos: ExistingPhoto[]) => {
+  const startUpload = async (files: File[], projectId: string, existingPhotos: ExistingPhoto[], type: 'photo' | 'folder') => {
     setUploadInProgress(true)
-    setUploadProgress({ current: 0, total: files.length })
+    setUploadProgress({ current: 0, total: files.length, type })
 
     let failedCount = 0
     let successCount = 0
@@ -65,7 +66,7 @@ export function ElectronSidebarProvider({ children }: { children: ReactNode }) {
 
     for (let i = 0; i < files.length; i++) {
       const file = files[i]
-      setUploadProgress({ current: i + 1, total: files.length })
+      setUploadProgress({ current: i + 1, total: files.length, type })
 
       try {
         const relativePath = (file as any).webkitRelativePath

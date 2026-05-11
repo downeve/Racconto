@@ -82,18 +82,16 @@ function PhotosSidebarContent({
       {/* 업로드 버튼 */}
       <div className="mb-4 flex gap-1">
         <label className={`flex-1 cursor-pointer text-[0.8125rem] font-sans font-medium px-2 py-2 inline-flex items-center justify-center gap-1.5 bg-edit-ink/80 text-edit-paper hover:bg-edit-ink/90 rounded-[1px] transition-colors ${uploading ? 'opacity-60 cursor-not-allowed' : ''}`}>
-          {uploading
-            ? uploadProgress
-              ? <><div className="w-3 h-3 border border-edit-paper/40 border-t-edit-paper rounded-full animate-spin shrink-0" />{uploadProgress.current} / {uploadProgress.total}</>
-              : <><div className="w-3 h-3 border border-edit-paper/40 border-t-edit-paper rounded-full animate-spin shrink-0" />{t('photo.uploading')}</>
+          {uploading && uploadProgress?.type === 'photo'
+            ? <><div className="w-3 h-3 border border-edit-paper/40 border-t-edit-paper rounded-full animate-spin shrink-0" />{uploadProgress.current} / {uploadProgress.total}</>
             : <><Upload size={12} strokeWidth={1.5} />{t('photo.uploadPhotos')}</>}
-          <input type="file" accept="image/jpeg, image/png, image/webp" multiple className="hidden" onChange={handleUpload} disabled={uploading} />
+          <input type="file" accept="image/jpeg, image/png, image/webp" multiple className="hidden" onChange={e => handleUpload(e, 'photo')} disabled={uploading} />
         </label>
         <label className={`flex-1 cursor-pointer text-[0.8125rem] font-sans font-medium px-2 py-2 inline-flex items-center justify-center gap-1.5 border border-edit-line text-edit-muted hover:text-edit-ink hover:border-edit-line-strong rounded-[1px] transition-colors ${uploading ? 'opacity-60 cursor-not-allowed' : ''}`}>
-          {uploading
-            ? <div className="w-3 h-3 border border-edit-muted/40 border-t-edit-muted rounded-full animate-spin shrink-0" />
+          {uploading && uploadProgress?.type === 'folder'
+            ? <><div className="w-3 h-3 border border-edit-muted/40 border-t-edit-muted rounded-full animate-spin shrink-0" />{uploadProgress.current} / {uploadProgress.total}</>
             : <><FolderUp size={12} strokeWidth={1.5} />{t('photo.uploadFolder')}</>}
-          <input type="file" accept="image/jpeg, image/png, image/webp" multiple className="hidden" onChange={handleUpload} disabled={uploading} {...{ webkitdirectory: '' } as any} />
+          <input type="file" accept="image/jpeg, image/png, image/webp" multiple className="hidden" onChange={e => handleUpload(e, 'folder')} disabled={uploading} {...{ webkitdirectory: '' } as any} />
         </label>
       </div>
 
@@ -407,14 +405,14 @@ export default function ProjectDetail({
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeTab, filterFolder, filterRating, filterColor, sortBy])
 
-  const handleUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleUpload = (e: React.ChangeEvent<HTMLInputElement>, type: 'photo' | 'folder') => {
     if (!e.target.files || !numericId) return
     const inputEl = e.target
     const allowedTypes = ['image/jpeg', 'image/png', 'image/webp']
     const validFiles = Array.from(e.target.files).filter(file => allowedTypes.includes(file.type))
     inputEl.value = ''
     if (validFiles.length === 0) return
-    startUpload(validFiles, numericId, photos)
+    startUpload(validFiles, numericId, photos, type)
   }
 
   // ProjectDetail.tsx 내부의 handleSetCover 수정
