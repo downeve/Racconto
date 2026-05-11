@@ -144,6 +144,6 @@ scheduler.start()
 def root():
     return {"message": "Racconto API is running"}
 
-@app.get("/health")
+@app.api_route("/health", methods=["GET", "HEAD"])
 def health():
     return {"status": "ok"}
