@@ -1,5 +1,6 @@
 import { useEffect, useState, useMemo, useRef, memo, useCallback } from 'react'
 import { createPortal } from 'react-dom'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import axios from 'axios'
 import { useTranslation } from 'react-i18next'
 import { Eye, Plus, Grid3X3, Rows3, Square } from 'lucide-react'
@@ -283,9 +284,9 @@ function ProjectStory({
   onChapterChange?: (count: number) => void,
   onPhotoUpdate?: (photoId: string, newCaption: string) => void
 }) {
+  const queryClient = useQueryClient()
   const [chapters, setChapters] = useState<Chapter[]>([])
   const [chapterPhotos, setChapterPhotos] = useState<Record<string, ChapterItem[]>>({})
-  const fetchedAtCount = useRef(-1)
   const [newTitle, setNewTitle] = useState('')
   const [newDesc, setNewDesc] = useState('')
   const [showAddChapter, setShowAddChapter] = useState(false)
@@ -310,9 +311,6 @@ function ProjectStory({
   // 0-4: 다중 선택 상태
   const [selectedItemIds, setSelectedItemIds] = useState<Set<string>>(new Set())
   const lastSelectedRef = useRef<{ chapterId: string; itemId: string } | null>(null)
-
-  // fetchChapterPhotos 경쟁 조건 방지: 챕터별 시퀀스 번호
-  const fetchSeqRef = useRef<Record<string, number>>({})
 
   const chapterRefs = useRef<Record<string, HTMLDivElement | null>>({})
 
@@ -365,27 +363,25 @@ function ProjectStory({
     useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
   );
 
-  const fetchChapters = async (notifyParent = false) => {
-    try {
-      const res = await axios.get(`${API}/chapters/all-items?project_id=${projectId}`)
-      setChapters(res.data.chapters)
-      setChapterPhotos(res.data.items_by_chapter)
-      if (notifyParent) onChapterChange?.(res.data.chapters.length)
-    } catch (err) {
-      console.error(err)
-    }
-  }
-  
-  const fetchChapterPhotos = useCallback(async (chapterId: string) => {
-    fetchSeqRef.current[chapterId] = (fetchSeqRef.current[chapterId] ?? 0) + 1
-    const seq = fetchSeqRef.current[chapterId]
-    const res = await axios.get(`${API}/chapters/${chapterId}/items`)
-    setChapterPhotos(prev => {
-      // 더 최신 fetch 요청이 이미 있으면 이 응답은 무시
-      if (fetchSeqRef.current[chapterId] !== seq) return prev
-      return { ...prev, [chapterId]: res.data }
-    })
-  }, [])
+  const { data: storyData } = useQuery({
+    queryKey: ['storyChapters', projectId],
+    queryFn: async () => (await axios.get(`${API}/chapters/all-items?project_id=${projectId}`)).data,
+    enabled: activeTab === 'story',
+  })
+
+  useEffect(() => {
+    if (!storyData) return
+    setChapters(storyData.chapters ?? [])
+    setChapterPhotos(storyData.items_by_chapter ?? {})
+  }, [storyData])
+
+  const invalidateStory = useCallback(() => {
+    queryClient.invalidateQueries({ queryKey: ['storyChapters', projectId] })
+  }, [queryClient, projectId])
+
+  const fetchChapterPhotos = useCallback((_chapterId: string) => {
+    queryClient.invalidateQueries({ queryKey: ['storyChapters', projectId] })
+  }, [queryClient, projectId])
 
 
   // 키보드 네비게이션 (라이트박스, 노트 패널, 미리보기)
@@ -451,13 +447,6 @@ function ProjectStory({
     }
   }, [chapterPreviewOpen])
 
-  useEffect(() => {
-    if (activeTab !== 'story') return
-    if (fetchedAtCount.current === chapterPhotoCount) return
-    fetchedAtCount.current = chapterPhotoCount
-    fetchChapters()
-  }, [activeTab, chapterPhotoCount, projectId])
-
   const handleAddChapter = async () => {
     if (!newTitle.trim()) return
     await axios.post(`${API}/chapters/`, {
@@ -471,7 +460,7 @@ function ProjectStory({
     setNewDesc('')
     setShowAddChapter(false)
     setAddingSubChapterTo(null)
-    fetchChapters(true)
+    invalidateStory(); onChapterChange?.()
   }
 
   const handleUpdateChapter = async (chapter: Chapter) => {
@@ -483,7 +472,7 @@ function ProjectStory({
       project_id: chapter.project_id,
     })
     setEditingChapter(null)
-    fetchChapters(true)
+    invalidateStory(); onChapterChange?.()
   }
 
   const handleDeleteChapter = async (chapterId: string) => {
@@ -492,7 +481,7 @@ function ProjectStory({
       onConfirm: async () => {
         setConfirmModal(null)
         await axios.delete(`${API}/chapters/${chapterId}`)
-        fetchChapters(true)
+        invalidateStory(); onChapterChange?.()
       }
     })
   }
@@ -587,7 +576,7 @@ function ProjectStory({
       try {
         const chapterIds = newSiblings.map(c => c.id)
         await axios.put(`${API}/chapters/reorder`, { chapter_ids: chapterIds })
-        fetchChapters(true)
+        invalidateStory(); onChapterChange?.()
       } catch (error) {
         // 다국어 적용: 콘솔 에러 및 alert 메시지
         console.error(t('story.error.ReorderFailedLog'), error)
