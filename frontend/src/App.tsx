@@ -34,13 +34,13 @@ import SocialCallback from './pages/auth/SocialCallback'
 
 function PrivateRoute({ children }: { children: React.ReactNode }) {
   const { isAuthenticated, isLoading } = useAuth()
-  if (isLoading) return <div className="min-h-screen bg-[#F7F4F0]" />
+  if (isLoading) return <div className="min-h-screen bg-edit-canvas" />
   return isAuthenticated ? <>{children}</> : <Navigate to="/" />
 }
 
 function AdminRoute({ children }: { children: React.ReactNode }) {
   const { isAuthenticated, isLoading, user } = useAuth()
-  if (isLoading) return <div className="min-h-screen bg-[#F7F4F0]" />
+  if (isLoading) return <div className="min-h-screen bg-edit-canvas" />
   if (!isAuthenticated) return <Navigate to="/" replace />
   if (!user?.is_admin) return <Navigate to="/dashboard" replace />
   return <>{children}</>
@@ -107,7 +107,7 @@ function AppRoutes() {
   }, [i18n.language, isElectron])
 
   return (
-    <div className={`min-h-screen bg-[#F7F4F0]${isMobileDevice && isAuthenticated && !hideNavbar ? ' pt-14' : ''}`}>
+    <div className={`min-h-screen bg-edit-canvas${isMobileDevice && isAuthenticated && !hideNavbar ? ' pt-14' : ''}`}>
 
       {isMobileDevice && isAuthenticated && !hideNavbar && <Navbar onLogout={logout} />}
 

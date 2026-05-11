@@ -21,7 +21,6 @@ export default function LandingPage() {
   const features = [
     {
       key: 'story',
-      label: t('landing.featuresEyebrow'),
       title: t('landing.feature1Title'),
       desc: t('landing.feature1Desc'),
       image: ss('screenshot-story', 'gif'),
@@ -29,7 +28,6 @@ export default function LandingPage() {
     },
     {
       key: 'desktop',
-      label: t('landing.featuresEyebrow'),
       title: t('landing.feature2Title'),
       desc: t('landing.feature2Desc'),
       image: ss('screenshot-electron-1', 'gif'),
@@ -37,7 +35,6 @@ export default function LandingPage() {
     },
     {
       key: 'notes',
-      label: t('landing.featuresEyebrow'),
       title: t('landing.feature3Title'),
       desc: t('landing.feature3Desc'),
       image: ss('screenshot-notes'),
@@ -45,7 +42,6 @@ export default function LandingPage() {
     },
     {
       key: 'curation',
-      label: t('landing.featuresEyebrow'),
       title: t('landing.feature4Title'),
       desc: t('landing.feature4Desc'),
       image: ss('screenshot-photos'),
@@ -53,7 +49,6 @@ export default function LandingPage() {
     },
     {
       key: 'portfolio',
-      label: t('landing.featuresEyebrow'),
       title: t('landing.feature5Title'),
       desc: t('landing.feature5Desc'),
       image: ss('screenshot-portfolio', 'gif'),
@@ -104,7 +99,7 @@ export default function LandingPage() {
                          t-caption tracking-[0.08em] rounded-[1px]
                          hover:bg-edit-ink/85 transition-colors duration-150"
             >
-              {t('landing.ctaPrimary')}
+              {t('landing.ctaPrimaryPre')}<span className="font-serif">Racconto</span>{t('landing.ctaPrimaryPost')}
             </Link>
             <button
               onClick={scrollToFeatures}
@@ -125,74 +120,77 @@ export default function LandingPage() {
       </section>
 
       {/* App Demo */}
-      <section className="px-6 md:px-12 py-24 max-w-6xl mx-auto">
-        <div className="text-center mb-12">
-          <p className="text-caption font-mono tracking-[0.18em] uppercase font-medium text-edit-muted mb-3">{t('landing.demoEyebrow')}</p>
-          <h2 className="font-serif text-h2 text-edit-ink font-normal tracking-tight">
-            {t('landing.demoTitle')}
-          </h2>
-        </div>
+      <section className="bg-edit-paper px-6 md:px-12 py-24">
+        <div className="max-w-6xl mx-auto">
+          <div className="text-center mb-12">
+            <p className="text-caption font-mono tracking-[0.18em] uppercase font-medium text-edit-muted mb-3">{t('landing.demoEyebrow')}</p>
+            <h2 className="font-serif text-h2 text-edit-ink font-normal tracking-tight">
+              {t('landing.demoTitle')}
+            </h2>
+          </div>
 
-        <figure className="mb-12">
-          <img
-            src={ss('screenshot-main')}
-            alt="Racconto app"
-            className="w-full block"
-          />
-          <figcaption className="t-caption text-edit-faint mt-4 text-center max-w-md mx-auto break-keep">
-            {t('landing.mainCaption')}
-          </figcaption>
-        </figure>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-12 md:gap-16">
-          <figure>
-            <img src={ss('screenshot-lightbox')} alt="Lightbox view" className="w-full block" />
-            <figcaption className="t-caption text-edit-faint mt-3 text-center break-keep">
-              {t('landing.lightboxCaption')}
+          <figure className="mb-12">
+            <img
+              src={ss('screenshot-main')}
+              alt="Racconto app"
+              className="w-full block border border-edit-line"
+            />
+            <figcaption className="t-caption text-edit-faint mt-4 text-center max-w-md mx-auto break-keep">
+              {t('landing.mainCaption')}
             </figcaption>
           </figure>
-          <figure>
-            <img src={ss('screenshot-note-panel')} alt="Note panel" className="w-full block" />
-            <figcaption className="t-caption text-edit-faint mt-3 text-center break-keep">
-              {t('landing.coverCaption')}
-            </figcaption>
-          </figure>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-12 md:gap-16">
+            <figure>
+              <img src={ss('screenshot-lightbox')} alt="Lightbox view" className="w-full block border border-edit-line" />
+              <figcaption className="t-caption text-edit-faint mt-3 text-center break-keep">
+                {t('landing.lightboxCaption')}
+              </figcaption>
+            </figure>
+            <figure>
+              <img src={ss('screenshot-note-panel')} alt="Note panel" className="w-full block border border-edit-line" />
+              <figcaption className="t-caption text-edit-faint mt-3 text-center break-keep">
+                {t('landing.coverCaption')}
+              </figcaption>
+            </figure>
+          </div>
         </div>
       </section>
 
       {/* Features Z-pattern */}
-      <section ref={featuresRef} className="px-6 md:px-12 py-24 max-w-6xl mx-auto">
-        <header className="text-center mb-20">
-          <p className="text-caption font-mono tracking-[0.18em] uppercase font-medium text-edit-muted mb-4">{t('landing.featuresEyebrow')}</p>
-          <h2 className="font-serif text-h1 text-edit-ink font-normal tracking-tight break-keep">
-            {t('landing.featuresTitle')}
-          </h2>
-        </header>
+      <section ref={featuresRef} className="bg-edit-canvas px-6 md:px-12 py-24">
+        <div className="max-w-6xl mx-auto">
+          <header className="text-center mb-20">
+            <p className="text-caption font-mono tracking-[0.18em] uppercase font-medium text-edit-muted mb-4">{t('landing.featuresEyebrow')}</p>
+            <h2 className="font-serif text-h1 text-edit-ink font-normal tracking-tight break-keep">
+              {t('landing.featuresTitle')}
+            </h2>
+          </header>
 
-        <div className="space-y-32">
-          {features.map((f, i) => (
-            <div
-              key={f.key}
-              className={`grid grid-cols-1 md:grid-cols-12 gap-8 md:gap-12 items-center
-                          ${i % 2 === 1 ? 'md:[&>*:first-child]:order-2' : ''}`}
-            >
-              {/* 이미지 — 65% */}
-              <div className="md:col-span-8">
-                <img src={f.image} alt={f.imageAlt} className="w-full block" />
+          <div className="space-y-32">
+            {features.map((f, i) => (
+              <div
+                key={f.key}
+                className={`grid grid-cols-1 md:grid-cols-12 gap-8 md:gap-12 items-center
+                            ${i % 2 === 1 ? 'md:[&>*:first-child]:order-2' : ''}`}
+              >
+                {/* 이미지 — 65% */}
+                <div className="md:col-span-8">
+                  <img src={f.image} alt={f.imageAlt} className="w-full block border border-edit-line" />
+                </div>
+                {/* 텍스트 — 35% */}
+                <div className="md:col-span-4">
+                  <h3 className="font-serif text-h2 text-edit-ink font-normal tracking-tight mb-4 break-keep">
+                    {f.title}
+                  </h3>
+                  <p className="font-serif text-body text-edit-ink/80 leading-[1.7] break-keep">
+                    {f.desc}
+                  </p>
+                  {f.key === 'desktop' && <DesktopAppInlineLink t={t} />}
+                </div>
               </div>
-              {/* 텍스트 — 35% */}
-              <div className="md:col-span-4">
-                <p className="text-caption font-mono tracking-[0.18em] uppercase font-medium text-edit-muted mb-4">{f.label}</p>
-                <h3 className="font-serif text-h2 text-edit-ink font-normal tracking-tight mb-4 break-keep">
-                  {f.title}
-                </h3>
-                <p className="font-serif text-body text-edit-ink/80 leading-[1.7] break-keep">
-                  {f.desc}
-                </p>
-                {f.key === 'desktop' && <DesktopAppInlineLink t={t} />}
-              </div>
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
       </section>
 
@@ -213,7 +211,7 @@ export default function LandingPage() {
                        t-caption tracking-[0.08em] rounded-[1px]
                        hover:bg-edit-paper/90 transition-colors duration-150"
           >
-            {t('landing.ctaPrimary')}
+            {t('landing.ctaPrimaryPre')}<span className="font-serif">Racconto</span>{t('landing.ctaPrimaryPost')}
           </Link>
           <p className="mt-6 t-caption text-edit-paper/50">
             {t('landing.alreadyHaveAccount')}{' '}

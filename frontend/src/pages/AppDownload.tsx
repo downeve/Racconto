@@ -240,7 +240,7 @@ export default function AppDownload() {
                        t-caption tracking-[0.08em] rounded-[1px]
                        hover:bg-edit-paper/90 transition-colors"
           >
-            {t('landing.ctaPrimary')}
+            {t('landing.ctaPrimaryPre')}<span className="font-serif">Racconto</span>{t('landing.ctaPrimaryPost')}
           </Link>
           <p className="mt-5 t-caption text-edit-paper/50">
             {t('landing.alreadyHaveAccount')}{' '}

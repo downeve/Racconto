@@ -151,7 +151,7 @@ const NoteItem = memo(function NoteItem({
                   onClick={() => setEditType(type.value)}
                   className={`inline-flex items-center gap-1.5 px-2.5 py-1 font-mono text-[0.8125rem] tracking-[0.14em] uppercase font-medium rounded-[1px] transition-colors duration-150 ${
                     editType === type.value
-                      ? 'bg-edit-ink text-edit-paper border border-edit-ink'
+                      ? 'bg-edit-ink/80 text-edit-paper border border-edit-ink/80'
                       : 'border border-edit-line text-edit-muted hover:text-edit-ink hover:border-edit-line-strong'
                   }`}
                 >
@@ -414,7 +414,7 @@ function ProjectNotes({
                   onClick={() => setNewType(type.value)}
                   className={`inline-flex items-center gap-1.5 px-2.5 py-1 font-mono text-[0.8125rem] tracking-[0.14em] uppercase font-medium rounded-[1px] transition-colors duration-150 ${
                     newType === type.value
-                      ? 'bg-edit-ink text-edit-paper border border-edit-ink'
+                      ? 'bg-edit-ink/80 text-edit-paper border border-edit-ink/80'
                       : 'border border-edit-line text-edit-muted hover:text-edit-ink hover:border-edit-line-strong'
                   }`}
                 >

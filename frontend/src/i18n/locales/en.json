@@ -542,6 +542,8 @@
     "heroTitle2": "into stories",
     "heroSubtitle": "Connect the frames to create your story.",
     "ctaPrimary": "Start Racconto",
+    "ctaPrimaryPre": "Start ",
+    "ctaPrimaryPost": "",
     "ctaSecondary": "Explore Features",
     "betaBadge": "Free Open Beta",
     "featuresEyebrow": "Key Features",

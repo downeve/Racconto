@@ -80,7 +80,7 @@ export default function MobileLandingPage() {
                      t-caption tracking-[0.08em] rounded-[1px]
                      hover:bg-edit-ink/85 transition-colors mb-3"
         >
-          {t('landing.ctaPrimary')}
+          {t('landing.ctaPrimaryPre')}<span className="font-serif">Racconto</span>{t('landing.ctaPrimaryPost')}
         </Link>
         <button
           onClick={scrollToFeatures}
@@ -93,7 +93,7 @@ export default function MobileLandingPage() {
       </section>
 
       {/* Demo screenshot */}
-      <section className="px-6 pb-16 text-center">
+      <section className="bg-edit-paper px-6 pb-16 text-center">
         <p className="t-eyebrow text-edit-muted mb-3">{t('landing.demoEyebrow')}</p>
         <h2 className="font-serif text-h2 text-edit-ink font-normal tracking-tight mb-5">
           {t('landing.demoTitle')}
@@ -101,12 +101,12 @@ export default function MobileLandingPage() {
         <img
           src={ss('screenshot-main')}
           alt="Racconto app"
-          className="w-full block"
+          className="w-full block border border-edit-line"
         />
       </section>
 
       {/* Features */}
-      <section ref={featuresRef} className="px-6 py-12">
+      <section ref={featuresRef} className="bg-edit-canvas px-6 py-12">
         <div className="text-center mb-10">
           <p className="t-eyebrow text-edit-muted mb-2">{t('landing.featuresEyebrow')}</p>
           <h2 className="font-serif text-h2 text-edit-ink font-normal tracking-tight">
@@ -117,7 +117,6 @@ export default function MobileLandingPage() {
         <div className="space-y-16">
           {features.map(f => (
             <div key={f.key} className="text-center">
-              <p className="t-eyebrow text-edit-muted mb-3">{t('landing.featureLabel')}</p>
               <h3 className="font-serif text-h2 text-edit-ink font-normal
                              tracking-tight leading-[1.15] mb-4 break-keep">
                 {f.title}
@@ -126,7 +125,7 @@ export default function MobileLandingPage() {
                 {f.desc}
               </p>
               {f.image && (
-                <img src={f.image} alt={f.title} className="w-full mt-6 block" />
+                <img src={f.image} alt={f.title} className="w-full mt-6 block border border-edit-line" />
               )}
             </div>
           ))}
@@ -164,7 +163,7 @@ export default function MobileLandingPage() {
                      t-caption tracking-[0.08em] rounded-[1px]
                      hover:bg-edit-paper/90 transition-colors mb-5"
         >
-          {t('landing.ctaPrimary')}
+          {t('landing.ctaPrimaryPre')}<span className="font-serif">Racconto</span>{t('landing.ctaPrimaryPost')}
         </Link>
         <p className="t-caption text-edit-paper/50">
           {t('landing.alreadyHaveAccount')}{' '}

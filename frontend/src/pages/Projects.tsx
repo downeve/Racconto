@@ -174,7 +174,7 @@ export default function Projects() {
           </h2>
         <button
           onClick={() => setShowForm(!showForm)}
-          className="font-body btn-primary tracking-wider transition-[background,color,border] duration-150 ease-out"
+          className="t-caption btn-primary"
         >
           {t('project.newProject')}
         </button>

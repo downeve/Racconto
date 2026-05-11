@@ -97,7 +97,7 @@ export default function Dashboard() {
                   ))}
                 </div>
               </div>
-              <Link to="/projects" className="text-ink-2 text-body font-semibold hover:text-ink hover:underline mt-4 inline-block">
+              <Link to="/projects" className="text-ink-2 text-body font-semibold hover:text-ink hover:underline underline-offset-4 mt-4 inline-block">
                 {t('dashboard.projectList')}
               </Link>
             </div>
@@ -177,7 +177,7 @@ export default function Dashboard() {
           {recentProjects.length > 0 ? (
             <div className="grid gap-8" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))' }}>
               {recentProjects.map(project => (
-                <div key={project.id}>
+                <div key={project.id} className="transition-[transform,box-shadow] duration-200 ease-out hover:-translate-y-1 hover:shadow-deep">
                   <ProjectCard project={project} />
                 </div>
               ))}
@@ -190,7 +190,7 @@ export default function Dashboard() {
               <p className="text-muted text-body mb-space-md">
                 {t('dashboard.emptySubtitle')}
               </p>
-              <Link to="/projects" state={{ openForm: true }} className="text-body btn-primary tracking-widest transition-all">
+              <Link to="/projects" state={{ openForm: true }} className="t-caption btn-primary">
                 {t('dashboard.startNew')}
               </Link>
             </div>
