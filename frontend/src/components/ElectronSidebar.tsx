@@ -311,12 +311,12 @@ export default function ElectronSidebar({ activeTab, onTabChange, showTabs, widt
             {/* §11.7 폰트 사이즈 */}
             <div className="px-3 py-1.5">
               <p className="t-caption text-edit-faint mb-1.5">{t('settings.fontSize')}</p>
-              <div className="flex border border-edit-line rounded-[1px] p-0.5 gap-0.5">
+              <div className="inline-flex max-w-full border border-edit-line rounded-[1px] p-0.5 gap-0.5">
                 {fontScaleOptions.map(({ scale, label }) => (
                   <button
                     key={scale}
                     onClick={() => handleFontScale(scale)}
-                    className={`px-2 py-1 t-caption rounded-[1px] transition-colors duration-150 ${
+                    className={`flex-1 min-w-0 px-2 py-1 t-caption rounded-[1px] transition-colors duration-150 ${
                       fontScale === scale
                         ? 'bg-edit-ink text-edit-paper'
                         : 'text-edit-muted hover:text-edit-ink'
