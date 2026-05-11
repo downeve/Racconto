@@ -691,7 +691,7 @@ export default function Admin() {
               </thead>
               <tbody>
                 {[
-                  { service: 'Linode',                 plan: 'Nanode 1GB',   cost: '$5.50 / mo',   note: '유저 확대 시 플랜 업그레이드 예정' },
+                  { service: 'Linode',                 plan: 'Linode 2GB',   cost: '$12 / mo',     note: '오픈 베타 대응 업그레이드 (2026-05)' },
                   { service: 'Cloudflare Images',      plan: 'Images Basic', cost: '$5.50 / mo',   note: '유저 확대 시 $5.50 / 10만 장 기준 추가 비용 소요' },
                   { service: 'Brevo',                  plan: 'Free',         cost: '—',            note: '서비스 확대 시 AWS SES 이전 검토 예정' },
                   { service: 'Apple 디벨로퍼 프로그램', plan: 'Basic',        cost: '$99 / yr',     note: `≈ $${(99 / 12).toFixed(2)} / mo` },
