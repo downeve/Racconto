@@ -4,7 +4,7 @@ import axios from 'axios'
 import { useTranslation } from 'react-i18next'
 import { useElectronSidebar } from '../context/ElectronSidebarContext'
 import { useAuth } from '../context/AuthContext'
-import { Camera, BookOpen, FileText, LayoutDashboard, Aperture, Settings, ChevronDown, ChevronRight } from 'lucide-react'
+import { Camera, BookOpen, FileText, LayoutDashboard, Aperture, ChevronDown, ChevronRight, SlidersHorizontal } from 'lucide-react'
 import { cfUrl } from '../utils/cfImage'
 import { Wordmark } from './Wordmark'
 import { applyFontScale, getStoredFontScale, type FontScale } from '../utils/fontScale'
@@ -148,13 +148,6 @@ export default function ElectronSidebar({ activeTab, onTabChange, showTabs, widt
         }
       },
     },
-    {
-      label: t('nav.settings') || 'Settings',
-      Icon: Settings,
-      path: '/settings',
-      active: location.pathname === '/settings',
-      onClick: () => navigate('/settings'),
-    },
   ]
 
   return (
@@ -292,6 +285,14 @@ export default function ElectronSidebar({ activeTab, onTabChange, showTabs, widt
               className="w-full text-left px-3 py-2 text-[0.8125rem] font-sans text-edit-ink hover:bg-edit-paper-2 flex items-center gap-2 transition-colors"
             >
               {t('nav.trash')}
+            </Link>
+            <Link
+              to="/settings"
+              onClick={() => setDropdownOpen(false)}
+              className="w-full text-left px-3 py-2 text-[0.8125rem] font-sans text-edit-ink hover:bg-edit-paper-2 flex items-center gap-2 transition-colors"
+            >
+              <SlidersHorizontal size={13} strokeWidth={1.5} />
+              {t('nav.settings')}
             </Link>
             <div className="border-t border-edit-line my-1" />
             {languages.map(lang => (

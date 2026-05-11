@@ -4,10 +4,9 @@ import { useTranslation } from 'react-i18next'
 import FolderProjectMapper from '../components/FolderProjectMapper'
 import { useAuth } from '../context/AuthContext'
 import {
-  Sun, Moon, Check, ALargeSmall,
+  Sun, Moon, Check,
   Palette, Columns3, Paintbrush, Tag, Lock, UserCircle,
 } from 'lucide-react'
-import { applyFontScale, getStoredFontScale, type FontScale } from '../utils/fontScale'
 
 const API = import.meta.env.VITE_API_URL
 const DELIVERY_ENABLED = import.meta.env.VITE_ENABLE_DELIVERY === 'true'
@@ -66,13 +65,6 @@ export default function Settings() {
   const [withdrawPassword, setWithdrawPassword] = useState('')
   const [withdrawError, setWithdrawError] = useState('')
   const [showWithdraw, setShowWithdraw] = useState(false)
-
-  const [fontScale, setFontScaleState] = useState<FontScale>(getStoredFontScale)
-
-  const handleFontScale = (scale: FontScale) => {
-    applyFontScale(scale)
-    setFontScaleState(scale)
-  }
 
   const { logout } = useAuth()
   const { t, i18n } = useTranslation()
@@ -289,29 +281,6 @@ export default function Settings() {
               />
             </div>
           </div>
-        </div>
-      </div>
-
-      {/* 텍스트 크기 */}
-      <div className="border-b border-hair py-8">
-        <h3 className="t-eyebrow text-muted mb-6 flex items-center gap-2">
-          <ALargeSmall className="w-4 h-4" strokeWidth={1.5} />
-          {t('settings.fontSize')}
-        </h3>
-        <div className="flex gap-2">
-          {(['sm', 'md', 'lg'] as FontScale[]).map((scale) => (
-            <button
-              key={scale}
-              onClick={() => handleFontScale(scale)}
-              className={`flex-1 py-2 text-small border transition-[background,color,border] duration-150 ease-out ${
-                fontScale === scale
-                  ? 'bg-ink text-canvas border-ink font-medium'
-                  : 'bg-canvas text-muted border-hair hover:border-faint hover:text-ink'
-              }`}
-            >
-              {t(`settings.fontSize${scale.charAt(0).toUpperCase() + scale.slice(1)}`)}
-            </button>
-          ))}
         </div>
       </div>
 
