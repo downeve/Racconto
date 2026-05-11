@@ -859,8 +859,8 @@ function ProjectStory({
                 placeholder={t('story.chapterDescription')}
                 rows={1}
                 value={newDesc}
-                ref={el => { if (el) { el.style.height = 'auto'; el.style.height = `${el.scrollHeight}px` } }}
-                onInput={e => { const el = e.currentTarget; el.style.height = 'auto'; el.style.height = `${el.scrollHeight}px` }}
+                ref={el => { if (el) { el.style.height = 'auto'; el.style.height = `${Math.max(el.scrollHeight, 72)}px` } }}
+                onInput={e => { const el = e.currentTarget; el.style.height = 'auto'; el.style.height = `${Math.max(el.scrollHeight, 72)}px` }}
                 onChange={e => setNewDesc(e.target.value)}
               />
             </div>
