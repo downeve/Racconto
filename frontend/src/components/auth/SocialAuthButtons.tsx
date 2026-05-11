@@ -23,7 +23,7 @@ export function SocialAuthButtons({ mode = 'login', className = '' }: Props) {
   return (
     <div className={className}>
       <Divider label={t('auth.or')} />
-      <div className="mt-6 space-y-2.5">
+      <div className="mt-6 grid grid-cols-2 gap-2.5">
         {order.map(provider => (
           <SocialButton
             key={provider}
@@ -73,7 +73,7 @@ function SocialButton({ href, variant, label }: SocialButtonProps) {
     <a
       href={href}
       style={inlineBg}
-      className={`w-full flex items-center justify-center gap-3 px-4 py-2.5
+      className={`flex items-center justify-center gap-2 px-3 py-2.5
                   rounded-[1px] t-caption transition-colors duration-150
                   ${variants[variant]}`}
     >

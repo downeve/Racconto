@@ -73,7 +73,7 @@ export default function Login() {
               </p>
             )}
 
-            <div className="border-t border-edit-line pt-6 mt-2">
+            <div className="pt-6 mt-2">
               <button
                 type="submit"
                 disabled={loading}
