@@ -131,7 +131,7 @@ export default function ElectronSidebar({ activeTab, onTabChange, showTabs, widt
      transition-[background-color,color] duration-150 ${
       active
         ? 'bg-edit-ink/[0.06] text-edit-ink before:absolute before:left-0 before:top-1 before:bottom-1 before:w-[2px] before:bg-edit-ink'
-        : 'text-edit-muted hover:bg-edit-paper hover:text-edit-ink'
+        : 'text-edit-muted hover:bg-edit-canvas-2 hover:text-edit-ink'
     }`
 
   const otherNavItems = [
@@ -152,7 +152,7 @@ export default function ElectronSidebar({ activeTab, onTabChange, showTabs, widt
 
   return (
     <div
-      className="shrink-0 fixed left-0 top-0 bottom-0 bg-edit-paper border-r border-edit-line flex flex-col z-40 overflow-hidden"
+      className="shrink-0 fixed left-0 top-0 bottom-0 bg-edit-canvas border-r border-edit-line flex flex-col z-40 overflow-hidden"
       style={{ width }}
     >
       {/* §11.4 드래그 리사이즈 핸들 */}
@@ -211,7 +211,7 @@ export default function ElectronSidebar({ activeTab, onTabChange, showTabs, widt
                   <img src={cfUrl(project.cover_image_url, 'thumb')}
                        className="w-4 h-4 rounded-[1px] object-cover shrink-0" />
                 ) : (
-                  <span className="w-4 h-4 rounded-[1px] bg-edit-paper-2 ring-1 ring-edit-line shrink-0" />
+                  <span className="w-4 h-4 rounded-[1px] bg-edit-canvas-2 ring-1 ring-edit-line shrink-0" />
                 )}
                 <span className="truncate">{project.title}</span>
               </button>
@@ -251,7 +251,7 @@ export default function ElectronSidebar({ activeTab, onTabChange, showTabs, widt
                           transition-colors duration-150 ${
                 activeTab === item.key
                   ? 'bg-edit-ink text-edit-paper'
-                  : 'text-edit-muted hover:bg-edit-paper-2 hover:text-edit-ink'
+                  : 'text-edit-muted hover:bg-edit-canvas-2 hover:text-edit-ink'
               }`}
             >
               <item.Icon size={14} strokeWidth={1.5} />
@@ -270,7 +270,7 @@ export default function ElectronSidebar({ activeTab, onTabChange, showTabs, widt
       <div ref={dropdownRef} className="shrink-0 mt-auto border-t border-edit-line relative">
         <button
           onClick={() => setDropdownOpen(v => !v)}
-          className="w-full flex items-center gap-2 px-3 py-2.5 hover:bg-edit-paper-2 transition-colors duration-150"
+          className="w-full flex items-center gap-2 px-3 py-2.5 hover:bg-edit-canvas-2 transition-colors duration-150"
         >
           <span className="w-6 h-6 rounded-full bg-edit-ink text-edit-paper t-caption font-bold flex items-center justify-center shrink-0">
             {avatarInitial}

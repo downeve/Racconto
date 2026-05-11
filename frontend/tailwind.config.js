@@ -36,8 +36,10 @@ export default {
         'd-soft':    o('oklch(0.78 0.010 75)'),  // 다크 secondary body
         'd-hair':    o('oklch(0.94 0.008 75)'),  // 다크 body
         // 편집기 전용 의미 토큰 (ProjectStory / StoryBlocks)
-        'edit-paper':       o('oklch(0.98 0.005 75)'),
-        'edit-paper-2':     o('oklch(0.94 0.005 75)'),
+        'edit-canvas':      '#F4EFE7',                    // 편집 페이지 배경 (canvas)
+        'edit-canvas-2':    o('oklch(0.94 0.008 75)'),   // canvas 위 hover
+        'edit-paper':       '#FFFFFF',                    // 편집 sheet (순백)
+        'edit-paper-2':     o('oklch(0.975 0.004 75)'),  // sheet 위 hover
         'edit-line':        o('oklch(0.88 0.008 75)'),
         'edit-line-strong': o('oklch(0.78 0.010 75)'),
         'edit-ink':         o('oklch(0.22 0.012 60)'),
