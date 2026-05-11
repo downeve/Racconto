@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState, useCallback, memo } from 'react'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import axios from 'axios'
 import ProjectCard from '../components/ProjectCard'
 import { Link, useLocation } from 'react-router-dom'
@@ -70,8 +71,8 @@ const SortableProjectCard = memo(function SortableProjectCard({
 })
 
 export default function Projects() {
-  const dashboardOpen = useLocation();
-  const [projects, setProjects] = useState<Project[]>([])
+  const dashboardOpen = useLocation()
+  const queryClient = useQueryClient()
   const [showForm, setShowForm] = useState(false)
   const [confirmModal, setConfirmModal] = useState<{ message: string; onConfirm: () => void } | null>(null)
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' | 'warning' } | null>(null)
@@ -90,73 +91,83 @@ export default function Projects() {
   const { t } = useTranslation()
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 8 } }))
 
+  // ── 프로젝트 목록 조회 ────────────────────────────────────────
+  const { data: projects = [] } = useQuery<Project[]>({
+    queryKey: ['projects'],
+    queryFn: async () => {
+      const res = await axios.get<Project[]>(`${API}/projects/`)
+      return res.data
+    },
+  })
+
+  useEffect(() => {
+    if (dashboardOpen.state?.openForm) {
+      setShowForm(true)
+      window.history.replaceState({}, document.title)
+    }
+  }, [dashboardOpen.state])
+
+  // ── DnD 순서 변경 (낙관적 업데이트) ─────────────────────────
   const handleDragEnd = async (event: DragEndEvent) => {
     const { active, over } = event
     if (!over || active.id === over.id) return
     const oldIndex = projects.findIndex(p => p.id === active.id)
     const newIndex = projects.findIndex(p => p.id === over.id)
     const reordered = arrayMove(projects, oldIndex, newIndex)
-    setProjects(reordered)
+    queryClient.setQueryData(['projects'], reordered)
     await axios.patch(`${API}/projects/reorder`, { ids: reordered.map(p => p.id) })
     triggerRefresh()
   }
 
-  // 🔥 최적화: useCallback 및 상태 직접 조작(prev filter)으로 빠른 UI 갱신
+  // ── 프로젝트 삭제 ─────────────────────────────────────────────
+  const deleteMutation = useMutation({
+    mutationFn: (projectId: string) => axios.delete(`${API}/projects/${projectId}`),
+    onSuccess: (_, projectId) => {
+      window.racconto?.unlinkByProject(projectId)
+      queryClient.invalidateQueries({ queryKey: ['projects'] })
+      triggerRefresh()
+    },
+  })
+
   const handleDelete = useCallback((projectId: string) => {
     setConfirmModal({
       message: t('project.deleteConfirm'),
-      onConfirm: async () => {
+      onConfirm: () => {
         setConfirmModal(null)
-        try {
-          await axios.delete(`${API}/projects/${projectId}`)
-          window.racconto?.unlinkByProject(projectId)
-          
-          setProjects(prev => prev.filter(p => p.id !== projectId))
-          triggerRefresh()
-        } catch (error) {
-          console.error("Delete failed:", error)
-        }
+        deleteMutation.mutate(projectId)
       },
     })
-  }, [t, triggerRefresh])
+  }, [t, deleteMutation])
 
-  const fetchProjects = async () => {
-    const res = await axios.get(`${API}/projects/`)
-    setProjects(res.data)
-  }
-
-  useEffect(() => {
-    if (dashboardOpen.state?.openForm) {
-      setShowForm(true);
-      // 필요하다면 사용 후 state를 초기화하여 새로고침 시 창이 계속 열려있지 않게 할 수 있습니다.
-      window.history.replaceState({}, document.title);
-    }
-    fetchProjects()
-  }, [dashboardOpen.state])
-
-  const handleSubmit = async () => {
-    if (!formData.title) return
-    try {
-      await axios.post(`${API}/projects/`, {
-        title: formData.title,
-        description: formData.description,
-        location: formData.location,
-        status: formData.status,
-        is_public: formData.isPublic,
-      })
+  // ── 프로젝트 생성 ─────────────────────────────────────────────
+  const createMutation = useMutation({
+    mutationFn: (data: typeof FORM_INITIAL) =>
+      axios.post(`${API}/projects/`, {
+        title: data.title,
+        description: data.description,
+        location: data.location,
+        status: data.status,
+        is_public: data.isPublic,
+      }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['projects'] })
       setFormData(FORM_INITIAL)
       setShowForm(false)
-      fetchProjects()
       triggerRefresh()
-    } catch (err: any) {
+    },
+    onError: (err: any) => {
       const detail = err.response?.data?.detail
       const code = typeof detail === 'object' ? detail.code : detail
       const limit = typeof detail === 'object' ? detail.limit : undefined
-
       if (code === 'PROJECT_LIMIT_EXCEEDED') {
         showToast(t('api.error.PROJECT_LIMIT_EXCEEDED', { limit }), 'warning')
       }
-    }
+    },
+  })
+
+  const handleSubmit = () => {
+    if (!formData.title) return
+    createMutation.mutate(formData)
   }
 
   return (

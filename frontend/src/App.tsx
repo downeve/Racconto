@@ -1,4 +1,6 @@
 import { BrowserRouter, HashRouter, Routes, Route, Navigate, useLocation, useNavigate } from 'react-router-dom'
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
 import { AuthProvider, useAuth } from './context/AuthContext'
 import { useTranslation } from 'react-i18next'
 import { useEffect, useRef } from 'react';
@@ -183,6 +185,16 @@ function AppRoutes() {
   )
 }
 
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 1000 * 30,       // 30초간 fresh 유지
+      retry: 1,
+      refetchOnWindowFocus: false, // 탭 복귀 시 자동 재검증 — 필요 시 활성화
+    },
+  },
+})
+
 function App() {
   const Router = window.racconto ? HashRouter : BrowserRouter
 
@@ -194,13 +206,16 @@ function App() {
   }, [i18n.language]);
 
   return (
-    <AuthProvider>
-      <ElectronSidebarProvider>
-        <Router>
-          <AppRoutes />
-        </Router>
-      </ElectronSidebarProvider>
-    </AuthProvider>
+    <QueryClientProvider client={queryClient}>
+      <AuthProvider>
+        <ElectronSidebarProvider>
+          <Router>
+            <AppRoutes />
+          </Router>
+        </ElectronSidebarProvider>
+      </AuthProvider>
+      {import.meta.env.DEV && <ReactQueryDevtools initialIsOpen={false} />}
+    </QueryClientProvider>
   )
 }
 

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useQuery } from '@tanstack/react-query'
 import axios from 'axios'
 import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
@@ -24,21 +24,16 @@ interface Project {
 }
 
 export default function Dashboard() {
-  const [projects, setProjects] = useState<Project[]>([])
   const { user } = useAuth()
   const { t } = useTranslation()
 
-  useEffect(() => {
-    const fetchProjects = async () => {
-      try {
-        const res = await axios.get(`${API}/projects/`)
-        setProjects(res.data)
-      } catch (err) {
-        console.error("Failed to fetch projects", err)
-      }
-    }
-    fetchProjects()
-  }, [])
+  const { data: projects = [] } = useQuery<Project[]>({
+    queryKey: ['projects'],
+    queryFn: async () => {
+      const res = await axios.get<Project[]>(`${API}/projects/`)
+      return res.data
+    },
+  })
 
   const publicProjects = projects.filter(p => p.is_public === 'true').slice(0, 3)
 
