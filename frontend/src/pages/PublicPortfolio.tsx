@@ -369,7 +369,7 @@ export default function PublicPortfolio() {
                 {selectedProject.chapters.map((chapter, idx) => (
                   <section key={chapter.id} className={idx > 0 ? 'pt-32 md:pt-40' : ''}>
                     <header className="mb-10 max-w-[560px]">
-                      <p className={`t-eyebrow mb-2 ${microcopy}`}>Chapter</p>
+
                       <h3 className="font-serif text-[32px] leading-[1.1] tracking-[-0.015em] font-normal">
                         {chapter.title}
                       </h3>
@@ -388,7 +388,7 @@ export default function PublicPortfolio() {
                     {chapter.sub_chapters?.map((sub) => (
                       <div key={sub.id} className="mt-space-xl">
                         <div className="mb-5">
-                          <p className={`t-eyebrow mb-2 ${microcopy}`}>Section</p>
+
                           <h4 className="font-serif text-[20px] tracking-tight font-medium">
                             {sub.title}
                           </h4>

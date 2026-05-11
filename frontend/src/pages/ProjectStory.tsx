@@ -845,13 +845,13 @@ function ProjectStory({
       )
     })()}
 
-      <div className="flex-1 max-w-5xl bg-edit-paper border border-edit-line rounded-[2px] px-8 py-10">
+      <div className="flex-1 max-w-5xl flex flex-col gap-4">
 
         {/* 챕터 추가 폼 — 사이드바 버튼 클릭 시 표시 */}
         {showAddChapter && !addingSubChapterTo && (
-          <div className="mb-8 p-6 bg-edit-canvas border border-edit-line rounded-[2px]">
+          <div className="bg-edit-paper border border-edit-line rounded-[2px] px-8 py-10">
             <div className="pb-4">
-              <p className="t-eyebrow text-edit-muted mb-2">{t('project.labelTitle')}</p>
+              <p className="t-eyebrow text-edit-muted mb-2">{t('project.labelTitle')}<span className="text-edit-danger ml-1">*</span></p>
               <input
                 className="w-full font-serif text-body bg-transparent border-0 border-b border-edit-line
                            focus:border-edit-ink focus:outline-none py-2 transition-colors duration-150
@@ -888,6 +888,7 @@ function ProjectStory({
           </div>
         )}
 
+        <div className="bg-edit-paper border border-edit-line rounded-[2px] px-8 py-10">
         {/* 챕터 목록 */}
         <div className="space-y-8">
         {chapters
@@ -967,7 +968,7 @@ function ProjectStory({
                   {editingChapter === chapter.id ? (
                     <div className="mt-5 pt-5 border-t border-edit-line">
                       <div className="pb-4">
-                        <p className="t-eyebrow text-edit-muted mb-2">{t('project.labelTitle')}</p>
+                        <p className="t-eyebrow text-edit-muted mb-2">{t('project.labelTitle')}<span className="text-edit-danger ml-1">*</span></p>
                         <input
                           className="w-full font-serif text-body bg-transparent border-0 border-b border-edit-line
                                      focus:border-edit-ink focus:outline-none py-2 transition-colors duration-150
@@ -1012,7 +1013,7 @@ function ProjectStory({
                       ↳ {chapter.title} · {t('story.addSubChapter')}
                     </p>
                     <div className="pb-4">
-                      <p className="t-eyebrow text-edit-muted mb-2">{t('project.labelTitle')}</p>
+                      <p className="t-eyebrow text-edit-muted mb-2">{t('project.labelTitle')}<span className="text-edit-danger ml-1">*</span></p>
                       <input
                         className="w-full font-serif text-body bg-transparent border-0 border-b border-edit-line
                                    focus:border-edit-ink focus:outline-none py-2 transition-colors duration-150
@@ -1135,7 +1136,7 @@ function ProjectStory({
                           {editingChapter === subChapter.id ? (
                             <div className="mt-5 pt-5 border-t border-edit-line">
                               <div className="pb-4">
-                                <p className="t-eyebrow text-edit-muted mb-2">{t('project.labelTitle')}</p>
+                                <p className="t-eyebrow text-edit-muted mb-2">{t('project.labelTitle')}<span className="text-edit-danger ml-1">*</span></p>
                                 <input
                                   className="w-full font-serif text-body bg-transparent border-0 border-b border-edit-line
                                              focus:border-edit-ink focus:outline-none py-2 transition-colors duration-150
@@ -1203,6 +1204,7 @@ function ProjectStory({
             <p className="text-h3 mb-2">{t('story.noChapter')}</p>
           </div>
         )}
+        </div>
       </div>
 
       {selectedPhotoIndex !== null && currentChapterPhotos[selectedPhotoIndex] && (
