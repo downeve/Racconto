@@ -106,7 +106,7 @@ function PhotosSidebarContent({
           {photos.some(p => p.folder) && (
             <div className="flex flex-col gap-0.5">
               {[...new Set(photos.filter(p => p.folder).map(p => p.folder))].map(folder => (
-                <div key={folder} className="relative group/folder">
+                <div key={folder} className="group/folder">
                   <button onClick={() => {
                     setFilterFolder(filterFolder === folder ? null : folder!)
                     setPhotoSubTab(filterFolder === folder ? 'all' : 'folder')
@@ -116,13 +116,15 @@ function PhotosSidebarContent({
                       <span className="truncate">{getFolderDisplayName(folder!)}</span>
                       {isLocalSyncFolder(folder!) && <Monitor size={10} strokeWidth={1.5} className="shrink-0 opacity-50" />}
                     </span>
-                    <span>{photos.filter(p => p.folder === folder && !p.deleted_at).length}</span>
+                    <span className="flex items-center gap-1 shrink-0">
+                      <button
+                        onClick={e => { e.stopPropagation(); handleDeleteFolder(folder!) }}
+                        className="opacity-0 group-hover/folder:opacity-100 transition-opacity text-edit-line hover:text-edit-danger"
+                        title={t('photo.moveToTrash')}
+                      ><Trash2 size={11} strokeWidth={1.5} /></button>
+                      <span>{photos.filter(p => p.folder === folder && !p.deleted_at).length}</span>
+                    </span>
                   </button>
-                  <button
-                    onClick={() => handleDeleteFolder(folder!)}
-                    className="absolute right-0 top-0 bottom-0 px-1.5 text-edit-line hover:text-edit-danger opacity-0 group-hover/folder:opacity-100 transition-opacity"
-                    title={t('photo.moveToTrash')}
-                  ><Trash2 size={11} strokeWidth={1.5} /></button>
                 </div>
               ))}
             </div>
