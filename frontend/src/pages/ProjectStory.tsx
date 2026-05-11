@@ -1011,7 +1011,7 @@ function ProjectStory({
                     <p className="t-eyebrow text-edit-faint mb-4">
                       ↳ {chapter.title} · {t('story.addSubChapter')}
                     </p>
-                    <div className="pb-4 border-b border-edit-line-strong">
+                    <div className="pb-4">
                       <p className="t-eyebrow text-edit-muted mb-2">{t('project.labelTitle')}</p>
                       <input
                         className="w-full font-serif text-body bg-transparent border-0 border-b border-edit-line
