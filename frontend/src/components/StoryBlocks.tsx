@@ -326,7 +326,7 @@ export const SortableTextBlock = memo(function SortableTextBlock({
   const isEditing = editingTextItemId === itemId;
 
   return (
-    <div ref={setRef} style={style} className="w-full group relative mb-3 min-w-0 rounded-[2px] border border-edit-line/40 hover:border-edit-line hover:bg-edit-paper/40 transition-[background-color,border-color] duration-150">
+    <div ref={setRef} style={style} className="w-full group relative mb-3 min-w-0 rounded-[2px] border border-edit-line/40 hover:border-edit-line-strong hover:bg-edit-paper/40 transition-[background-color,border-color] duration-150">
       {/* 드래그 핸들 — 외부 좌측 (PHOTO/SIDE 블록과 동일 위치) */}
       {!isEditing && (
         <div
@@ -576,7 +576,7 @@ export const SortablePhotoBlock = memo(function SortablePhotoBlock({
       style={style}
       className={`group/block relative mb-3 px-3 py-3 rounded-[2px]
                   transition-[background-color,border-color] duration-150
-                  border border-edit-line/40 hover:bg-edit-paper/40 hover:border-edit-line
+                  border border-edit-line/40 hover:bg-edit-paper/40 hover:border-edit-line-strong
                   ${isOver && isExternalDrag
                     ? 'bg-edit-drop/50 ring-1 ring-inset ring-edit-accent'
                     : ''}`}
@@ -818,7 +818,7 @@ export const SortableSideBySideBlock = memo(function SortableSideBySideBlock({
   ) : null
 
   return (
-    <div ref={setNodeRef} style={style} className="group/block relative mb-3 px-3 py-3 rounded-[2px] border border-edit-line/40 hover:bg-edit-paper/40 hover:border-edit-line transition-[background-color,border-color] duration-150">
+    <div ref={setNodeRef} style={style} className="group/block relative mb-3 px-3 py-3 rounded-[2px] border border-edit-line/40 hover:bg-edit-paper/40 hover:border-edit-line-strong transition-[background-color,border-color] duration-150">
       <div
         {...attributes}
         {...listeners}

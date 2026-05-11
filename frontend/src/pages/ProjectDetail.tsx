@@ -87,9 +87,9 @@ function PhotosSidebarContent({
             : <><Upload size={12} strokeWidth={1.5} />{t('photo.uploadPhotos')}</>}
           <input type="file" accept="image/jpeg, image/png, image/webp" multiple className="hidden" onChange={handleUpload} disabled={uploading} />
         </label>
-        <label className={`flex-1 cursor-pointer text-[0.8125rem] font-sans font-medium px-2 py-2 inline-flex items-center justify-center gap-1.5 bg-edit-ink text-edit-paper hover:bg-edit-ink/85 rounded-[1px] transition-colors ${uploading ? 'opacity-60 cursor-not-allowed' : ''}`}>
+        <label className={`flex-1 cursor-pointer text-[0.8125rem] font-sans font-medium px-2 py-2 inline-flex items-center justify-center gap-1.5 border border-edit-line text-edit-muted hover:text-edit-ink hover:border-edit-line-strong rounded-[1px] transition-colors ${uploading ? 'opacity-60 cursor-not-allowed' : ''}`}>
           {uploading
-            ? <div className="w-3 h-3 border border-edit-paper/40 border-t-edit-paper rounded-full animate-spin shrink-0" />
+            ? <div className="w-3 h-3 border border-edit-muted/40 border-t-edit-muted rounded-full animate-spin shrink-0" />
             : <><FolderUp size={12} strokeWidth={1.5} />{t('photo.uploadFolder')}</>}
           <input type="file" accept="image/jpeg, image/png, image/webp" multiple className="hidden" onChange={handleUpload} disabled={uploading} {...{ webkitdirectory: '' } as any} />
         </label>

@@ -75,7 +75,7 @@ function StorySidebarContent({
       <button
         onClick={() => { setShowAddChapter(true); setAddingSubChapterTo(null) }}
         className="w-full mb-1.5 px-3 py-2 rounded-[1px] inline-flex justify-center items-center gap-2 text-[0.8125rem] font-sans font-medium
-                   border border-edit-line text-edit-muted hover:text-edit-ink hover:border-edit-line-strong
+                   bg-edit-ink text-edit-paper hover:bg-edit-ink/85
                    transition-colors duration-150"
       >
         <Plus size={13} strokeWidth={1.5} />
