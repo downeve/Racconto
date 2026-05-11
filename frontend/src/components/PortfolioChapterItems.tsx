@@ -177,11 +177,11 @@ export default function PortfolioChapterItems({
           {sidePhotoContent}
         </div>
       )
-      const isPhotoRight = group.blockType === 'side-right'
+      const isTextLeft = group.blockType === 'side-left'
       const textCol = group.text ? (
         <div
           className="min-w-0 flex items-start w-full text-left"
-          style={{ flex: '2', paddingLeft: isPhotoRight ? '40px' : undefined }}
+          style={{ flex: '2', paddingLeft: isTextLeft ? '40px' : undefined }}
         >
           <MarkdownRenderer
             content={group.text.text_content || ''}
