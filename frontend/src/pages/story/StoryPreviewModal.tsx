@@ -188,8 +188,8 @@ export default function StoryPreviewModal({
                       className={`inline-flex items-center gap-1 text-xs px-2.5 py-1 rounded-btn border transition-[background,color,border] duration-150 ease-out ${toggleClass}`}
                     >
                       {dm
-                        ? <><Sun size={11} strokeWidth={1.5} />Beige</>
-                        : <><Moon size={11} strokeWidth={1.5} />Dark</>}
+                        ? <><Sun size={11} strokeWidth={1.5} />{t('settings.themeBeige')}</>
+                        : <><Moon size={11} strokeWidth={1.5} />{t('settings.themeDark')}</>}
                     </button>
                     <button
                       onClick={closeChapterPreview}

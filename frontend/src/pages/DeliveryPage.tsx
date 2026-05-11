@@ -4,6 +4,7 @@
 
 import { useEffect, useState } from 'react'
 import { useParams } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import { Link2, Lock, Sun, Moon } from 'lucide-react'
 
 const API = import.meta.env.VITE_API_URL
@@ -27,6 +28,7 @@ interface LinkInfo {
 
 export default function DeliveryPage() {
   const { linkId } = useParams<{ linkId: string }>()
+  const { t } = useTranslation()
 
   const [step, setStep] = useState<'loading' | 'password' | 'view' | 'error'>('loading')
   const [errorMsg, setErrorMsg] = useState('')
@@ -223,7 +225,7 @@ export default function DeliveryPage() {
               onClick={() => setDarkMode(!darkMode)}
               className={`inline-flex items-center gap-1 px-3 py-1 text-xs rounded-full border ${darkMode ? 'border-gray-600 text-gray-400' : 'border-gray-300 text-gray-500'}`}
             >
-              {darkMode ? <><Sun size={12} strokeWidth={1.5} /> 라이트</> : <><Moon size={12} strokeWidth={1.5} /> 다크</>}
+              {darkMode ? <><Sun size={12} strokeWidth={1.5} /> {t('settings.themeBeige')}</> : <><Moon size={12} strokeWidth={1.5} /> {t('settings.themeDark')}</>}
             </button>
             {/* 선택 완료 버튼 */}
             <button
