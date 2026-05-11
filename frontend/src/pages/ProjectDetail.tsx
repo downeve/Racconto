@@ -654,6 +654,7 @@ export default function ProjectDetail({
       if (lightboxPhoto?.id === photo.id) {
         setLightboxPhoto(prev => prev ? { ...prev, rating: previousRating } : null)
       }
+    }
   }
 
   const handleSetColorLabel = async (photo: Photo, label: string) => {
