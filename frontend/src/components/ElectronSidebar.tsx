@@ -4,7 +4,7 @@ import axios from 'axios'
 import { useTranslation } from 'react-i18next'
 import { useElectronSidebar } from '../context/ElectronSidebarContext'
 import { useAuth } from '../context/AuthContext'
-import { Camera, BookOpen, FileText, LayoutDashboard, Aperture, ChevronDown, ChevronRight, SlidersHorizontal } from 'lucide-react'
+import { Camera, BookOpen, FileText, LayoutDashboard, Aperture, ChevronDown, ChevronRight, SlidersHorizontal, Trash2 } from 'lucide-react'
 import { cfUrl } from '../utils/cfImage'
 import { Wordmark } from './Wordmark'
 import { applyFontScale, getStoredFontScale, type FontScale } from '../utils/fontScale'
@@ -284,6 +284,7 @@ export default function ElectronSidebar({ activeTab, onTabChange, showTabs, widt
               onClick={() => setDropdownOpen(false)}
               className="w-full text-left px-3 py-2 text-[0.8125rem] font-sans text-edit-ink hover:bg-edit-paper-2 flex items-center gap-2 transition-colors"
             >
+              <Trash2 size={13} strokeWidth={1.5} />
               {t('nav.trash')}
             </Link>
             <Link
@@ -310,7 +311,7 @@ export default function ElectronSidebar({ activeTab, onTabChange, showTabs, widt
             {/* §11.7 폰트 사이즈 */}
             <div className="px-3 py-1.5">
               <p className="t-caption text-edit-faint mb-1.5">{t('settings.fontSize')}</p>
-              <div className="inline-flex border border-edit-line rounded-[1px] p-0.5 gap-0.5">
+              <div className="flex border border-edit-line rounded-[1px] p-0.5 gap-0.5">
                 {fontScaleOptions.map(({ scale, label }) => (
                   <button
                     key={scale}
