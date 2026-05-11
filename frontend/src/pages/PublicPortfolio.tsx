@@ -1,5 +1,6 @@
-import { useEffect, useRef, useState, useCallback } from 'react'
+import { useEffect, useRef, useState, useCallback, useMemo } from 'react'
 import { useParams, useNavigate, useLocation } from 'react-router-dom'
+import { useQuery } from '@tanstack/react-query'
 import axios from 'axios'
 import { useTranslation } from 'react-i18next'
 import { useAuth } from '../context/AuthContext'
@@ -75,10 +76,28 @@ function PortfolioBanner({ username, projects, darkMode }: BannerProps) {
 
 export default function PublicPortfolio() {
   const { username, slug } = useParams<{ username: string; slug?: string }>()
-  const [projects, setProjects] = useState<PortfolioProject[]>([])
-  const [selectedProject, setSelectedProject] = useState<PortfolioProject | null>(null)
+  const [localSelectedProject, setLocalSelectedProject] = useState<PortfolioProject | null>(null)
   const [darkMode, setDarkMode] = useState(false)
-  const [notFound, setNotFound] = useState(false)
+
+  const enabled = !!username && username !== '@setup'
+
+  const { data: listData, isError: listError } = useQuery({
+    queryKey: ['portfolio', username],
+    queryFn: async () => (await axios.get(`${API}/portfolio/${username}`)).data,
+    enabled: enabled && !slug,
+    retry: (_count, err) => (err as any)?.response?.status !== 404,
+  })
+
+  const { data: slugData, isError: slugError } = useQuery({
+    queryKey: ['portfolioSlug', username, slug],
+    queryFn: async () => (await axios.get(`${API}/portfolio/${username}/${slug}`)).data,
+    enabled: enabled && !!slug,
+    retry: (_count, err) => (err as any)?.response?.status !== 404,
+  })
+
+  const projects = useMemo<PortfolioProject[]>(() => listData?.projects ?? [], [listData])
+  const selectedProject = slug ? (slugData?.project ?? null) : localSelectedProject
+  const notFound = listError || slugError
 
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null)
   const [lightboxItems, setLightboxItems] = useState<{ photo: Photo; title: string }[]>([])
@@ -96,7 +115,7 @@ export default function PublicPortfolio() {
 
   useEffect(() => {
     if ((location.state as { resetToList?: boolean } | null)?.resetToList) {
-      setSelectedProject(null)
+      setLocalSelectedProject(null)
     }
   }, [location])
 
@@ -106,39 +125,18 @@ export default function PublicPortfolio() {
     }
   }, [isAuthenticated, username, navigate])
 
-  useEffect(() => {
-    if (!username || username === '@setup') {
-      setNotFound(false)
-      return
-    }
-    const applyTheme = (apiTheme: string) => {
-      const saved = localStorage.getItem(`portfolio_theme_${username}`)
-      setDarkMode(saved !== null ? saved === 'dark' : apiTheme === 'dark')
-    }
+  const applyTheme = useCallback((apiTheme: string) => {
+    const saved = localStorage.getItem(`portfolio_theme_${username}`)
+    setDarkMode(saved !== null ? saved === 'dark' : apiTheme === 'dark')
+  }, [username])
 
-    if (slug) {
-      // 개별 프로젝트 직접 접근
-      axios.get(`${API}/portfolio/${username}/${slug}`)
-        .then(res => {
-          setSelectedProject(res.data.project)
-          applyTheme(res.data.theme)
-        })
-        .catch(err => {
-          if (err.response?.status === 404) setNotFound(true)
-        })
-    } else {
-      // 전체 포트폴리오 목록 — slug 없는 라우트로 돌아올 때 선택 상태 초기화
-      setSelectedProject(null)
-      axios.get(`${API}/portfolio/${username}`)
-        .then(res => {
-          setProjects(res.data.projects)
-          applyTheme(res.data.theme)
-        })
-        .catch(err => {
-          if (err.response?.status === 404) setNotFound(true)
-        })
-    }
-  }, [username, slug])
+  useEffect(() => {
+    if (listData?.theme) applyTheme(listData.theme)
+  }, [listData, applyTheme])
+
+  useEffect(() => {
+    if (slugData?.theme) applyTheme(slugData.theme)
+  }, [slugData, applyTheme])
 
   const handleToggleDark = () => {
     setDarkMode(v => {
@@ -152,7 +150,7 @@ export default function PublicPortfolio() {
     if (project.slug) {
       navigate(`/${username}/${project.slug}`)
     } else {
-      setSelectedProject(project)
+      setLocalSelectedProject(project)
       window.scrollTo(0, 0)
     }
   }
@@ -161,7 +159,7 @@ export default function PublicPortfolio() {
     if (slug) {
       navigate(`/${username}`)
     } else {
-      setSelectedProject(null)
+      setLocalSelectedProject(null)
       window.scrollTo(0, 0)
     }
   }
