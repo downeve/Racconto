@@ -362,7 +362,7 @@ export default function PublicPortfolio() {
         </div>
 
         {/* Project list */}
-        {!selectedProject && (
+        {!selectedProject && !slug && (
           <div className="grid gap-x-10 gap-y-16 grid-cols-1 md:grid-cols-2">
             {projects.map(project => (
               <article
