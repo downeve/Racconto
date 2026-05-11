@@ -45,7 +45,6 @@ export default function MobileProjectDetail() {
   const [chapters, setChapters] = useState<{ id: string; title: string; parent_id?: string | null; order_num?: number }[]>([])
   const [sortBy] = useState<'default' | 'taken_at' | 'name'>('default')
   const [sortOrder] = useState<'asc' | 'desc'>('asc')
-  const [notesVersion, setNotesVersion] = useState(0)
   const [confirmModal, setConfirmModal] = useState<{ message: string; onConfirm: () => void } | null>(null)
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' | 'warning' } | null>(null)
   const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
@@ -430,7 +429,7 @@ export default function MobileProjectDetail() {
           onSetRating={handleSetRating}
           onSetColorLabel={handleSetColorLabel}
           onAddToChapter={handleAddToChapter}
-          onNoteChange={() => { fetchPhotoNoteIds(); setNotesVersion(v => v + 1) }}
+          onNoteChange={() => fetchPhotoNoteIds()}
           onRotate={handleRotatePhoto}
         />
       )}
