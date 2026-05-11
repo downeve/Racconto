@@ -849,7 +849,7 @@ function ProjectStory({
 
         {/* 챕터 추가 폼 — 사이드바 버튼 클릭 시 표시 */}
         {showAddChapter && !addingSubChapterTo && (
-          <div className="mb-8 pb-8 border-b border-edit-line">
+          <div className="mb-8 p-6 bg-edit-canvas border border-edit-line rounded-[2px]">
             <div className="pb-4">
               <p className="t-eyebrow text-edit-muted mb-2">{t('project.labelTitle')}</p>
               <input
