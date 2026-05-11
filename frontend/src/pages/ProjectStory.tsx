@@ -274,14 +274,13 @@ function ProjectStory({
   projectId,
   activeTab,
   allPhotos,
-  chapterPhotoCount,
   onChapterChange,
 }: {
   projectId: string,
   activeTab: string,
   allPhotos: Photo[],
-  chapterPhotoCount: number,
-  onChapterChange?: (count: number) => void,
+  chapterPhotoCount?: number,
+  onChapterChange?: () => void,
   onPhotoUpdate?: (photoId: string, newCaption: string) => void
 }) {
   const queryClient = useQueryClient()
@@ -379,8 +378,8 @@ function ProjectStory({
     queryClient.invalidateQueries({ queryKey: ['storyChapters', projectId] })
   }, [queryClient, projectId])
 
-  const fetchChapterPhotos = useCallback((_chapterId: string) => {
-    queryClient.invalidateQueries({ queryKey: ['storyChapters', projectId] })
+  const fetchChapterPhotos = useCallback((_chapterId: string): Promise<void> => {
+    return queryClient.invalidateQueries({ queryKey: ['storyChapters', projectId] })
   }, [queryClient, projectId])
 
 

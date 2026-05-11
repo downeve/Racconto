@@ -430,7 +430,7 @@ export default function PublicPortfolio() {
 
             {selectedProject.chapters.length > 0 ? (
               <div>
-                {selectedProject.chapters.map((chapter, idx) => (
+                {selectedProject.chapters.map((chapter: Chapter, idx: number) => (
                   <section key={chapter.id} className={idx > 0 ? 'pt-32 md:pt-40' : ''}>
                     <header className="mb-10 max-w-[560px]">
 
@@ -449,7 +449,7 @@ export default function PublicPortfolio() {
                       darkMode={darkMode}
                       onLightbox={(photo, items) => openLightbox(photo as unknown as Photo, items as { photo: Photo; title: string }[])}
                     />
-                    {chapter.sub_chapters?.map((sub) => (
+                    {chapter.sub_chapters?.map((sub: Chapter) => (
                       <div key={sub.id} className="mt-space-xl">
                         <div className="mb-5">
 
