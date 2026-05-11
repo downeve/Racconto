@@ -3,7 +3,6 @@ import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { createPortal } from 'react-dom'
 import { useParams } from 'react-router-dom'
 import axios from 'axios'
-import exifr from 'exifr'
 import { Folder, Monitor, Trash2, FileText, MapPin, AlertTriangle, BookOpen, Grid3X3, ArrowUpDown, Info, Star, Upload, FolderUp, ArrowUp } from 'lucide-react'
 
 import ProjectStory from './ProjectStory'
@@ -11,7 +10,6 @@ import DeliveryManager from '../components/DeliveryManager'
 import { useTranslation } from 'react-i18next'
 import ProjectNotes from './ProjectNotes'
 import { useElectronSidebar } from '../context/ElectronSidebarContext'
-import { resizeImageInWorker } from '../utils/resizeImageWorker'
 import ConfirmModal from '../components/ConfirmModal'
 import ToastNotification from '../components/ToastNotification'
 import { Lightbox, PhotoCard } from '../components/ProjectDetailComponents'
@@ -31,6 +29,7 @@ interface PhotosSidebarContentProps {
   photos: Photo[]
   trashedPhotos: Photo[]
   uploading: boolean
+  uploadProgress: { current: number; total: number } | null
   photoSubTab: 'all' | 'folder' | 'trash'
   filterFolder: string | null
   filterRating: number | null
@@ -58,7 +57,7 @@ interface PhotosSidebarContentProps {
 }
 
 function PhotosSidebarContent({
-  photos, trashedPhotos, uploading,
+  photos, trashedPhotos, uploading, uploadProgress,
   photoSubTab, filterFolder, filterRating, filterColor, filterHasNote,
   photoNoteIds, colorLabels, isAllActive, selectionMode,
   handleUpload, handleResetAll, handleDeleteFolder,
@@ -84,7 +83,9 @@ function PhotosSidebarContent({
       <div className="mb-4 flex gap-1">
         <label className={`flex-1 cursor-pointer text-[0.8125rem] font-sans font-medium px-2 py-2 inline-flex items-center justify-center gap-1.5 bg-edit-ink/80 text-edit-paper hover:bg-edit-ink/90 rounded-[1px] transition-colors ${uploading ? 'opacity-60 cursor-not-allowed' : ''}`}>
           {uploading
-            ? <><div className="w-3 h-3 border border-edit-paper/40 border-t-edit-paper rounded-full animate-spin shrink-0" />{t('photo.uploading')}</>
+            ? uploadProgress
+              ? <><div className="w-3 h-3 border border-edit-paper/40 border-t-edit-paper rounded-full animate-spin shrink-0" />{uploadProgress.current} / {uploadProgress.total}</>
+              : <><div className="w-3 h-3 border border-edit-paper/40 border-t-edit-paper rounded-full animate-spin shrink-0" />{t('photo.uploading')}</>
             : <><Upload size={12} strokeWidth={1.5} />{t('photo.uploadPhotos')}</>}
           <input type="file" accept="image/jpeg, image/png, image/webp" multiple className="hidden" onChange={handleUpload} disabled={uploading} />
         </label>
@@ -213,7 +214,7 @@ export default function ProjectDetail({
 
   const { id } = useParams()
   const queryClient = useQueryClient()
-  const { triggerRefresh, uploadInProgress: uploading, setUploadInProgress: setUploading } = useElectronSidebar()
+  const { triggerRefresh, uploadInProgress: uploading, setUploadInProgress: setUploading, uploadProgress, startUpload } = useElectronSidebar()
 
   const [activeTab, setActiveTab] = useState<'photos' | 'story' | 'notes' | 'delivery'>('photos')
 
@@ -406,140 +407,14 @@ export default function ProjectDetail({
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeTab, filterFolder, filterRating, filterColor, sortBy])
 
-  const doUpload = async (validFiles: File[]) => {
-    setUploading(true)
-
-    let failedCount = 0
-    let successCount = 0
-    let limitExceeded = false
-    let skipCount = 0
-    for (const file of validFiles) {
-      try {
-        const relativePath = (file as any).webkitRelativePath
-        const folder = relativePath ? relativePath.split('/')[0] : null
-
-        // 0-a. 활성 사진 중 동일 파일명+폴더가 있으면 중복 스킵
-        const isDuplicate = photos.some(
-          p => p.original_filename === file.name && p.folder === folder && !p.deleted_at
-        )
-        if (isDuplicate) { skipCount++; successCount++; continue }
-
-        // 0-b. 휴지통에 같은 파일명이 있으면 새 업로드 대신 복구 (Workflow 4)
-        let restored = false
-        try {
-          await axios.post(`${API}/photos/restore-by-filename`, {
-            project_id: numericId,
-            original_filename: file.name,
-          })
-          restored = true
-        } catch (e: any) {
-          if (e.response?.status !== 404) throw e
-          // 404 = 휴지통에 없음, 정상 업로드 진행
-        }
-
-        if (!restored) {
-        // 1. EXIF 추출 (리사이즈 전 원본에서)
-        const exifData: Record<string, string> = {}
-        try {
-          const parsed = await exifr.parse(file, {
-            pick: ['DateTimeOriginal', 'Make', 'Model', 'LensModel',
-                   'ISO', 'ExposureTime', 'FNumber', 'FocalLength',
-                   'GPSLatitude', 'GPSLongitude']
-          })
-          if (parsed) {
-            if (parsed.DateTimeOriginal) exifData.taken_at = new Date(parsed.DateTimeOriginal).toISOString()
-            if (parsed.Make || parsed.Model) exifData.camera = `${parsed.Make || ''} ${parsed.Model || ''}`.trim()
-            if (parsed.LensModel) exifData.lens = parsed.LensModel
-            if (parsed.ISO) exifData.iso = `ISO ${parsed.ISO}`
-            if (parsed.ExposureTime) exifData.shutter_speed = parsed.ExposureTime < 1
-              ? `1/${Math.round(1 / parsed.ExposureTime)}s`
-              : `${parsed.ExposureTime.toFixed(1)}s`
-            if (parsed.FNumber) exifData.aperture = `f/${parsed.FNumber.toFixed(1)}`
-            if (parsed.FocalLength) exifData.focal_length = `${Math.round(parsed.FocalLength)}mm`
-            if (parsed.GPSLatitude) exifData.gps_lat = String(parsed.GPSLatitude)
-            if (parsed.GPSLongitude) exifData.gps_lng = String(parsed.GPSLongitude)
-          }
-        } catch {
-          // EXIF 추출 실패 무시
-        }
-
-        // 2. Canvas 리사이즈 (장변 2400px, JPEG q88)
-        const resizedBlob = await resizeImageInWorker(file)
-
-        // 3. CF 업로드 URL 발급 (photo_limit 체크 포함)
-        const { data: urlData } = await axios.get(`${API}/photos/cf-upload-url`)
-        const { uploadURL } = urlData
-
-        // 4. CF에 직접 업로드
-        const formData = new FormData()
-        formData.append('file', resizedBlob, file.name)
-        const cfRes = await fetch(uploadURL, { method: 'POST', body: formData })
-        const cfData = await cfRes.json()
-        if (!cfData.success) throw new Error('CF upload failed')
-        const imageUrl = cfData.result.variants[0]
-
-        // 5. 메타데이터 저장
-        await axios.post(`${API}/photos/`, {
-          project_id: numericId,
-          image_url: imageUrl,
-          folder,
-          original_filename: file.name,
-          source: 'web',
-          ...exifData,
-        })
-        } // end if (!restored)
-        successCount++
-
-      } catch (error) {
-        console.error(`❌ ${file.name} ${t('photo.uploadFail')}:`, error)
-
-        const status = (error as any)?.response?.status
-        const detail = (error as any)?.response?.data?.detail
-        const code = typeof detail === 'object' ? detail.code : detail
-
-        if (status === 401) {
-          break
-        } else if (code === 'PHOTO_LIMIT_EXCEEDED') {
-          limitExceeded = true
-          break
-        } else {
-          failedCount++
-        }
-      }
-    }
-
-    if (limitExceeded) {
-      if (successCount > 0) {
-        showToast(t('photo.upload.limitExceededPartial', { success: successCount }), 'warning')
-      } else {
-        showToast(t('photo.upload.limitExceeded'), 'warning')
-      }
-    } else if (failedCount > 0) {
-      showToast(t('photo.upload.fail', { count: failedCount }), 'error')
-    } else if (successCount - skipCount > 0) {
-      showToast(t('photo.upload.success', { count: successCount - skipCount }), 'success')
-    } else if (skipCount > 0) {
-      showToast(t('photo.upload.allSkipped', { count: skipCount }), 'warning')
-    }
-
-    try {
-      await queryClient.invalidateQueries({ queryKey: ['photos', numericId] })
-    } catch {
-      // 로그아웃 등으로 invalidate 실패해도 uploading은 반드시 해제
-    } finally {
-      setUploading(false)
-    }
-  }
-
   const handleUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (!e.target.files || !id) return
+    if (!e.target.files || !numericId) return
     const inputEl = e.target
     const allowedTypes = ['image/jpeg', 'image/png', 'image/webp']
     const validFiles = Array.from(e.target.files).filter(file => allowedTypes.includes(file.type))
     inputEl.value = ''
     if (validFiles.length === 0) return
-
-    doUpload(validFiles)
+    startUpload(validFiles, numericId, photos)
   }
 
   // ProjectDetail.tsx 내부의 handleSetCover 수정
@@ -951,6 +826,7 @@ export default function ProjectDetail({
           photos={photos}
           trashedPhotos={trashedPhotos}
           uploading={uploading}
+          uploadProgress={uploadProgress}
           photoSubTab={photoSubTab}
           filterFolder={filterFolder}
           filterRating={filterRating}
