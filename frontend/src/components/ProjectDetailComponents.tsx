@@ -174,10 +174,11 @@ export function Lightbox({
   useEffect(() => {
     const preload = (url: string) => {
       const img = new Image()
-      img.src = url
+      img.src = cfUrl(url, 'public')
     }
     if (idx > 0) preload(photos[idx - 1].image_url)
     if (idx < photos.length - 1) preload(photos[idx + 1].image_url)
+    if (idx < photos.length - 2) preload(photos[idx + 2].image_url)
   }, [idx, photos])
 
   const getAssignedChapterInfo = () => {
