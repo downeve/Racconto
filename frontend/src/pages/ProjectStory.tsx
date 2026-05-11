@@ -74,7 +74,7 @@ function StorySidebarContent({
       {/* 챕터 추가 */}
       <button
         onClick={() => { setShowAddChapter(true); setAddingSubChapterTo(null) }}
-        className="w-full mb-1.5 px-3 py-2 rounded-[1px] inline-flex justify-center items-center gap-2 text-[0.75rem] font-sans font-medium
+        className="w-full mb-1.5 px-3 py-2 rounded-[1px] inline-flex justify-center items-center gap-2 text-[0.8125rem] font-sans font-medium
                    border border-edit-line text-edit-muted hover:text-edit-ink hover:border-edit-line-strong
                    transition-colors duration-150"
       >
@@ -85,7 +85,7 @@ function StorySidebarContent({
       {/* 미리보기 */}
       <button
         onClick={() => setShowPreview(true)}
-        className="w-full mb-3 px-3 py-2 rounded-[1px] inline-flex justify-center items-center gap-2 text-[0.75rem] font-sans font-medium
+        className="w-full mb-3 px-3 py-2 rounded-[1px] inline-flex justify-center items-center gap-2 text-[0.8125rem] font-sans font-medium
                    border border-edit-line text-edit-muted hover:text-edit-ink hover:border-edit-line-strong
                    transition-colors duration-150"
       >
@@ -97,7 +97,7 @@ function StorySidebarContent({
 
       {/* PHOTO 블록 레이아웃 안내 */}
       <div className="px-1 mb-4">
-        <p className="t-eyebrow text-edit-faint mb-2">{t('story.layoutGuide')}</p>
+        <p className="t-caption text-edit-faint mb-2">{t('story.layoutGuide')}</p>
         <div className="flex gap-1.5">
           {([
             { icon: <Grid3X3 size={12} strokeWidth={1.5} />, key: 'portfolio.columnGrid' },
@@ -107,7 +107,7 @@ function StorySidebarContent({
             <div
               key={key}
               className="flex-1 inline-flex items-center justify-center gap-1.5 py-2
-                         border border-edit-line rounded-[1px] t-eyebrow text-edit-faint"
+                         border border-edit-line rounded-[1px] t-caption text-edit-faint"
             >
               <span>{t(key)}</span>{icon}
             </div>
@@ -135,7 +135,7 @@ function StorySidebarContent({
                   <button
                     onClick={toggleCollapse}
                     aria-label={isCollapsed ? '펼치기' : '접기'}
-                    className="shrink-0 pl-1 t-eyebrow text-edit-faint hover:text-edit-ink w-4"
+                    className="shrink-0 pl-1 t-caption text-edit-faint hover:text-edit-ink w-4"
                   >
                     {isCollapsed ? '▸' : '▾'}
                   </button>
@@ -144,7 +144,7 @@ function StorySidebarContent({
                 )}
                 <button
                   onClick={() => scrollToChapter(chapter.id)}
-                  className="flex-1 text-left px-1 py-1 text-[0.75rem] font-sans text-edit-muted
+                  className="flex-1 text-left px-1 py-1 text-[0.8125rem] font-sans text-edit-muted
                              group-hover:text-edit-ink truncate min-w-0
                              transition-colors duration-150"
                 >
@@ -157,7 +157,7 @@ function StorySidebarContent({
                   <button
                     onClick={() => { setChapterPreviewId(chapter.id); setChapterPreviewOpen(true) }}
                     aria-label="챕터 미리보기"
-                    className="p-0.5 t-eyebrow text-edit-faint hover:text-edit-ink transition-colors"
+                    className="p-0.5 t-caption text-edit-faint hover:text-edit-ink transition-colors"
                   >
                     <Eye size={11} strokeWidth={1.5} />
                   </button>
@@ -165,14 +165,14 @@ function StorySidebarContent({
                     onClick={() => handleMoveChapter(chapter.id, 'up')}
                     disabled={idx === 0}
                     aria-label="위로 이동"
-                    className="px-0.5 py-0.5 t-eyebrow text-edit-faint hover:text-edit-ink
+                    className="px-0.5 py-0.5 t-caption text-edit-faint hover:text-edit-ink
                                disabled:opacity-20 transition-colors"
                   >↑</button>
                   <button
                     onClick={() => handleMoveChapter(chapter.id, 'down')}
                     disabled={idx === mainChapters.length - 1}
                     aria-label="아래로 이동"
-                    className="px-0.5 py-0.5 t-eyebrow text-edit-faint hover:text-edit-ink
+                    className="px-0.5 py-0.5 t-caption text-edit-faint hover:text-edit-ink
                                disabled:opacity-20 transition-colors"
                   >↓</button>
                 </div>
@@ -183,7 +183,7 @@ function StorySidebarContent({
                     <div key={sub.id} className="flex items-center gap-0.5 group rounded-[1px] hover:bg-edit-paper-2">
                       <button
                         onClick={() => scrollToChapter(sub.id)}
-                        className="flex-1 text-left pl-2 py-0.5 text-[0.75rem] font-sans text-edit-faint
+                        className="flex-1 text-left pl-2 py-0.5 text-[0.8125rem] font-sans text-edit-faint
                                    group-hover:text-edit-muted truncate min-w-0
                                    transition-colors duration-150"
                       >
@@ -196,7 +196,7 @@ function StorySidebarContent({
                         <button
                           onClick={() => { setChapterPreviewId(sub.id); setChapterPreviewOpen(true) }}
                           aria-label="챕터 미리보기"
-                          className="p-0.5 t-eyebrow text-edit-faint hover:text-edit-ink transition-colors"
+                          className="p-0.5 t-caption text-edit-faint hover:text-edit-ink transition-colors"
                         >
                           <Eye size={11} strokeWidth={1.5} />
                         </button>
@@ -204,14 +204,14 @@ function StorySidebarContent({
                           onClick={() => handleMoveChapter(sub.id, 'up')}
                           disabled={subIdx === 0}
                           aria-label="위로 이동"
-                          className="px-0.5 py-0.5 t-eyebrow text-edit-faint hover:text-edit-ink
+                          className="px-0.5 py-0.5 t-caption text-edit-faint hover:text-edit-ink
                                      disabled:opacity-20 transition-colors"
                         >↑</button>
                         <button
                           onClick={() => handleMoveChapter(sub.id, 'down')}
                           disabled={subIdx === subChapters.length - 1}
                           aria-label="아래로 이동"
-                          className="px-0.5 py-0.5 t-eyebrow text-edit-faint hover:text-edit-ink
+                          className="px-0.5 py-0.5 t-caption text-edit-faint hover:text-edit-ink
                                      disabled:opacity-20 transition-colors"
                         >↓</button>
                       </div>

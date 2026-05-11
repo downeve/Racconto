@@ -529,7 +529,7 @@ export const PhotoCard = memo(function PhotoCard({
                         ? 'fill-label-yellow text-label-yellow'
                         : isActive
                         ? 'fill-label-yellow text-label-yellow'
-                        : 'text-edit-line-strong'
+                        : 'text-edit-muted'
                     }`}
                   />
                 </button>

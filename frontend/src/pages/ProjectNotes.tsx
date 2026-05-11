@@ -39,10 +39,17 @@ function NotesSidebarContent({ notes, filterType, filterPinned, setFilterType, s
   ]
 
   const si = (active: boolean) =>
-    `relative w-full text-left px-2 py-1 rounded-[1px] flex items-center justify-between text-[0.75rem] font-sans font-medium transition-colors duration-150 ${
+    `relative w-full text-left px-2 py-1 rounded-[1px] flex items-center justify-between text-[0.8125rem] font-sans font-medium transition-colors duration-150 ${
       active
         ? 'bg-edit-ink/[0.06] text-edit-ink before:absolute before:left-0 before:top-1 before:bottom-1 before:w-[2px] before:bg-edit-ink'
         : 'text-edit-muted hover:bg-edit-paper hover:text-edit-ink'
+    }`
+
+  const ti = (active: boolean) =>
+    `w-full text-left px-2 py-1 rounded-[1px] flex items-center justify-between text-[0.875rem] font-sans font-medium transition-colors duration-150 ${
+      active
+        ? 'border border-edit-ink bg-edit-ink/[0.06] text-edit-ink'
+        : 'border border-edit-line text-edit-muted hover:border-edit-line-strong hover:text-edit-ink'
     }`
 
   return (
@@ -58,11 +65,11 @@ function NotesSidebarContent({ notes, filterType, filterPinned, setFilterType, s
         <span>{notes.filter(n => n.is_pinned).length}</span>
       </button>
       <div className="border-t border-edit-line my-2" />
-      <div className="space-y-0.5">
+      <div className="space-y-1">
         {NOTE_TYPES.map(type => (
           <button key={type.value}
             onClick={() => { setFilterType(filterType === type.value ? null : type.value); setFilterPinned(false) }}
-            className={si(filterType === type.value)}>
+            className={ti(filterType === type.value)}>
             <span className="flex items-center gap-1.5">
               <span className={`w-1.5 h-1.5 rounded-full ${type.dot}`} />
               {type.label}
@@ -74,13 +81,13 @@ function NotesSidebarContent({ notes, filterType, filterPinned, setFilterType, s
       {notes.filter(n => n.is_pinned).length > 0 && (
         <>
           <div className="border-t border-edit-line my-3" />
-          <p className="t-eyebrow text-edit-muted mb-2 flex items-center gap-1">
+          <p className="t-caption text-edit-muted mb-2 flex items-center gap-1">
             <Pin size={11} strokeWidth={1.5} />{t('note.pinned2')}
           </p>
           <div className="space-y-0.5">
             {notes.filter(n => n.is_pinned).map(note => (
               <button key={note.id} onClick={() => scrollToNote(note.id)}
-                className="w-full text-left px-2 py-1.5 text-[0.75rem] font-sans rounded-[1px] hover:bg-edit-paper text-edit-muted hover:text-edit-ink truncate">
+                className="w-full text-left px-2 py-1.5 text-[0.8125rem] font-sans rounded-[1px] hover:bg-edit-paper text-edit-muted hover:text-edit-ink truncate">
                 {note.content.slice(0, 30)}{note.content.length > 30 ? '...' : ''}
               </button>
             ))}
@@ -142,7 +149,7 @@ const NoteItem = memo(function NoteItem({
                 <button
                   key={type.value}
                   onClick={() => setEditType(type.value)}
-                  className={`inline-flex items-center gap-1.5 px-2.5 py-1 t-eyebrow rounded-[1px] transition-colors duration-150 ${
+                  className={`inline-flex items-center gap-1.5 px-2.5 py-1 t-caption rounded-[1px] transition-colors duration-150 ${
                     editType === type.value
                       ? 'bg-edit-ink text-edit-paper'
                       : 'text-edit-muted hover:text-edit-ink hover:bg-edit-paper-2'
@@ -199,7 +206,7 @@ const NoteItem = memo(function NoteItem({
         <div>
           {/* 헤더 */}
           <div className="flex items-center gap-3 mb-3">
-            <span className="t-eyebrow text-edit-muted inline-flex items-center gap-1.5">
+            <span className="t-caption text-edit-muted inline-flex items-center gap-1.5">
               <span className={`w-1.5 h-1.5 rounded-full ${typeInfo.dot}`} />
               {typeInfo.label}
             </span>
@@ -229,13 +236,13 @@ const NoteItem = memo(function NoteItem({
                 </button>
                 <button
                   onClick={() => startEdit(note)}
-                  className="t-eyebrow text-edit-muted hover:text-edit-ink transition-colors"
+                  className="t-caption text-edit-muted hover:text-edit-ink transition-colors"
                 >
                   {t('note.editNote')}
                 </button>
                 <button
                   onClick={() => handleDelete(note.id)}
-                  className="t-eyebrow text-edit-danger hover:text-edit-danger/70 transition-colors"
+                  className="t-caption text-edit-danger hover:text-edit-danger/70 transition-colors"
                 >
                   {t('note.deleteNote')}
                 </button>
@@ -405,7 +412,7 @@ function ProjectNotes({
                 <button
                   key={type.value}
                   onClick={() => setNewType(type.value)}
-                  className={`inline-flex items-center gap-1.5 px-2.5 py-1 t-eyebrow rounded-[1px] transition-colors duration-150 ${
+                  className={`inline-flex items-center gap-1.5 px-2.5 py-1 t-caption rounded-[1px] transition-colors duration-150 ${
                     newType === type.value
                       ? 'bg-edit-ink text-edit-paper'
                       : 'text-edit-muted hover:text-edit-ink hover:bg-edit-paper-2'
@@ -491,7 +498,7 @@ function ProjectNotes({
                   <p className="t-caption text-edit-faint">{t('filter.noMatch')}</p>
                 </div>
               : <div className="text-center py-24 max-w-sm mx-auto">
-                  <p className="t-eyebrow text-edit-faint mb-3">{t('note.empty')}</p>
+                  <p className="t-caption text-edit-faint mb-3">{t('note.empty')}</p>
                   <p className="font-serif text-h3 text-edit-ink/80 mb-2 font-normal">{t('note.noNotes')}</p>
                   <p className="text-body text-edit-muted">{t('note.noNotes2')}</p>
                 </div>
