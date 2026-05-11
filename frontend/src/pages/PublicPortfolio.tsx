@@ -303,7 +303,7 @@ export default function PublicPortfolio() {
 
   return (
     <div className={`min-h-screen ${bg} transition-[background,color,border] duration-150 ease-out`}>
-      {!isAuthenticated && <PublicNavbar username={username} darkMode={darkMode} compact onToggleDark={handleToggleDark} showUsername={!!selectedProject} />}
+      {!isAuthenticated && <PublicNavbar username={username} darkMode={darkMode} portfolio onToggleDark={handleToggleDark} />}
       {/* fixed navbar 높이만큼 밀어내는 spacer */}
       {!isAuthenticated && <div className="h-14" />}
 
