@@ -30,6 +30,8 @@ interface Window {
     setMenuLanguage: (lang: string) => void
     openOAuth: (url: string) => Promise<void>
     onOAuthToken: (callback: (token: string) => void) => void
-    startMove: () => void
+    dragStart: (data: { mouseX: number; mouseY: number }) => void
+    dragMove: (data: { mouseX: number; mouseY: number }) => void
+    dragEnd: () => void
   }
 }

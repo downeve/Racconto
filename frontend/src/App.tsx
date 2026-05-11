@@ -131,7 +131,19 @@ function AppRoutes() {
         <div
           className="fixed top-0 left-0 right-0 h-9 z-[5]"
           onMouseDown={(e) => {
-            if (e.button === 0) window.racconto?.startMove()
+            if (e.button !== 0 || !window.racconto) return
+            e.preventDefault()
+            window.racconto.dragStart({ mouseX: e.screenX, mouseY: e.screenY })
+            const onMove = (me: MouseEvent) => {
+              window.racconto!.dragMove({ mouseX: me.screenX, mouseY: me.screenY })
+            }
+            const onUp = () => {
+              window.racconto!.dragEnd()
+              document.removeEventListener('mousemove', onMove)
+              document.removeEventListener('mouseup', onUp)
+            }
+            document.addEventListener('mousemove', onMove)
+            document.addEventListener('mouseup', onUp)
           }}
         />
       )}

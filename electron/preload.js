@@ -28,6 +28,8 @@ contextBridge.exposeInMainWorld('racconto', {
   onMenuAction: (callback) => ipcRenderer.on('menu:action', (_, action) => callback(action)),
   setMenuLanguage: (lang) => ipcRenderer.send('change-language', lang),
   openOAuth: (url) => ipcRenderer.invoke('auth:openOAuth', url),
-  startMove: () => ipcRenderer.send('window:startMove'),
+  dragStart: (data) => ipcRenderer.send('window:dragStart', data),
+  dragMove: (data) => ipcRenderer.send('window:dragMove', data),
+  dragEnd: () => ipcRenderer.send('window:dragEnd'),
   onOAuthToken: (callback) => ipcRenderer.on('auth:oauthToken', (_, token) => callback(token)),
 })

@@ -760,10 +760,23 @@ ipcMain.handle('auth:openOAuth', (event, url) => {
   shell.openExternal(url)
 })
 
-ipcMain.on('window:startMove', () => {
-  if (mainWindow && !mainWindow.isDestroyed()) {
-    mainWindow.startInteractiveMove()
-  }
+let _dragStartPos = null
+
+ipcMain.on('window:dragStart', (event, { mouseX, mouseY }) => {
+  if (!mainWindow || mainWindow.isDestroyed()) return
+  const [winX, winY] = mainWindow.getPosition()
+  _dragStartPos = { mouseX, mouseY, winX, winY }
+})
+
+ipcMain.on('window:dragMove', (event, { mouseX, mouseY }) => {
+  if (!_dragStartPos || !mainWindow || mainWindow.isDestroyed()) return
+  const dx = mouseX - _dragStartPos.mouseX
+  const dy = mouseY - _dragStartPos.mouseY
+  mainWindow.setPosition(_dragStartPos.winX + dx, _dragStartPos.winY + dy)
+})
+
+ipcMain.on('window:dragEnd', () => {
+  _dragStartPos = null
 })
 
 // ── 앱 시작 ──────────────────────────────────────────
