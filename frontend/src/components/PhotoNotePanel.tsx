@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import axios from 'axios'
-import ReactMarkdown from 'react-markdown'
+import MarkdownRenderer from './MarkdownRenderer'
 import { useTranslation } from 'react-i18next'
 import { FileText } from 'lucide-react'
 
@@ -184,9 +184,7 @@ export default function PhotoNotePanel({
                           </button>
                         </div>
                       </div>
-                      <div className="prose prose-xs max-w-none text-gray-700">
-                        <ReactMarkdown>{note.content}</ReactMarkdown>
-                      </div>
+                      <MarkdownRenderer content={note.content} className="text-gray-700" />
                     </div>
                   )}
                 </div>
