@@ -65,6 +65,18 @@ function AppRoutes() {
   const userRef = useRef(user)
   useEffect(() => { userRef.current = user }, [user])
 
+  // 프로젝트 진입 시 electronTab을 photos로 초기화 (이전 탭 값이 마운트 effect를 덮어쓰는 문제 방지)
+  const prevPathRef = useRef(location.pathname)
+  useEffect(() => {
+    const prev = prevPathRef.current
+    prevPathRef.current = location.pathname
+    const isProjectDetail = /^\/projects\/[^/]+$/.test(location.pathname)
+    const wasProjectDetail = /^\/projects\/[^/]+$/.test(prev)
+    if (isProjectDetail && (!wasProjectDetail || prev !== location.pathname)) {
+      setElectronTab('photos')
+    }
+  }, [location.pathname])
+
   useEffect(() => {
     if (!isElectron) return
     window.racconto!.onMenuNavigate((path: string) => {

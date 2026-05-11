@@ -46,10 +46,10 @@ function NotesSidebarContent({ notes, filterType, filterPinned, setFilterType, s
     }`
 
   const ti = (active: boolean) =>
-    `w-full text-left px-2 py-1 rounded-[1px] flex items-center justify-between text-[0.875rem] font-sans font-medium transition-colors duration-150 ${
+    `w-full text-left px-2 py-1 rounded-[1px] flex items-center justify-between text-[0.8125rem] font-sans font-medium transition-colors duration-150 ${
       active
-        ? 'border border-edit-ink bg-edit-ink/[0.06] text-edit-ink'
-        : 'border border-edit-line text-edit-muted hover:border-edit-line-strong hover:text-edit-ink'
+        ? 'bg-edit-ink/[0.06] text-edit-ink before:absolute before:left-0 before:top-1 before:bottom-1 before:w-[2px] before:bg-edit-ink'
+        : 'text-edit-muted hover:bg-edit-paper hover:text-edit-ink'
     }`
 
   return (
@@ -65,7 +65,7 @@ function NotesSidebarContent({ notes, filterType, filterPinned, setFilterType, s
         <span>{notes.filter(n => n.is_pinned).length}</span>
       </button>
       <div className="border-t border-edit-line my-2" />
-      <div className="space-y-1">
+      <div className="space-y-0.5">
         {NOTE_TYPES.map(type => (
           <button key={type.value}
             onClick={() => { setFilterType(filterType === type.value ? null : type.value); setFilterPinned(false) }}
@@ -149,10 +149,10 @@ const NoteItem = memo(function NoteItem({
                 <button
                   key={type.value}
                   onClick={() => setEditType(type.value)}
-                  className={`inline-flex items-center gap-1.5 px-2.5 py-1 t-caption rounded-[1px] transition-colors duration-150 ${
+                  className={`inline-flex items-center gap-1.5 px-2.5 py-1 font-mono text-[0.8125rem] tracking-[0.14em] uppercase font-medium rounded-[1px] transition-colors duration-150 ${
                     editType === type.value
-                      ? 'bg-edit-ink text-edit-paper'
-                      : 'text-edit-muted hover:text-edit-ink hover:bg-edit-paper-2'
+                      ? 'bg-edit-ink text-edit-paper border border-edit-ink'
+                      : 'border border-edit-line text-edit-muted hover:text-edit-ink hover:border-edit-line-strong'
                   }`}
                 >
                   <span className={`w-1.5 h-1.5 rounded-full ${type.dot}`} />
@@ -412,10 +412,10 @@ function ProjectNotes({
                 <button
                   key={type.value}
                   onClick={() => setNewType(type.value)}
-                  className={`inline-flex items-center gap-1.5 px-2.5 py-1 t-caption rounded-[1px] transition-colors duration-150 ${
+                  className={`inline-flex items-center gap-1.5 px-2.5 py-1 font-mono text-[0.8125rem] tracking-[0.14em] uppercase font-medium rounded-[1px] transition-colors duration-150 ${
                     newType === type.value
-                      ? 'bg-edit-ink text-edit-paper'
-                      : 'text-edit-muted hover:text-edit-ink hover:bg-edit-paper-2'
+                      ? 'bg-edit-ink text-edit-paper border border-edit-ink'
+                      : 'border border-edit-line text-edit-muted hover:text-edit-ink hover:border-edit-line-strong'
                   }`}
                 >
                   <span className={`w-1.5 h-1.5 rounded-full ${type.dot}`} />
