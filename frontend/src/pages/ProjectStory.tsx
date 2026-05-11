@@ -858,8 +858,10 @@ function ProjectStory({
                            focus:border-edit-ink focus:outline-none py-2 resize-none transition-colors duration-150
                            placeholder:text-edit-faint"
                 placeholder={t('story.chapterDescription')}
-                rows={2}
+                rows={1}
                 value={newDesc}
+                ref={el => { if (el) { el.style.height = 'auto'; el.style.height = `${el.scrollHeight}px` } }}
+                onInput={e => { const el = e.currentTarget; el.style.height = 'auto'; el.style.height = `${el.scrollHeight}px` }}
                 onChange={e => setNewDesc(e.target.value)}
               />
             </div>
@@ -973,8 +975,10 @@ function ProjectStory({
                           className="w-full font-serif text-body bg-transparent border-0 border-b border-edit-line
                                      focus:border-edit-ink focus:outline-none py-2 resize-none transition-colors duration-150
                                      placeholder:text-edit-faint"
-                          rows={2}
+                          rows={1}
                           value={editDesc}
+                          ref={el => { if (el) { el.style.height = 'auto'; el.style.height = `${el.scrollHeight}px` } }}
+                          onInput={e => { const el = e.currentTarget; el.style.height = 'auto'; el.style.height = `${el.scrollHeight}px` }}
                           onChange={e => setEditDesc(e.target.value)}
                         />
                       </div>
@@ -1020,8 +1024,10 @@ function ProjectStory({
                                    focus:border-edit-ink focus:outline-none py-2 resize-none transition-colors duration-150
                                    placeholder:text-edit-faint"
                         placeholder={t('story.chapterDescription')}
-                        rows={2}
+                        rows={1}
                         value={newDesc}
+                        ref={el => { if (el) { el.style.height = 'auto'; el.style.height = `${el.scrollHeight}px` } }}
+                        onInput={e => { const el = e.currentTarget; el.style.height = 'auto'; el.style.height = `${el.scrollHeight}px` }}
                         onChange={e => setNewDesc(e.target.value)}
                       />
                     </div>

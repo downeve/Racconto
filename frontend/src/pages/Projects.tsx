@@ -62,7 +62,7 @@ const SortableProjectCard = memo(function SortableProjectCard({
         </div>
         <ProjectCard project={project} />
         <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity flex gap-1">
-          <Link to={`/projects/${project.slug || project.id}/edit`} className="bg-card text-ink px-2 py-1 text-xs rounded shadow hover:bg-muted hover:text-hair" onClick={e => e.stopPropagation()}>{t('common.edit')}</Link>
+          <Link to={`/projects/${project.slug || project.id}/edit`} state={{ from: '/projects' }} className="bg-card text-ink px-2 py-1 text-xs rounded shadow hover:bg-muted hover:text-hair" onClick={e => e.stopPropagation()}>{t('common.edit')}</Link>
           <button onClick={e => { e.preventDefault(); onDelete(project.id) }} className="bg-red-400 text-card px-2 py-1 text-xs rounded shadow hover:bg-red-600">{t('common.delete')}</button>
         </div>
       </div>

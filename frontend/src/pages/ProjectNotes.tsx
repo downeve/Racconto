@@ -138,7 +138,7 @@ const NoteItem = memo(function NoteItem({
       className={`group/note relative px-5 py-5 bg-edit-paper border border-edit-line rounded-btn transition-colors duration-150 ${
         note.is_pinned
           ? 'border-l-2 border-l-edit-ink pl-[18px] bg-edit-ink/[0.035]'
-          : 'hover:bg-edit-ink/[0.025]'
+          : ''
       }`}
     >
       {editingNote === note.id ? (
@@ -507,10 +507,8 @@ function ProjectNotes({
 
           {filteredNotes.length === 0 && (
             filterType || filterPinned
-              ? <div className="bg-edit-paper border border-edit-line rounded-btn py-16 text-center">
-                  <p className="t-caption text-edit-faint">{t('filter.noMatch')}</p>
-                </div>
-              : <div className="bg-edit-paper border border-edit-line rounded-btn text-center py-24 max-w-sm mx-auto" style={{ maxWidth: '100%' }}>
+              ? <p className="t-caption text-edit-faint py-16 text-center">{t('filter.noMatch')}</p>
+              : <div className="text-center py-24">
                   <p className="t-caption text-edit-faint mb-3">{t('note.empty')}</p>
                   <p className="font-serif text-h2 text-edit-ink/80 mb-3 font-normal">{t('note.noNotes')}</p>
                   <p className="text-small text-edit-muted">{t('note.noNotes2')}</p>

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { useParams, useNavigate } from 'react-router-dom'
+import { useParams, useNavigate, useLocation } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import axios from 'axios'
 import { useTranslation } from 'react-i18next'
@@ -77,8 +77,11 @@ function SegmentedControl({ value, onChange, options }: {
 export default function ProjectEdit() {
   const { id } = useParams()
   const navigate = useNavigate()
+  const routerLocation = useLocation()
   const queryClient = useQueryClient()
   const { t } = useTranslation()
+
+  const backTo = (routerLocation.state as { from?: string } | null)?.from ?? `/projects/${id}`
 
   const [numericId, setNumericId] = useState<string | null>(null)
   const [title, setTitle] = useState('')
@@ -123,7 +126,7 @@ export default function ProjectEdit() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['project', id] })
       queryClient.invalidateQueries({ queryKey: ['projects'] })
-      navigate(`/projects/${id}`)
+      navigate(backTo)
     },
   })
 
@@ -178,7 +181,7 @@ export default function ProjectEdit() {
 
         <div className="mt-10 pt-8 border-t border-edit-line flex justify-end gap-2">
           <button
-            onClick={() => navigate(`/projects/${id}`)}
+            onClick={() => navigate(backTo)}
             className="t-caption px-4 py-2 text-edit-muted hover:text-edit-ink transition-colors"
           >
             {t('common.cancel')}
