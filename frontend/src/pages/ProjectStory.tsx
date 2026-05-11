@@ -914,10 +914,7 @@ function ProjectStory({
                         </span>
                       )}
                     </div>
-                    {/* 컨트롤 — hover 시에만 노출 */}
-                    <div className="flex items-center gap-3 shrink-0
-                                    opacity-0 group-hover/chapter:opacity-100 focus-within:opacity-100
-                                    transition-opacity duration-150">
+                    <div className="flex items-center gap-3 shrink-0">
                       <button
                         onClick={() => { setChapterPreviewId(chapter.id); setChapterPreviewOpen(true) }}
                         aria-label="챕터 미리보기"
@@ -1091,9 +1088,7 @@ function ProjectStory({
                             </span>
                           )}
                         </div>
-                            <div className="flex items-center gap-3 shrink-0
-                                            opacity-0 group-hover/chapter:opacity-100 focus-within:opacity-100
-                                            transition-opacity duration-150">
+                            <div className="flex items-center gap-3 shrink-0">
                               <button
                                 onClick={() => { setChapterPreviewId(subChapter.id); setChapterPreviewOpen(true) }}
                                 aria-label="챕터 미리보기"
