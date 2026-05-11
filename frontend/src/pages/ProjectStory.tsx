@@ -845,7 +845,7 @@ function ProjectStory({
       )
     })()}
 
-      <div className="flex-1 max-w-5xl">
+      <div className="flex-1 max-w-5xl bg-edit-paper border border-edit-line rounded-[2px] px-8 py-10">
 
         {/* 챕터 추가 폼 — 사이드바 버튼 클릭 시 표시 */}
         {showAddChapter && !addingSubChapterTo && (

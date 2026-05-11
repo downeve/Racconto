@@ -136,8 +136,8 @@ const NoteItem = memo(function NoteItem({
       ref={noteRef}
       className={`group/note relative px-5 py-5 border-b border-edit-line transition-colors duration-150 ${
         note.is_pinned
-          ? 'border-l-2 border-l-edit-ink pl-[18px] bg-edit-paper/40'
-          : 'border-l-2 border-l-transparent hover:bg-edit-paper/30'
+          ? 'border-l-2 border-l-edit-ink pl-[18px] bg-edit-ink/[0.035]'
+          : 'border-l-2 border-l-transparent hover:bg-edit-ink/[0.025]'
       }`}
     >
       {editingNote === note.id ? (
@@ -403,7 +403,7 @@ function ProjectNotes({
         />
       )}
 
-      <div className="max-w-3xl" data-notes-scroll>
+      <div className="max-w-3xl bg-edit-paper border border-edit-line rounded-[2px]" data-notes-scroll>
         {/* 새 노트 작성 — 종이 단락 */}
         <div className="px-5 py-5 border-b border-edit-line">
           <div className="flex items-center gap-2 mb-3">
