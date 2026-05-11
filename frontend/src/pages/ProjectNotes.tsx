@@ -1,4 +1,5 @@
-import { useEffect, useState, useRef, useMemo, memo } from 'react'
+import { useState, useRef, useMemo, memo, useEffect } from 'react'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { createPortal } from 'react-dom'
 import axios from 'axios'
 import MarkdownRenderer from '../components/MarkdownRenderer'
@@ -269,9 +270,8 @@ function ProjectNotes({
     photos: { id: string; image_url: string; caption: string | null }[]
   }) {
   const { t } = useTranslation()
-  const [notes, setNotes] = useState<Note[]>([])
+  const queryClient = useQueryClient()
   const [newContent, setNewContent] = useState('')
-  const fetchedAtVersion = useRef(-1)
   const [newType, setNewType] = useState('memo')
   const [editingNote, setEditingNote] = useState<string | null>(null)
   const [editContent, setEditContent] = useState('')
@@ -295,6 +295,55 @@ function ProjectNotes({
     }
   }
 
+  const { data: notes = [] } = useQuery<Note[]>({
+    queryKey: ['notes', projectId],
+    queryFn: async () => {
+      const res = await axios.get(`${API}/notes/?project_id=${projectId}`)
+      return res.data
+    },
+    enabled: activeTab === 'notes',
+  })
+
+  useEffect(() => {
+    if (activeTab === 'notes' && notesVersion > 0) {
+      queryClient.invalidateQueries({ queryKey: ['notes', projectId] })
+    }
+  }, [notesVersion])
+
+  const invalidateNotes = () => queryClient.invalidateQueries({ queryKey: ['notes', projectId] })
+
+  const addMutation = useMutation({
+    mutationFn: (data: { content: string; note_type: string }) =>
+      axios.post(`${API}/notes/`, { project_id: projectId, ...data }),
+    onSuccess: () => {
+      setNewContent('')
+      setNewType('memo')
+      setPreviewMode(false)
+      invalidateNotes()
+    },
+  })
+
+  const updateMutation = useMutation({
+    mutationFn: ({ noteId, content, note_type, is_pinned, photo_id }: {
+      noteId: string; content: string; note_type: string; is_pinned: boolean; photo_id: string | null
+    }) => axios.put(`${API}/notes/${noteId}`, { content, note_type, is_pinned, photo_id }),
+    onSuccess: () => {
+      setEditingNote(null)
+      setEditPreviewMode(false)
+      invalidateNotes()
+    },
+  })
+
+  const pinMutation = useMutation({
+    mutationFn: (noteId: string) => axios.patch(`${API}/notes/${noteId}/pin`),
+    onSuccess: invalidateNotes,
+  })
+
+  const deleteMutation = useMutation({
+    mutationFn: (noteId: string) => axios.delete(`${API}/notes/${noteId}`),
+    onSuccess: invalidateNotes,
+  })
+
   const filteredNotes = useMemo(() => notes.filter(note => {
     if (filterPinned && !note.is_pinned) return false
     if (filterType && note.note_type !== filterType) return false
@@ -312,61 +361,33 @@ function ProjectNotes({
     return NOTE_TYPES.find(t => t.value === value) || NOTE_TYPES[0]
   }
 
-  const fetchNotes = async () => {
-    try {
-      const res = await axios.get(`${API}/notes/?project_id=${projectId}`)
-      setNotes(res.data)
-    } catch (err) {
-      console.error(err)
-    }
-  }
-
-  useEffect(() => {
-    if (activeTab !== 'notes') return
-    if (fetchedAtVersion.current === notesVersion) return
-    fetchedAtVersion.current = notesVersion
-    fetchNotes()
-  }, [activeTab, notesVersion, projectId])
-
-  const handleAdd = async () => {
+  const handleAdd = () => {
     if (!newContent.trim()) return
-    await axios.post(`${API}/notes/`, {
-      project_id: projectId,
-      content: newContent,
-      note_type: newType,
-    })
-    setNewContent('')
-    setNewType('memo')
-    setPreviewMode(false)
-    fetchNotes()
+    addMutation.mutate({ content: newContent, note_type: newType })
   }
 
-  const handleUpdate = async (noteId: string) => {
+  const handleUpdate = (noteId: string) => {
     if (!editContent.trim()) return
     const targetNote = notes.find(n => n.id === noteId)
-    await axios.put(`${API}/notes/${noteId}`, {
+    updateMutation.mutate({
+      noteId,
       content: editContent,
       note_type: editType,
       is_pinned: targetNote?.is_pinned ?? false,
       photo_id: targetNote?.photo_id ?? null,
     })
-    setEditingNote(null)
-    setEditPreviewMode(false)
-    fetchNotes()
   }
 
-  const handleTogglePin = async (noteId: string) => {
-    await axios.patch(`${API}/notes/${noteId}/pin`)
-    fetchNotes()
+  const handleTogglePin = (noteId: string) => {
+    pinMutation.mutate(noteId)
   }
 
-  const handleDelete = async (noteId: string) => {
+  const handleDelete = (noteId: string) => {
     setConfirmModal({
       message: t('note.deleteConfirm'),
-      onConfirm: async () => {
+      onConfirm: () => {
         setConfirmModal(null)
-        await axios.delete(`${API}/notes/${noteId}`)
-        fetchNotes()
+        deleteMutation.mutate(noteId)
       }
     })
   }

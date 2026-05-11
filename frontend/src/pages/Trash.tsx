@@ -1,4 +1,5 @@
-import { useEffect, useRef, useState } from 'react'
+import { useRef, useState } from 'react'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import axios from 'axios'
 import { useTranslation } from 'react-i18next'
 import ConfirmModal from '../components/ConfirmModal'
@@ -17,7 +18,7 @@ interface Project {
 }
 
 export default function Trash() {
-  const [projects, setProjects] = useState<Project[]>([])
+  const queryClient = useQueryClient()
   const { t } = useTranslation()
   const { triggerRefresh } = useElectronSidebar()
 
@@ -31,25 +32,25 @@ export default function Trash() {
     toastTimer.current = setTimeout(() => setToast(null), 4000)
   }
 
-  const fetchTrash = async () => {
-    const res = await axios.get(`${API}/projects/trash`)
-    setProjects(res.data)
-  }
+  const { data: projects = [] } = useQuery<Project[]>({
+    queryKey: ['trash'],
+    queryFn: async () => {
+      const res = await axios.get<Project[]>(`${API}/projects/trash`)
+      return res.data
+    },
+  })
 
-  useEffect(() => {
-    fetchTrash()
-  }, [])
-
-  const handleRestore = async (projectId: string) => {
-    try {
-      await axios.post(`${API}/projects/${projectId}/restore`)
-      fetchTrash()
+  const restoreMutation = useMutation({
+    mutationFn: (projectId: string) => axios.post(`${API}/projects/${projectId}/restore`),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['trash'] })
+      queryClient.invalidateQueries({ queryKey: ['projects'] })
       triggerRefresh()
-    } catch (err: any) {
+    },
+    onError: (err: any) => {
       const detail = err.response?.data?.detail
       const code = typeof detail === 'object' ? detail.code : detail
       const limit = typeof detail === 'object' ? detail.limit : undefined
-
       if (code === 'PHOTO_LIMIT_EXCEEDED') {
         showToast(t('api.error.PHOTO_LIMIT_EXCEEDED', { limit }), 'warning')
       } else if (code === 'PROJECT_LIMIT_EXCEEDED') {
@@ -57,22 +58,28 @@ export default function Trash() {
       } else {
         showToast(t('common.error'), 'error')
       }
-    }
-  }
+    },
+  })
+
+  const permanentDeleteMutation = useMutation({
+    mutationFn: (projectId: string) => axios.delete(`${API}/projects/${projectId}/permanent`),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['trash'] })
+    },
+    onError: (err: any) => {
+      const errorMessage = err.response?.data?.detail || t('trash.deleteProjectError')
+      showToast(errorMessage, 'error')
+    },
+  })
+
+  const handleRestore = (projectId: string) => restoreMutation.mutate(projectId)
 
   const handlePermanentDelete = (projectId: string) => {
     setConfirmModal({
       message: t('trash.permanentDeleteConfirm'),
-      onConfirm: async () => {
+      onConfirm: () => {
         setConfirmModal(null)
-        try {
-          await axios.delete(`${API}/projects/${projectId}/permanent`)
-          fetchTrash()
-        } catch (err: any) {
-          console.error(err)
-          const errorMessage = err.response?.data?.detail || t('trash.deleteProjectError')
-          showToast(errorMessage, 'error')
-        }
+        permanentDeleteMutation.mutate(projectId)
       },
     })
   }

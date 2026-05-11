@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import axios from 'axios'
 import { useTranslation } from 'react-i18next'
 
@@ -76,6 +77,7 @@ function SegmentedControl({ value, onChange, options }: {
 export default function ProjectEdit() {
   const { id } = useParams()
   const navigate = useNavigate()
+  const queryClient = useQueryClient()
   const { t } = useTranslation()
 
   const [numericId, setNumericId] = useState<string | null>(null)
@@ -87,33 +89,47 @@ export default function ProjectEdit() {
   const [status, setStatus] = useState('in_progress')
   const [isPublic, setIsPublic] = useState('false')
 
-  useEffect(() => {
-    if (!id) return
-    axios.get(`${API}/projects/${id}`).then(res => {
-      const p = res.data
-      setNumericId(String(p.id))
-      setTitle(p.title || '')
-      setTitleEn(p.title_en || '')
-      setDescription(p.description || '')
-      setDescriptionEn(p.description_en || '')
-      setLocation(p.location || '')
-      setStatus(p.status?.value || p.status || 'in_progress')
-      setIsPublic(p.is_public || 'false')
-    })
-  }, [id])
+  // ── 프로젝트 조회 ─────────────────────────────────────────────
+  const { data: projectData } = useQuery({
+    queryKey: ['project', id],
+    queryFn: async () => {
+      const res = await axios.get(`${API}/projects/${id}`)
+      return res.data
+    },
+    enabled: !!id,
+  })
 
-  const handleSubmit = async () => {
-    if (!title || !numericId) return
-    try {
-      await axios.put(`${API}/projects/${numericId}`, {
+  useEffect(() => {
+    if (!projectData) return
+    const p = projectData
+    setNumericId(String(p.id))
+    setTitle(p.title || '')
+    setTitleEn(p.title_en || '')
+    setDescription(p.description || '')
+    setDescriptionEn(p.description_en || '')
+    setLocation(p.location || '')
+    setStatus(p.status?.value || p.status || 'in_progress')
+    setIsPublic(p.is_public || 'false')
+  }, [projectData])
+
+  // ── 프로젝트 수정 ─────────────────────────────────────────────
+  const updateMutation = useMutation({
+    mutationFn: () =>
+      axios.put(`${API}/projects/${numericId}`, {
         title, title_en: titleEn,
         description, description_en: descriptionEn,
         location, status, is_public: isPublic,
-      })
+      }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['project', id] })
+      queryClient.invalidateQueries({ queryKey: ['projects'] })
       navigate(`/projects/${id}`)
-    } catch (error) {
-      console.error('Update failed:', error)
-    }
+    },
+  })
+
+  const handleSubmit = () => {
+    if (!title || !numericId) return
+    updateMutation.mutate()
   }
 
   const STATUS_OPTIONS = [

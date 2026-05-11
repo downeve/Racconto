@@ -1,4 +1,5 @@
 import { useEffect, useState, useRef } from 'react'
+import { useQuery, useMutation } from '@tanstack/react-query'
 import axios from 'axios'
 import { useTranslation } from 'react-i18next'
 import FolderProjectMapper from '../components/FolderProjectMapper'
@@ -104,50 +105,73 @@ export default function Settings() {
     }
   }
 
-  useEffect(() => {
-    axios.get(`${API}/settings/`).then(res => {      
-      setSettings(res.data)
-      setPortfolioTheme(res.data['portfolio_theme'] || 'light')
-      setDeliveryTagColor(res.data['delivery_tag_color'] || 'purple')
-      setDefaultGridCols(res.data['default_grid_cols'] || '3')
-      setDefaultShowExif(res.data['default_show_exif'] || 'true')
-      setDefaultSortBy(res.data['default_sort_by'] || 'default')
-      setDefaultSortOrder(res.data['default_sort_order'] || 'asc')
-      
-      // username은 /auth/me에서 별도 로드
-      const token = localStorage.getItem('token')
-      axios.get(`${API}/auth/me`, {
-        headers: { Authorization: `Bearer ${token}` }
-      }).then(res => {
-        setUsername(res.data.username || '')
-        originalUsername.current = res.data.username || ''
-        setEmail(res.data.email || '')
-        setTier(res.data.tier || '')
-        setProjectCount(res.data.project_count ?? 0)
-        setProjectLimit(res.data.project_limit ?? 0)
-        setPhotoCount(res.data.photo_count ?? 0)
-        setPhotoLimit(res.data.photo_limit ?? 0)
+  // ── 설정 조회 ─────────────────────────────────────────────────
+  const { data: settingsData } = useQuery({
+    queryKey: ['settings'],
+    queryFn: async () => {
+      const res = await axios.get(`${API}/settings/`)
+      return res.data as Record<string, string>
+    },
+  })
+
+  const token = localStorage.getItem('token')
+  const { data: meData } = useQuery({
+    queryKey: ['me'],
+    queryFn: async () => {
+      const res = await axios.get(`${API}/auth/me`, {
+        headers: { Authorization: `Bearer ${token}` },
       })
-    })
-  }, [])
+      return res.data
+    },
+  })
+
+  // 쿼리 데이터가 로드되면 폼 상태 초기화
+  useEffect(() => {
+    if (!settingsData) return
+    setSettings(settingsData)
+    setPortfolioTheme(settingsData['portfolio_theme'] || 'light')
+    setDeliveryTagColor(settingsData['delivery_tag_color'] || 'purple')
+    setDefaultGridCols(settingsData['default_grid_cols'] || '3')
+    setDefaultShowExif(settingsData['default_show_exif'] || 'true')
+    setDefaultSortBy(settingsData['default_sort_by'] || 'default')
+    setDefaultSortOrder(settingsData['default_sort_order'] || 'asc')
+  }, [settingsData])
+
+  useEffect(() => {
+    if (!meData) return
+    setUsername(meData.username || '')
+    originalUsername.current = meData.username || ''
+    setEmail(meData.email || '')
+    setTier(meData.tier || '')
+    setProjectCount(meData.project_count ?? 0)
+    setProjectLimit(meData.project_limit ?? 0)
+    setPhotoCount(meData.photo_count ?? 0)
+    setPhotoLimit(meData.photo_limit ?? 0)
+  }, [meData])
 
   const handleChange = (key: string, value: string) => {
     setSettings(prev => ({ ...prev, [key]: value }))
   }
 
-  const handleSave = async () => {
-    await axios.put(`${API}/settings/batch/update`, {
-      ...settings,
-      portfolio_theme: portfolioTheme,
-      delivery_tag_color: deliveryTagColor,
-      default_grid_cols: defaultGridCols,
-      default_show_exif: defaultShowExif,
-      default_sort_by: defaultSortBy,
-      default_sort_order: defaultSortOrder,
-    })
-    setSaved(true)
-    setTimeout(() => setSaved(false), 2000)
-  }
+  // ── 설정 저장 ─────────────────────────────────────────────────
+  const saveMutation = useMutation({
+    mutationFn: () =>
+      axios.put(`${API}/settings/batch/update`, {
+        ...settings,
+        portfolio_theme: portfolioTheme,
+        delivery_tag_color: deliveryTagColor,
+        default_grid_cols: defaultGridCols,
+        default_show_exif: defaultShowExif,
+        default_sort_by: defaultSortBy,
+        default_sort_order: defaultSortOrder,
+      }),
+    onSuccess: () => {
+      setSaved(true)
+      setTimeout(() => setSaved(false), 2000)
+    },
+  })
+
+  const handleSave = () => saveMutation.mutate()
 
   const handleUsernameCheck = async (value: string) => {
     setUsername(value)
