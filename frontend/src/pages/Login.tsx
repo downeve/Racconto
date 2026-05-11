@@ -37,54 +37,58 @@ export default function Login() {
           <Wordmark size="lg" />
         </div>
 
-        <header className="text-center mb-10">
+        <header className="text-center mb-8">
           <p className="t-eyebrow text-edit-muted mb-3">{t('auth.eyebrow.login')}</p>
           <h1 className="font-serif text-h2 text-edit-ink font-normal tracking-tight">
             {t('auth.title.login')}
           </h1>
         </header>
 
-        <form onSubmit={handleSubmit} className="space-y-0">
-          <FormField label={t('auth.mail')} required>
-            <UnderlineInput
-              type="email"
-              autoComplete="email"
-              value={email}
-              onChange={e => setEmail(e.target.value)}
-              required
-            />
-          </FormField>
+        <div className="bg-edit-paper border border-edit-line rounded-btn px-8 py-6">
+          <form onSubmit={handleSubmit}>
+            <FormField label={t('auth.mail')} required noDivider>
+              <UnderlineInput
+                type="email"
+                autoComplete="email"
+                value={email}
+                onChange={e => setEmail(e.target.value)}
+                required
+              />
+            </FormField>
 
-          <FormField label={t('auth.password')} required>
-            <UnderlineInput
-              type="password"
-              autoComplete="current-password"
-              value={password}
-              onChange={e => setPassword(e.target.value)}
-              required
-            />
-          </FormField>
+            <FormField label={t('auth.password')} required noDivider>
+              <UnderlineInput
+                type="password"
+                autoComplete="current-password"
+                value={password}
+                onChange={e => setPassword(e.target.value)}
+                required
+              />
+            </FormField>
 
-          {error && (
-            <p className="t-caption text-edit-danger flex items-start gap-2 pt-3">
-              <AlertCircle size={11} strokeWidth={1.5} className="shrink-0 mt-px" />
-              <span>{error}</span>
-            </p>
-          )}
+            {error && (
+              <p className="t-caption text-edit-danger flex items-start gap-2 pt-3">
+                <AlertCircle size={11} strokeWidth={1.5} className="shrink-0 mt-px" />
+                <span>{error}</span>
+              </p>
+            )}
 
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full mt-8 px-5 py-3 bg-edit-ink text-edit-paper
-                       t-caption tracking-[0.08em] rounded-[1px]
-                       hover:bg-edit-ink/85 disabled:opacity-50
-                       transition-colors duration-150"
-          >
-            {loading ? t('auth.loggingIn') : t('auth.submit')}
-          </button>
-        </form>
+            <div className="border-t border-edit-line pt-6 mt-2">
+              <button
+                type="submit"
+                disabled={loading}
+                className="w-full px-5 py-3 bg-edit-ink text-edit-paper
+                           t-caption tracking-[0.08em] rounded-btn
+                           hover:bg-edit-ink/85 disabled:opacity-50
+                           transition-colors duration-150"
+              >
+                {loading ? t('auth.loggingIn') : t('auth.submit')}
+              </button>
+            </div>
+          </form>
+        </div>
 
-        <div className="mt-6 flex items-center justify-between t-caption">
+        <div className="mt-5 flex items-center justify-between t-caption">
           <Link to="/forgot-password"
                 className="text-edit-muted hover:text-edit-ink transition-colors">
             {t('auth.forgotPassword')}
@@ -95,7 +99,7 @@ export default function Login() {
           </Link>
         </div>
 
-        <SocialAuthButtons mode="login" className="mt-10" />
+        <SocialAuthButtons mode="login" className="mt-8" />
       </div>
     </div>
   )

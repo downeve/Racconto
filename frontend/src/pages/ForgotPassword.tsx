@@ -36,7 +36,7 @@ export default function ForgotPassword() {
           <Wordmark size="lg" />
         </div>
 
-        <header className="text-center mb-10">
+        <header className="text-center mb-8">
           <p className="t-eyebrow text-edit-muted mb-3">{t('forgot.eyebrow')}</p>
           <h1 className="font-serif text-h2 text-edit-ink font-normal tracking-tight mb-3">
             {t('forgot.title')}
@@ -49,52 +49,60 @@ export default function ForgotPassword() {
         </header>
 
         {sent ? (
-          <div className="text-center">
+          <div className="bg-edit-paper border border-edit-line rounded-btn px-8 py-8 text-center">
             <CheckCircle size={24} strokeWidth={1.25} className="mx-auto mb-4 text-edit-ink/60" />
             <p className="t-eyebrow text-edit-muted mb-3">{t('forgot.sent.eyebrow')}</p>
             <p className="font-serif text-body text-edit-ink leading-relaxed mb-8 break-keep">
               {t('forgot.sent.desc', { email })}
             </p>
-            <Link to="/login" className="t-caption text-edit-muted hover:text-edit-ink transition-colors">
-              {t('auth.backToLogin')}
-            </Link>
+            <div className="border-t border-edit-line pt-6">
+              <Link to="/login" className="t-caption text-edit-muted hover:text-edit-ink transition-colors">
+                {t('auth.backToLogin')}
+              </Link>
+            </div>
           </div>
         ) : (
-          <form onSubmit={handleSubmit}>
-            <FormField label={t('auth.mail')} required>
-              <UnderlineInput
-                type="email"
-                autoComplete="email"
-                value={email}
-                onChange={e => setEmail(e.target.value)}
-                required
-              />
-            </FormField>
+          <div className="bg-edit-paper border border-edit-line rounded-btn px-8 py-6">
+            <form onSubmit={handleSubmit}>
+              <FormField label={t('auth.mail')} required noDivider>
+                <UnderlineInput
+                  type="email"
+                  autoComplete="email"
+                  value={email}
+                  onChange={e => setEmail(e.target.value)}
+                  required
+                />
+              </FormField>
 
-            {error && (
-              <p className="t-caption text-edit-danger flex items-start gap-2 pt-3">
-                <AlertCircle size={11} strokeWidth={1.5} className="shrink-0 mt-px" />
-                <span>{error}</span>
-              </p>
-            )}
+              {error && (
+                <p className="t-caption text-edit-danger flex items-start gap-2 pt-3">
+                  <AlertCircle size={11} strokeWidth={1.5} className="shrink-0 mt-px" />
+                  <span>{error}</span>
+                </p>
+              )}
 
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full mt-8 px-5 py-3 bg-edit-ink text-edit-paper
-                         t-caption tracking-[0.08em] rounded-[1px]
-                         hover:bg-edit-ink/85 disabled:opacity-50
-                         transition-colors duration-150"
-            >
-              {loading ? t('auth.forgotPasswordSending') : t('auth.forgotPasswordSend')}
-            </button>
-
-            <Link to="/login"
-                  className="block text-center t-caption text-edit-muted hover:text-edit-ink mt-6 transition-colors">
-              {t('auth.backToLogin')}
-            </Link>
-          </form>
+              <div className="border-t border-edit-line pt-6 mt-2">
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="w-full px-5 py-3 bg-edit-ink text-edit-paper
+                             t-caption tracking-[0.08em] rounded-btn
+                             hover:bg-edit-ink/85 disabled:opacity-50
+                             transition-colors duration-150"
+                >
+                  {loading ? t('auth.forgotPasswordSending') : t('auth.forgotPasswordSend')}
+                </button>
+              </div>
+            </form>
+          </div>
         )}
+
+        <div className="mt-5 text-center">
+          <Link to="/login"
+                className="t-caption text-edit-muted hover:text-edit-ink transition-colors">
+            {t('auth.backToLogin')}
+          </Link>
+        </div>
       </div>
     </div>
   )

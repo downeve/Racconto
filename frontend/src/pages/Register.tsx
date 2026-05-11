@@ -65,27 +65,31 @@ export default function Register() {
           <div className="mb-12">
             <Wordmark size="lg" />
           </div>
-          <CheckCircle size={28} strokeWidth={1.25} className="mx-auto mb-6 text-edit-ink/60" />
-          <p className="t-eyebrow text-edit-muted mb-3">{t('register.success.eyebrow')}</p>
-          <h1 className="font-serif text-h2 text-edit-ink font-normal tracking-tight mb-4">
-            {t('register.success.title')}
-          </h1>
-          <p className="text-body text-edit-muted leading-relaxed mb-8 break-keep">
-            {t('register.success.desc')}
-          </p>
-          {resendMessage && (
-            <p className="t-caption text-edit-muted mb-4">{resendMessage}</p>
-          )}
-          <button
-            onClick={handleResend}
-            disabled={resending}
-            className="t-caption text-edit-muted hover:text-edit-ink transition-colors mb-3 block mx-auto"
-          >
-            {resending ? t('register.sending') : t('register.resendEmail')}
-          </button>
-          <Link to="/login" className="block t-caption text-edit-ink hover:opacity-70 transition-opacity">
-            {t('auth.backToLogin')}
-          </Link>
+          <div className="bg-edit-paper border border-edit-line rounded-btn px-8 py-8">
+            <CheckCircle size={28} strokeWidth={1.25} className="mx-auto mb-6 text-edit-ink/60" />
+            <p className="t-eyebrow text-edit-muted mb-3">{t('register.success.eyebrow')}</p>
+            <h1 className="font-serif text-h2 text-edit-ink font-normal tracking-tight mb-4">
+              {t('register.success.title')}
+            </h1>
+            <p className="text-body text-edit-muted leading-relaxed mb-8 break-keep">
+              {t('register.success.desc')}
+            </p>
+            {resendMessage && (
+              <p className="t-caption text-edit-muted mb-4">{resendMessage}</p>
+            )}
+            <div className="border-t border-edit-line pt-6 flex flex-col items-center gap-3">
+              <button
+                onClick={handleResend}
+                disabled={resending}
+                className="t-caption text-edit-muted hover:text-edit-ink transition-colors"
+              >
+                {resending ? t('register.sending') : t('register.resendEmail')}
+              </button>
+              <Link to="/login" className="t-caption text-edit-ink hover:opacity-70 transition-opacity">
+                {t('auth.backToLogin')}
+              </Link>
+            </div>
+          </div>
         </div>
       </div>
     )
@@ -98,64 +102,68 @@ export default function Register() {
           <Wordmark size="lg" />
         </div>
 
-        <header className="text-center mb-10">
+        <header className="text-center mb-8">
           <p className="t-eyebrow text-edit-muted mb-3">{t('auth.eyebrow.register')}</p>
           <h1 className="font-serif text-h2 text-edit-ink font-normal tracking-tight">
             {t('auth.title.register')}
           </h1>
         </header>
 
-        <form onSubmit={handleSubmit} className="space-y-0">
-          <FormField label={t('register.email')} required>
-            <UnderlineInput
-              type="email"
-              autoComplete="email"
-              value={email}
-              onChange={e => setEmail(e.target.value)}
-              required
-            />
-          </FormField>
+        <div className="bg-edit-paper border border-edit-line rounded-btn px-8 py-6">
+          <form onSubmit={handleSubmit}>
+            <FormField label={t('register.email')} required noDivider>
+              <UnderlineInput
+                type="email"
+                autoComplete="email"
+                value={email}
+                onChange={e => setEmail(e.target.value)}
+                required
+              />
+            </FormField>
 
-          <FormField label={t('register.password')} required>
-            <UnderlineInput
-              type="password"
-              autoComplete="new-password"
-              value={password}
-              onChange={e => setPassword(e.target.value)}
-              required
-            />
-          </FormField>
+            <FormField label={t('register.password')} required noDivider>
+              <UnderlineInput
+                type="password"
+                autoComplete="new-password"
+                value={password}
+                onChange={e => setPassword(e.target.value)}
+                required
+              />
+            </FormField>
 
-          <FormField label={t('register.passwordConfirm')} required>
-            <UnderlineInput
-              type="password"
-              autoComplete="new-password"
-              value={passwordConfirm}
-              onChange={e => setPasswordConfirm(e.target.value)}
-              required
-            />
-          </FormField>
+            <FormField label={t('register.passwordConfirm')} required noDivider>
+              <UnderlineInput
+                type="password"
+                autoComplete="new-password"
+                value={passwordConfirm}
+                onChange={e => setPasswordConfirm(e.target.value)}
+                required
+              />
+            </FormField>
 
-          {error && (
-            <p className="t-caption text-edit-danger flex items-start gap-2 pt-3">
-              <AlertCircle size={11} strokeWidth={1.5} className="shrink-0 mt-px" />
-              <span>{error}</span>
-            </p>
-          )}
+            {error && (
+              <p className="t-caption text-edit-danger flex items-start gap-2 pt-3">
+                <AlertCircle size={11} strokeWidth={1.5} className="shrink-0 mt-px" />
+                <span>{error}</span>
+              </p>
+            )}
 
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full mt-8 px-5 py-3 bg-edit-ink text-edit-paper
-                       t-caption tracking-[0.08em] rounded-[1px]
-                       hover:bg-edit-ink/85 disabled:opacity-50
-                       transition-colors duration-150"
-          >
-            {loading ? t('register.processing') : t('register.submit')}
-          </button>
-        </form>
+            <div className="border-t border-edit-line pt-6 mt-2">
+              <button
+                type="submit"
+                disabled={loading}
+                className="w-full px-5 py-3 bg-edit-ink text-edit-paper
+                           t-caption tracking-[0.08em] rounded-btn
+                           hover:bg-edit-ink/85 disabled:opacity-50
+                           transition-colors duration-150"
+              >
+                {loading ? t('register.processing') : t('register.submit')}
+              </button>
+            </div>
+          </form>
+        </div>
 
-        <p className="mt-6 text-center t-caption text-edit-muted">
+        <p className="mt-5 text-center t-caption text-edit-muted">
           {t('register.hasAccount')}
           <Link to="/login" className="text-edit-ink hover:opacity-70 transition-opacity ml-1">
             {t('register.loginLink')}

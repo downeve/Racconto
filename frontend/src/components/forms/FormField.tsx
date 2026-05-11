@@ -6,12 +6,13 @@ interface Props {
   error?: string | null
   children: ReactNode
   required?: boolean
+  noDivider?: boolean
   className?: string
 }
 
-export function FormField({ label, hint, error, children, required, className = '' }: Props) {
+export function FormField({ label, hint, error, children, required, noDivider = false, className = '' }: Props) {
   return (
-    <div className={`py-4 border-b border-edit-line first:pt-0 last:border-b-0 ${className}`}>
+    <div className={`py-4 first:pt-0 ${noDivider ? '' : 'border-b border-edit-line last:border-b-0'} ${className}`}>
       <label className="block t-eyebrow text-edit-muted mb-2">
         {label}
         {required && <span className="text-edit-danger ml-1">*</span>}

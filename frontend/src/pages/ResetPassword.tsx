@@ -46,7 +46,6 @@ export default function ResetPassword() {
     setLoading(false)
   }
 
-  // 토큰 없음
   if (!token) {
     return (
       <div className="min-h-screen bg-edit-canvas flex items-center justify-center px-4 py-12">
@@ -54,18 +53,22 @@ export default function ResetPassword() {
           <div className="mb-12">
             <Wordmark size="lg" asLink={false} />
           </div>
-          <AlertCircle size={24} strokeWidth={1.25} className="mx-auto mb-4 text-edit-danger" />
-          <p className="t-eyebrow text-edit-danger mb-3">{t('reset.invalid.eyebrow')}</p>
-          <p className="font-serif text-body text-edit-ink leading-relaxed mb-8 break-keep">
-            {t('auth.resetPasswordInvalidToken')}
-          </p>
-          <Link
-            to="/forgot-password"
-            className="inline-block px-5 py-2 t-caption tracking-[0.08em]
-                       bg-edit-ink text-edit-paper rounded-[1px] hover:bg-edit-ink/85 transition-colors"
-          >
-            {t('reset.invalid.retry')}
-          </Link>
+          <div className="bg-edit-paper border border-edit-line rounded-btn px-8 py-8">
+            <AlertCircle size={24} strokeWidth={1.25} className="mx-auto mb-4 text-edit-danger" />
+            <p className="t-eyebrow text-edit-danger mb-3">{t('reset.invalid.eyebrow')}</p>
+            <p className="font-serif text-body text-edit-ink leading-relaxed mb-8 break-keep">
+              {t('auth.resetPasswordInvalidToken')}
+            </p>
+            <div className="border-t border-edit-line pt-6">
+              <Link
+                to="/forgot-password"
+                className="inline-block px-5 py-2 t-caption tracking-[0.08em]
+                           bg-edit-ink text-edit-paper rounded-btn hover:bg-edit-ink/85 transition-colors"
+              >
+                {t('reset.invalid.retry')}
+              </Link>
+            </div>
+          </div>
         </div>
       </div>
     )
@@ -78,7 +81,7 @@ export default function ResetPassword() {
           <Wordmark size="lg" asLink={false} />
         </div>
 
-        <header className="text-center mb-10">
+        <header className="text-center mb-8">
           <p className="t-eyebrow text-edit-muted mb-3">{t('auth.resetPasswordTitle')}</p>
           <h1 className="font-serif text-h2 text-edit-ink font-normal tracking-tight">
             {t('auth.resetPasswordDesc')}
@@ -86,58 +89,66 @@ export default function ResetPassword() {
         </header>
 
         {success ? (
-          <div className="text-center">
+          <div className="bg-edit-paper border border-edit-line rounded-btn px-8 py-8 text-center">
             <CheckCircle size={24} strokeWidth={1.25} className="mx-auto mb-4 text-edit-ink/60" />
             <p className="t-eyebrow text-edit-muted mb-3">{t('reset.success.eyebrow')}</p>
             <p className="font-serif text-body text-edit-ink leading-relaxed mb-8 break-keep">
               {t('auth.resetPasswordSuccess')}
             </p>
-            <Link to="/login"
-                  className="inline-block px-5 py-2 t-caption tracking-[0.08em]
-                             bg-edit-ink text-edit-paper rounded-[1px] hover:bg-edit-ink/85 transition-colors">
-              {t('auth.backToLogin')}
-            </Link>
+            <div className="border-t border-edit-line pt-6">
+              <Link
+                to="/login"
+                className="inline-block px-5 py-2 t-caption tracking-[0.08em]
+                           bg-edit-ink text-edit-paper rounded-btn hover:bg-edit-ink/85 transition-colors"
+              >
+                {t('auth.backToLogin')}
+              </Link>
+            </div>
           </div>
         ) : (
-          <form onSubmit={handleSubmit}>
-            <FormField label={t('auth.newPassword')} required>
-              <UnderlineInput
-                type="password"
-                autoComplete="new-password"
-                value={password}
-                onChange={e => setPassword(e.target.value)}
-                required
-              />
-            </FormField>
+          <div className="bg-edit-paper border border-edit-line rounded-btn px-8 py-6">
+            <form onSubmit={handleSubmit}>
+              <FormField label={t('auth.newPassword')} required noDivider>
+                <UnderlineInput
+                  type="password"
+                  autoComplete="new-password"
+                  value={password}
+                  onChange={e => setPassword(e.target.value)}
+                  required
+                />
+              </FormField>
 
-            <FormField label={t('auth.newPasswordConfirm')} required>
-              <UnderlineInput
-                type="password"
-                autoComplete="new-password"
-                value={passwordConfirm}
-                onChange={e => setPasswordConfirm(e.target.value)}
-                required
-              />
-            </FormField>
+              <FormField label={t('auth.newPasswordConfirm')} required noDivider>
+                <UnderlineInput
+                  type="password"
+                  autoComplete="new-password"
+                  value={passwordConfirm}
+                  onChange={e => setPasswordConfirm(e.target.value)}
+                  required
+                />
+              </FormField>
 
-            {error && (
-              <p className="t-caption text-edit-danger flex items-start gap-2 pt-3">
-                <AlertCircle size={11} strokeWidth={1.5} className="shrink-0 mt-px" />
-                <span>{error}</span>
-              </p>
-            )}
+              {error && (
+                <p className="t-caption text-edit-danger flex items-start gap-2 pt-3">
+                  <AlertCircle size={11} strokeWidth={1.5} className="shrink-0 mt-px" />
+                  <span>{error}</span>
+                </p>
+              )}
 
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full mt-8 px-5 py-3 bg-edit-ink text-edit-paper
-                         t-caption tracking-[0.08em] rounded-[1px]
-                         hover:bg-edit-ink/85 disabled:opacity-50
-                         transition-colors duration-150"
-            >
-              {loading ? t('register.processing') : t('auth.resetPasswordSubmit')}
-            </button>
-          </form>
+              <div className="border-t border-edit-line pt-6 mt-2">
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="w-full px-5 py-3 bg-edit-ink text-edit-paper
+                             t-caption tracking-[0.08em] rounded-btn
+                             hover:bg-edit-ink/85 disabled:opacity-50
+                             transition-colors duration-150"
+                >
+                  {loading ? t('register.processing') : t('auth.resetPasswordSubmit')}
+                </button>
+              </div>
+            </form>
+          </div>
         )}
       </div>
     </div>

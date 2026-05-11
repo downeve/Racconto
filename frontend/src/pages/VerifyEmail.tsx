@@ -44,57 +44,63 @@ export default function VerifyEmail() {
 
   return (
     <div className="min-h-screen bg-edit-canvas flex items-center justify-center px-4 py-12">
-      <div className="w-full max-w-sm text-center">
-        <div className="mb-12">
+      <div className="w-full max-w-sm">
+        <div className="text-center mb-12">
           <Wordmark size="lg" asLink={false} />
         </div>
 
-        {status === 'verifying' && (
-          <>
-            <Spinner size={20} className="mx-auto mb-6 text-edit-muted" />
-            <p className="t-eyebrow text-edit-muted mb-3">{t('verify.verifying.eyebrow')}</p>
-            <p className="font-serif text-body text-edit-ink leading-relaxed">
-              {t('verify.verifying.desc')}
-            </p>
-          </>
-        )}
+        <div className="bg-edit-paper border border-edit-line rounded-btn px-8 py-8 text-center">
+          {status === 'verifying' && (
+            <>
+              <Spinner size={20} className="mx-auto mb-6 text-edit-muted" />
+              <p className="t-eyebrow text-edit-muted mb-3">{t('verify.verifying.eyebrow')}</p>
+              <p className="font-serif text-body text-edit-ink leading-relaxed">
+                {t('verify.verifying.desc')}
+              </p>
+            </>
+          )}
 
-        {status === 'success' && (
-          <>
-            <CheckCircle size={28} strokeWidth={1.25} className="mx-auto mb-6 text-edit-ink/60" />
-            <p className="t-eyebrow text-edit-muted mb-3">{t('verify.success.eyebrow')}</p>
-            <h1 className="font-serif text-h2 text-edit-ink font-normal tracking-tight mb-4">
-              {t('verify.success.title')}
-            </h1>
-            <p className="text-body text-edit-muted leading-relaxed mb-8 break-keep">
-              {message}
-            </p>
-            <button
-              onClick={() => navigate('/login')}
-              className="px-6 py-2.5 t-caption tracking-[0.08em]
-                         bg-edit-ink text-edit-paper rounded-[1px]
-                         hover:bg-edit-ink/85 transition-colors"
-            >
-              {t('verify.goToLogin')}
-            </button>
-          </>
-        )}
+          {status === 'success' && (
+            <>
+              <CheckCircle size={28} strokeWidth={1.25} className="mx-auto mb-6 text-edit-ink/60" />
+              <p className="t-eyebrow text-edit-muted mb-3">{t('verify.success.eyebrow')}</p>
+              <h1 className="font-serif text-h2 text-edit-ink font-normal tracking-tight mb-4">
+                {t('verify.success.title')}
+              </h1>
+              <p className="text-body text-edit-muted leading-relaxed mb-8 break-keep">
+                {message}
+              </p>
+              <div className="border-t border-edit-line pt-6">
+                <button
+                  onClick={() => navigate('/login')}
+                  className="w-full px-6 py-3 t-caption tracking-[0.08em]
+                             bg-edit-ink text-edit-paper rounded-btn
+                             hover:bg-edit-ink/85 transition-colors"
+                >
+                  {t('verify.goToLogin')}
+                </button>
+              </div>
+            </>
+          )}
 
-        {status === 'error' && (
-          <>
-            <AlertCircle size={28} strokeWidth={1.25} className="mx-auto mb-6 text-edit-danger" />
-            <p className="t-eyebrow text-edit-danger mb-3">{t('verify.error.eyebrow')}</p>
-            <p className="font-serif text-body text-edit-ink leading-relaxed mb-8 break-keep">
-              {message}
-            </p>
-            <button
-              onClick={() => navigate('/login')}
-              className="t-caption text-edit-muted hover:text-edit-ink transition-colors"
-            >
-              {t('verify.goToLogin')}
-            </button>
-          </>
-        )}
+          {status === 'error' && (
+            <>
+              <AlertCircle size={28} strokeWidth={1.25} className="mx-auto mb-6 text-edit-danger" />
+              <p className="t-eyebrow text-edit-danger mb-3">{t('verify.error.eyebrow')}</p>
+              <p className="font-serif text-body text-edit-ink leading-relaxed mb-8 break-keep">
+                {message}
+              </p>
+              <div className="border-t border-edit-line pt-6">
+                <button
+                  onClick={() => navigate('/login')}
+                  className="t-caption text-edit-muted hover:text-edit-ink transition-colors"
+                >
+                  {t('verify.goToLogin')}
+                </button>
+              </div>
+            </>
+          )}
+        </div>
       </div>
     </div>
   )
