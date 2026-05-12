@@ -104,6 +104,35 @@ const FIELD_LABEL: Record<keyof TemplateFields, string> = {
 const MULTILINE_FIELDS = new Set<keyof TemplateFields>(['desc', 'body', 'closing'])
 const LANGS: Lang[] = ['ko', 'en', 'ja']
 
+// 하드코딩 기본값 (email.py의 dict와 동기화)
+const DEFAULTS: Record<TemplateKey, Record<Lang, TemplateFields>> = {
+  verification: {
+    ko: { subject: 'Racconto 가입 이메일 인증', title: '이메일 인증하기', desc: '안녕하세요! Racconto에 오신 것을 환영합니다! 아래 버튼을 클릭하여 이메일 인증을 해주세요.', validity: '보내 드린 인증 링크는 24시간 동안 유효합니다.', button: '이메일 인증하기', ignore: '만약 본인이 요청하지 않은 경우에는 이 이메일을 무시해주세요.' },
+    en: { subject: 'Racconto Email Verification', title: 'Email Verification', desc: 'Click the button below to complete your email verification.', validity: 'This link is valid for 24 hours.', button: 'Verify Email', ignore: 'If you did not request this, please ignore this email.' },
+    ja: { subject: 'Racconto メール認証', title: 'メール認証', desc: 'Racconto にご登録いただきありがとうございます！以下のボタンをクリックしてメール認証を完了してください。', validity: '認証リンクの有効期限は24時間です。', button: 'メールを認証する', ignore: '心当たりのない場合は、このメールを無視してください。' },
+  },
+  password_reset: {
+    ko: { subject: 'Racconto 비밀번호 재설정', title: '비밀번호 재설정', desc: '아래 버튼을 클릭하여 새 비밀번호를 설정해주세요.', validity: '보내 드린 링크는 1시간 동안 유효합니다.', button: '비밀번호 재설정하기', ignore: '만약 본인이 요청하지 않은 경우에는 이 이메일을 무시해주세요.' },
+    en: { subject: 'Racconto Password Reset', title: 'Password Reset', desc: 'Click the button below to set a new password.', validity: 'This link is valid for 1 hour.', button: 'Reset Password', ignore: 'If you did not request this, please ignore this email.' },
+    ja: { subject: 'Racconto パスワード再設定', title: 'パスワード再設定', desc: '以下のボタンをクリックして、新しいパスワードを設定してください。', validity: 'リンクの有効期限は1時間です。', button: 'パスワードを再設定する', ignore: '心当たりのない場合は、このメールを無視してください。' },
+  },
+  welcome: {
+    ko: { subject: 'Racconto에 오신 것을 환영합니다', title: '이메일 인증에 성공하였습니다.', body: '이메일 인증이 성공적으로 완료되었습니다.\n\n이제 Racconto와 함께 이야기를 시작할 모든 준비가 끝났습니다.\n프로젝트를 만들고, 당신의 사진에 스토리를 담아보세요.\n\n오픈 베타는 2026년 8월 31일까지 무료로 모든 기능을 이용하실 수 있습니다.', button: 'Racconto 시작하기', closing: 'Racconto와 함께 멋진 이야기를 만들어가세요.' },
+    en: { subject: 'Welcome to Racconto', title: 'Your email has been verified', body: 'Your email verification is complete.\n\nYou\'re all set to start telling your photo stories on Racconto.\nCreate a project and bring your photos to life.\n\nThe open beta is free for all features until August 31, 2026.', button: 'Get Started', closing: 'We\'re excited to see the stories you\'ll create.' },
+    ja: { subject: 'Racconto へようこそ', title: 'メール認証が完了しました。', body: 'メール認証が正常に完了しました。\n\nRacconto で写真のストーリーを語る準備が整いました。\nプロジェクトを作成して、あなたの写真に物語を添えてみてください。\n\nオープンベータ期間中（2026年8月31日まで）は、すべての機能を無料でご利用いただけます。', button: 'Racconto を始める', closing: 'あなたが生み出す素晴らしいストーリーを楽しみにしています。' },
+  },
+  social_welcome: {
+    ko: { subject: 'Racconto에 오신 것을 환영합니다', title: 'Racconto에 가입해 주셔서 감사합니다.', body: '소셜 계정으로 가입이 완료되었습니다.\n\n이제 Racconto와 함께 이야기를 시작할 모든 준비가 끝났습니다.\n프로젝트를 만들고, 당신의 사진에 스토리를 담아보세요.\n\n오픈 베타는 2026년 8월 31일까지 무료로 모든 기능을 이용하실 수 있습니다.', button: 'Racconto 시작하기', closing: 'Racconto와 함께 멋진 이야기를 만들어가세요.' },
+    en: { subject: 'Welcome to Racconto', title: 'Thanks for joining Racconto.', body: 'You\'ve successfully signed up with your social account.\n\nYou\'re all set to start telling your photo stories on Racconto.\nCreate a project and bring your photos to life.\n\nThe open beta is free for all features until August 31, 2026.', button: 'Get Started', closing: 'We\'re excited to see the stories you\'ll create.' },
+    ja: { subject: 'Racconto へようこそ', title: 'Racconto にご登録いただきありがとうございます。', body: 'ソーシャルアカウントでの登録が完了しました。\n\nRacconto で写真のストーリーを語る準備が整いました。\nプロジェクトを作成して、あなたの写真に物語を添えてみてください。\n\nオープンベータ期間中（2026年8月31日まで）は、すべての機能を無料でご利用いただけます。', button: 'Racconto を始める', closing: 'あなたが生み出す素晴らしいストーリーを楽しみにしています。' },
+  },
+  farewell: {
+    ko: { subject: 'Racconto 회원 탈퇴가 완료되었습니다', title: '그동안 함께해 주셔서 감사합니다', body: '요청하신 회원 탈퇴가 정상적으로 처리되었습니다.\n\n업로드하신 사진과 모든 개인 데이터는 즉시 삭제되었습니다.\n언제든 다시 돌아오셔서 새로운 이야기를 시작해 보시길 바랍니다.', closing: '지금까지 Racconto를 이용해 주셔서 진심으로 감사드립니다.' },
+    en: { subject: 'Your Racconto account has been deleted', title: 'Thank you for being with us', body: 'Your account has been successfully deleted.\n\nAll your photos and personal data have been permanently removed.\nYou are always welcome to come back.', closing: 'Thank you sincerely for using Racconto.' },
+    ja: { subject: 'Racconto の退会処理が完了しました', title: 'ご利用ありがとうございました', body: 'ご要望のとおり、退会処理が正常に完了しました。\n\nアップロードされた写真およびすべての個人データは削除されました。\nまたいつでもご利用いただけますので、またのご登録をお待ちしております。', closing: 'これまで Racconto をご利用いただき、誠にありがとうございました。' },
+  },
+}
+
 const EmailTemplatesSection = () => {
   const [open, setOpen] = useState(false)
   const [templates, setTemplates] = useState<AllTemplates>({})
@@ -129,7 +158,13 @@ const EmailTemplatesSection = () => {
 
   useEffect(() => {
     const stored = templates[`${selectedKey}__${selectedLang}`] ?? {}
-    setDraft({ ...stored })
+    const defaults = DEFAULTS[selectedKey][selectedLang]
+    // DB에 저장된 값이 있으면 우선 사용, 없는 필드는 하드코딩 기본값으로 채움
+    const merged: TemplateFields = { ...defaults }
+    for (const k of Object.keys(defaults) as (keyof TemplateFields)[]) {
+      if (stored[k]) merged[k] = stored[k]
+    }
+    setDraft(merged)
   }, [selectedKey, selectedLang, templates])
 
   const meta = TEMPLATE_META.find(m => m.key === selectedKey)!
@@ -203,7 +238,7 @@ const EmailTemplatesSection = () => {
                     value={draft[field] ?? ''}
                     onChange={e => setDraft(d => ({ ...d, [field]: e.target.value }))}
                     rows={3}
-                    placeholder="(하드코딩 기본값 사용)"
+                    placeholder=""
                     className="w-full font-serif text-body bg-transparent border-0 border-b
                                border-edit-line focus:border-edit-ink focus:outline-none py-2
                                placeholder:text-edit-faint resize-none transition-colors"
@@ -213,7 +248,7 @@ const EmailTemplatesSection = () => {
                     type="text"
                     value={draft[field] ?? ''}
                     onChange={e => setDraft(d => ({ ...d, [field]: e.target.value }))}
-                    placeholder="(하드코딩 기본값 사용)"
+                    placeholder=""
                     className="w-full font-serif text-body bg-transparent border-0 border-b
                                border-edit-line focus:border-edit-ink focus:outline-none py-2
                                placeholder:text-edit-faint transition-colors"
