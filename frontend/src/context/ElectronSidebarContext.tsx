@@ -77,18 +77,7 @@ export function ElectronSidebarProvider({ children }: { children: ReactNode }) {
         )
         if (isDuplicate) { skipCount++; successCount++; continue }
 
-        let restored = false
-        try {
-          await axios.post(`${API}/photos/restore-by-filename`, {
-            project_id: projectId,
-            original_filename: file.name,
-          })
-          restored = true
-        } catch (e: any) {
-          if (e.response?.status !== 404) throw e
-        }
-
-        if (!restored) {
+        {
           const exifData: Record<string, string> = {}
           try {
             const parsed = await exifr.parse(file, {

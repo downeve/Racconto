@@ -301,9 +301,9 @@ async function syncFolderOnStart(folderPath, projectId) {
     const rawFiles = await fs.promises.readdir(folderPath)
     const localFiles = rawFiles.filter(f => IMAGE_EXTENSIONS.includes(path.extname(f).toLowerCase()))
     const localFileSet = new Set(localFiles)
-    // 같은 폴더 기준으로만 중복 체크 (다른 폴더의 동명 파일은 중복 아님)
+    // 같은 폴더 기준으로만 중복 체크 (다른 폴더의 동명 파일은 중복 아님, 삭제된 사진 제외)
     const allFilenameSet = new Set(
-      allPhotos.filter(p => p.folder === folderPath).map(p => p.original_filename).filter(Boolean)
+      allPhotos.filter(p => p.folder === folderPath && !p.deleted_at).map(p => p.original_filename).filter(Boolean)
     )
 
     // local_missing 플래그 업데이트 (휴지통 포함 전체, state diffing: 변경분만 수집)
@@ -325,7 +325,7 @@ async function syncFolderOnStart(folderPath, projectId) {
       console.log(`local_missing 동기화 완료: ${updates.length}개`)
     }
 
-    // 3) DB 전체(삭제 포함)에 없는 완전한 새 파일만 큐에 추가
+    // 3) 활성 사진에 없는 파일만 큐에 추가 (삭제된 사진과 동일 파일명이면 새 사진으로 업로드)
     let newCount = 0
     for (const filename of localFiles) {
       if (!allFilenameSet.has(filename)) {
