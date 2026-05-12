@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
+import { useQueryClient } from '@tanstack/react-query'
 import { useNavigate, useLocation, Link } from 'react-router-dom'
 import axios from 'axios'
 import { useTranslation } from 'react-i18next'
@@ -44,6 +45,7 @@ export default function ElectronSidebar({ activeTab, onTabChange, showTabs, widt
   const { t, i18n } = useTranslation()
   const { refreshTrigger, triggerRefresh } = useElectronSidebar()
   const { user, logout } = useAuth()
+  const queryClient = useQueryClient()
   const [dropdownOpen, setDropdownOpen] = useState(false)
   const dropdownRef = useRef<HTMLDivElement>(null)
 
@@ -80,6 +82,7 @@ export default function ElectronSidebar({ activeTab, onTabChange, showTabs, widt
         })
         setConfirmModal(null)
         triggerRefresh()
+        queryClient.invalidateQueries({ queryKey: ['projects'] })
         const deleted = projects.find(p => p.id === projectId)
         const isViewing = currentProjectId === projectId || (deleted?.slug && currentProjectId === deleted.slug)
         if (isViewing) navigate('/projects')
