@@ -35,10 +35,10 @@ export default function PhotoNotePanel({
   const [editType, setEditType] = useState('memo')
 
   const NOTE_TYPES = [
-    { value: 'memo',     label: t('note.labelWork'), color: 'bg-stone-100 text-stone-600' },
-    { value: 'concept',  label: t('note.labelConcept'), color: 'bg-blue-50 text-blue-600' },
-    { value: 'research', label: t('note.labelResearch'), color: 'bg-green-50 text-green-600' },
-    { value: 'client',   label: t('note.labelClient'), color: 'bg-amber-50 text-amber-600' },
+    { value: 'memo',     label: t('note.labelWork'),     color: 'bg-stone-100 text-stone-600',  dot: 'bg-edit-faint' },
+    { value: 'concept',  label: t('note.labelConcept'),  color: 'bg-blue-50 text-blue-600',     dot: 'bg-edit-accent' },
+    { value: 'research', label: t('note.labelResearch'), color: 'bg-green-50 text-green-600',   dot: 'bg-label-green' },
+    { value: 'client',   label: t('note.labelClient'),   color: 'bg-amber-50 text-amber-600',   dot: 'bg-label-yellow' },
   ]
 
   const getNoteType = (value: string) => {
@@ -126,12 +126,13 @@ export default function PhotoNotePanel({
                           <button
                             key={type.value}
                             onClick={() => setEditType(type.value)}
-                            className={`px-2 py-0.5 text-xs rounded-btn transition-[background,color,border] duration-150 ease-out ${
+                            className={`inline-flex items-center gap-1.5 px-2 py-0.5 text-xs rounded-btn transition-[background,color,border] duration-150 ease-out ${
                               editType === type.value
                                 ? type.color + ' font-semibold ring-1 ring-current'
                                 : 'bg-gray-100 text-gray-400 hover:bg-gray-200'
                             }`}
                           >
+                            <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${type.dot}`} />
                             {type.label}
                           </button>
                         ))}
@@ -161,7 +162,8 @@ export default function PhotoNotePanel({
                   ) : (
                     <div>
                       <div className="flex items-center justify-between mb-1.5">
-                        <span className={`px-2 py-0.5 text-xs rounded-full ${typeInfo.color}`}>
+                        <span className={`inline-flex items-center gap-1.5 px-2 py-0.5 text-xs rounded-full ${typeInfo.color}`}>
+                          <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${typeInfo.dot}`} />
                           {typeInfo.label}
                         </span>
                         <div className="flex items-center gap-2">
@@ -200,12 +202,13 @@ export default function PhotoNotePanel({
               <button
                 key={type.value}
                 onClick={() => setNewType(type.value)}
-                className={`px-2 py-0.5 text-xs rounded-btn transition-[background,color,border] duration-150 ease-out ${
+                className={`inline-flex items-center gap-1.5 px-2 py-0.5 text-xs rounded-btn transition-[background,color,border] duration-150 ease-out ${
                   newType === type.value
                     ? type.color + ' font-semibold ring-1 ring-current'
                     : 'bg-gray-100 text-gray-400 hover:bg-gray-200'
                 }`}
               >
+                <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${type.dot}`} />
                 {type.label}
               </button>
             ))}
