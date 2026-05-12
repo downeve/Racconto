@@ -3,7 +3,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { createPortal } from 'react-dom'
 import { useParams } from 'react-router-dom'
 import axios from 'axios'
-import { Folder, Monitor, Trash2, FileText, MapPin, AlertTriangle, BookOpen, Grid3X3, ArrowUpDown, Info, Star, Upload, FolderUp, ArrowUp } from 'lucide-react'
+import { Folder, Monitor, Trash2, FileText, MapPin, AlertTriangle, BookOpen, Grid3X3, ArrowUpDown, Info, Star, Upload, FolderUp, ArrowUp, Check } from 'lucide-react'
 
 import ProjectStory from './ProjectStory'
 import DeliveryManager from '../components/DeliveryManager'
@@ -921,24 +921,27 @@ export default function ProjectDetail({
                   <p>{t('story.noChapter')}</p>
                   <p className="mt-1">{t('story.noChapter2')}</p>
                 </div>
-              ) : (
-                chapters.filter(c => !c.parent_id).map((parent, pIdx) => (
+              ) : (() => {
+                const currentChapterId = photoChapterMap.get(chapterMenuPhoto!)
+                return chapters.filter(c => !c.parent_id).map((parent, pIdx) => (
                   <div key={parent.id}>
                     <button
                       onClick={() => handleAddToChapter(chapterMenuPhoto!, parent.id)}
-                      className="w-full text-left px-3 py-2 text-small rounded-[1px] hover:bg-edit-paper-2 text-edit-ink whitespace-nowrap">
-                      Ch. {pIdx + 1}. {parent.title}
+                      className="w-full text-left px-3 py-2 text-small rounded-[1px] hover:bg-edit-paper-2 text-edit-ink whitespace-nowrap flex items-center justify-between gap-4">
+                      <span>Ch. {pIdx + 1}. {parent.title}</span>
+                      {currentChapterId === parent.id && <Check size={12} strokeWidth={2} className="text-green-600 shrink-0" />}
                     </button>
                     {chapters.filter(child => child.parent_id === parent.id).map((child, cIdx) => (
                       <button key={child.id}
                         onClick={() => handleAddToChapter(chapterMenuPhoto!, child.id)}
-                        className="w-full text-left px-3 py-2 text-small rounded-[1px] hover:bg-edit-paper-2 text-edit-muted pl-9 whitespace-nowrap">
-                        Ch. {pIdx + 1}.{cIdx + 1}. {child.title}
+                        className="w-full text-left px-3 py-2 text-small rounded-[1px] hover:bg-edit-paper-2 text-edit-muted pl-9 whitespace-nowrap flex items-center justify-between gap-4">
+                        <span>Ch. {pIdx + 1}.{cIdx + 1}. {child.title}</span>
+                        {currentChapterId === child.id && <Check size={12} strokeWidth={2} className="text-green-600 shrink-0" />}
                       </button>
                     ))}
                   </div>
                 ))
-              )}
+              })()}
             </div>
             <button onClick={() => setChapterMenuPhoto(null)}
               className="mt-4 w-full t-caption text-edit-muted hover:text-edit-ink transition-colors">{t('common.close')}</button>

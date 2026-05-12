@@ -379,27 +379,30 @@ export function Lightbox({
           >
             {chapters.length === 0 ? (
               <p className="text-small text-edit-muted px-3 py-2 whitespace-nowrap">{t('story.noChapters')}</p>
-            ) : (
-              chapters.filter(c => !c.parent_id).map((parent, pIdx) => (
+            ) : (() => {
+              const currentChapterId = photoChapterMap.get(photo.id)
+              return chapters.filter(c => !c.parent_id).map((parent, pIdx) => (
                 <div key={parent.id}>
                   <button
                     onClick={() => { onAddToChapter(photo.id, parent.id); setShowChapterMenu(false) }}
-                    className="w-full text-left px-3 py-2 text-small rounded-[1px] hover:bg-edit-paper-2 text-edit-ink whitespace-nowrap"
+                    className="w-full text-left px-3 py-2 text-small rounded-[1px] hover:bg-edit-paper-2 text-edit-ink whitespace-nowrap flex items-center justify-between gap-4"
                   >
-                    Ch. {pIdx + 1}. {parent.title}
+                    <span>Ch. {pIdx + 1}. {parent.title}</span>
+                    {currentChapterId === parent.id && <Check size={12} strokeWidth={2} className="text-green-600 shrink-0" />}
                   </button>
                   {chapters.filter(c => c.parent_id === parent.id).map((child, cIdx) => (
                     <button
                       key={child.id}
                       onClick={() => { onAddToChapter(photo.id, child.id); setShowChapterMenu(false) }}
-                      className="w-full text-left px-3 py-2 text-small rounded-[1px] hover:bg-edit-paper-2 text-edit-muted pl-9 whitespace-nowrap"
+                      className="w-full text-left px-3 py-2 text-small rounded-[1px] hover:bg-edit-paper-2 text-edit-muted pl-9 whitespace-nowrap flex items-center justify-between gap-4"
                     >
-                      Ch. {pIdx + 1}.{cIdx + 1}. {child.title}
+                      <span>Ch. {pIdx + 1}.{cIdx + 1}. {child.title}</span>
+                      {currentChapterId === child.id && <Check size={12} strokeWidth={2} className="text-green-600 shrink-0" />}
                     </button>
                   ))}
                 </div>
               ))
-            )}
+            })()}
           </div>
         </div>
       )}
