@@ -273,35 +273,37 @@ export default function Settings() {
             <p className="t-eyebrow text-muted mb-0.5">
               {t('settings.currentUser')}
             </p>
-            <p className="text-base text-ink font-medium tracking-tight">
-              {displayIdentity || 'Loading...'}
-            </p>
+            <div className="flex items-center gap-2">
+              <p className="text-base text-ink font-medium tracking-tight">
+                {displayIdentity || 'Loading...'}
+              </p>
+              {tier && (
+                <span className="t-eyebrow border border-hair px-2 py-0.5 text-muted">
+                  {t(`settings.tier.${tier}`, tier)}
+                </span>
+              )}
+            </div>
           </div>
-          {tier && (
-            <span className="ml-auto t-eyebrow border border-hair px-2.5 py-1 text-muted">
-              {t(`settings.tier.${tier}`, tier)}
-            </span>
-          )}
         </div>
-        <div className="grid grid-cols-2 gap-0 divide-x divide-hair">
-          <div className="py-3 pr-4">
-            <p className="t-eyebrow text-muted mb-1">{t('settings.usage.projects')}</p>
-            <p className="text-sm font-medium text-ink">
-              {projectCount} / {projectLimit}
-            </p>
-            <div className="mt-1.5 h-1 bg-ink/8 overflow-hidden">
+        <div className="space-y-2.5">
+          <div>
+            <div className="flex items-center justify-between mb-1">
+              <p className="t-eyebrow text-muted">{t('settings.usage.projects')}</p>
+              <p className="text-sm font-medium text-ink">{projectCount} / {projectLimit}</p>
+            </div>
+            <div className="h-1 bg-ink/8 overflow-hidden">
               <div
                 className="h-full bg-ink/65"
                 style={{ width: `${projectLimit > 0 ? Math.min((projectCount / projectLimit) * 100, 100) : 0}%` }}
               />
             </div>
           </div>
-          <div className="py-3 pl-4">
-            <p className="t-eyebrow text-muted mb-1">{t('settings.usage.photos')}</p>
-            <p className="text-sm font-medium text-ink">
-              {photoCount} / {photoLimit}
-            </p>
-            <div className="mt-1.5 h-1 bg-ink/8 overflow-hidden">
+          <div>
+            <div className="flex items-center justify-between mb-1">
+              <p className="t-eyebrow text-muted">{t('settings.usage.photos')}</p>
+              <p className="text-sm font-medium text-ink">{photoCount} / {photoLimit}</p>
+            </div>
+            <div className="h-1 bg-ink/8 overflow-hidden">
               <div
                 className="h-full bg-ink/65"
                 style={{ width: `${photoLimit > 0 ? Math.min((photoCount / photoLimit) * 100, 100) : 0}%` }}
