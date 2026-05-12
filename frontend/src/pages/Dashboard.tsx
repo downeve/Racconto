@@ -178,16 +178,13 @@ export default function Dashboard() {
               ))}
             </div>
           ) : (
-            <div className="border-y border-hair py-space-xl text-center">
+            <div className="py-space-xl text-center">
               <p className="font-serif text-h2 text-ink-2 mb-3">
                 {t('dashboard.emptyTitle')}
               </p>
-              <p className="text-muted text-body mb-space-md">
+              <p className="text-muted text-body">
                 {t('dashboard.emptySubtitle')}
               </p>
-              <Link to="/projects" state={{ openForm: true }} className="t-caption btn-primary">
-                {t('dashboard.startNew')}
-              </Link>
             </div>
           )}
         </section>
