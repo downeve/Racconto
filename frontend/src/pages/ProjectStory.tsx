@@ -374,6 +374,13 @@ function ProjectStory({
     setChapterPhotos(storyData.items_by_chapter ?? {})
   }, [storyData])
 
+  // Story 탭 진입 시 항상 최신 데이터 보장
+  useEffect(() => {
+    if (activeTab === 'story') {
+      queryClient.invalidateQueries({ queryKey: ['storyChapters', projectId] })
+    }
+  }, [activeTab, projectId, queryClient])
+
   const invalidateStory = useCallback(() => {
     queryClient.invalidateQueries({ queryKey: ['storyChapters', projectId] })
   }, [queryClient, projectId])
