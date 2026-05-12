@@ -96,7 +96,7 @@ export default function StoryPreviewModal({
                             </h3>
                           </div>
                           {chapter.description && (
-                            <p className={`text-body font-serif max-w-xl [word-break:keep-all] mt-2 ${subText}`}>
+                            <p className={`text-body font-serif max-w-xl [word-break:keep-all] whitespace-pre-wrap mt-2 ${subText}`}>
                               {chapter.description}
                             </p>
                           )}
@@ -119,7 +119,7 @@ export default function StoryPreviewModal({
                                 </h4>
                               </div>
                               {sub.description && (
-                                <p className={`text-body font-serif mt-2 max-w-xl [word-break:keep-all] ${subText}`}>
+                                <p className={`text-body font-serif mt-2 max-w-xl [word-break:keep-all] whitespace-pre-wrap ${subText}`}>
                                   {sub.description}
                                 </p>
                               )}
@@ -203,7 +203,7 @@ export default function StoryPreviewModal({
               <div className="flex-1 overflow-y-auto px-8 pt-6 pb-12">
                 <div className="mb-8">
                   {targetChapter.description && (
-                    <p className={`text-body font-serif max-w-full [word-break:keep-all] mb-6 ${subText}`}>
+                    <p className={`text-body font-serif max-w-full [word-break:keep-all] whitespace-pre-wrap mb-6 ${subText}`}>
                       {targetChapter.description}
                     </p>
                   )}
