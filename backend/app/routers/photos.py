@@ -238,9 +238,13 @@ class PhotoResponse(BaseModel):
     class Config:
         from_attributes = True
 
+class BulkExistsFile(BaseModel):
+    filename: str
+    folder: str
+
 class BulkExistsRequest(BaseModel):
     project_id: str
-    filenames: list[str]
+    files: list[BulkExistsFile]
 
 class BulkDeleteRequest(BaseModel):
     photo_ids: list[str]
@@ -346,13 +350,15 @@ def bulk_check_exists(
     db: Session = Depends(get_db),
     current_user: models.User = Depends(get_current_user)
 ):
-    """Electron 앱용 파일 중복 배치 체크"""
-    existing = db.query(models.Photo.original_filename).filter(
+    """Electron 앱용 파일 중복 배치 체크 (파일명 + 폴더 기준)"""
+    from sqlalchemy import tuple_
+    pairs = [(f.filename, f.folder) for f in body.files]
+    existing = db.query(models.Photo.original_filename, models.Photo.folder).filter(
         models.Photo.project_id == body.project_id,
-        models.Photo.original_filename.in_(body.filenames),
-        models.Photo.deleted_at == None
+        models.Photo.deleted_at == None,
+        tuple_(models.Photo.original_filename, models.Photo.folder).in_(pairs)
     ).all()
-    existing_set = {row[0] for row in existing}
+    existing_set = {f"{row[0]}::{row[1]}" for row in existing}
     return {"existing": list(existing_set)}
 
 

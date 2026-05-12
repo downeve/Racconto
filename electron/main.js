@@ -301,7 +301,10 @@ async function syncFolderOnStart(folderPath, projectId) {
     const rawFiles = await fs.promises.readdir(folderPath)
     const localFiles = rawFiles.filter(f => IMAGE_EXTENSIONS.includes(path.extname(f).toLowerCase()))
     const localFileSet = new Set(localFiles)
-    const allFilenameSet = new Set(allPhotos.map(p => p.original_filename).filter(Boolean))
+    // 같은 폴더 기준으로만 중복 체크 (다른 폴더의 동명 파일은 중복 아님)
+    const allFilenameSet = new Set(
+      allPhotos.filter(p => p.folder === folderPath).map(p => p.original_filename).filter(Boolean)
+    )
 
     // local_missing 플래그 업데이트 (휴지통 포함 전체, state diffing: 변경분만 수집)
     const updates = []
@@ -390,11 +393,15 @@ async function processQueue() {
         method: 'POST',
         body: JSON.stringify({
           project_id: projectId,
-          filenames: items.map(i => path.basename(i.filePath)),
+          files: items.map(i => ({
+            filename: path.basename(i.filePath),
+            folder: path.dirname(i.filePath),
+          })),
         }),
       })
       if (res.ok) {
         const data = await res.json()
+        // existing 항목은 "filename::folder" 형태
         data.existing.forEach(f => existingFiles.add(`${projectId}::${f}`))
       }
     } catch (e) {
@@ -404,7 +411,7 @@ async function processQueue() {
 
   // 실제 업로드할 항목만 추려서 전체 수 계산
   let uploadItems = pending.filter(item => {
-    const key = `${item.projectId}::${path.basename(item.filePath)}`
+    const key = `${item.projectId}::${path.basename(item.filePath)}::${path.dirname(item.filePath)}`
     return !existingFiles.has(key)
   })
 
@@ -433,7 +440,7 @@ async function processQueue() {
 
   // 중복 항목 즉시 스킵 처리
   for (const item of pending) {
-    const key = `${item.projectId}::${path.basename(item.filePath)}`
+    const key = `${item.projectId}::${path.basename(item.filePath)}::${path.dirname(item.filePath)}`
     if (existingFiles.has(key)) {
       console.log('DB 중복 확인, 업로드 스킵:', path.basename(item.filePath))
       markSuccess(item.id)
