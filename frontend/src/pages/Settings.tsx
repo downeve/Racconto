@@ -263,51 +263,55 @@ export default function Settings() {
 
       {/* 사용자 정보 */}
       <div className="border-b border-hair pb-8 mb-0">
-        <div className="flex items-center gap-3 mb-5">
-          <div className="w-9 h-9 rounded-full bg-ink-2 flex items-center justify-center">
-            <span className="text-canvas text-h3 font-medium">
-              {displayIdentity ? displayIdentity[0].toUpperCase() : '?'}
-            </span>
-          </div>
-          <div>
-            <p className="t-eyebrow text-muted mb-0.5">
-              {t('settings.currentUser')}
-            </p>
-            <div className="flex items-center gap-2">
-              <p className="text-base text-ink font-medium tracking-tight">
-                {displayIdentity || 'Loading...'}
+        <div className="flex items-start justify-between gap-6">
+          {/* 좌: 아바타 + 사용자 정보 */}
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 rounded-full bg-ink-2 flex items-center justify-center shrink-0">
+              <span className="text-canvas text-h3 font-medium">
+                {displayIdentity ? displayIdentity[0].toUpperCase() : '?'}
+              </span>
+            </div>
+            <div>
+              <p className="t-eyebrow text-muted mb-0.5">
+                {t('settings.currentUser')}
               </p>
-              {tier && (
-                <span className="t-eyebrow border border-hair px-2 py-0.5 text-muted">
-                  {t(`settings.tier.${tier}`, tier)}
-                </span>
-              )}
+              <div className="flex items-center gap-2">
+                <p className="text-base text-ink font-medium tracking-tight">
+                  {displayIdentity || 'Loading...'}
+                </p>
+                {tier && (
+                  <span className="t-eyebrow border border-hair px-2 py-0.5 text-muted">
+                    {t(`settings.tier.${tier}`, tier)}
+                  </span>
+                )}
+              </div>
             </div>
           </div>
-        </div>
-        <div className="space-y-2.5">
-          <div>
-            <div className="flex items-center justify-between mb-1">
-              <p className="t-eyebrow text-muted">{t('settings.usage.projects')}</p>
-              <p className="text-sm font-medium text-ink">{projectCount} / {projectLimit}</p>
+          {/* 우: 사용량 */}
+          <div className="space-y-2.5 min-w-[160px]">
+            <div>
+              <div className="flex items-center justify-between mb-1">
+                <p className="t-eyebrow text-muted">{t('settings.usage.projects')}</p>
+                <p className="text-sm font-medium text-ink">{projectCount} / {projectLimit}</p>
+              </div>
+              <div className="h-1 bg-hair overflow-hidden">
+                <div
+                  className="h-full bg-ink/65"
+                  style={{ width: `${projectLimit > 0 ? Math.min((projectCount / projectLimit) * 100, 100) : 0}%` }}
+                />
+              </div>
             </div>
-            <div className="h-1 bg-ink/8 overflow-hidden">
-              <div
-                className="h-full bg-ink/65"
-                style={{ width: `${projectLimit > 0 ? Math.min((projectCount / projectLimit) * 100, 100) : 0}%` }}
-              />
-            </div>
-          </div>
-          <div>
-            <div className="flex items-center justify-between mb-1">
-              <p className="t-eyebrow text-muted">{t('settings.usage.photos')}</p>
-              <p className="text-sm font-medium text-ink">{photoCount} / {photoLimit}</p>
-            </div>
-            <div className="h-1 bg-ink/8 overflow-hidden">
-              <div
-                className="h-full bg-ink/65"
-                style={{ width: `${photoLimit > 0 ? Math.min((photoCount / photoLimit) * 100, 100) : 0}%` }}
-              />
+            <div>
+              <div className="flex items-center justify-between mb-1">
+                <p className="t-eyebrow text-muted">{t('settings.usage.photos')}</p>
+                <p className="text-sm font-medium text-ink">{photoCount} / {photoLimit}</p>
+              </div>
+              <div className="h-1 bg-hair overflow-hidden">
+                <div
+                  className="h-full bg-ink/65"
+                  style={{ width: `${photoLimit > 0 ? Math.min((photoCount / photoLimit) * 100, 100) : 0}%` }}
+                />
+              </div>
             </div>
           </div>
         </div>
