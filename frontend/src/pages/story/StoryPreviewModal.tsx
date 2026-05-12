@@ -169,7 +169,7 @@ export default function StoryPreviewModal({
 
             {/* 슬라이드오버 패널 */}
             <div
-              className={`fixed top-0 right-0 h-full z-[86] w-[min(600px,100vw)] ${bg} shadow-2xl flex flex-col
+              className={`fixed top-0 right-0 h-full z-[86] w-[min(896px,100vw)] ${bg} shadow-2xl flex flex-col
                 transition-transform duration-300 ease-out
                 ${chapterPreviewOpen ? 'translate-x-0' : 'translate-x-full'}`}
             >
