@@ -253,7 +253,7 @@ export default function Settings() {
   }
 
   return (
-    <div className="max-w-2xl mx-auto p-6">
+    <div className="max-w-2xl mx-auto p-6 bg-edit-paper rounded-btn">
       <header className="mb-10">
         <p className="t-eyebrow text-muted mb-2">Account</p>
         <h1 className="font-serif text-[2rem] leading-[1.1] tracking-[-0.015em] font-normal">
@@ -263,9 +263,9 @@ export default function Settings() {
 
       {/* 사용자 정보 */}
       <div className="border-b border-hair pb-8 mb-0">
-        <div className="flex items-start justify-between gap-6">
+        <div className="flex items-start gap-6">
           {/* 좌: 아바타 + 사용자 정보 */}
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-3 flex-1">
             <div className="w-9 h-9 rounded-full bg-ink-2 flex items-center justify-center shrink-0">
               <span className="text-canvas text-h3 font-medium">
                 {displayIdentity ? displayIdentity[0].toUpperCase() : '?'}
@@ -287,6 +287,8 @@ export default function Settings() {
               </div>
             </div>
           </div>
+          {/* 세로 경계선 */}
+          <div className="w-px bg-hair self-stretch shrink-0" />
           {/* 우: 사용량 */}
           <div className="space-y-2.5 min-w-[160px]">
             <div>
