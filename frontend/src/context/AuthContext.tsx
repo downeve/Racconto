@@ -15,7 +15,7 @@ interface AuthContextType {
   isAuthenticated: boolean
   isLoading: boolean
   user: User | null
-  login: (email: string, password: string) => Promise<boolean>
+  login: (email: string, password: string) => Promise<{ ok: boolean; code?: string }>
   loginWithToken: (token: string) => Promise<boolean>
   logout: () => void
 }
@@ -116,9 +116,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         oauth_provider: meRes.data.oauth_provider ?? null,
       })
       localStorage.setItem('userEmail', email)
-      return true
-    } catch {
-      return false
+      return { ok: true }
+    } catch (err: any) {
+      const code = err?.response?.data?.detail
+      return { ok: false, code }
     }
   }
 

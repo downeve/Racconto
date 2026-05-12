@@ -42,6 +42,9 @@ LINE_CLIENT_SECRET = os.getenv("LINE_CLIENT_SECRET")
 BACKEND_URL = os.getenv("BACKEND_URL", "https://racconto.app")
 FRONTEND_URL = os.getenv("BASE_URL", "https://racconto.app")
 
+_IS_TEST_ENV = os.getenv("ENVIRONMENT") == "test"
+_TEST_ALLOWED_EMAIL = "downeve@gmail.com"
+
 router = APIRouter(prefix="/auth", tags=["auth"])
 
 class Token(BaseModel):
@@ -152,6 +155,8 @@ def register(body: UserRegister, db: Session = Depends(get_db)):
 
 @router.post("/login", response_model=Token)
 def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)):
+    if _IS_TEST_ENV and form_data.username != _TEST_ALLOWED_EMAIL:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="TEST_ENV_RESTRICTED")
     user = db.query(models.User).filter(models.User.email == form_data.username).first()
     if not user or not verify_password(form_data.password, user.password_hash):
         raise HTTPException(
@@ -332,6 +337,9 @@ async def google_callback(request: Request, background_tasks: BackgroundTasks, s
     google_id = payload["sub"]
     email = payload.get("email")
 
+    if _IS_TEST_ENV and email != _TEST_ALLOWED_EMAIL:
+        return RedirectResponse(f"{FRONTEND_URL}/login?error=test_restricted")
+
     user = db.query(models.User).filter(
         models.User.oauth_provider == "google",
         models.User.oauth_id == google_id
@@ -470,6 +478,16 @@ async def apple_callback(request: Request, background_tasks: BackgroundTasks, db
     apple_id = payload["sub"]
     email = payload.get("email")
 
+    if _IS_TEST_ENV and email != _TEST_ALLOWED_EMAIL:
+        saved_platform = request.cookies.get("apple_oauth_platform", "web")
+        if saved_platform == "ios":
+            response = RedirectResponse(f"racconto://auth/callback?error=test_restricted", status_code=303)
+        else:
+            response = RedirectResponse(f"{FRONTEND_URL}/login?error=test_restricted", status_code=303)
+        response.delete_cookie("apple_oauth_state", secure=True, samesite="none")
+        response.delete_cookie("apple_oauth_platform", secure=True, samesite="none")
+        return response
+
     if user_info_str:
         import json as _json
         user_data = _json.loads(user_info_str)
@@ -598,6 +616,9 @@ async def naver_callback(
     naver_id = naver_user.get("id")
     email = naver_user.get("email")
 
+    if _IS_TEST_ENV and email != _TEST_ALLOWED_EMAIL:
+        return RedirectResponse(f"{FRONTEND_URL}/login?error=test_restricted")
+
     user = db.query(models.User).filter(
         models.User.oauth_provider == "naver",
         models.User.oauth_id == naver_id
@@ -708,6 +729,9 @@ async def line_callback(
     if not line_user_id:
         raise HTTPException(status_code=400, detail="LINE_PROFILE_ERROR")
 
+    if _IS_TEST_ENV:
+        return RedirectResponse(f"{FRONTEND_URL}/login?error=test_restricted")
+
     # LINE 기본 프로필에는 이메일이 없으므로 고유 식별자로 대체
     email = f"line_{line_user_id}@line.racconto"
 
@@ -769,6 +793,9 @@ async def apple_ios_login(request: Request, background_tasks: BackgroundTasks, d
     email = payload.get("email")
     if not apple_id:
         raise HTTPException(status_code=400, detail="INVALID_IDENTITY_TOKEN")
+
+    if _IS_TEST_ENV and email != _TEST_ALLOWED_EMAIL:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="TEST_ENV_RESTRICTED")
 
     user = db.query(models.User).filter(
         models.User.oauth_provider == "apple",
