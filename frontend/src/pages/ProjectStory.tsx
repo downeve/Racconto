@@ -488,6 +488,7 @@ function ProjectStory({
   const closeChapterPreview = () => {
     setChapterPreviewOpen(false)
     setTimeout(() => setChapterPreviewId(null), 300)
+    ;(document.activeElement as HTMLElement)?.blur()
   }
 
   // 블록 간 사진 이동 (move modal에서도 호출)
