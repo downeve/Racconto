@@ -125,6 +125,7 @@ export default function Projects() {
     onSuccess: (_, projectId) => {
       window.racconto?.unlinkByProject(projectId)
       queryClient.invalidateQueries({ queryKey: ['projects'] })
+      queryClient.invalidateQueries({ queryKey: ['trash'] })
       triggerRefresh()
     },
   })
