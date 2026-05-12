@@ -244,6 +244,12 @@ ssh root@172.104.99.68 "cd /var/www/Racconto-test && git pull origin develop && 
 
 > **주의**: 배포는 항상 커밋·푸시 완료 후 실행. 테스트 서버 배포는 사용자가 요청할 때만.
 
+> **테스트 서버 초기 세팅 (최초 1회)**: `frontend/.env`는 git에 추적되지 않으므로 서버에 수동 생성 필요.
+> ```bash
+> echo 'VITE_API_URL=https://test.racconto.app/api' > /var/www/Racconto-test/frontend/.env
+> ```
+> main 서버는 `.env`(`https://racconto.app/api`) + `.env.production` 모두 존재. `.env.production`이 빌드 시 우선 적용됨.
+
 ---
 
 ## Claude Code 워킹 트리 관리
