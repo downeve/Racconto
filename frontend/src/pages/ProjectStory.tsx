@@ -706,7 +706,10 @@ function ProjectStory({
   }, [])
 
   const onConfirmModal = useCallback((modal: { message: string; onConfirm: () => void }) => {
-    setConfirmModal(modal)
+    setConfirmModal({
+      message: modal.message,
+      onConfirm: () => { setConfirmModal(null); modal.onConfirm() },
+    })
   }, [])
 
   // 0-4: 일괄 이동
