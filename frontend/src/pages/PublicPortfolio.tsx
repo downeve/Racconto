@@ -417,7 +417,7 @@ export default function PublicPortfolio() {
                 </p>
               )}
               {selectedProject.description && (
-                <p className={`font-serif text-[17px] leading-[1.65] italic [word-break:keep-all] ${subText}`}>
+                <p className={`font-serif text-[17px] leading-[1.65] italic [word-break:keep-all] whitespace-pre-wrap ${subText}`}>
                   {selectedProject.description}
                 </p>
               )}
@@ -438,7 +438,7 @@ export default function PublicPortfolio() {
                         {chapter.title}
                       </h3>
                       {chapter.description && (
-                        <p className={`mt-5 font-serif text-[16px] leading-[1.65] [word-break:keep-all] ${subText}`}>
+                        <p className={`mt-5 font-serif text-[16px] leading-[1.65] [word-break:keep-all] whitespace-pre-wrap ${subText}`}>
                           {chapter.description}
                         </p>
                       )}
@@ -457,7 +457,7 @@ export default function PublicPortfolio() {
                             {sub.title}
                           </h4>
                           {sub.description && (
-                            <p className={`text-body font-serif mt-2 max-w-xl [word-break:keep-all] ${subText}`}>
+                            <p className={`text-body font-serif mt-2 max-w-xl [word-break:keep-all] whitespace-pre-wrap ${subText}`}>
                               {sub.description}
                             </p>
                           )}

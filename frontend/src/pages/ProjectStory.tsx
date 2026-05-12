@@ -949,7 +949,7 @@ function ProjectStory({
 
                   {/* description — 편집 중이 아닐 때만 표시 */}
                   {chapter.description && editingChapter !== chapter.id && (
-                    <p className="font-serif text-small text-edit-muted max-w-xl [word-break:keep-all] mt-1.5">
+                    <p className="font-serif text-small text-edit-muted max-w-xl [word-break:keep-all] mt-1.5 whitespace-pre-wrap">
                       {chapter.description}
                     </p>
                   )}
@@ -1121,7 +1121,7 @@ function ProjectStory({
 
                           {/* description — 편집 중이 아닐 때만 표시 */}
                           {subChapter.description && editingChapter !== subChapter.id && (
-                            <p className="font-serif text-small text-edit-muted max-w-xl [word-break:keep-all] mt-1.5">
+                            <p className="font-serif text-small text-edit-muted max-w-xl [word-break:keep-all] mt-1.5 whitespace-pre-wrap">
                               {subChapter.description}
                             </p>
                           )}
