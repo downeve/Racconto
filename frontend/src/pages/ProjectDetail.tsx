@@ -729,6 +729,7 @@ export default function ProjectDetail({
         await axios.post(`${API}/chapters/${chapterId}/photos`, { photo_id: photoId })
       }
       await queryClient.invalidateQueries({ queryKey: ['chapterPhotos', numericId] })
+      queryClient.removeQueries({ queryKey: ['storyChapters', id] })
     } catch {
       // 오류 무시
     }
@@ -802,6 +803,7 @@ export default function ProjectDetail({
       setSelectedPhotoIds(new Set())
       setShowBulkChapterMenu(false)
       await queryClient.invalidateQueries({ queryKey: ['chapterPhotos', numericId] })
+      queryClient.removeQueries({ queryKey: ['storyChapters', id] })
       showToast(t('story.addMultiplePhotoSuccess', { count }), 'success')
     } catch (error) {
       console.error("일괄 추가 실패", error)

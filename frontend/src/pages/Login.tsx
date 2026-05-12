@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useNavigate, Link } from 'react-router-dom'
+import { useNavigate, Link, useSearchParams } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { useTranslation } from 'react-i18next'
 import { AlertCircle } from 'lucide-react'
@@ -15,15 +15,20 @@ export default function Login() {
   const { login } = useAuth()
   const navigate = useNavigate()
   const { t } = useTranslation()
+  const [searchParams] = useSearchParams()
+  const urlError = searchParams.get('error')
+  const urlErrorMessage = urlError ? t(`auth.urlError.${urlError}`, '') : ''
 
   const handleSubmit = async (e?: React.FormEvent) => {
     e?.preventDefault()
     if (!email || !password) return
     setLoading(true)
     setError('')
-    const success = await login(email, password)
-    if (success) {
+    const result = await login(email, password)
+    if (result.ok) {
       navigate('/dashboard')
+    } else if (result.code === 'TEST_ENV_RESTRICTED') {
+      setError(t('auth.urlError.test_restricted'))
     } else {
       setError(t('api.error.INVALID_CREDENTIALS'))
     }
@@ -66,10 +71,10 @@ export default function Login() {
               />
             </FormField>
 
-            {error && (
+            {(error || urlErrorMessage) && (
               <p className="t-caption text-edit-danger flex items-start gap-2 pt-3">
                 <AlertCircle size={11} strokeWidth={1.5} className="shrink-0 mt-px" />
-                <span>{error}</span>
+                <span>{error || urlErrorMessage}</span>
               </p>
             )}
 

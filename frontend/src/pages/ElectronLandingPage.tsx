@@ -85,8 +85,8 @@ export default function ElectronLandingPage() {
     if (!email || !password) return
     setLoading(true)
     setError('')
-    const success = await login(email, password)
-    if (success) {
+    const result = await login(email, password)
+    if (result.ok) {
       navigate('/dashboard')
     } else {
       setError(t('api.error.INVALID_CREDENTIALS'))

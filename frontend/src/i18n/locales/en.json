@@ -59,6 +59,12 @@
     "line": "Continue with LINE",
     "social": {
       "processing": "Signing you in..."
+    },
+    "urlError": {
+      "test_restricted": "This test server is restricted to admin accounts only.",
+      "cancelled": "Login was cancelled.",
+      "social_login_failed": "Social login failed. Please try again.",
+      "no_token": "No auth token received. Please try again."
     }
   },
   "register": {

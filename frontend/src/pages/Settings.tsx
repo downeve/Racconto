@@ -218,6 +218,8 @@ export default function Settings() {
   }
 
   const isSocialUser = !!user?.oauth_provider
+  const isLineUser = user?.oauth_provider === 'line'
+  const displayIdentity = isLineUser ? (username || email) : email
 
   const handleWithdraw = async () => {
     if (!isSocialUser && !withdrawPassword) {
@@ -264,7 +266,7 @@ export default function Settings() {
         <div className="flex items-center gap-3 mb-5">
           <div className="w-9 h-9 rounded-full bg-ink-2 flex items-center justify-center">
             <span className="text-canvas text-h3 font-medium">
-              {email ? email[0].toUpperCase() : '?'}
+              {displayIdentity ? displayIdentity[0].toUpperCase() : '?'}
             </span>
           </div>
           <div>
@@ -272,7 +274,7 @@ export default function Settings() {
               {t('settings.currentUser')}
             </p>
             <p className="text-base text-ink font-medium tracking-tight">
-              {email || 'Loading...'}
+              {displayIdentity || 'Loading...'}
             </p>
           </div>
           {tier && (

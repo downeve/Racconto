@@ -488,6 +488,7 @@ function ProjectStory({
   const closeChapterPreview = () => {
     setChapterPreviewOpen(false)
     setTimeout(() => setChapterPreviewId(null), 300)
+    ;(document.activeElement as HTMLElement)?.blur()
   }
 
   // 블록 간 사진 이동 (move modal에서도 호출)
@@ -705,7 +706,10 @@ function ProjectStory({
   }, [])
 
   const onConfirmModal = useCallback((modal: { message: string; onConfirm: () => void }) => {
-    setConfirmModal(modal)
+    setConfirmModal({
+      message: modal.message,
+      onConfirm: () => { setConfirmModal(null); modal.onConfirm() },
+    })
   }, [])
 
   // 0-4: 일괄 이동
@@ -949,7 +953,7 @@ function ProjectStory({
 
                   {/* description — 편집 중이 아닐 때만 표시 */}
                   {chapter.description && editingChapter !== chapter.id && (
-                    <p className="font-serif text-small text-edit-muted max-w-xl [word-break:keep-all] mt-1.5">
+                    <p className="font-serif text-small text-edit-muted max-w-xl [word-break:keep-all] mt-1.5 whitespace-pre-wrap">
                       {chapter.description}
                     </p>
                   )}
@@ -1121,7 +1125,7 @@ function ProjectStory({
 
                           {/* description — 편집 중이 아닐 때만 표시 */}
                           {subChapter.description && editingChapter !== subChapter.id && (
-                            <p className="font-serif text-small text-edit-muted max-w-xl [word-break:keep-all] mt-1.5">
+                            <p className="font-serif text-small text-edit-muted max-w-xl [word-break:keep-all] mt-1.5 whitespace-pre-wrap">
                               {subChapter.description}
                             </p>
                           )}

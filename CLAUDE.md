@@ -212,6 +212,20 @@ style: 이모지 아이콘 → Lucide 아이콘 교체 (ProjectDetail, Navbar)
 
 앞으로 git commit을 생성할 때, 내 로컬 git config에 설정된 이름과 이메일만 사용해. 커밋 메시지 본문이나 하단에 Co-authored-by 같은 AI 기여자 태그를 절대 추가하지 마. 오직 내 기여로만 남게 해줘.
 
+## 브랜치 운용 규칙
+
+- **기본 작업 브랜치: `develop`** — 명시적으로 `main` 머지 지시가 있기 전까지 모든 작업은 `develop`에서 진행
+- **`main` 머지 금지** — "main으로 머지해 줘" 라는 명령 없이는 절대 main에 직접 커밋하거나 머지하지 말 것
+- **테스트 서버**: `test.racconto.app` — `develop` 브랜치 기준으로 배포
+- **프로덕션 서버**: `racconto.app` — `main` 브랜치 기준으로 배포
+
+| 브랜치 | 서버 | 디렉토리 | 백엔드 포트 |
+|--------|------|----------|------------|
+| `main` | racconto.app | /var/www/Racconto | 8000 |
+| `develop` | test.racconto.app | /var/www/Racconto-test | 8001 |
+
+---
+
 ## Claude Code 워킹 트리 관리
 
 Claude Code는 작업 시 `.claude/worktrees/` 아래에 git worktree를 자동 생성한다.

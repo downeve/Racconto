@@ -298,7 +298,7 @@ export default function MobilePublicPortfolio() {
               </p>
             )}
             {selectedProject.description && (
-              <p className={`font-serif text-[15px] leading-[1.65] italic mb-4 [word-break:keep-all] ${subText}`}>
+              <p className={`font-serif text-[15px] leading-[1.65] italic mb-4 [word-break:keep-all] whitespace-pre-wrap ${subText}`}>
                 {selectedProject.description}
               </p>
             )}
@@ -320,7 +320,7 @@ export default function MobilePublicPortfolio() {
                         <p className={`t-eyebrow mb-1.5 ${microcopy}`}>Chapter</p>
                         <h2 className="font-serif text-[22px] tracking-tight font-normal [word-break:keep-all]">{chapter.title}</h2>
                         {chapter.description && (
-                          <p className={`text-sm font-serif mt-2 [word-break:keep-all] leading-relaxed ${subText}`}>
+                          <p className={`text-sm font-serif mt-2 [word-break:keep-all] whitespace-pre-wrap leading-relaxed ${subText}`}>
                             {chapter.description}
                           </p>
                         )}
@@ -341,7 +341,7 @@ export default function MobilePublicPortfolio() {
                             <p className={`t-eyebrow mb-1.5 ${microcopy}`}>Section</p>
                             <h3 className="font-serif text-[18px] tracking-tight font-medium [word-break:keep-all]">{sub.title}</h3>
                             {sub.description && (
-                              <p className={`text-xs font-serif mt-1.5 [word-break:keep-all] leading-relaxed ${subText}`}>
+                              <p className={`text-xs font-serif mt-1.5 [word-break:keep-all] whitespace-pre-wrap leading-relaxed ${subText}`}>
                                 {sub.description}
                               </p>
                             )}
