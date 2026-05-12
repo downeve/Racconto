@@ -309,7 +309,9 @@ export default function PublicPortfolio() {
 
       {/* Sticky top bar: breadcrumb (left) + theme toggle (right) — 로그인 상태에서만 표시 */}
       {isAuthenticated && <div className={`sticky top-0 z-10 border-b backdrop-blur-sm ${barBg}`}>
-        <div className="max-w-4xl mx-auto px-6 h-10 flex items-center justify-between">
+        <div className={`mx-auto px-6 h-10 flex items-center justify-between ${
+          selectedProject || slug ? 'max-w-4xl' : 'max-w-4xl xl:max-w-6xl'
+        }`}>
           {selectedProject ? (
             <button
               onClick={goBackToList}
@@ -338,7 +340,9 @@ export default function PublicPortfolio() {
         </div>
       </div>}
 
-      <div className={`max-w-4xl mx-auto px-6 ${isElectron ? 'pt-4' : 'pt-8'} pb-space-xl`}>
+      <div className={`mx-auto px-6 ${isElectron ? 'pt-4' : 'pt-8'} pb-space-xl ${
+        selectedProject || slug ? 'max-w-4xl' : 'max-w-4xl xl:max-w-6xl'
+      }`}>
 
         {/* Page title */}
         <div id="portfolio-print-start" className="mb-space-md">
@@ -363,7 +367,7 @@ export default function PublicPortfolio() {
 
         {/* Project list */}
         {!selectedProject && !slug && (
-          <div className="grid gap-x-10 gap-y-16 grid-cols-1 md:grid-cols-2">
+          <div className="grid gap-x-8 gap-y-14 grid-cols-1 md:grid-cols-2 xl:grid-cols-3">
             {projects.map(project => (
               <article
                 key={project.id}
@@ -397,7 +401,7 @@ export default function PublicPortfolio() {
               </article>
             ))}
             {projects.length === 0 && (
-              <div className="col-span-2">
+              <div className="col-span-1 md:col-span-2 xl:col-span-3">
                 <EmptyState
                   heading={t('portfolio.noPublicProjects')}
                   darkMode={darkMode}
