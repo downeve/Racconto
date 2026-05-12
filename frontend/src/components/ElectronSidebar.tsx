@@ -83,6 +83,7 @@ export default function ElectronSidebar({ activeTab, onTabChange, showTabs, widt
         setConfirmModal(null)
         triggerRefresh()
         queryClient.invalidateQueries({ queryKey: ['projects'] })
+        queryClient.invalidateQueries({ queryKey: ['trash'] })
         const deleted = projects.find(p => p.id === projectId)
         const isViewing = currentProjectId === projectId || (deleted?.slug && currentProjectId === deleted.slug)
         if (isViewing) navigate('/projects')
