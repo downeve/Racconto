@@ -211,7 +211,7 @@ export default function StoryPreviewModal({
                   <PortfolioChapterItems
                     items={getVisibleChapterItems(chapterPreviewId) as PortfolioChapterItem[]}
                     darkMode={dm}
-                    containerWidth={536}
+                    containerWidth={832}
                   />
                 </div>
               </div>
