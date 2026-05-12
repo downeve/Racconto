@@ -253,7 +253,7 @@ export default function Settings() {
   }
 
   return (
-    <div className="max-w-2xl mx-auto p-6 bg-edit-paper rounded-btn">
+    <div className="max-w-2xl mx-auto my-8 p-6 bg-edit-paper rounded-btn">
       <header className="mb-10">
         <p className="t-eyebrow text-muted mb-2">Account</p>
         <h1 className="font-serif text-[2rem] leading-[1.1] tracking-[-0.015em] font-normal">
