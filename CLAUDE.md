@@ -224,6 +224,26 @@ style: 이모지 아이콘 → Lucide 아이콘 교체 (ProjectDetail, Navbar)
 | `main` | racconto.app | /var/www/Racconto | 8000 |
 | `develop` | test.racconto.app | /var/www/Racconto-test | 8001 |
 
+## 서버 배포 방법
+
+**서버 접속:** `ssh root@172.104.99.68`
+
+### 프로덕션 배포 (`racconto.app` / `main`)
+
+```bash
+ssh root@172.104.99.68 "cd /var/www/Racconto && bash deploy.sh"
+```
+
+`deploy.sh` 내용: `git pull origin main` → `npm ci && npm run build` → `systemctl restart racconto && nginx reload`
+
+### 테스트 서버 배포 (`test.racconto.app` / `develop`)
+
+```bash
+ssh root@172.104.99.68 "cd /var/www/Racconto-test && git pull origin develop && cd frontend && npm run build && systemctl restart racconto-test"
+```
+
+> **주의**: 배포는 항상 커밋·푸시 완료 후 실행. 테스트 서버 배포는 사용자가 요청할 때만.
+
 ---
 
 ## Claude Code 워킹 트리 관리
