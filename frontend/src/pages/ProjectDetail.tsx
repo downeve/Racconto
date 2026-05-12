@@ -730,7 +730,7 @@ export default function ProjectDetail({
       }
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: ['chapterPhotos', numericId] }),
-        queryClient.invalidateQueries({ queryKey: ['storyChapters', id] }),
+        queryClient.refetchQueries({ queryKey: ['storyChapters', id] }),
       ])
     } catch {
       // 오류 무시
@@ -806,7 +806,7 @@ export default function ProjectDetail({
       setShowBulkChapterMenu(false)
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: ['chapterPhotos', numericId] }),
-        queryClient.invalidateQueries({ queryKey: ['storyChapters', id] }),
+        queryClient.refetchQueries({ queryKey: ['storyChapters', id] }),
       ])
       showToast(t('story.addMultiplePhotoSuccess', { count }), 'success')
     } catch (error) {
