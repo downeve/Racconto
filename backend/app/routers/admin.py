@@ -58,6 +58,16 @@ class NoticeRequest(BaseModel):
     content: str
     verified_only: bool = True  # 인증된 유저에게만 발송 여부
 
+class EmailTemplateUpdate(BaseModel):
+    subject:  Optional[str] = None
+    title:    Optional[str] = None
+    desc:     Optional[str] = None
+    validity: Optional[str] = None
+    button:   Optional[str] = None
+    ignore:   Optional[str] = None
+    body:     Optional[str] = None
+    closing:  Optional[str] = None
+
 
 def require_admin(current_user: models.User = Depends(get_current_user)):
     if not current_user.is_admin:
@@ -339,3 +349,46 @@ def cleanup_orphan_images(
         return {"deleted": 0}
     background_tasks.add_task(_delete_cf_ids_parallel, body.image_ids)
     return {"deleted": len(body.image_ids), "message": "CLEANUP_QUEUED"}
+
+
+# ─── Email Templates ──────────────────────────────────────────────────────────
+
+TEMPLATE_KEYS = ["verification", "password_reset", "welcome", "social_welcome", "farewell"]
+LANGS = ["ko", "en", "ja"]
+
+@router.get("/email-templates")
+def get_email_templates(
+    db: Session = Depends(get_db),
+    _: models.User = Depends(require_admin)
+):
+    rows = db.query(models.EmailTemplate).all()
+    result: Dict[str, Any] = {}
+    for row in rows:
+        result[f"{row.key}__{row.lang}"] = {
+            "key": row.key, "lang": row.lang,
+            "subject": row.subject, "title": row.title,
+            "desc": row.desc, "validity": row.validity,
+            "button": row.button, "ignore": row.ignore,
+            "body": row.body, "closing": row.closing,
+        }
+    return result
+
+
+@router.put("/email-templates/{key}/{lang}")
+def upsert_email_template(
+    key: str,
+    lang: str,
+    body: EmailTemplateUpdate,
+    db: Session = Depends(get_db),
+    _: models.User = Depends(require_admin)
+):
+    if key not in TEMPLATE_KEYS or lang not in LANGS:
+        raise HTTPException(status_code=400, detail="INVALID_KEY_OR_LANG")
+    row = db.query(models.EmailTemplate).filter_by(key=key, lang=lang).first()
+    if not row:
+        row = models.EmailTemplate(key=key, lang=lang)
+        db.add(row)
+    for field, val in body.model_dump(exclude_none=True).items():
+        setattr(row, field, val)
+    db.commit()
+    return {"ok": True}

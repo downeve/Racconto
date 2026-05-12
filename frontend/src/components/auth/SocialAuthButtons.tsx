@@ -60,7 +60,7 @@ interface SocialButtonProps {
 
 function SocialButton({ href, variant, label }: SocialButtonProps) {
   const variants: Record<Variant, string> = {
-    google: 'border border-edit-line text-edit-ink hover:border-edit-line-strong hover:bg-edit-paper',
+    google: 'bg-white border border-edit-line text-edit-ink hover:border-edit-line-strong hover:bg-gray-50',
     apple:  'bg-edit-ink text-edit-paper hover:bg-edit-ink/85 border border-edit-ink',
     naver:  'text-white hover:opacity-90',
     line:   'text-white hover:opacity-90',

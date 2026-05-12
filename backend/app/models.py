@@ -195,3 +195,19 @@ class DeliverySelection(Base):
 
     link = relationship("DeliveryLink", back_populates="selections")
     photo = relationship("Photo")
+
+
+class EmailTemplate(Base):
+    __tablename__ = "email_templates"
+    id = Column(Integer, primary_key=True, index=True)
+    key = Column(String(50), nullable=False)    # verification / password_reset / welcome / social_welcome / farewell
+    lang = Column(String(5), nullable=False)    # ko / en / ja
+    subject = Column(String(300))
+    title = Column(String(300))
+    desc = Column(Text)        # verification, password_reset
+    validity = Column(String(300))  # verification, password_reset
+    button = Column(String(200))
+    ignore = Column(String(500))   # verification, password_reset
+    body = Column(Text)        # welcome, social_welcome, farewell
+    closing = Column(Text)     # welcome, social_welcome, farewell
+    __table_args__ = (UniqueConstraint('key', 'lang', name='uq_email_template_key_lang'),)

@@ -6,12 +6,46 @@ BREVO_API_KEY = os.getenv("BREVO_API_KEY")
 FROM_EMAIL = "noreply@racconto.app"
 FROM_NAME = "Racconto"
 
-# 1. API 설정을 전역(Global)으로 빼서 한 번만 초기화합니다.
 configuration = sib_api_v3_sdk.Configuration()
 configuration.api_key['api-key'] = BREVO_API_KEY
 api_instance = sib_api_v3_sdk.TransactionalEmailsApi(
     sib_api_v3_sdk.ApiClient(configuration)
 )
+
+
+def _load_template(key: str, lang: str) -> dict | None:
+    """DB에서 템플릿 로드. 없으면 None 반환."""
+    try:
+        from app.database import SessionLocal
+        from app import models
+        db = SessionLocal()
+        try:
+            row = db.query(models.EmailTemplate).filter_by(key=key, lang=lang).first()
+            if not row:
+                return None
+            return {
+                'subject':  row.subject,
+                'title':    row.title,
+                'desc':     row.desc,
+                'validity': row.validity,
+                'button':   row.button,
+                'ignore':   row.ignore,
+                'body':     row.body,
+                'closing':  row.closing,
+            }
+        finally:
+            db.close()
+    except Exception:
+        return None
+
+
+def _get_template(key: str, lang: str, fallback: dict) -> dict:
+    """DB 템플릿 우선, 없으면 하드코딩 fallback."""
+    db_t = _load_template(key, lang)
+    if not db_t:
+        return fallback
+    # DB에 있는 필드만 덮어쓰고, 없는 필드는 fallback 값 사용
+    return {k: (db_t[k] if db_t.get(k) else fallback.get(k, '')) for k in fallback}
 
 EMAIL_TEMPLATES = {
     'ko': {
@@ -68,7 +102,7 @@ RESET_TEMPLATES = {
 }
 
 def send_password_reset_email(to_email: str, reset_token: str, lang: str = 'ko'):
-    t = RESET_TEMPLATES.get(lang, RESET_TEMPLATES['ko'])
+    t = _get_template('password_reset', lang, RESET_TEMPLATES.get(lang, RESET_TEMPLATES['ko']))
 
     BASE_URL = os.getenv("BASE_URL", "https://racconto.app")
     reset_url = f"{BASE_URL}/reset-password?token={reset_token}"
@@ -125,7 +159,7 @@ def send_password_reset_email(to_email: str, reset_token: str, lang: str = 'ko')
 
 
 def send_verification_email(to_email: str, verify_token: str, lang: str = 'ko'):
-    t = EMAIL_TEMPLATES.get(lang, EMAIL_TEMPLATES['ko'])
+    t = _get_template('verification', lang, EMAIL_TEMPLATES.get(lang, EMAIL_TEMPLATES['ko']))
     
     BASE_URL = os.getenv("BASE_URL", "https://racconto.app")
     verify_url = f"{BASE_URL}/verify-email?token={verify_token}"
@@ -226,7 +260,7 @@ WELCOME_TEMPLATES = {
 
 
 def send_welcome_email(to_email: str, lang: str = 'ko'):
-    t = WELCOME_TEMPLATES.get(lang, WELCOME_TEMPLATES['ko'])
+    t = _get_template('welcome', lang, WELCOME_TEMPLATES.get(lang, WELCOME_TEMPLATES['ko']))
 
     BASE_URL = os.getenv("BASE_URL", "https://racconto.app")
     login_url = f"{BASE_URL}/login"
@@ -318,7 +352,7 @@ SOCIAL_WELCOME_TEMPLATES = {
 
 
 def send_social_welcome_email(to_email: str, lang: str = 'ko'):
-    t = SOCIAL_WELCOME_TEMPLATES.get(lang, SOCIAL_WELCOME_TEMPLATES['ko'])
+    t = _get_template('social_welcome', lang, SOCIAL_WELCOME_TEMPLATES.get(lang, SOCIAL_WELCOME_TEMPLATES['ko']))
 
     BASE_URL = os.getenv("BASE_URL", "https://racconto.app")
     login_url = f"{BASE_URL}/login"
@@ -407,7 +441,7 @@ FAREWELL_TEMPLATES = {
 
 
 def send_farewell_email(to_email: str, lang: str = 'ko'):
-    t = FAREWELL_TEMPLATES.get(lang, FAREWELL_TEMPLATES['ko'])
+    t = _get_template('farewell', lang, FAREWELL_TEMPLATES.get(lang, FAREWELL_TEMPLATES['ko']))
 
     send_smtp_email = sib_api_v3_sdk.SendSmtpEmail(
         to=[{"email": to_email}],

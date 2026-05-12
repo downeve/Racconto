@@ -2,8 +2,8 @@ import { useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import axios from 'axios'
 import {
-  Search, Trash2, X, Pencil, Megaphone,
-  CheckCircle2, XCircle, LogOut,
+  Search, Trash2, X, Pencil, Megaphone, Mail,
+  CheckCircle2, XCircle, LogOut, ChevronDown,
 } from 'lucide-react'
 import { Wordmark } from '../components/Wordmark'
 import { Spinner } from '../components/Spinner'
@@ -75,6 +75,178 @@ function UsageBar({ value, limit }: { value: number; limit: number }) {
   return (
     <div className="w-full bg-edit-line h-1.5 rounded-[1px] overflow-hidden mt-1">
       <div className={`h-full ${color} transition-all duration-200`} style={{ width: `${pct}%` }} />
+    </div>
+  )
+}
+
+// ─── EmailTemplatesSection ────────────────────────────────────────────────────
+type TemplateKey = 'verification' | 'password_reset' | 'welcome' | 'social_welcome' | 'farewell'
+type Lang = 'ko' | 'en' | 'ja'
+
+interface TemplateFields {
+  subject?: string; title?: string; desc?: string; validity?: string
+  button?: string; ignore?: string; body?: string; closing?: string
+}
+type AllTemplates = Record<string, TemplateFields>
+
+const TEMPLATE_META: { key: TemplateKey; label: string; fields: (keyof TemplateFields)[] }[] = [
+  { key: 'verification',    label: '이메일 인증',        fields: ['subject','title','desc','validity','button','ignore'] },
+  { key: 'password_reset',  label: '비밀번호 재설정',    fields: ['subject','title','desc','validity','button','ignore'] },
+  { key: 'welcome',         label: '가입 환영',          fields: ['subject','title','body','button','closing'] },
+  { key: 'social_welcome',  label: '소셜 가입 환영',     fields: ['subject','title','body','button','closing'] },
+  { key: 'farewell',        label: '탈퇴 안내',          fields: ['subject','title','body','closing'] },
+]
+const FIELD_LABEL: Record<keyof TemplateFields, string> = {
+  subject: 'Subject (제목)', title: 'Title (헤더)', desc: 'Description (본문 설명)',
+  validity: 'Validity (유효 시간 안내)', button: 'Button (버튼 텍스트)',
+  ignore: 'Ignore notice (무시 안내)', body: 'Body (본문)', closing: 'Closing (맺음말)',
+}
+const MULTILINE_FIELDS = new Set<keyof TemplateFields>(['desc', 'body', 'closing'])
+const LANGS: Lang[] = ['ko', 'en', 'ja']
+
+const EmailTemplatesSection = () => {
+  const [open, setOpen] = useState(false)
+  const [templates, setTemplates] = useState<AllTemplates>({})
+  const [selectedKey, setSelectedKey] = useState<TemplateKey>('verification')
+  const [selectedLang, setSelectedLang] = useState<Lang>('ko')
+  const [draft, setDraft] = useState<TemplateFields>({})
+  const [saving, setSaving] = useState(false)
+  const [toast, setToast] = useState<{ message: string; ok: boolean } | null>(null)
+
+  const showToast = (message: string, ok: boolean) => {
+    setToast({ message, ok })
+    setTimeout(() => setToast(null), 3000)
+  }
+
+  const fetchTemplates = async () => {
+    try {
+      const res = await adminAxios.get(`${API}/racconto-admin/email-templates`)
+      setTemplates(res.data)
+    } catch { /* ignore */ }
+  }
+
+  useEffect(() => { if (open) fetchTemplates() }, [open])
+
+  useEffect(() => {
+    const stored = templates[`${selectedKey}__${selectedLang}`] ?? {}
+    setDraft({ ...stored })
+  }, [selectedKey, selectedLang, templates])
+
+  const meta = TEMPLATE_META.find(m => m.key === selectedKey)!
+
+  const handleSave = async () => {
+    setSaving(true)
+    try {
+      await adminAxios.put(`${API}/racconto-admin/email-templates/${selectedKey}/${selectedLang}`, draft)
+      await fetchTemplates()
+      showToast('저장되었습니다.', true)
+    } catch {
+      showToast('저장 실패.', false)
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  return (
+    <div className="mb-8">
+      <button
+        onClick={() => setOpen(v => !v)}
+        className="inline-flex items-center gap-2 t-caption px-4 py-2
+                   border border-edit-line rounded-[1px] hover:bg-edit-paper transition-colors"
+      >
+        <Mail size={12} strokeWidth={1.5} />
+        이메일 템플릿 관리
+        <ChevronDown size={12} strokeWidth={1.5} className={`transition-transform ${open ? 'rotate-180' : ''}`} />
+      </button>
+
+      {open && (
+        <div className="mt-3 border border-edit-line rounded-[1px] p-5 max-w-2xl">
+          {/* 템플릿 타입 선택 */}
+          <div className="flex flex-wrap gap-1.5 mb-4">
+            {TEMPLATE_META.map(m => (
+              <button
+                key={m.key}
+                onClick={() => setSelectedKey(m.key)}
+                className={`t-caption px-3 py-1.5 rounded-[1px] border transition-colors
+                  ${selectedKey === m.key
+                    ? 'bg-edit-ink text-edit-paper border-edit-ink'
+                    : 'border-edit-line text-edit-muted hover:border-edit-ink hover:text-edit-ink'}`}
+              >
+                {m.label}
+              </button>
+            ))}
+          </div>
+
+          {/* 언어 선택 */}
+          <div className="flex gap-1.5 mb-5">
+            {LANGS.map(lang => (
+              <button
+                key={lang}
+                onClick={() => setSelectedLang(lang)}
+                className={`t-caption px-3 py-1 rounded-[1px] border transition-colors uppercase
+                  ${selectedLang === lang
+                    ? 'bg-edit-ink text-edit-paper border-edit-ink'
+                    : 'border-edit-line text-edit-muted hover:border-edit-ink hover:text-edit-ink'}`}
+              >
+                {lang}
+              </button>
+            ))}
+          </div>
+
+          {/* 필드 편집 */}
+          <div className="space-y-4">
+            {meta.fields.map(field => (
+              <div key={field}>
+                <p className="t-eyebrow text-edit-muted mb-1">{FIELD_LABEL[field]}</p>
+                {MULTILINE_FIELDS.has(field) ? (
+                  <textarea
+                    value={draft[field] ?? ''}
+                    onChange={e => setDraft(d => ({ ...d, [field]: e.target.value }))}
+                    rows={3}
+                    placeholder="(하드코딩 기본값 사용)"
+                    className="w-full font-serif text-body bg-transparent border-0 border-b
+                               border-edit-line focus:border-edit-ink focus:outline-none py-2
+                               placeholder:text-edit-faint resize-none transition-colors"
+                  />
+                ) : (
+                  <input
+                    type="text"
+                    value={draft[field] ?? ''}
+                    onChange={e => setDraft(d => ({ ...d, [field]: e.target.value }))}
+                    placeholder="(하드코딩 기본값 사용)"
+                    className="w-full font-serif text-body bg-transparent border-0 border-b
+                               border-edit-line focus:border-edit-ink focus:outline-none py-2
+                               placeholder:text-edit-faint transition-colors"
+                  />
+                )}
+              </div>
+            ))}
+          </div>
+
+          {toast && (
+            <p className={`t-caption mt-4 inline-flex items-center gap-1.5
+                           ${toast.ok ? 'text-edit-warning' : 'text-edit-danger'}`}>
+              {toast.ok
+                ? <CheckCircle2 size={11} strokeWidth={1.5} />
+                : <XCircle size={11} strokeWidth={1.5} />}
+              {toast.message}
+            </p>
+          )}
+
+          <div className="mt-5">
+            <button
+              onClick={handleSave}
+              disabled={saving}
+              className="inline-flex items-center gap-2 t-caption px-5 py-2.5
+                         bg-edit-ink text-edit-paper rounded-[1px]
+                         hover:bg-edit-ink/85 disabled:opacity-40 transition-colors"
+            >
+              {saving && <Spinner size={11} />}
+              {saving ? 'Saving...' : '저장'}
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
@@ -675,6 +847,7 @@ export default function Admin() {
 
         <ExternalStatsSection />
         <OrphanSection />
+        <EmailTemplatesSection />
 
         {/* Infrastructure Costs */}
         <div className="mb-8">
