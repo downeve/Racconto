@@ -270,7 +270,7 @@ export default function Settings() {
             </span>
           </div>
           <div>
-            <p className="t-eyebrow text-faint mb-0.5">
+            <p className="t-eyebrow text-muted mb-0.5">
               {t('settings.currentUser')}
             </p>
             <p className="text-base text-ink font-medium tracking-tight">
@@ -285,7 +285,7 @@ export default function Settings() {
         </div>
         <div className="grid grid-cols-2 gap-0 divide-x divide-hair">
           <div className="py-3 pr-4">
-            <p className="t-eyebrow text-faint mb-1">{t('settings.usage.projects')}</p>
+            <p className="t-eyebrow text-muted mb-1">{t('settings.usage.projects')}</p>
             <p className="text-sm font-medium text-ink">
               {projectCount} / {projectLimit}
             </p>
@@ -297,7 +297,7 @@ export default function Settings() {
             </div>
           </div>
           <div className="py-3 pl-4">
-            <p className="t-eyebrow text-faint mb-1">{t('settings.usage.photos')}</p>
+            <p className="t-eyebrow text-muted mb-1">{t('settings.usage.photos')}</p>
             <p className="text-sm font-medium text-ink">
               {photoCount} / {photoLimit}
             </p>
