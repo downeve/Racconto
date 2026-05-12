@@ -10,6 +10,11 @@ export default {
     "./index.html",
     "./src/**/*.{js,ts,jsx,tsx}",
   ],
+  safelist: [
+    'xl:max-w-6xl',
+    'xl:grid-cols-3',
+    'xl:col-span-3',
+  ],
   theme: {
     extend: {
       colors: {
