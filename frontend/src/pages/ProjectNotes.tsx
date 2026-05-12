@@ -1,4 +1,4 @@
-import { useState, useRef, useMemo, memo } from 'react'
+import { useState, useRef, useMemo, memo, useEffect } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { createPortal } from 'react-dom'
 import axios from 'axios'
@@ -303,6 +303,13 @@ function ProjectNotes({
   })
 
   const invalidateNotes = () => queryClient.invalidateQueries({ queryKey: ['notes', projectId] })
+
+  // Notes 탭 진입 시 항상 최신 데이터 보장
+  useEffect(() => {
+    if (activeTab === 'notes') {
+      queryClient.invalidateQueries({ queryKey: ['notes', projectId] })
+    }
+  }, [activeTab, projectId, queryClient])
 
   const addMutation = useMutation({
     mutationFn: (data: { content: string; note_type: string }) =>
