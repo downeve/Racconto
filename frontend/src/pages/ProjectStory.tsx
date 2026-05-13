@@ -3,7 +3,7 @@ import { createPortal } from 'react-dom'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import axios from 'axios'
 import { useTranslation } from 'react-i18next'
-import { Eye, Plus, Grid3X3, Rows3, Square } from 'lucide-react'
+import { Eye, Plus, Grid3X3, Rows3, Square, Images } from 'lucide-react'
 import ConfirmModal from '../components/ConfirmModal'
 import {
   type ChapterItem as StoryChapterItem,
@@ -18,6 +18,7 @@ import {
   sortableKeyboardCoordinates,
 } from '@dnd-kit/sortable';
 import { StoryChapter } from './story/StoryChapter'
+import PhotoLibraryPanel from '../components/PhotoLibraryPanel'
 import StoryLightbox from './story/StoryLightbox'
 import StoryPreviewModal from './story/StoryPreviewModal'
 
@@ -61,12 +62,15 @@ interface StorySidebarContentProps {
   setChapterPreviewId: (v: string) => void
   setChapterPreviewOpen: (v: boolean) => void
   handleMoveChapter: (chapterId: string, direction: 'up' | 'down') => void
+  showLibrary: boolean
+  setShowLibrary: (v: boolean) => void
 }
 
 function StorySidebarContent({
   chapters, collapsedChapters, setCollapsedChapters,
   scrollToChapter, setShowAddChapter, setAddingSubChapterTo,
   setShowPreview, setChapterPreviewId, setChapterPreviewOpen, handleMoveChapter,
+  showLibrary, setShowLibrary,
 }: StorySidebarContentProps) {
   const { t } = useTranslation()
 
@@ -86,12 +90,26 @@ function StorySidebarContent({
       {/* 미리보기 */}
       <button
         onClick={() => setShowPreview(true)}
-        className="w-full mb-3 px-3 py-2 rounded-[1px] inline-flex justify-center items-center gap-2 text-[0.8125rem] font-sans font-medium
+        className="w-full mb-1.5 px-3 py-2 rounded-[1px] inline-flex justify-center items-center gap-2 text-[0.8125rem] font-sans font-medium
                    border border-edit-line text-edit-muted hover:text-edit-ink hover:border-edit-line-strong
                    transition-colors duration-150"
       >
         <Eye size={13} strokeWidth={1.5} />
         <span>{t('story.preview')}</span>
+      </button>
+
+      {/* 사진 라이브러리 토글 */}
+      <button
+        onClick={() => setShowLibrary(!showLibrary)}
+        className={`w-full mb-3 px-3 py-2 rounded-[1px] inline-flex justify-center items-center gap-2 text-[0.8125rem] font-sans font-medium
+                   border transition-colors duration-150
+                   ${showLibrary
+                     ? 'border-edit-ink bg-edit-ink/5 text-edit-ink'
+                     : 'border-edit-line text-edit-muted hover:text-edit-ink hover:border-edit-line-strong'
+                   }`}
+      >
+        <Images size={13} strokeWidth={1.5} />
+        <span>{t('story.photoLibrary')}</span>
       </button>
 
       <div className="mx-1 mb-3 border-t border-edit-line" />
@@ -319,8 +337,20 @@ function ProjectStory({
 
   const [showNotePanel, setShowNotePanel] = useState(false)
   const [collapsedChapters, setCollapsedChapters] = useState<Set<string>>(new Set())
+  const [showLibrary, setShowLibrary] = useState(false)
   // O(N²) 성능 저하를 막기 위한 Set(해시테이블) 캐싱
   const allPhotoIds = useMemo(() => new Set(allPhotos.map(p => p.id)), [allPhotos]);
+
+  // 라이브러리 패널용: 챕터별 이미 추가된 photo_id Set
+  const chapterPhotoIds = useMemo(() => {
+    const result: Record<string, Set<string>> = {}
+    Object.entries(chapterPhotos).forEach(([cid, items]) => {
+      result[cid] = new Set(
+        items.filter(i => i.item_type === 'PHOTO' && i.photo_id).map(i => i.photo_id!)
+      )
+    })
+    return result
+  }, [chapterPhotos])
 
   //useEffect(() => { localStorage.setItem('story.ghostMode', String(ghostMode)) }, [ghostMode])
 
@@ -778,6 +808,8 @@ function ProjectStory({
         setChapterPreviewId={setChapterPreviewId}
         setChapterPreviewOpen={setChapterPreviewOpen}
         handleMoveChapter={handleMoveChapter}
+        showLibrary={showLibrary}
+        setShowLibrary={setShowLibrary}
       />,
       sidebarSlot
     )}
@@ -843,6 +875,16 @@ function ProjectStory({
         />
       )
     })()}
+
+      {showLibrary && (
+        <PhotoLibraryPanel
+          photos={allPhotos}
+          chapters={chapters}
+          projectId={projectId}
+          chapterPhotoIds={chapterPhotoIds}
+          onClose={() => setShowLibrary(false)}
+        />
+      )}
 
       <div className="flex-1 max-w-5xl flex flex-col gap-4">
 

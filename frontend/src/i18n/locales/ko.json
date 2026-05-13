@@ -359,7 +359,10 @@
     "deselectAll": "선택 해제",
     "bulkDeleteConfirm": "선택한 {{count}}장을 삭제할까요? 연결도 해제됩니다.",
     "layoutGuide": "이미지 레이아웃 가이드",
-    "layoutGuide2": "(포트폴리오 기준)"
+    "layoutGuide2": "(포트폴리오 기준)",
+    "photoLibrary": "사진 라이브러리",
+    "addToChapterCount": "{{count}}장 추가",
+    "noPhotos": "사진이 없습니다."
   },
   "note": {
     "title": "노트",

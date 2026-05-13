@@ -359,7 +359,10 @@
     "deselectAll": "Deselect All",
     "bulkDeleteConfirm": "Delete {{count}} selected photos? Connections will also be removed.",
     "layoutGuide": "Image Layout Guide",
-    "layoutGuide2": "(in Portfolio)"
+    "layoutGuide2": "(in Portfolio)",
+    "photoLibrary": "Photo Library",
+    "addToChapterCount": "Add {{count}}",
+    "noPhotos": "No photos yet."
   },
   "note": {
     "title": "Note",
