@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import type { CSSProperties } from 'react'
 import MarkdownRenderer from './MarkdownRenderer'
 import { cfUrl } from '../utils/cfImage'
 import PhotoReveal from './PhotoReveal'
@@ -155,20 +156,50 @@ export default function PortfolioChapterItems({
     // Side-by-side 블록
     if (group.type === 'SIDE') {
       const sidePhotos = group.photos
+      const isPhotoRight = group.blockType === 'side-right'
+
+      // 캡 적용 여부 판정: 세로 사진(ratio < 1)이고 역수가 1.33 초과인 경우
+      const sideRatios = sidePhotos.map(p => imageRatios[p.image_url || ''])
+      const hasCapped = sideRatios.some(r => r !== undefined && r < 1 && (1 / r) > 1.33)
+      const sideGap = hasCapped ? 24 : 28
+      const photoColWidth = ((effectiveWidth - sideGap) * 3) / 5  // flex 3/(3+2)
 
       const sidePhotoContent = (
         <div className="space-y-2">
-          {sidePhotos.map(photo => (
-            <div key={photo.id} className="break-inside-avoid rounded-photo">
-              <img
-                src={cfUrl(photo.image_url, 'public')}
-                alt={photo.caption || ''}
-                loading="lazy"
-                className="w-full rounded-photo cursor-pointer hover:opacity-90 transition-opacity block"
-                onClick={() => onLightbox?.(photo as PortfolioPhoto, allLightboxItems)}
-              />
-            </div>
-          ))}
+          {sidePhotos.map(photo => {
+            const ratio = imageRatios[photo.image_url || '']
+            const isPortraitCapped =
+              ratio !== undefined && ratio < 1 && (1 / ratio) > 1.33
+            const capStyle: CSSProperties | undefined = isPortraitCapped
+              ? {
+                  maxHeight: `${photoColWidth * 1.33}px`,
+                  width: 'auto',
+                  height: 'auto',
+                  // 텍스트와 마주보는 안쪽 가장자리 정렬
+                  marginLeft: isPhotoRight ? undefined : 'auto',
+                  marginRight: isPhotoRight ? 'auto' : undefined,
+                  display: 'block',
+                }
+              : undefined
+
+            return (
+              <div key={photo.id} className="break-inside-avoid rounded-photo">
+                <img
+                  src={cfUrl(photo.image_url, 'public')}
+                  alt={photo.caption || ''}
+                  loading="lazy"
+                  className={
+                    isPortraitCapped
+                      ? 'rounded-photo cursor-pointer hover:opacity-90 transition-opacity'
+                      : 'w-full rounded-photo cursor-pointer hover:opacity-90 transition-opacity block'
+                  }
+                  style={capStyle}
+                  onLoad={(e) => handleImageLoad(photo.image_url || '', e)}
+                  onClick={() => onLightbox?.(photo as PortfolioPhoto, allLightboxItems)}
+                />
+              </div>
+            )
+          })}
         </div>
       )
 
@@ -191,8 +222,8 @@ export default function PortfolioChapterItems({
       ) : null
 
       result.push(
-        <div key={`side-${bid}`} className="flex my-space-md items-start" style={{ gap: '28px', width: `${effectiveWidth}px` }}>
-          {group.blockType === 'side-right' ? <>{photoCol}{textCol}</> : <>{textCol}{photoCol}</>}
+        <div key={`side-${bid}`} className="flex my-space-md items-start" style={{ gap: `${sideGap}px`, width: `${effectiveWidth}px` }}>
+          {isPhotoRight ? <>{photoCol}{textCol}</> : <>{textCol}{photoCol}</>}
         </div>
       )
       return
