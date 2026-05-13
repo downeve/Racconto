@@ -1,11 +1,24 @@
 import ReactMarkdown from 'react-markdown'
 import remarkBreaks from 'remark-breaks'
 import remarkGfm from 'remark-gfm'
+import rehypeRaw from 'rehype-raw'
 
 interface Props {
   content: string
   className?: string
   darkMode?: boolean
+}
+
+// remark의 emphasis delimiter 규칙 한계 보완:
+// **text:** 처럼 닫는 ** 바로 앞에 구두점(:, ( 등)이 오면
+// CommonMark flanking 규칙상 파싱 실패하는 경우가 있어 직접 치환.
+function preprocessBoldItalic(text: string): string {
+  let result = text
+  // ** bold → <strong> (single * 보다 먼저 처리)
+  result = result.replace(/(?<!\\)\*\*([^*\n]+?)\*\*/g, '<strong>$1</strong>')
+  // * italic
+  result = result.replace(/(?<!\\)\*([^*\n]+?)\*/g, '<em>$1</em>')
+  return result
 }
 
 export default function MarkdownRenderer({ content, className = '', darkMode = false }: Props) {
@@ -16,6 +29,7 @@ export default function MarkdownRenderer({ content, className = '', darkMode = f
     <div className={className}>
     <ReactMarkdown
       remarkPlugins={[remarkGfm, remarkBreaks]}
+      rehypePlugins={[rehypeRaw]}
       components={{
         p: ({ children }) => (
         <p className={`text-body mb-4 last:mb-0 break-words ${baseText}`}>
@@ -44,7 +58,7 @@ export default function MarkdownRenderer({ content, className = '', darkMode = f
         pre:  ({ children }) => <div className="font-mono text-small overflow-x-hidden break-words">{children}</div>,
       }}
     >
-      {content}
+      {preprocessBoldItalic(content)}
     </ReactMarkdown>
     </div>
   )
