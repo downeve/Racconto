@@ -876,16 +876,6 @@ function ProjectStory({
       )
     })()}
 
-      {showLibrary && (
-        <PhotoLibraryPanel
-          photos={allPhotos}
-          chapters={chapters}
-          projectId={projectId}
-          chapterPhotoIds={chapterPhotoIds}
-          onClose={() => setShowLibrary(false)}
-        />
-      )}
-
       <div className="flex-1 max-w-5xl flex flex-col gap-4">
 
         {/* 챕터 추가 폼 — 사이드바 버튼 클릭 시 표시 */}
@@ -1253,6 +1243,16 @@ function ProjectStory({
         )}
         </div>
       </div>
+
+      {showLibrary && (
+        <PhotoLibraryPanel
+          photos={allPhotos}
+          chapters={chapters}
+          projectId={projectId}
+          chapterPhotoIds={chapterPhotoIds}
+          onClose={() => setShowLibrary(false)}
+        />
+      )}
 
       {selectedPhotoIndex !== null && currentChapterPhotos[selectedPhotoIndex] && (
         <StoryLightbox
