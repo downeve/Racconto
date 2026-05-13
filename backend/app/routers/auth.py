@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, BackgroundTasks, status
+from fastapi import APIRouter, Depends, HTTPException, BackgroundTasks, Request, status
 from fastapi.security import OAuth2PasswordRequestForm
 from app.auth import verify_password, create_access_token, get_password_hash, get_current_user
 from app.database import get_db
@@ -20,9 +20,27 @@ import time
 import os
 
 _ssl_ctx = ssl.create_default_context(cafile=certifi.where())
+
+def _record_activity(user_id: str, ip: str) -> None:
+    """하루 1회 user_activities upsert (백그라운드 태스크)"""
+    from app.database import SessionLocal
+    from datetime import date
+    db = SessionLocal()
+    try:
+        today = date.today()
+        exists = db.query(models.UserActivity).filter_by(
+            user_id=user_id, date=today
+        ).first()
+        if not exists:
+            db.add(models.UserActivity(user_id=user_id, date=today, ip_address=ip or None))
+            db.commit()
+    except Exception as e:
+        db.rollback()
+        print(f"[activity] record error: {e}")
+    finally:
+        db.close()
 _google_jwks_client = PyJWKClient("https://www.googleapis.com/oauth2/v3/certs", cache_keys=True, ssl_context=_ssl_ctx)
 _apple_jwks_client = PyJWKClient("https://appleid.apple.com/auth/keys", cache_keys=True, ssl_context=_ssl_ctx)
-from starlette.requests import Request
 from starlette.responses import RedirectResponse, Response
 
 GOOGLE_CLIENT_ID = os.getenv("GOOGLE_CLIENT_ID")
@@ -174,9 +192,17 @@ def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depend
 
 @router.get("/me")
 def get_me(
+    request: Request,
+    background_tasks: BackgroundTasks,
     current_user: models.User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
+    ip = (
+        request.headers.get("X-Real-IP")
+        or request.headers.get("X-Forwarded-For", "").split(",")[0].strip()
+        or (request.client.host if request.client else "")
+    )
+    background_tasks.add_task(_record_activity, current_user.id, ip)
     project_count = db.query(models.Project).filter(
         models.Project.user_id == current_user.id,
         models.Project.deleted_at == None

@@ -1,4 +1,4 @@
-from sqlalchemy import Column, String, Text, DateTime, Enum, ForeignKey, Integer, Boolean, UniqueConstraint
+from sqlalchemy import Column, String, Text, DateTime, Date, Enum, ForeignKey, Integer, Boolean, UniqueConstraint
 from sqlalchemy.orm import relationship
 from app.database import Base
 from datetime import datetime
@@ -211,3 +211,13 @@ class EmailTemplate(Base):
     body = Column(Text)        # welcome, social_welcome, farewell
     closing = Column(Text)     # welcome, social_welcome, farewell
     __table_args__ = (UniqueConstraint('key', 'lang', name='uq_email_template_key_lang'),)
+
+
+class UserActivity(Base):
+    __tablename__ = "user_activities"
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(String, ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
+    date = Column(Date, nullable=False, index=True)
+    ip_address = Column(String, nullable=True)
+    ip_country = Column(String(2), nullable=True)  # ISO 국가코드, ip-api.com으로 lazy resolve
+    __table_args__ = (UniqueConstraint('user_id', 'date', name='uq_user_activity_user_date'),)

@@ -89,6 +89,107 @@ def require_admin(current_user: models.User = Depends(get_current_user)):
     return current_user
 
 
+def _resolve_ip_countries(db, unresolved: list) -> None:
+    """ip-api.com 배치 API로 IP → 국가코드 해석 후 DB에 캐시"""
+    from collections import defaultdict
+    ip_to_ids: dict[str, list[int]] = defaultdict(list)
+    local_ips = {'', '127.0.0.1', '::1', 'localhost'}
+    for a in unresolved:
+        if a.ip_address and a.ip_address not in local_ips:
+            ip_to_ids[a.ip_address].append(a.id)
+        else:
+            a.ip_country = 'LOCAL'
+
+    unique_ips = list(ip_to_ids.keys())
+    ip_country_map: dict[str, str] = {}
+
+    for i in range(0, len(unique_ips), 100):
+        batch = unique_ips[i:i + 100]
+        try:
+            res = requests.post(
+                "http://ip-api.com/batch?fields=countryCode,query",
+                json=[{"query": ip} for ip in batch],
+                timeout=5,
+            )
+            if res.status_code == 200:
+                for item in res.json():
+                    cc = item.get("countryCode", "")
+                    if cc and cc != "":
+                        ip_country_map[item["query"]] = cc
+        except Exception as e:
+            print(f"[ip-api] resolve error: {e}")
+
+    for a in unresolved:
+        if a.ip_address in ip_country_map:
+            a.ip_country = ip_country_map[a.ip_address]
+    try:
+        db.commit()
+    except Exception:
+        db.rollback()
+
+
+@router.get("/activity-stats")
+def get_activity_stats(
+    db: Session = Depends(get_db),
+    _: models.User = Depends(require_admin),
+):
+    from datetime import date, timedelta
+    today = date.today()
+
+    # 미해석 IP 일괄 처리
+    unresolved = db.query(models.UserActivity).filter(
+        models.UserActivity.ip_country == None
+    ).all()
+    if unresolved:
+        _resolve_ip_countries(db, unresolved)
+
+    # DAU / WAU / MAU
+    def active_users(days_back: int) -> int:
+        return db.query(func.count(func.distinct(models.UserActivity.user_id))).filter(
+            models.UserActivity.date >= today - timedelta(days=days_back - 1)
+        ).scalar() or 0
+
+    dau = active_users(1)
+    wau = active_users(7)
+    mau = active_users(30)
+
+    # 최근 30일 일별 활성 유저 수
+    daily_rows = (
+        db.query(
+            models.UserActivity.date,
+            func.count(func.distinct(models.UserActivity.user_id)).label("count"),
+        )
+        .filter(models.UserActivity.date >= today - timedelta(days=29))
+        .group_by(models.UserActivity.date)
+        .order_by(models.UserActivity.date)
+        .all()
+    )
+
+    # 최근 30일 국가 분포
+    country_rows = (
+        db.query(
+            models.UserActivity.ip_country,
+            func.count(func.distinct(models.UserActivity.user_id)).label("count"),
+        )
+        .filter(
+            models.UserActivity.date >= today - timedelta(days=29),
+            models.UserActivity.ip_country != None,
+            models.UserActivity.ip_country != "LOCAL",
+        )
+        .group_by(models.UserActivity.ip_country)
+        .order_by(func.count(func.distinct(models.UserActivity.user_id)).desc())
+        .all()
+    )
+
+    return {
+        "dau": dau,
+        "wau": wau,
+        "mau": mau,
+        "daily": [{"date": str(r.date), "count": r.count} for r in daily_rows],
+        "countries": [{"country": r.ip_country, "count": r.count} for r in country_rows],
+    }
+
+
 @router.get("/users")
 def get_users(
     db: Session = Depends(get_db),

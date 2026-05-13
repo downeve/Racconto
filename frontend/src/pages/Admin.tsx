@@ -133,6 +133,125 @@ const DEFAULTS: Record<TemplateKey, Record<Lang, TemplateFields>> = {
   },
 }
 
+// ─── ActivityStatsSection ─────────────────────────────────────────────────────
+interface ActivityStats {
+  dau: number
+  wau: number
+  mau: number
+  daily: { date: string; count: number }[]
+  countries: { country: string; count: number }[]
+}
+
+const COUNTRY_NAME: Record<string, string> = {
+  KR: '한국', JP: '일본', US: '미국', GB: '영국', DE: '독일',
+  FR: '프랑스', CN: '중국', TW: '대만', SG: '싱가포르', AU: '호주',
+  CA: '캐나다', NL: '네덜란드', HK: '홍콩',
+}
+
+const ActivityStatsSection = () => {
+  const [data, setData] = useState<ActivityStats | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [open, setOpen] = useState(false)
+
+  useEffect(() => {
+    if (!open) return
+    setLoading(true)
+    adminAxios.get(`${API}/racconto-admin/activity-stats`)
+      .then(res => setData(res.data))
+      .catch(err => console.error('activity-stats 조회 실패', err))
+      .finally(() => setLoading(false))
+  }, [open])
+
+  const maxDaily = data ? Math.max(...data.daily.map(d => d.count), 1) : 1
+
+  return (
+    <div className="mb-10">
+      <button
+        onClick={() => setOpen(v => !v)}
+        className="flex items-center gap-2 t-eyebrow text-edit-muted hover:text-edit-ink transition-colors mb-3"
+      >
+        <ChevronDown size={12} strokeWidth={1.5} className={`transition-transform ${open ? '' : '-rotate-90'}`} />
+        Active Users
+      </button>
+
+      {open && (
+        loading ? (
+          <div className="py-6 flex items-center gap-2 text-edit-muted">
+            <Spinner size={14} /> <span className="t-caption">불러오는 중...</span>
+          </div>
+        ) : !data ? (
+          <div className="t-caption text-edit-danger py-4">데이터 없음</div>
+        ) : (
+          <div className="space-y-6">
+            {/* DAU / WAU / MAU */}
+            <div className="grid grid-cols-3 border border-edit-line rounded-[1px]">
+              {[
+                { label: 'DAU', sub: '오늘', value: data.dau },
+                { label: 'WAU', sub: '최근 7일', value: data.wau },
+                { label: 'MAU', sub: '최근 30일', value: data.mau },
+              ].map((s, i) => (
+                <div key={s.label} className={`px-6 py-5 ${i > 0 ? 'border-l border-edit-line' : ''}`}>
+                  <p className="t-eyebrow text-edit-muted mb-1">{s.label} <span className="normal-case font-sans opacity-60">({s.sub})</span></p>
+                  <p className="font-serif text-h2 font-normal tracking-tight">{s.value.toLocaleString()}</p>
+                </div>
+              ))}
+            </div>
+
+            {/* 일별 bar chart */}
+            {data.daily.length > 0 && (
+              <div>
+                <p className="t-eyebrow text-edit-muted mb-3">Daily Active Users (최근 30일)</p>
+                <div className="border border-edit-line rounded-[1px] p-4">
+                  <div className="flex items-end gap-[3px] h-24">
+                    {data.daily.map(d => (
+                      <div
+                        key={d.date}
+                        className="flex-1 bg-edit-accent/70 hover:bg-edit-accent rounded-sm transition-colors relative group"
+                        style={{ height: `${Math.max((d.count / maxDaily) * 100, 4)}%` }}
+                      >
+                        <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-1 px-1.5 py-0.5 bg-edit-ink text-edit-paper t-caption rounded whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10">
+                          {d.date.slice(5)} · {d.count}명
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                  <div className="flex justify-between mt-1.5">
+                    <span className="t-caption text-edit-faint">{data.daily[0]?.date.slice(5)}</span>
+                    <span className="t-caption text-edit-faint">{data.daily[data.daily.length - 1]?.date.slice(5)}</span>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* 국가 분포 */}
+            {data.countries.length > 0 && (
+              <div>
+                <p className="t-eyebrow text-edit-muted mb-3">국가 분포 (최근 30일)</p>
+                <div className="border border-edit-line rounded-[1px] overflow-hidden">
+                  {data.countries.map((c, i) => {
+                    const total = data.countries.reduce((s, x) => s + x.count, 0)
+                    const pct = Math.round((c.count / total) * 100)
+                    return (
+                      <div key={c.country} className={`flex items-center gap-4 px-4 py-2.5 ${i > 0 ? 'border-t border-edit-line' : ''}`}>
+                        <span className="t-eyebrow text-edit-muted w-8">{c.country}</span>
+                        <span className="text-small text-edit-ink flex-1">{COUNTRY_NAME[c.country] ?? c.country}</span>
+                        <div className="w-32 h-1.5 bg-edit-line rounded-full overflow-hidden">
+                          <div className="h-full bg-edit-accent rounded-full" style={{ width: `${pct}%` }} />
+                        </div>
+                        <span className="t-caption text-edit-muted w-12 text-right">{c.count}명 ({pct}%)</span>
+                      </div>
+                    )
+                  })}
+                </div>
+              </div>
+            )}
+          </div>
+        )
+      )}
+    </div>
+  )
+}
+
 const EmailTemplatesSection = () => {
   const [open, setOpen] = useState(false)
   const [templates, setTemplates] = useState<AllTemplates>({})
@@ -880,6 +999,7 @@ export default function Admin() {
           </div>
         )}
 
+        <ActivityStatsSection />
         <ExternalStatsSection />
         <OrphanSection />
         <EmailTemplatesSection />
