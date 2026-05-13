@@ -294,7 +294,9 @@ def update_username(
         raise HTTPException(status_code=400, detail="USERNAME_TOO_LONG")
     
     import re
-    if not re.match(r'^[a-zA-Z0-9_-]+$', body.username):
+    if not re.match(r'^[a-zA-Z0-9][a-zA-Z0-9_.-]*[a-zA-Z0-9]$', body.username):
+        raise HTTPException(status_code=400, detail="USERNAME_INVALID_CHARS")
+    if '..' in body.username:
         raise HTTPException(status_code=400, detail="USERNAME_INVALID_CHARS")
         
     existing = db.query(models.User).filter(

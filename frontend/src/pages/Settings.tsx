@@ -180,7 +180,7 @@ export default function Settings() {
       return
     }
     if (value.length < 3) { setUsernameStatus('idle'); return }
-    if (!/^[a-zA-Z0-9_-]+$/.test(value)) { setUsernameStatus('invalid'); return }
+    if (!/^[a-zA-Z0-9][a-zA-Z0-9_.-]*[a-zA-Z0-9]$/.test(value) || value.includes('..')) { setUsernameStatus('invalid'); return }
 
     // 🚨 [추가] 예약어인지 먼저 검사!
     if (RESERVED_WORDS.includes(value.toLowerCase())) {

@@ -479,7 +479,7 @@
     "publicPortfolioDesc": "A unique portfolio address accessible without logging in.",
     "usernameAvailable": "Username is available",
     "usernameTaken": "Username is already taken",
-    "usernameInvalid": "Only letters, numbers, -, and _ allowed (min 3 chars)",
+    "usernameInvalid": "Must start/end with a letter or number; - _ . allowed in between (min 3 chars)",
     "withdrawAccount": "Delete Account",
     "withdrawTitle": "Are you sure you want to delete your account?",
     "withdrawDesc": "All projects, photos, and notes will be permanently deleted and cannot be recovered.",

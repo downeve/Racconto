@@ -479,7 +479,7 @@
     "publicPortfolioDesc": "로그아웃 상태에서 볼 수 있는 고유 포트폴리오 주소입니다.",
     "usernameAvailable": "사용 가능한 username이에요",
     "usernameTaken": "이미 사용 중인 username이에요",
-    "usernameInvalid": "영문, 숫자, -, _ 만 사용할 수 있어요 (3자 이상)",
+    "usernameInvalid": "영문·숫자로 시작/끝, 중간에 -, _, . 사용 가능 (3자 이상)",
     "withdrawAccount": "회원 탈퇴",
     "withdrawTitle": "정말 탈퇴하시겠어요?",
     "withdrawDesc": "탈퇴하면 모든 프로젝트, 사진, 노트가 영구적으로 삭제되며 복구할 수 없습니다.",

@@ -465,7 +465,7 @@
     "publicPortfolioDesc": "ログインなしでアクセス可能な自分だけのポートフォリオアドレス。",
     "usernameAvailable": "使用可能なユーザー名です",
     "usernameTaken": "すでに使用されているユーザー名です",
-    "usernameInvalid": "英数字、-、_ のみ使用可能 (3文字以上)",
+    "usernameInvalid": "英数字で始まり/終わること。中間に - _ . 使用可 (3文字以上)",
     "withdrawAccount": "アカウント削除",
     "withdrawTitle": "本当にアカウントを削除しますか？",
     "withdrawDesc": "すべてのプロジェクト、写真、ノートが永久に削除され、復元できません。",
