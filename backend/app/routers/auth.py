@@ -198,7 +198,8 @@ def get_me(
     db: Session = Depends(get_db)
 ):
     ip = (
-        request.headers.get("X-Real-IP")
+        request.headers.get("CF-Connecting-IP")          # Cloudflare 실제 클라이언트 IP
+        or request.headers.get("X-Real-IP")
         or request.headers.get("X-Forwarded-For", "").split(",")[0].strip()
         or (request.client.host if request.client else "")
     )
