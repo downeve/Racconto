@@ -210,7 +210,7 @@ async function uploadFile(item) {
     const newH = isLandscape ? Math.round(height * MAX_SIZE / width) : MAX_SIZE
     imageBuffer = img.resize({ width: newW, height: newH }).toJPEG(88)
   } else {
-    imageBuffer = fs.readFileSync(item.filePath)
+    imageBuffer = img.toJPEG(88)
   }
 
   const { Blob } = require('buffer')
