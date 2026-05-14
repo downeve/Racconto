@@ -591,7 +591,7 @@ export default function ProjectDetail({
 
   const canHardDelete = useCallback((photo: Photo): boolean => {
     if (photo.source !== 'electron') return true
-    if (!isElectron) return false
+    if (!isElectron) return true
     if (!isProjectFolderLinked) return true
     return !!photo.local_missing
   }, [isElectron, isProjectFolderLinked])

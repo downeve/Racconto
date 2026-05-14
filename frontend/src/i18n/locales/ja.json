@@ -240,6 +240,7 @@
     "rotateLeft": "左に回転",
     "rotateRight": "右に回転",
     "moveToTrash": "ゴミ箱へ",
+    "bulkDeleteConfirm": "選択した{{count}}枚の写真を削除しますか？",
     "rotateSuccess": "写真を回転しました。",
     "rotateFail": "写真の回転に失敗しました。",
     "error": {

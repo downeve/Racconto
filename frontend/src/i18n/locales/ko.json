@@ -252,6 +252,7 @@
     "rotateLeft": "왼쪽으로 회전",
     "rotateRight": "오른쪽으로 회전",
     "moveToTrash": "사진 삭제",
+    "bulkDeleteConfirm": "선택한 {{count}}장의 사진을 삭제할까요?",
     "rotateSuccess": "사진을 회전하였습니다.",
     "rotateFail": "회전에 실패했습니다.",
     "error": {

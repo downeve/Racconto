@@ -252,6 +252,7 @@
     "rotateLeft": "Rotate left",
     "rotateRight": "Rotate right",
     "moveToTrash": "Delete Photo",
+    "bulkDeleteConfirm": "Delete {{count}} selected photos?",
     "rotateSuccess": "Photo rotated successfully.",
     "rotateFail": "Failed to rotate photo.",
     "error": {
