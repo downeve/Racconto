@@ -475,6 +475,83 @@ def get_email_templates(
     return result
 
 
+# ─── Infrastructure Costs ────────────────────────────────────────────────────
+
+class InfraCostBody(BaseModel):
+    service: str
+    plan: Optional[str] = None
+    cost_text: Optional[str] = None
+    cost_monthly: Optional[str] = None
+    note: Optional[str] = None
+    order_num: Optional[int] = 0
+
+@router.get("/infra-costs")
+def get_infra_costs(
+    db: Session = Depends(get_db),
+    _: models.User = Depends(require_admin)
+):
+    rows = db.query(models.InfraCost).order_by(models.InfraCost.order_num, models.InfraCost.id).all()
+    return [
+        {
+            "id": r.id, "service": r.service, "plan": r.plan,
+            "cost_text": r.cost_text, "cost_monthly": r.cost_monthly,
+            "note": r.note, "order_num": r.order_num,
+        }
+        for r in rows
+    ]
+
+@router.post("/infra-costs")
+def create_infra_cost(
+    body: InfraCostBody,
+    db: Session = Depends(get_db),
+    _: models.User = Depends(require_admin)
+):
+    row = models.InfraCost(
+        service=body.service, plan=body.plan,
+        cost_text=body.cost_text, cost_monthly=body.cost_monthly,
+        note=body.note, order_num=body.order_num or 0,
+    )
+    db.add(row)
+    db.commit()
+    db.refresh(row)
+    return {"id": row.id, "service": row.service, "plan": row.plan,
+            "cost_text": row.cost_text, "cost_monthly": row.cost_monthly,
+            "note": row.note, "order_num": row.order_num}
+
+@router.put("/infra-costs/{cost_id}")
+def update_infra_cost(
+    cost_id: int,
+    body: InfraCostBody,
+    db: Session = Depends(get_db),
+    _: models.User = Depends(require_admin)
+):
+    row = db.query(models.InfraCost).filter_by(id=cost_id).first()
+    if not row:
+        raise HTTPException(status_code=404, detail="NOT_FOUND")
+    row.service = body.service
+    row.plan = body.plan
+    row.cost_text = body.cost_text
+    row.cost_monthly = body.cost_monthly
+    row.note = body.note
+    if body.order_num is not None:
+        row.order_num = body.order_num
+    db.commit()
+    return {"ok": True}
+
+@router.delete("/infra-costs/{cost_id}")
+def delete_infra_cost(
+    cost_id: int,
+    db: Session = Depends(get_db),
+    _: models.User = Depends(require_admin)
+):
+    row = db.query(models.InfraCost).filter_by(id=cost_id).first()
+    if not row:
+        raise HTTPException(status_code=404, detail="NOT_FOUND")
+    db.delete(row)
+    db.commit()
+    return {"ok": True}
+
+
 @router.put("/email-templates/{key}/{lang}")
 def upsert_email_template(
     key: str,

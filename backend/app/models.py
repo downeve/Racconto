@@ -228,6 +228,19 @@ class EmailTemplate(Base):
     __table_args__ = (UniqueConstraint('key', 'lang', name='uq_email_template_key_lang'),)
 
 
+class InfraCost(Base):
+    __tablename__ = "infra_costs"
+    id = Column(Integer, primary_key=True, index=True)
+    service = Column(String, nullable=False)
+    plan = Column(String, nullable=True)
+    cost_text = Column(String, nullable=True)       # 표시용 문자열 e.g. "$13.2 / mo"
+    cost_monthly = Column(String, nullable=True)    # 월 환산 숫자 문자열 e.g. "13.2" (합계 계산용)
+    note = Column(Text, nullable=True)
+    order_num = Column(Integer, default=0, nullable=False, server_default='0')
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+
 class UserActivity(Base):
     __tablename__ = "user_activities"
     id = Column(Integer, primary_key=True, index=True)

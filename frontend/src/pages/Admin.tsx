@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import axios from 'axios'
 import {
   Search, Trash2, X, Pencil, Megaphone, Mail,
-  CheckCircle2, XCircle, LogOut, ChevronDown,
+  CheckCircle2, XCircle, LogOut, ChevronDown, Plus, Check,
 } from 'lucide-react'
 import { Wordmark } from '../components/Wordmark'
 import { Spinner } from '../components/Spinner'
@@ -131,6 +131,213 @@ const DEFAULTS: Record<TemplateKey, Record<Lang, TemplateFields>> = {
     en: { subject: 'Your Racconto account has been deleted', title: 'Thank you for being with us', body: 'Your account has been successfully deleted.\n\nAll your photos and personal data have been permanently removed.\nYou are always welcome to come back.', closing: 'Thank you sincerely for using Racconto.' },
     ja: { subject: 'Racconto の退会処理が完了しました', title: 'ご利用ありがとうございました', body: 'ご要望のとおり、退会処理が正常に完了しました。\n\nアップロードされた写真およびすべての個人データは削除されました。\nまたいつでもご利用いただけますので、またのご登録をお待ちしております。', closing: 'これまで Racconto をご利用いただき、誠にありがとうございました。' },
   },
+}
+
+// ─── InfraCostsSection ───────────────────────────────────────────────────────
+interface InfraCostRow {
+  id: number
+  service: string
+  plan: string
+  cost_text: string
+  cost_monthly: string  // 합계용 숫자 문자열, 빈 문자열이면 제외
+  note: string
+  order_num: number
+}
+
+const EMPTY_ROW: Omit<InfraCostRow, 'id'> = {
+  service: '', plan: '', cost_text: '', cost_monthly: '', note: '', order_num: 0,
+}
+
+const InfraCostsSection = () => {
+  const [rows, setRows] = useState<InfraCostRow[]>([])
+  const [editingId, setEditingId] = useState<number | 'new' | null>(null)
+  const [draft, setDraft] = useState<Omit<InfraCostRow, 'id'>>(EMPTY_ROW)
+  const [saving, setSaving] = useState(false)
+
+  const load = () => {
+    adminAxios.get(`${API}/racconto-admin/infra-costs`)
+      .then(r => setRows(r.data))
+      .catch(() => {})
+  }
+
+  useEffect(() => { load() }, [])
+
+  const startEdit = (row: InfraCostRow) => {
+    setEditingId(row.id)
+    setDraft({ service: row.service, plan: row.plan ?? '', cost_text: row.cost_text ?? '',
+               cost_monthly: row.cost_monthly ?? '', note: row.note ?? '', order_num: row.order_num })
+  }
+
+  const startNew = () => {
+    setEditingId('new')
+    setDraft({ ...EMPTY_ROW, order_num: rows.length })
+  }
+
+  const cancel = () => { setEditingId(null); setDraft(EMPTY_ROW) }
+
+  const save = async () => {
+    if (!draft.service.trim()) return
+    setSaving(true)
+    try {
+      if (editingId === 'new') {
+        await adminAxios.post(`${API}/racconto-admin/infra-costs`, draft)
+      } else {
+        await adminAxios.put(`${API}/racconto-admin/infra-costs/${editingId}`, draft)
+      }
+      load()
+      cancel()
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  const remove = async (id: number) => {
+    if (!confirm('삭제할까요?')) return
+    await adminAxios.delete(`${API}/racconto-admin/infra-costs/${id}`)
+    load()
+  }
+
+  const total = rows.reduce((sum, r) => {
+    const v = parseFloat(r.cost_monthly)
+    return sum + (isNaN(v) ? 0 : v)
+  }, 0)
+
+  const inputCls = 'w-full bg-transparent border-b border-edit-accent outline-none text-sm text-edit-ink py-0.5'
+
+  return (
+    <div className="mb-8">
+      <p className="t-eyebrow text-edit-muted mb-3">Infrastructure Costs</p>
+      <div className="border border-edit-line rounded-[1px] overflow-hidden">
+        <table className="w-full text-sm">
+          <thead>
+            <tr className="border-b border-edit-line text-left">
+              <th className="px-4 py-2.5 t-eyebrow text-edit-muted font-normal">Service</th>
+              <th className="px-4 py-2.5 t-eyebrow text-edit-muted font-normal">Plan</th>
+              <th className="px-4 py-2.5 t-eyebrow text-edit-muted font-normal">Cost</th>
+              <th className="px-4 py-2.5 t-eyebrow text-edit-muted font-normal">Monthly (USD)</th>
+              <th className="px-4 py-2.5 t-eyebrow text-edit-muted font-normal">Note</th>
+              <th className="px-4 py-2.5 w-16"></th>
+            </tr>
+          </thead>
+          <tbody>
+            {rows.map((row, i) => (
+              editingId === row.id ? (
+                <tr key={row.id} className="border-b border-edit-line bg-edit-paper">
+                  <td className="px-4 py-2">
+                    <input className={inputCls} value={draft.service}
+                      onChange={e => setDraft(d => ({ ...d, service: e.target.value }))} autoFocus />
+                  </td>
+                  <td className="px-4 py-2">
+                    <input className={inputCls} value={draft.plan}
+                      onChange={e => setDraft(d => ({ ...d, plan: e.target.value }))} />
+                  </td>
+                  <td className="px-4 py-2">
+                    <input className={inputCls} value={draft.cost_text} placeholder="e.g. $13.2 / mo"
+                      onChange={e => setDraft(d => ({ ...d, cost_text: e.target.value }))} />
+                  </td>
+                  <td className="px-4 py-2">
+                    <input className={inputCls} value={draft.cost_monthly} placeholder="13.2"
+                      onChange={e => setDraft(d => ({ ...d, cost_monthly: e.target.value }))} />
+                  </td>
+                  <td className="px-4 py-2">
+                    <input className={inputCls} value={draft.note}
+                      onChange={e => setDraft(d => ({ ...d, note: e.target.value }))} />
+                  </td>
+                  <td className="px-4 py-2">
+                    <div className="flex items-center gap-2">
+                      <button onClick={save} disabled={saving}
+                        className="text-edit-accent hover:opacity-70 transition-opacity">
+                        <Check size={14} strokeWidth={1.5} />
+                      </button>
+                      <button onClick={cancel} className="text-edit-muted hover:opacity-70 transition-opacity">
+                        <X size={14} strokeWidth={1.5} />
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ) : (
+                <tr key={row.id} className={i < rows.length - 1 ? 'border-b border-edit-line' : ''}>
+                  <td className="px-4 py-3 text-body text-edit-ink">{row.service}</td>
+                  <td className="px-4 py-3 text-body text-edit-muted">{row.plan}</td>
+                  <td className="px-4 py-3 font-mono text-body text-edit-ink">{row.cost_text || '—'}</td>
+                  <td className="px-4 py-3 font-mono text-body text-edit-muted">
+                    {row.cost_monthly ? `$${row.cost_monthly}` : '—'}
+                  </td>
+                  <td className="px-4 py-3 t-caption text-edit-faint">{row.note}</td>
+                  <td className="px-4 py-3">
+                    <div className="flex items-center gap-2">
+                      <button onClick={() => startEdit(row)}
+                        className="text-edit-muted hover:text-edit-ink transition-colors">
+                        <Pencil size={12} strokeWidth={1.5} />
+                      </button>
+                      <button onClick={() => remove(row.id)}
+                        className="text-edit-muted hover:text-red-500 transition-colors">
+                        <Trash2 size={12} strokeWidth={1.5} />
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              )
+            ))}
+
+            {editingId === 'new' && (
+              <tr className="border-b border-edit-line bg-edit-paper">
+                <td className="px-4 py-2">
+                  <input className={inputCls} value={draft.service} placeholder="Service"
+                    onChange={e => setDraft(d => ({ ...d, service: e.target.value }))} autoFocus />
+                </td>
+                <td className="px-4 py-2">
+                  <input className={inputCls} value={draft.plan} placeholder="Plan"
+                    onChange={e => setDraft(d => ({ ...d, plan: e.target.value }))} />
+                </td>
+                <td className="px-4 py-2">
+                  <input className={inputCls} value={draft.cost_text} placeholder="e.g. $13.2 / mo"
+                    onChange={e => setDraft(d => ({ ...d, cost_text: e.target.value }))} />
+                </td>
+                <td className="px-4 py-2">
+                  <input className={inputCls} value={draft.cost_monthly} placeholder="13.2"
+                    onChange={e => setDraft(d => ({ ...d, cost_monthly: e.target.value }))} />
+                </td>
+                <td className="px-4 py-2">
+                  <input className={inputCls} value={draft.note} placeholder="Note"
+                    onChange={e => setDraft(d => ({ ...d, note: e.target.value }))} />
+                </td>
+                <td className="px-4 py-2">
+                  <div className="flex items-center gap-2">
+                    <button onClick={save} disabled={saving}
+                      className="text-edit-accent hover:opacity-70 transition-opacity">
+                      <Check size={14} strokeWidth={1.5} />
+                    </button>
+                    <button onClick={cancel} className="text-edit-muted hover:opacity-70 transition-opacity">
+                      <X size={14} strokeWidth={1.5} />
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            )}
+
+            <tr className="bg-edit-paper border-t border-edit-line">
+              <td className="px-4 py-2.5 t-eyebrow text-edit-muted" colSpan={2}>
+                Monthly Total (approx.)
+              </td>
+              <td className="px-4 py-2.5 font-mono text-body text-edit-ink" colSpan={2}>
+                {total > 0 ? `$${total.toFixed(2)} / mo` : '—'}
+              </td>
+              <td className="px-4 py-2.5 t-caption text-edit-faint"></td>
+              <td className="px-4 py-2.5">
+                {editingId === null && (
+                  <button onClick={startNew}
+                    className="text-edit-muted hover:text-edit-ink transition-colors">
+                    <Plus size={14} strokeWidth={1.5} />
+                  </button>
+                )}
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  )
 }
 
 // ─── ActivityStatsSection ─────────────────────────────────────────────────────
@@ -1004,50 +1211,7 @@ export default function Admin() {
         <OrphanSection />
         <EmailTemplatesSection />
 
-        {/* Infrastructure Costs */}
-        <div className="mb-8">
-          <p className="t-eyebrow text-edit-muted mb-3">Infrastructure Costs</p>
-          <div className="border border-edit-line rounded-[1px] overflow-hidden">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b border-edit-line text-left">
-                  <th className="px-4 py-2.5 t-eyebrow text-edit-muted font-normal">Service</th>
-                  <th className="px-4 py-2.5 t-eyebrow text-edit-muted font-normal">Plan</th>
-                  <th className="px-4 py-2.5 t-eyebrow text-edit-muted font-normal">Cost</th>
-                  <th className="px-4 py-2.5 t-eyebrow text-edit-muted font-normal">Note</th>
-                </tr>
-              </thead>
-              <tbody>
-                {[
-                  { service: 'Linode',                 plan: 'Linode 2GB',   cost: '$13.2 / mo',     note: '오픈 베타 대응 업그레이드 (2026-05)' },
-                  { service: 'Cloudflare Images',      plan: 'Images Basic', cost: '$5.50 / mo',   note: '유저 확대 시 $5.50 / 10만 장 기준 추가 비용 소요' },
-                  { service: 'Brevo',                  plan: 'Free',         cost: '—',            note: '서비스 확대 시 AWS SES 이전 검토 예정' },
-                  { service: 'Apple 디벨로퍼 프로그램', plan: 'Basic',        cost: '$99 / yr',     note: `≈ $${(99 / 12).toFixed(2)} / mo` },
-                  { service: 'racconto.app',            plan: 'Domain',       cost: '$14.20 / yr',  note: `≈ $${(14.20 / 12).toFixed(2)} / mo` },
-                  { service: 'Claude AI 구독',         plan: 'Pro 요금제',   cost: '$22 / mo',     note: '향후 클로드 코드 사용 검토 / 연간 구독 검토 ($19/mo)' },
-                ].map((row, i, arr) => (
-                  <tr key={row.service} className={i < arr.length - 1 ? 'border-b border-edit-line' : ''}>
-                    <td className="px-4 py-3 text-body text-edit-ink">{row.service}</td>
-                    <td className="px-4 py-3 text-body text-edit-muted">{row.plan}</td>
-                    <td className="px-4 py-3 font-mono text-body text-edit-ink">{row.cost}</td>
-                    <td className="px-4 py-3 t-caption text-edit-faint">{row.note}</td>
-                  </tr>
-                ))}
-                <tr className="bg-edit-paper border-t border-edit-line">
-                  <td className="px-4 py-2.5 t-eyebrow text-edit-muted" colSpan={2}>
-                    Monthly Total (approx.)
-                  </td>
-                  <td className="px-4 py-2.5 font-mono text-body text-edit-ink">
-                    ${(13.2 + 5.50 + 99 / 12 + 14.20 / 12 + 22).toFixed(2)} / mo
-                  </td>
-                  <td className="px-4 py-2.5 t-caption text-edit-faint">
-                    Apple 디벨로퍼 프로그램 및 도메인 월 가격 포함
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
+        <InfraCostsSection />
 
         {/* Send Notice */}
         <div className="mb-8">
