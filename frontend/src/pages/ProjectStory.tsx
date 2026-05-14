@@ -671,13 +671,6 @@ function ProjectStory({
     sourceBlockIds: string[]
   } | null>(null)
 
-  // 0-4: 단건 이동 (기존 DnD/이동 버튼 경로)
-  const [moveModalItem, setMoveModalItem] = useState<{
-    itemId: string
-    chapterId: string
-    sourceBlockId: string
-  } | null>(null)
-
   // ref — stable callbacks용
   const blocksPerChapterRef = useRef(blocksPerChapter)
   blocksPerChapterRef.current = blocksPerChapter
@@ -735,10 +728,6 @@ function ProjectStory({
       return next
     })
     lastSelectedRef.current = { chapterId, itemId }
-  }, [])
-
-  const onRequestMoveItem = useCallback((data: { itemId: string; chapterId: string; sourceBlockId: string }) => {
-    setMoveModalItem(data)
   }, [])
 
   const onRequestBulkMove = useCallback((data: { itemIds: string[]; chapterId: string; sourceBlockIds: string[] }) => {
@@ -872,34 +861,7 @@ function ProjectStory({
       />
     )}
 
-    {moveModalItem && (() => {
-      const blocks = blocksPerChapter[moveModalItem.chapterId] || []
-      const photoBlocks = blocks.filter(b => b.type === 'PHOTO')
-      const otherBlocks = photoBlocks
-        .filter(b => b.blockId !== moveModalItem.sourceBlockId)
-        .map(b => ({
-          blockId: b.blockId,
-          firstImageUrl: b.items[0]?.image_url ?? null,
-          count: b.items.length,
-        }))
 
-      return (
-        <ConfirmModal
-          type="moveBlock"
-          blocks={otherBlocks}
-          onSelect={(targetBlockId) => {
-            handleCrossBlockMove(
-              moveModalItem.chapterId,
-              moveModalItem.itemId,
-              moveModalItem.sourceBlockId,
-              targetBlockId
-            )
-            setMoveModalItem(null)
-          }}
-          onCancel={() => setMoveModalItem(null)}
-        />
-      )
-      })()}
 
     {moveModalItems && (() => {
       const blocks = blocksPerChapter[moveModalItems.chapterId] || []
@@ -1149,7 +1111,6 @@ function ProjectStory({
                   onChapterChange={onChapterChange}
                   onItemToggle={onItemToggle}
                   onCrossBlockMove={handleCrossBlockMove}
-                  onRequestMoveItem={onRequestMoveItem}
                 />
 
                 {/* 서브챕터들 */}
@@ -1270,8 +1231,7 @@ function ProjectStory({
                       onChapterChange={onChapterChange}
                       onItemToggle={onItemToggle}
                       onCrossBlockMove={handleCrossBlockMove}
-                      onRequestMoveItem={onRequestMoveItem}
-                    />
+                        />
                   </div>
                 ))}
               </div>
@@ -1355,7 +1315,7 @@ function ProjectStory({
               onClick={() => setSelectedItemIds(new Set())}
               className="px-2 py-1.5 text-menu btn-secondary-on-card border border-hair font-medium transition-[background,color,border] duration-150 ease-out"
             >
-              {t('common.cancel')}
+              {t('story.deselectAll')}
             </button>
           </div>
         </div>

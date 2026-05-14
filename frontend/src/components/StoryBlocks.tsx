@@ -3,7 +3,6 @@ import { useTranslation } from 'react-i18next'
 import { memo, useRef, useState, useEffect, useCallback } from 'react'
 // import { computePortfolioRows } from '../utils/portfolioRows'  // GhostFrameGrid 전용
 import { FileText, ArrowLeftRight, Check, Plus, Grid3X3, Rows3, Square, X } from 'lucide-react'
-import { PhotoActionMenu } from './PhotoActionMenu'
 import { useHoverCapable } from '../hooks/useHoverCapable'
 import MarkdownRenderer from './MarkdownRenderer'
 import { cfUrl } from '../utils/cfImage'
@@ -190,12 +189,8 @@ export interface OtherBlock {
 export interface SortablePhotoChapterProps {
   id: string
   imageUrl: string | null
-  chapterId: string
   caption: string | null
-  onRemove: (chapterId: string, itemId: string) => void
   onClick: () => void
-  otherBlocks: OtherBlock[]
-  onRequestMove: (itemId: string) => void
   fullWidthHint?: boolean
   selected?: boolean
   anySelected?: boolean
@@ -203,7 +198,7 @@ export interface SortablePhotoChapterProps {
 }
 
 export function SortablePhotoChapter({
-  id, imageUrl, chapterId, caption, onRemove, onClick, onRequestMove, fullWidthHint,
+  id, imageUrl, caption, onClick, fullWidthHint,
   selected = false, anySelected = false, onToggleSelect
 }: SortablePhotoChapterProps) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id })
@@ -245,33 +240,19 @@ export function SortablePhotoChapter({
           </button>
         )}
 
-        {/* 드래그 핸들 — 체크박스와 위치 겹침 방지: onToggleSelect 있으면 숨김 */}
-        {!onToggleSelect && (
-          <div
-            {...attributes}
-            {...listeners}
-            className="absolute top-1.5 left-1.5 p-1.5 rounded cursor-grab opacity-30 group-hover:opacity-100 transition-opacity z-photo-controls"
-          >
-            <DragHandleDots size={12} tone="on-photo" />
-          </div>
-        )}
-        {onToggleSelect && (
-          <div
-            {...attributes}
-            {...listeners}
-            className="absolute top-1.5 left-8 p-1.5 rounded cursor-grab opacity-0 group-hover:opacity-60 transition-opacity z-photo-controls"
-          >
-            <DragHandleDots size={12} tone="on-photo" />
-          </div>
-        )}
-
-        {/* 액션 메뉴 (이동 + 삭제) */}
-        <div className="absolute top-1 right-1 opacity-0 group-hover:opacity-100 transition-opacity z-photo-controls">
-          <PhotoActionMenu
-            onMove={() => onRequestMove(id)}
-            onDelete={() => onRemove(chapterId, id)}
-          />
+        {/* 드래그 핸들 */}
+        <div
+          {...attributes}
+          {...listeners}
+          className={`absolute left-1.5 p-1.5 rounded cursor-grab transition-opacity z-photo-controls ${
+            onToggleSelect
+              ? 'top-8 opacity-0 group-hover:opacity-60'
+              : 'top-1.5 opacity-30 group-hover:opacity-100'
+          }`}
+        >
+          <DragHandleDots size={12} tone="on-photo" />
         </div>
+
 
         {/* 풀너비 힌트 배지 */}
         {fullWidthHint && (
@@ -515,8 +496,6 @@ export interface SortablePhotoBlockProps {
   onLayoutChange: (blockId: string, layout: 'grid' | 'wide' | 'single') => void
   draggingItemId: string | null
   draggingItemBlockId: string | null
-  otherBlocks: OtherBlock[]
-  onRequestMove: (itemId: string, chapterId: string, sourceBlockId: string) => void
   onMoveBlock?: (direction: 'up' | 'down') => void
   isFirst?: boolean
   isLast?: boolean
@@ -531,9 +510,8 @@ export interface SortablePhotoBlockProps {
 
 export const SortablePhotoBlock = memo(function SortablePhotoBlock({
   blockId, chapterId, items, sensors,
-  onRemoveItem, onPhotoClick, onInnerDragEnd, onLayoutChange,
+  onPhotoClick, onInnerDragEnd, onLayoutChange,
   draggingItemId, draggingItemBlockId,
-  otherBlocks, onRequestMove,
   onMoveBlock, isFirst, isLast,
   hasTextAbove, hasTextBelow, onSideBySideAbove, onSideBySideBelow,
   selectedItemIds, onItemToggle,
@@ -682,12 +660,8 @@ export const SortablePhotoBlock = memo(function SortablePhotoBlock({
                   key={item.id}
                   id={item.id}
                   imageUrl={item.image_url}
-                  chapterId={chapterId}
                   caption={item.caption}
-                  onRemove={onRemoveItem}
                   onClick={() => onPhotoClick(item)}
-                  otherBlocks={otherBlocks}
-                  onRequestMove={(itemId) => onRequestMove(itemId, chapterId, blockId)}
                   selected={selectedItemIds?.has(item.id)}
                   anySelected={selectedItemIds ? selectedItemIds.size > 0 : false}
                   onToggleSelect={onItemToggle}

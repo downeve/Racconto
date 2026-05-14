@@ -313,7 +313,7 @@
     "noChapter2": "ストーリータブでチャプターを追加してください。",
     "addToChapter": "チャプターに追加",
     "noChapters": "作成されたチャプターがありません",
-    "addPhotoGuide": "写真タブからお好みの画像を追加してください。",
+    "addPhotoGuide": "お好みの写真を追加してください。",
     "textBlockPlaceholder": "Markdownをサポートしています。 **太字**, *斜体*, ## 見出し",
     "addMultiplePhoto": "選択した写真をチャプターに追加",
     "addMultiplePhotoSuccess": "{{ count }} 枚の画像がチャプターに追加されました。",

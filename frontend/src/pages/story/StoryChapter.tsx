@@ -41,7 +41,6 @@ export interface StoryChapterProps {
   onChapterChange?: (count: number) => void
   onItemToggle: (chapterId: string, itemId: string, shiftKey: boolean, metaKey: boolean) => void
   onCrossBlockMove: (chapterId: string, itemId: string, sourceBlockId: string, targetBlockId: string) => void
-  onRequestMoveItem: (data: { itemId: string; chapterId: string; sourceBlockId: string }) => void
 }
 
 function StoryChapterComponent({
@@ -56,7 +55,6 @@ function StoryChapterComponent({
   onChapterChange,
   onItemToggle,
   onCrossBlockMove,
-  onRequestMoveItem,
 }: StoryChapterProps) {
   const { t } = useTranslation()
 
@@ -427,8 +425,6 @@ function StoryChapterComponent({
 
   // ── 렌더 ─────────────────────────────────────────────────
 
-  const photoBlocks = blocks.filter(b => b.type === 'PHOTO')
-
   return (
     <>
       {blocks.length === 0 && (
@@ -636,16 +632,6 @@ function StoryChapterComponent({
                     }
                     draggingItemId={draggingItemId}
                     draggingItemBlockId={draggingItemBlockId}
-                    otherBlocks={photoBlocks
-                      .filter(b => b.blockId !== block.blockId)
-                      .map(b => ({
-                        blockId: b.blockId,
-                        firstImageUrl: b.items[0]?.image_url ?? null,
-                        count: b.items.length,
-                      }))}
-                    onRequestMove={(itemId, cid, sourceBlockId) =>
-                      onRequestMoveItem({ itemId, chapterId: cid, sourceBlockId })
-                    }
                     onMoveBlock={(dir) => handleMoveBlock(block.blockId, dir)}
                     isFirst={blockIdx === 0}
                     isLast={blockIdx === blocks.length - 1}

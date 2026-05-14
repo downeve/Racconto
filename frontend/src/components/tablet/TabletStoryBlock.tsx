@@ -16,9 +16,8 @@ import { SortablePhotoChapter } from '../StoryBlocks'
 
 export const TabletStoryBlock = memo(function TabletStoryBlock({
   blockId, chapterId, items, sensors,
-  onRemoveItem, onPhotoClick, onInnerDragEnd, onLayoutChange,
+  onPhotoClick, onInnerDragEnd, onLayoutChange,
   draggingItemId, draggingItemBlockId,
-  otherBlocks, onRequestMove,
 }: SortablePhotoBlockProps) {
   const { attributes, listeners, setNodeRef: setSortableRef, transform, transition, isDragging } = useSortable({ id: blockId })
   const style = { transform: CSS.Transform.toString(transform), transition, opacity: isDragging ? 0.5 : 1 }
@@ -95,12 +94,8 @@ export const TabletStoryBlock = memo(function TabletStoryBlock({
                   key={item.id}
                   id={item.id}
                   imageUrl={item.image_url}
-                  chapterId={chapterId}
                   caption={item.caption}
-                  onRemove={onRemoveItem}
                   onClick={() => onPhotoClick(item)}
-                  otherBlocks={otherBlocks}
-                  onRequestMove={(itemId) => onRequestMove(itemId, chapterId, blockId)}
                 />
               ))}
             </div>
