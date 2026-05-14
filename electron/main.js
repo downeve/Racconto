@@ -330,10 +330,11 @@ async function syncFolderOnStart(folderPath, projectId) {
       allPhotos.filter(p => p.folder === folderPath).map(p => p.original_filename).filter(Boolean)
     )
 
-    // local_missing 플래그 업데이트 (휴지통 포함 전체, state diffing: 변경분만 수집)
+    // local_missing 플래그 업데이트 (이 폴더 사진만, state diffing: 변경분만 수집)
     const updates = []
     for (const photo of allPhotos) {
       if (!photo.original_filename || photo.source !== 'electron') continue
+      if (photo.folder !== folderPath) continue  // 다른 폴더 사진은 건드리지 않음
       const isLocal = localFileSet.has(photo.original_filename)
       if (!isLocal && !photo.local_missing) {
         updates.push({ filename: photo.original_filename, local_missing: true })
