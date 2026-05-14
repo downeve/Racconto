@@ -4,7 +4,14 @@
 
 [![Live Demo](https://img.shields.io/badge/Live-racconto.app-black?style=flat-square)](https://racconto.app)
 [![License](https://img.shields.io/badge/License-Commons%20Clause-red?style=flat-square)](#license)
-[![Stack](https://img.shields.io/badge/Stack-FastAPI%20%2B%20React%20%2B%20Electron-blue?style=flat-square)](#tech-stack)
+
+![FastAPI](https://img.shields.io/badge/FastAPI-009688?style=flat-square&logo=fastapi&logoColor=white)
+![React](https://img.shields.io/badge/React-20232A?style=flat-square&logo=react&logoColor=61DAFB)
+![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?style=flat-square&logo=typescript&logoColor=white)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-4169E1?style=flat-square&logo=postgresql&logoColor=white)
+![Electron](https://img.shields.io/badge/Electron-47848F?style=flat-square&logo=electron&logoColor=white)
+![Cloudflare](https://img.shields.io/badge/Cloudflare%20Images-F38020?style=flat-square&logo=cloudflare&logoColor=white)
+![Docker](https://img.shields.io/badge/Docker-2496ED?style=flat-square&logo=docker&logoColor=white)
 
 ---
 
