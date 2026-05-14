@@ -355,7 +355,6 @@ def bulk_check_exists(
     pairs = [(f.filename, f.folder) for f in body.files]
     existing = db.query(models.Photo.original_filename, models.Photo.folder).filter(
         models.Photo.project_id == body.project_id,
-        models.Photo.deleted_at == None,
         tuple_(models.Photo.original_filename, models.Photo.folder).in_(pairs)
     ).all()
     existing_set = {f"{row[0]}::{row[1]}" for row in existing}

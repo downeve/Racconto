@@ -303,7 +303,7 @@ async function syncFolderOnStart(folderPath, projectId) {
     const localFileSet = new Set(localFiles)
     // 같은 폴더 기준으로만 중복 체크 (다른 폴더의 동명 파일은 중복 아님, 삭제된 사진 제외)
     const allFilenameSet = new Set(
-      allPhotos.filter(p => p.folder === folderPath && !p.deleted_at).map(p => p.original_filename).filter(Boolean)
+      allPhotos.filter(p => p.folder === folderPath).map(p => p.original_filename).filter(Boolean)
     )
 
     // local_missing 플래그 업데이트 (휴지통 포함 전체, state diffing: 변경분만 수집)
