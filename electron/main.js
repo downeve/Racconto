@@ -118,6 +118,7 @@ ipcMain.handle('folderMap:unlink', (event, folderPath) => {
   unlinkFolder(folderPath)
   stopWatcherForPath(folderPath)
   clearQueueForFolder(folderPath)
+  mainWindow?.webContents.send('folderMap:unlinked', folderPath)
   console.log('폴더 연결 해제 → 큐 항목 제거:', folderPath)
   return { success: true }
 })
@@ -128,6 +129,7 @@ ipcMain.handle('folderMap:unlinkByProject', (event, projectId) => {
     if (mapping.projectId === projectId) {
       unlinkFolder(folderPath)
       stopWatcherForPath(folderPath)
+      mainWindow?.webContents.send('folderMap:unlinked', folderPath)
       console.log('프로젝트 삭제로 폴더 연결 해제:', folderPath)
     }
   })

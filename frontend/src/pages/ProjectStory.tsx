@@ -3,7 +3,7 @@ import { createPortal } from 'react-dom'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import axios from 'axios'
 import { useTranslation } from 'react-i18next'
-import { Eye, Plus, Grid3X3, Rows3, Square, Images } from 'lucide-react'
+import { Eye, Plus, Grid3X3, Rows3, Square, Images, Trash2, ArrowRightLeft } from 'lucide-react'
 import ConfirmModal from '../components/ConfirmModal'
 import {
   type ChapterItem as StoryChapterItem,
@@ -752,6 +752,52 @@ function ProjectStory({
     })
   }, [])
 
+  // 플로팅 바 — 단일 챕터 선택 여부 계산 (이동 버튼용)
+  const selectedChapterData = useMemo(() => {
+    const byChapter: Record<string, { itemIds: string[]; blockIds: string[] }> = {}
+    Object.entries(chapterPhotos).forEach(([cid, items]) => {
+      const sel = items.filter(i => i.item_type === 'PHOTO' && selectedItemIds.has(i.id))
+      if (sel.length > 0) {
+        byChapter[cid] = {
+          itemIds: sel.map(i => i.id),
+          blockIds: [...new Set(sel.map(i => i.block_id).filter((id): id is string => !!id))],
+        }
+      }
+    })
+    const cids = Object.keys(byChapter)
+    return cids.length === 1 ? { chapterId: cids[0], ...byChapter[cids[0]] } : null
+  }, [chapterPhotos, selectedItemIds])
+
+  // 플로팅 바 — 전체 챕터에서 선택된 항목 일괄 삭제
+  const handleGlobalBulkDelete = useCallback(async () => {
+    const currentChapterPhotos = chapterPhotosRef.current
+    const byChapter: Record<string, string[]> = {}
+    Object.entries(currentChapterPhotos).forEach(([cid, items]) => {
+      const ids = items
+        .filter(i => i.item_type === 'PHOTO' && selectedItemIds.has(i.id))
+        .map(i => i.id)
+      if (ids.length > 0) byChapter[cid] = ids
+    })
+    setChapterPhotos(prev => {
+      const next = { ...prev }
+      Object.entries(byChapter).forEach(([cid, ids]) => {
+        next[cid] = (prev[cid] || []).filter(i => !ids.includes(i.id))
+      })
+      return next
+    })
+    setSelectedItemIds(new Set())
+    try {
+      await Promise.all(
+        Object.entries(byChapter).flatMap(([cid, ids]) =>
+          ids.map(itemId => axios.delete(`${API}/chapters/${cid}/items/${itemId}`))
+        )
+      )
+    } catch (err) {
+      console.error('일괄 삭제 실패:', err)
+      Object.keys(byChapter).forEach(cid => fetchChapterPhotos(cid))
+    }
+  }, [selectedItemIds, setChapterPhotos, fetchChapterPhotos])
+
   // 0-4: 일괄 이동
   const handleBulkMove = useCallback(async (
     chapterId: string,
@@ -1104,9 +1150,6 @@ function ProjectStory({
                   onItemToggle={onItemToggle}
                   onCrossBlockMove={handleCrossBlockMove}
                   onRequestMoveItem={onRequestMoveItem}
-                  onRequestBulkMove={onRequestBulkMove}
-                  setSelectedItemIds={setSelectedItemIds}
-                  onConfirm={onConfirmModal}
                 />
 
                 {/* 서브챕터들 */}
@@ -1228,9 +1271,6 @@ function ProjectStory({
                       onItemToggle={onItemToggle}
                       onCrossBlockMove={handleCrossBlockMove}
                       onRequestMoveItem={onRequestMoveItem}
-                      onRequestBulkMove={onRequestBulkMove}
-                      setSelectedItemIds={setSelectedItemIds}
-                      onConfirm={onConfirmModal}
                     />
                   </div>
                 ))}
@@ -1282,6 +1322,44 @@ function ProjectStory({
         getVisibleChapterItems={getVisibleChapterItems}
         closeChapterPreview={closeChapterPreview}
       />
+
+      {/* 다중 선택 플로팅 바 */}
+      {selectedItemIds.size > 0 && (
+        <div className="fixed bottom-10 left-1/2 -translate-x-1/2 bg-canvas-2 border border-ink-2 px-3 py-2 rounded-card shadow flex items-center gap-8 z-[100] animate-fade-in-up">
+          <span className="font-bold text-menu text-ink-2">
+            {t('story.multiplePhotoSelected', { count: selectedItemIds.size })}
+          </span>
+          <div className="flex gap-3 relative">
+            {/* 다른 블록으로 이동 — 단일 챕터 선택 시만 활성화 */}
+            <button
+              onClick={() => selectedChapterData && onRequestBulkMove({
+                itemIds: selectedChapterData.itemIds,
+                chapterId: selectedChapterData.chapterId,
+                sourceBlockIds: selectedChapterData.blockIds,
+              })}
+              disabled={!selectedChapterData}
+              className="inline-flex items-center gap-1.5 px-2 py-1.5 font-bold text-menu btn-secondary-on-card border hover:bg-faint/40 border-muted disabled:opacity-30 disabled:cursor-not-allowed transition-[background,color,border] duration-150 ease-out"
+            >
+              <ArrowRightLeft size={13} strokeWidth={1.5} />{t('story.toOtherBlock')}
+            </button>
+            <button
+              onClick={() => onConfirmModal({
+                message: t('story.bulkDeleteConfirm', { count: selectedItemIds.size }),
+                onConfirm: handleGlobalBulkDelete,
+              })}
+              className="inline-flex items-center gap-1.5 px-2 py-1.5 font-bold text-menu bg-red-500 text-white hover:bg-red-600 border border-red-500 transition-colors ease-out"
+            >
+              <Trash2 size={13} strokeWidth={1.5} />{t('common.delete')}
+            </button>
+            <button
+              onClick={() => setSelectedItemIds(new Set())}
+              className="px-2 py-1.5 text-menu btn-secondary-on-card border border-hair font-medium transition-[background,color,border] duration-150 ease-out"
+            >
+              {t('common.cancel')}
+            </button>
+          </div>
+        </div>
+      )}
 
     </div>
   )

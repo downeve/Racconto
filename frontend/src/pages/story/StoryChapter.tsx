@@ -42,9 +42,6 @@ export interface StoryChapterProps {
   onItemToggle: (chapterId: string, itemId: string, shiftKey: boolean, metaKey: boolean) => void
   onCrossBlockMove: (chapterId: string, itemId: string, sourceBlockId: string, targetBlockId: string) => void
   onRequestMoveItem: (data: { itemId: string; chapterId: string; sourceBlockId: string }) => void
-  onRequestBulkMove: (data: { itemIds: string[]; chapterId: string; sourceBlockIds: string[] }) => void
-  setSelectedItemIds: React.Dispatch<React.SetStateAction<Set<string>>>
-  onConfirm: (modal: { message: string; onConfirm: () => void }) => void
 }
 
 function StoryChapterComponent({
@@ -60,9 +57,6 @@ function StoryChapterComponent({
   onItemToggle,
   onCrossBlockMove,
   onRequestMoveItem,
-  onRequestBulkMove,
-  setSelectedItemIds,
-  onConfirm,
 }: StoryChapterProps) {
   const { t } = useTranslation()
 
@@ -366,75 +360,6 @@ function StoryChapterComponent({
     }
   }, [chapterId, textDraft, editingTextItemId, fetchChapterPhotos])
 
-  const handleBulkDelete = useCallback(async (itemIds: string[]) => {
-    setChapterPhotos(prev => ({
-      ...prev,
-      [chapterId]: (prev[chapterId] || []).filter(i => !itemIds.includes(i.id)),
-    }))
-    setSelectedItemIds(prev => {
-      const next = new Set(prev)
-      itemIds.forEach(id => next.delete(id))
-      return next
-    })
-    try {
-      await Promise.all(itemIds.map(itemId =>
-        axios.delete(`${API}/chapters/${chapterId}/items/${itemId}`)
-      ))
-      onChapterChange?.(0)
-    } catch (err) {
-      console.error('일괄 삭제 실패:', err)
-      fetchChapterPhotos(chapterId)
-    }
-  }, [chapterId, setChapterPhotos, setSelectedItemIds, fetchChapterPhotos, onChapterChange])
-
-  // ── 선택된 아이템 액션바 ──────────────────────────────────
-
-  const chapterSelectedIds = items
-    .filter(i => i.item_type === 'PHOTO' && selectedItemIds.has(i.id))
-    .map(i => i.id)
-
-  const sourceBlockIds = [...new Set(
-    items
-      .filter(i => chapterSelectedIds.includes(i.id))
-      .map(i => i.block_id)
-      .filter((id): id is string => !!id)
-  )]
-
-  const actionBar = chapterSelectedIds.length > 0 ? (
-    <div className="flex items-center gap-3 mb-4 px-3 py-2
-                    bg-edit-paper-2 border border-edit-line rounded-[2px]">
-      <span className="t-caption text-edit-muted flex-1">
-        {t('story.selected', { count: chapterSelectedIds.length })}
-      </span>
-      <button
-        onClick={() => onRequestBulkMove({ itemIds: chapterSelectedIds, chapterId, sourceBlockIds })}
-        className="t-caption text-edit-muted hover:text-edit-ink px-2 py-0.5
-                   border border-edit-line rounded-[1px] hover:border-edit-line-strong
-                   transition-colors duration-150"
-      >
-        {t('story.toOtherBlock')}
-      </button>
-      <button
-        onClick={() => onConfirm({
-          message: t('story.bulkDeleteConfirm', { count: chapterSelectedIds.length }),
-          onConfirm: () => handleBulkDelete(chapterSelectedIds),
-        })}
-        className="t-caption text-edit-danger hover:opacity-80 px-2 py-0.5 transition-opacity"
-      >
-        {t('common.delete')}
-      </button>
-      <button
-        onClick={() => setSelectedItemIds(prev => {
-          const next = new Set(prev)
-          chapterSelectedIds.forEach(id => next.delete(id))
-          return next
-        })}
-        className="t-caption text-edit-muted hover:text-edit-ink px-2 py-0.5 transition-colors"
-      >
-        {t('story.deselectAll')}
-      </button>
-    </div>
-  ) : null
 
   // ── 인서트 슬롯 렌더 ─────────────────────────────────────
 
@@ -506,8 +431,6 @@ function StoryChapterComponent({
 
   return (
     <>
-      {actionBar}
-
       {blocks.length === 0 && (
         <div className="py-2">
           <p className="text-sm text-gray-400 mb-2">{t('story.addPhotoGuide')}</p>

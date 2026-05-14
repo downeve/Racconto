@@ -22,7 +22,7 @@ export default function FolderProjectMapper() {
   const [projects, setProjects] = useState<Project[]>([])
   const [selectedFolder, setSelectedFolder] = useState<string | null>(null)
   const [selectedProjectId, setSelectedProjectId] = useState<string>('')
-  const [confirmModal, setConfirmModal] = useState<{ folderPath: string; projectId: string; count: number } | null>(null)
+  const [confirmModal, setConfirmModal] = useState<{ folderPath: string } | null>(null)
   const [missingFolders, setMissingFolders] = useState<Set<string>>(new Set())
   const { t } = useTranslation()
 
@@ -78,27 +78,13 @@ export default function FolderProjectMapper() {
     loadMappings()
   }
 
-  const handleUnlink = async (folderPath: string) => {
-    const mapping = mappings[folderPath]
-    const token = localStorage.getItem('token')
-    const res = await axios.get(`${API}/photos/?project_id=${mapping.projectId}`, {
-      headers: { Authorization: `Bearer ${token}` }
-    })
-    const count = res.data.filter((p: any) => p.folder === folderPath && !p.deleted_at).length
-    setConfirmModal({ folderPath, projectId: mapping.projectId, count })
+  const handleUnlink = (folderPath: string) => {
+    setConfirmModal({ folderPath })
   }
 
   const confirmUnlink = async () => {
     if (!confirmModal) return
-    const { folderPath, projectId, count } = confirmModal
-    const token = localStorage.getItem('token')
-    if (count > 0) {
-      await axios.delete(`${API}/photos/by-folder`, {
-        params: { project_id: projectId, folder: folderPath },
-        headers: { Authorization: `Bearer ${token}` }
-      })
-    }
-    await window.racconto!.unlinkFolder(folderPath)
+    await window.racconto!.unlinkFolder(confirmModal.folderPath)
     setConfirmModal(null)
     loadMappings()
   }
@@ -109,12 +95,9 @@ export default function FolderProjectMapper() {
     <>
     {confirmModal && (
       <ConfirmModal
-        message={confirmModal.count > 0
-          ? t('electron.unlinkConfirm', { count: confirmModal.count })
-          : t('electron.unlinkConfirmNoPhotos')}
+        message={t('electron.unlinkConfirm')}
         onConfirm={confirmUnlink}
         onCancel={() => setConfirmModal(null)}
-        dangerous
       />
     )}
     <div className="border-b border-hair py-8">

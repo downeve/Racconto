@@ -611,8 +611,7 @@
     "selectFolder": "Select Folder",
     "selectProject": "Select Project",
     "connect": "Connect",
-    "unlinkConfirm": "Unlinking this folder will move {{count}} photos uploaded from it to the trash.\nContinue?",
-    "unlinkConfirmNoPhotos": "Disconnect this folder?",
+    "unlinkConfirm": "Disconnecting this folder will stop future sync and file watching.\nPhotos already uploaded will remain.\nContinue?",
     "folderMissing": "Folder not found",
     "folderMissingTooltip": "This folder has been moved or deleted. Please unlink and re-connect it.",
     "upload": {
