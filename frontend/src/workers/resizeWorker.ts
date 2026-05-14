@@ -17,12 +17,6 @@ self.addEventListener('message', async (e: MessageEvent<{ file: File }>) => {
       }
     }
 
-    if (newW === width && newH === height) {
-      bitmap.close()
-      self.postMessage({ blob: null })
-      return
-    }
-
     const canvas = new OffscreenCanvas(newW, newH)
     canvas.getContext('2d')!.drawImage(bitmap, 0, 0, newW, newH)
     bitmap.close()

@@ -16,7 +16,7 @@ export function resizeImageInWorker(file: File): Promise<Blob> {
       if (e.data.error) {
         reject(new Error(e.data.error))
       } else {
-        resolve(e.data.blob ?? file)
+        resolve(e.data.blob!)
       }
     }
 
