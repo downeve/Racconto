@@ -385,7 +385,7 @@ export default function PublicPortfolio() {
                     <CoverFallback title={project.title} dark={darkMode} />
                   )}
                 </div>
-                <h3 className="mt-4 font-serif text-[22px] tracking-tight font-normal [word-break:keep-all]">
+                <h3 className="mt-4 font-serif text-[22px] tracking-tight font-normal truncate">
                   {project.title}
                 </h3>
                 {project.location && (

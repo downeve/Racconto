@@ -3,6 +3,7 @@ import { useParams, useNavigate, useLocation } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import axios from 'axios'
 import { useTranslation } from 'react-i18next'
+import { useElectronSidebar } from '../context/ElectronSidebarContext'
 
 const API = import.meta.env.VITE_API_URL
 
@@ -82,6 +83,7 @@ export default function ProjectEdit() {
   const { t } = useTranslation()
 
   const backTo = (routerLocation.state as { from?: string } | null)?.from ?? `/projects/${id}`
+  const { triggerRefresh } = useElectronSidebar()
 
   const [numericId, setNumericId] = useState<string | null>(null)
   const [title, setTitle] = useState('')
@@ -126,6 +128,9 @@ export default function ProjectEdit() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['project', id] })
       queryClient.invalidateQueries({ queryKey: ['projects'] })
+      queryClient.invalidateQueries({ queryKey: ['portfolio'] })
+      queryClient.invalidateQueries({ queryKey: ['portfolioSlug'] })
+      triggerRefresh()
       navigate(backTo)
     },
   })

@@ -404,10 +404,12 @@ function ProjectStory({
     setChapterPhotos(storyData.items_by_chapter ?? {})
   }, [storyData])
 
-  // Story 탭 진입 시 항상 최신 데이터 보장
+  // Story 탭 진입 시 항상 최신 데이터 보장 + 라이브러리 패널 초기화
   useEffect(() => {
     if (activeTab === 'story') {
       queryClient.invalidateQueries({ queryKey: ['storyChapters', projectId] })
+    } else {
+      setShowLibrary(false)
     }
   }, [activeTab, projectId, queryClient])
 
@@ -453,10 +455,11 @@ function ProjectStory({
       if (e.key !== 'Escape') return
       if (chapterPreviewOpen) { closeChapterPreview(); return }
       if (showPreview) { setShowPreview(false); (document.activeElement as HTMLElement)?.blur(); return }
+      if (showLibrary) { setShowLibrary(false); return }
     }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
-  }, [chapterPreviewOpen, showPreview])
+  }, [chapterPreviewOpen, showPreview, showLibrary])
 
   useEffect(() => {
     if (chapterPreviewOpen) {
