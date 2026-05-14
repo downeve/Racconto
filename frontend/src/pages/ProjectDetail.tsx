@@ -235,16 +235,11 @@ export default function ProjectDetail({
   const [deletingMissing, setDeletingMissing] = useState(false)
   const [deletingTrash, setDeletingTrash] = useState(false)
   const [isProjectFolderLinked, setIsProjectFolderLinked] = useState(false)
+  const [trashSelectedIds, setTrashSelectedIds] = useState<Set<string>>(new Set())
   const [filterHasNote, setFilterHasNote] = useState(false)
   const [confirmModal, setConfirmModal] = useState<{ message: string; onConfirm: () => void } | null>(null)
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' | 'warning' } | null>(null)
   const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
-  const pendingDeleteBatchRef = useRef<{
-    ids: string[]
-    snapshotPhotos: Photo[]
-    snapshotTrash: Photo[]
-    timer: ReturnType<typeof setTimeout> | null
-  }>({ ids: [], snapshotPhotos: [], snapshotTrash: [], timer: null })
   const [chapterPhotoVersion, setChapterPhotoVersion] = useState(0)
 
   // ── React Query ───────────────────────────────────────────
@@ -459,52 +454,6 @@ export default function ProjectDetail({
     })
     queryClient.invalidateQueries({ queryKey: ['project', id] })
     triggerRefresh()
-  }
-
-  const handleDeletePhoto = (photoId: string) => {
-    const batch = pendingDeleteBatchRef.current
-    const photoToDelete = photos.find(p => p.id === photoId)
-
-    if (batch.ids.length === 0) {
-      batch.snapshotPhotos = queryClient.getQueryData<Photo[]>(['photos', numericId]) ?? []
-      batch.snapshotTrash = queryClient.getQueryData<Photo[]>(['photosTrash', numericId]) ?? []
-    }
-
-    if (lightboxPhoto?.id === photoId) setLightboxPhoto(null)
-    queryClient.setQueryData(['photos', numericId], (prev: Photo[] | undefined) =>
-      (prev ?? []).filter(p => p.id !== photoId)
-    )
-    if (photoToDelete) {
-      queryClient.setQueryData(['photosTrash', numericId], (prev: Photo[] | undefined) => [
-        ...(prev ?? []),
-        { ...photoToDelete, deleted_at: new Date().toISOString() },
-      ])
-    }
-
-    batch.ids.push(photoId)
-
-    if (batch.timer) clearTimeout(batch.timer)
-    batch.timer = setTimeout(async () => {
-      const ids = [...batch.ids]
-      const { snapshotPhotos, snapshotTrash } = batch
-      batch.ids = []
-      batch.timer = null
-
-      try {
-        await axios.delete(`${API}/photos/bulk-delete`, { data: { photo_ids: ids } })
-        await Promise.all([
-          queryClient.invalidateQueries({ queryKey: ['photos', numericId] }),
-          queryClient.invalidateQueries({ queryKey: ['photosTrash', numericId] }),
-          queryClient.invalidateQueries({ queryKey: ['chapterPhotos', numericId] }),
-          queryClient.invalidateQueries({ queryKey: ['notes', numericId] }),
-          queryClient.invalidateQueries({ queryKey: ['project', id] }),
-        ])
-      } catch (error) {
-        console.error('사진 삭제 실패:', error)
-        queryClient.setQueryData(['photos', numericId], snapshotPhotos)
-        queryClient.setQueryData(['photosTrash', numericId], snapshotTrash)
-      }
-    }, 400)
   }
 
   const handleSetRating = async (photo: Photo, rating: number) => {
@@ -1066,13 +1015,13 @@ export default function ProjectDetail({
                     <PhotoCard
                       key={photo.id} photo={photo} project={project}
                       onSetCover={handleSetCover}
-                      onDelete={handleDeletePhoto}
                       onSetRating={handleSetRating} onSetColorLabel={handleSetColorLabel}
                       onOpenLightbox={setLightboxPhoto}
                       showExif={showExif} gridCols={gridCols}
                       colorLabels={colorLabels} chapterPhotoIds={chapterPhotoIds}
                       selectionMode={selectionMode}
                       isSelected={selectedPhotoIds.has(photo.id)}
+                      anySelected={selectedPhotoIds.size > 0}
                       onToggleSelect={togglePhotoSelection}
                     />
                   ))}
@@ -1091,30 +1040,102 @@ export default function ProjectDetail({
             {/* 휴지통 뷰 */}
             {photoSubTab === 'trash' && (
               <div>
+                {/* 상단 바: 전체 삭제 or 다중 선택 액션 */}
                 {trashedPhotos.length > 0 && (
-                  <div className="mb-4 flex items-center justify-between bg-red-50 border border-red-200 rounded-card px-3 py-2 gap-3">
-                    <div className="min-w-0">
-                      <p className="text-menu text-red-600 flex items-center gap-1">
-                        <Trash2 size={13} strokeWidth={1.5} className="shrink-0" />{t('photo.trash')} {trashedPhotos.length}{t('photo.countText')}
-                      </p>
-                      {localTrashPhotos.length > 0 && (
-                        <p className="text-caption text-amber-600 mt-0.5 flex items-center gap-1">
-                          <AlertTriangle size={11} strokeWidth={1.5} className="shrink-0" />{t('trash.localSyncBadge')} {localTrashPhotos.length}{t('photo.countText')}
-                        </p>
-                      )}
+                  trashSelectedIds.size > 0 ? (
+                    <div className="mb-4 flex items-center justify-between bg-edit-paper border border-edit-line rounded-card px-3 py-2 gap-3">
+                      <span className="text-menu text-edit-ink font-medium">
+                        {t('trash.selectedCount', { count: trashSelectedIds.size })}
+                      </span>
+                      <div className="flex items-center gap-2">
+                        <button
+                          onClick={() => setTrashSelectedIds(new Set())}
+                          className="text-menu px-3 py-1.5 border border-edit-line text-edit-muted hover:text-edit-ink rounded transition-colors"
+                        >
+                          {t('trash.deselectAll')}
+                        </button>
+                        <button
+                          onClick={async () => {
+                            const ids = Array.from(trashSelectedIds)
+                            try {
+                              await axios.post(`${API}/photos/bulk-restore`, { photo_ids: ids })
+                              queryClient.invalidateQueries({ queryKey: ['photosTrash', numericId] })
+                              queryClient.invalidateQueries({ queryKey: ['photos', numericId] })
+                              setTrashSelectedIds(new Set())
+                            } catch (err: any) {
+                              const detail = err.response?.data?.detail
+                              const code = typeof detail === 'object' ? detail.code : detail
+                              const limit = typeof detail === 'object' ? detail.limit : undefined
+                              if (code === 'PHOTO_LIMIT_EXCEEDED') {
+                                showToast(t('api.error.PHOTO_LIMIT_EXCEEDED', { limit }), 'warning')
+                              }
+                            }
+                          }}
+                          className="text-menu px-3 py-1.5 bg-edit-ink text-edit-paper rounded hover:bg-edit-ink/85 transition-colors"
+                        >
+                          ↺ {t('trash.bulkRestore')}
+                        </button>
+                        <button
+                          onClick={() => {
+                            const ids = Array.from(trashSelectedIds)
+                            const deletable = ids.filter(id => {
+                              const p = trashedPhotos.find(p => p.id === id)
+                              return p && canHardDelete(p)
+                            })
+                            const skipped = ids.length - deletable.length
+                            if (deletable.length === 0) {
+                              showToast(
+                                !isElectron
+                                  ? t('trash.permanentDeleteWebBlocked')
+                                  : t('trash.permanentDeleteLocalExists'),
+                                'warning'
+                              )
+                              return
+                            }
+                            const msg = skipped > 0
+                              ? t('trash.bulkDeleteLocalSkipped', { skipped, count: deletable.length })
+                              : t('trash.bulkDeleteConfirm', { count: deletable.length })
+                            setConfirmModal({
+                              message: msg,
+                              onConfirm: async () => {
+                                setConfirmModal(null)
+                                await axios.delete(`${API}/photos/bulk-permanent`, { data: { photo_ids: deletable } })
+                                queryClient.invalidateQueries({ queryKey: ['photosTrash', numericId] })
+                                setTrashSelectedIds(new Set())
+                              },
+                            })
+                          }}
+                          className="text-menu px-3 py-1.5 bg-red-500 hover:bg-red-600 text-card rounded transition-colors"
+                        >
+                          ✕ {t('trash.bulkDelete')}
+                        </button>
+                      </div>
                     </div>
-                    <button
-                      onClick={handleDeleteAllTrash}
-                      disabled={deletingTrash}
-                      className="shrink-0 text-menu px-3 py-1.5 bg-red-500 hover:bg-red-600 text-card rounded disabled:opacity-50"
-                    >
-                      {deletingTrash
-                        ? t('photo.deleting')
-                        : webTrashPhotos.length > 0 && localTrashPhotos.length > 0
-                          ? t('photo.deleteAllPermanent') + ` (웹 ${webTrashPhotos.length}개)`
-                          : t('photo.deleteAllPermanent')}
-                    </button>
-                  </div>
+                  ) : (
+                    <div className="mb-4 flex items-center justify-between bg-red-50 border border-red-200 rounded-card px-3 py-2 gap-3">
+                      <div className="min-w-0">
+                        <p className="text-menu text-red-600 flex items-center gap-1">
+                          <Trash2 size={13} strokeWidth={1.5} className="shrink-0" />{t('photo.trash')} {trashedPhotos.length}{t('photo.countText')}
+                        </p>
+                        {localTrashPhotos.length > 0 && (
+                          <p className="text-caption text-amber-600 mt-0.5 flex items-center gap-1">
+                            <AlertTriangle size={11} strokeWidth={1.5} className="shrink-0" />{t('trash.localSyncBadge')} {localTrashPhotos.length}{t('photo.countText')}
+                          </p>
+                        )}
+                      </div>
+                      <button
+                        onClick={handleDeleteAllTrash}
+                        disabled={deletingTrash}
+                        className="shrink-0 text-menu px-3 py-1.5 bg-red-500 hover:bg-red-600 text-card rounded disabled:opacity-50"
+                      >
+                        {deletingTrash
+                          ? t('photo.deleting')
+                          : webTrashPhotos.length > 0 && localTrashPhotos.length > 0
+                            ? t('photo.deleteAllPermanent') + ` (웹 ${webTrashPhotos.length}개)`
+                            : t('photo.deleteAllPermanent')}
+                      </button>
+                    </div>
+                  )
                 )}
                 {trashedPhotos.length === 0 ? (
                   <div className="text-center text-h3 py-20 text-muted border rounded-card bg-card">
@@ -1122,98 +1143,119 @@ export default function ProjectDetail({
                   </div>
                 ) : (
                   <div className={`grid grid-cols-${gridCols} gap-4`}>
-                      {[...trashedPhotos]
-                        .sort((a, b) => new Date(b.deleted_at!).getTime() - new Date(a.deleted_at!).getTime())
-                        .map(photo => {
-                      const deletedDate = new Date(photo.deleted_at!)
-                      const daysLeft = 30 - Math.floor((Date.now() - deletedDate.getTime()) / (1000 * 60 * 60 * 24))
-                      const isLocal = !canHardDelete(photo)
+                    {[...trashedPhotos]
+                      .sort((a, b) => new Date(b.deleted_at!).getTime() - new Date(a.deleted_at!).getTime())
+                      .map(photo => {
+                        const deletedDate = new Date(photo.deleted_at!)
+                        const daysLeft = 30 - Math.floor((Date.now() - deletedDate.getTime()) / (1000 * 60 * 60 * 24))
+                        const isLocal = !canHardDelete(photo)
+                        const isSelected = trashSelectedIds.has(photo.id)
 
-                      return (
-                        <div key={photo.id} className="rounded overflow-hidden bg-transparent group relative shadow">
-                          <div className="relative">
-                            <img
-                              src={photo.image_url}
-                              alt={photo.caption || ''}
-                              className="w-full aspect-[3/2] object-contain"
-                            />
-                            {isLocal && (
-                              <div className="absolute top-1.5 left-1.5 z-10">
-                                <span className="inline-flex items-center gap-1 px-1.5 py-0.5 text-eyebrow font-medium rounded bg-amber-500/90 text-card backdrop-blur-sm">
-                                  {t('trash.localSyncBadge')}
-                                </span>
+                        return (
+                          <div
+                            key={photo.id}
+                            className={`rounded overflow-hidden bg-transparent group relative shadow transition-[box-shadow] ${
+                              isSelected ? 'ring-2 ring-white ring-offset-2 ring-offset-edit-line-strong' : ''
+                            }`}
+                          >
+                            <div className="relative">
+                              <img
+                                src={photo.image_url}
+                                alt={photo.caption || ''}
+                                className="w-full aspect-[3/2] object-contain"
+                              />
+                              {isLocal && !isSelected && (
+                                <div className="absolute top-1.5 left-1.5 z-10">
+                                  <span className="inline-flex items-center gap-1 px-1.5 py-0.5 text-eyebrow font-medium rounded bg-amber-500/90 text-card backdrop-blur-sm">
+                                    {t('trash.localSyncBadge')}
+                                  </span>
+                                </div>
+                              )}
+                              {/* 선택 체크박스 — 좌상단 네모, z-30으로 오버레이 위 */}
+                              <button
+                                onClick={e => {
+                                  e.stopPropagation()
+                                  setTrashSelectedIds(prev => {
+                                    const next = new Set(prev)
+                                    next.has(photo.id) ? next.delete(photo.id) : next.add(photo.id)
+                                    return next
+                                  })
+                                }}
+                                className={`absolute top-1.5 left-1.5 z-30 w-5 h-5 rounded flex items-center justify-center transition-opacity ${
+                                  isSelected || trashSelectedIds.size > 0 ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'
+                                } ${isSelected ? 'bg-white' : 'bg-black/40 border border-white/60'}`}
+                                aria-label={isSelected ? '선택 해제' : '선택'}
+                              >
+                                {isSelected && <Check size={11} strokeWidth={2.5} className="text-edit-ink" />}
+                              </button>
+                            </div>
+                            {/* 호버 오버레이 — 선택 모드 아닐 때만 */}
+                            {trashSelectedIds.size === 0 && (
+                              <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity bg-black/70 flex flex-col items-center justify-center gap-2 px-4 z-20">
+                                <button
+                                  onClick={async () => {
+                                    const prevPhotos = queryClient.getQueryData<Photo[]>(['photos', numericId]) ?? []
+                                    const prevTrash = queryClient.getQueryData<Photo[]>(['photosTrash', numericId]) ?? []
+                                    queryClient.setQueryData(['photosTrash', numericId], (prev: Photo[] | undefined) =>
+                                      (prev ?? []).filter(p => p.id !== photo.id)
+                                    )
+                                    queryClient.setQueryData(['photos', numericId], (prev: Photo[] | undefined) =>
+                                      [...(prev ?? []), { ...photo, deleted_at: null }]
+                                    )
+                                    try {
+                                      await axios.post(`${API}/photos/${photo.id}/restore`)
+                                      queryClient.invalidateQueries({ queryKey: ['chapterPhotos', numericId] })
+                                    } catch (err: any) {
+                                      queryClient.setQueryData(['photos', numericId], prevPhotos)
+                                      queryClient.setQueryData(['photosTrash', numericId], prevTrash)
+                                      const detail = err.response?.data?.detail
+                                      const code = typeof detail === 'object' ? detail.code : detail
+                                      const limit = typeof detail === 'object' ? detail.limit : undefined
+                                      if (code === 'PHOTO_LIMIT_EXCEEDED') {
+                                        showToast(t('api.error.PHOTO_LIMIT_EXCEEDED', { limit }), 'warning')
+                                      }
+                                    }
+                                  }}
+                                  className="w-full text-center px-3 py-1.5 text-menu bg-card text-ink rounded-card hover:bg-hair font-medium shadow"
+                                >
+                                  ↺ {t('trash.restore')}
+                                </button>
+                                <button
+                                  onClick={() => {
+                                    if (isLocal) {
+                                      showToast(
+                                        !isElectron
+                                          ? t('trash.permanentDeleteWebBlocked')
+                                          : t('trash.permanentDeleteLocalExists'),
+                                        'warning'
+                                      )
+                                      return
+                                    }
+                                    setConfirmModal({
+                                      message: t('trash.permanentDeleteConfirm'),
+                                      onConfirm: async () => {
+                                        setConfirmModal(null)
+                                        await axios.delete(`${API}/photos/${photo.id}/permanent`)
+                                        queryClient.invalidateQueries({ queryKey: ['photosTrash', numericId] })
+                                      },
+                                    })
+                                  }}
+                                  className={`w-full text-center px-3 py-1.5 text-menu rounded-card font-medium shadow ${
+                                    !isLocal ? 'bg-red-600 text-card hover:bg-red-700' : 'bg-gray-500 text-card hover:bg-gray-600'
+                                  }`}
+                                >
+                                  ✕ {t('trash.permanentDelete')}
+                                </button>
                               </div>
                             )}
+                            <div className="p-2 bg-transparent flex items-center justify-center h-10">
+                              <p className="text-menu text-red-500 font-medium">
+                                {t('trash.delete_warning', { daysLeft })}
+                              </p>
+                            </div>
                           </div>
-                          <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity bg-black/70 flex flex-col items-center justify-center gap-2 px-4 z-20">
-                            <button
-                              onClick={async () => {
-                                const prevPhotos = queryClient.getQueryData<Photo[]>(['photos', numericId]) ?? []
-                                const prevTrash = queryClient.getQueryData<Photo[]>(['photosTrash', numericId]) ?? []
-
-                                queryClient.setQueryData(['photosTrash', numericId], (prev: Photo[] | undefined) =>
-                                  (prev ?? []).filter(p => p.id !== photo.id)
-                                )
-                                queryClient.setQueryData(['photos', numericId], (prev: Photo[] | undefined) =>
-                                  [...(prev ?? []), { ...photo, deleted_at: null }]
-                                )
-
-                                try {
-                                  await axios.post(`${API}/photos/${photo.id}/restore`)
-                                  queryClient.invalidateQueries({ queryKey: ['chapterPhotos', numericId] })
-                                } catch (err: any) {
-                                  queryClient.setQueryData(['photos', numericId], prevPhotos)
-                                  queryClient.setQueryData(['photosTrash', numericId], prevTrash)
-
-                                  const detail = err.response?.data?.detail
-                                  const code = typeof detail === 'object' ? detail.code : detail
-                                  const limit = typeof detail === 'object' ? detail.limit : undefined
-                                  if (code === 'PHOTO_LIMIT_EXCEEDED') {
-                                    showToast(t('api.error.PHOTO_LIMIT_EXCEEDED', { limit }), 'warning')
-                                  }
-                                }
-                              }}
-                              className="w-full text-center px-3 py-1.5 text-menu bg-card text-ink rounded-card hover:bg-hair font-medium shadow"
-                            >
-                              ↺ {t('trash.restore')}
-                            </button>
-                            <button
-                              onClick={() => {
-                                if (isLocal) {
-                                  showToast(
-                                    !isElectron
-                                      ? t('trash.permanentDeleteWebBlocked')
-                                      : t('trash.permanentDeleteLocalExists'),
-                                    'warning'
-                                  )
-                                  return
-                                }
-                                setConfirmModal({
-                                  message: t('trash.permanentDeleteConfirm'),
-                                  onConfirm: async () => {
-                                    setConfirmModal(null)
-                                    await axios.delete(`${API}/photos/${photo.id}/permanent`)
-                                    queryClient.invalidateQueries({ queryKey: ['photosTrash', numericId] })
-                                  },
-                                })
-                              }}
-                              className={`w-full text-center px-3 py-1.5 text-menu rounded-card font-medium shadow ${
-                                !isLocal
-                                  ? 'bg-red-600 text-card hover:bg-red-700'
-                                  : 'bg-gray-500 text-card hover:bg-gray-600'
-                              }`}
-                            >
-                              ✕ {t('trash.permanentDelete')}
-                            </button>
-                          </div>
-                          <div className="p-2 bg-transparent flex items-center justify-center h-10">
-                            <p className="text-menu text-red-500 font-medium">
-                              {t('trash.delete_warning', { daysLeft })}
-                            </p>
-                          </div>
-                        </div>
-                      )
-                    })}
+                        )
+                      })}
                   </div>
                 )}
               </div>
@@ -1253,7 +1295,7 @@ export default function ProjectDetail({
       )}
 
       {/* 🚀 다중 선택 하단 플로팅 바 */}
-      {selectionMode && activeTab === 'photos' && (
+      {(selectionMode || selectedPhotoIds.size > 0) && activeTab === 'photos' && (
         <div className="fixed bottom-10 left-1/2 -translate-x-1/2 bg-canvas-2 border border-ink-2 px-3 py-2 rounded-card shadow flex items-center gap-8 z-[100] animate-fade-in-up">
           <div className="flex flex-col">
             <span className="font-bold text-menu text-ink-2">{t('story.multiplePhotoSelected', { count: selectedPhotoIds.size })}</span>
@@ -1298,7 +1340,29 @@ export default function ProjectDetail({
               </div>
             )}
 
-            <button 
+            <button
+              onClick={() => {
+                if (selectedPhotoIds.size === 0) return
+                setConfirmModal({
+                  message: t('photo.bulkDeleteConfirm', { count: selectedPhotoIds.size }),
+                  onConfirm: async () => {
+                    setConfirmModal(null)
+                    await axios.delete(`${API}/photos/bulk-delete`, { data: { photo_ids: Array.from(selectedPhotoIds) } })
+                    queryClient.invalidateQueries({ queryKey: ['photos', numericId] })
+                    queryClient.invalidateQueries({ queryKey: ['photosTrash', numericId] })
+                    setSelectedPhotoIds(new Set())
+                    setSelectionMode(false)
+                    setShowBulkChapterMenu(false)
+                  },
+                })
+              }}
+              disabled={selectedPhotoIds.size === 0}
+              className="inline-flex items-center gap-1.5 px-2 py-1.5 font-bold text-menu bg-red-500 text-white hover:bg-red-600 border border-red-500 disabled:opacity-40 transition-colors ease-out"
+            >
+              <Trash2 size={13} strokeWidth={1.5} />{t('photo.moveToTrash')}
+            </button>
+
+            <button
               onClick={() => {
                 setSelectionMode(false)
                 setSelectedPhotoIds(new Set())

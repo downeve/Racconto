@@ -706,6 +706,42 @@ def restore_photo(
     return photo
 
 
+@router.post("/bulk-restore")
+def bulk_restore_photos(
+    body: BulkPermanentDeleteRequest,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user)
+):
+    photos = db.query(models.Photo).join(models.Project).filter(
+        models.Photo.id.in_(body.photo_ids),
+        models.Photo.deleted_at != None,
+        models.Project.user_id == current_user.id
+    ).all()
+    if not photos:
+        return {"restored": 0}
+
+    photo_count = db.query(models.Photo).join(models.Project).filter(
+        models.Project.user_id == current_user.id,
+        models.Photo.deleted_at == None
+    ).count()
+    available = current_user.photo_limit - photo_count
+    if available <= 0:
+        raise HTTPException(
+            status_code=403,
+            detail={"code": "PHOTO_LIMIT_EXCEEDED", "limit": current_user.photo_limit}
+        )
+    photos_to_restore = photos[:available]
+
+    for photo in photos_to_restore:
+        photo.deleted_at = None
+        db.query(models.Note).filter(
+            models.Note.photo_id == photo.id,
+            models.Note.deleted_at != None
+        ).update({"deleted_at": None}, synchronize_session=False)
+    db.commit()
+    return {"restored": len(photos_to_restore)}
+
+
 @router.delete("/{photo_id}/permanent")
 def permanent_delete_photo(
     photo_id: str,

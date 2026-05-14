@@ -1,7 +1,7 @@
-import { useEffect, useState, memo, useRef } from 'react'
+import { useEffect, useState, memo } from 'react'
 import { useTranslation } from 'react-i18next'
 import PhotoNotePanel from './PhotoNotePanel'
-import { BookOpen, FileText, AlertTriangle, Check, Star, RotateCcw, RotateCw, MoreHorizontal } from 'lucide-react'
+import { BookOpen, FileText, AlertTriangle, Check, Star, RotateCcw, RotateCw } from 'lucide-react'
 import { cfUrl } from '../utils/cfImage'
 import { useChromeAutoHide } from '../hooks/useChromeAutoHide'
 
@@ -59,54 +59,23 @@ export interface ColorLabel {
   label: string
 }
 
-// ── PhotoCardMenu ──────────────────────────────────────────
+// ── CoverButton ──────────────────────────────────────────
 
-interface PhotoCardMenuProps {
+interface CoverButtonProps {
   photo: Photo
   isCover: boolean
   onSetCover: (photo: Photo) => void
-  onDelete: (id: string) => void
 }
 
-function PhotoCardMenu({ photo, isCover, onSetCover, onDelete }: PhotoCardMenuProps) {
-  const [open, setOpen] = useState(false)
-  const ref = useRef<HTMLDivElement>(null)
+function CoverButton({ photo, isCover, onSetCover }: CoverButtonProps) {
   const { t } = useTranslation()
-
-  useEffect(() => {
-    if (!open) return
-    function handleClick(e: MouseEvent) {
-      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false)
-    }
-    document.addEventListener('mousedown', handleClick)
-    return () => document.removeEventListener('mousedown', handleClick)
-  }, [open])
-
   return (
-    <div ref={ref} className="relative">
-      <button
-        onClick={e => { e.stopPropagation(); setOpen(v => !v) }}
-        className="w-7 h-7 flex items-center justify-center rounded-full bg-black/45 hover:bg-black/65 backdrop-blur-sm text-white"
-      >
-        <MoreHorizontal size={14} strokeWidth={2} />
-      </button>
-      {open && (
-        <div className="absolute top-full right-0 mt-1 z-popover min-w-[160px] bg-edit-paper rounded-[2px] py-1 border border-edit-line shadow-[0_4px_12px_rgba(0,0,0,0.06)]">
-          <button
-            onClick={e => { e.stopPropagation(); onSetCover(photo); setOpen(false) }}
-            className="w-full px-3 py-1.5 text-left text-[0.75rem] text-edit-ink hover:bg-edit-paper-2"
-          >
-            {isCover ? t('photo.isCover') : t('photo.setCover')}
-          </button>
-          <button
-            onClick={e => { e.stopPropagation(); onDelete(photo.id); setOpen(false) }}
-            className="w-full px-3 py-1.5 text-left text-[0.75rem] text-edit-danger hover:bg-edit-paper-2"
-          >
-            {t('photo.moveToTrash')}
-          </button>
-        </div>
-      )}
-    </div>
+    <button
+      onClick={e => { e.stopPropagation(); onSetCover(photo) }}
+      className="h-7 px-2.5 flex items-center rounded-full bg-black/45 hover:bg-black/65 backdrop-blur-sm text-white text-[0.7rem] font-medium whitespace-nowrap"
+    >
+      {isCover ? t('photo.isCover') : t('photo.setCover')}
+    </button>
   )
 }
 
@@ -428,7 +397,6 @@ interface PhotoCardProps {
   photo: Photo
   project: Project | null
   onSetCover: (photo: Photo) => void
-  onDelete: (id: string) => void
   onSetRating: (photo: Photo, rating: number) => void
   onSetColorLabel: (photo: Photo, label: string) => void
   onOpenLightbox: (photo: Photo) => void
@@ -438,13 +406,14 @@ interface PhotoCardProps {
   chapterPhotoIds: Set<string>
   selectionMode: boolean
   isSelected: boolean
+  anySelected: boolean
   onToggleSelect: (id: string) => void
 }
 
 export const PhotoCard = memo(function PhotoCard({
-  photo, project, onSetCover, onDelete, onSetRating, onSetColorLabel,
+  photo, project, onSetCover, onSetRating, onSetColorLabel,
   onOpenLightbox, showExif, colorLabels, chapterPhotoIds,
-  selectionMode, isSelected, onToggleSelect
+  selectionMode, isSelected, anySelected, onToggleSelect
 }: PhotoCardProps) {
   const { t, i18n } = useTranslation()
   const isAlreadyInStory = chapterPhotoIds.has(photo.id)
@@ -468,8 +437,8 @@ export const PhotoCard = memo(function PhotoCard({
               : 'group-hover:scale-[1.01] cursor-pointer'
           }`}
           onClick={() => {
-            if (selectionMode) {
-              if (isAlreadyInStory) return
+            if (anySelected || selectionMode) {
+              if (selectionMode && isAlreadyInStory) return
               onToggleSelect(photo.id)
             } else {
               onOpenLightbox(photo)
@@ -484,30 +453,28 @@ export const PhotoCard = memo(function PhotoCard({
           </div>
         )}
 
-        {/* ⋯ 메뉴 (호버 시만 등장) */}
-        {!selectionMode && (
+        {/* 커버 버튼 (호버 시, 선택 모드 아닐 때) */}
+        {!anySelected && !selectionMode && (
           <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 focus-within:opacity-100 transition-opacity z-photo-controls">
-            <PhotoCardMenu
+            <CoverButton
               photo={photo}
               isCover={project?.cover_image_url === photo.image_url}
               onSetCover={onSetCover}
-              onDelete={onDelete}
             />
           </div>
         )}
 
-        {/* 선택 모드 체크 */}
-        {selectionMode && !isAlreadyInStory && (
-          <div
-            className="absolute top-3 left-3 z-photo-controls cursor-pointer"
+        {/* 체크박스 — 좌상단 네모, hover 또는 anySelected/selectionMode 시 표시 */}
+        {!(selectionMode && isAlreadyInStory) && (
+          <button
             onClick={e => { e.stopPropagation(); onToggleSelect(photo.id) }}
+            className={`absolute top-1.5 left-1.5 z-photo-controls w-5 h-5 rounded flex items-center justify-center transition-opacity ${
+              isSelected || anySelected || selectionMode ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'
+            } ${isSelected ? 'bg-white' : 'bg-black/40 border border-white/60'}`}
+            aria-label={isSelected ? '선택 해제' : '선택'}
           >
-            <div className={`w-5 h-5 rounded-full flex items-center justify-center ${
-              isSelected ? 'bg-edit-ink text-edit-paper' : 'bg-black/35 ring-1 ring-edit-paper/70'
-            }`}>
-              {isSelected && <Check size={11} strokeWidth={2} />}
-            </div>
-          </div>
+            {isSelected && <Check size={11} strokeWidth={2.5} className="text-edit-ink" />}
+          </button>
         )}
       </div>
 

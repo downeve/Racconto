@@ -517,7 +517,13 @@
     "deleteAllWebConfirm": "Permanently delete {{count}} photo(s) from trash?",
     "deleteAllLocalBlocked": "Selected photos are linked to a local folder. Delete files from your PC or unlink the folder first.",
     "deleteAllMixedConfirm": "{{local}} photo(s) linked to a local folder must be deleted from your PC first.\nOnly {{web}} web-uploaded photo(s) will be permanently deleted now. Continue?",
-    "localSyncBadge": "💻 Delete from PC or terminate folder link"
+    "localSyncBadge": "💻 Delete from PC or terminate folder link",
+    "selectedCount": "{{count}} selected",
+    "bulkRestore": "Restore",
+    "bulkDelete": "Delete",
+    "bulkDeleteConfirm": "Permanently delete {{count}} selected photos? This cannot be undone.",
+    "bulkDeleteLocalSkipped": "{{skipped}} local-synced photos will be skipped. Delete {{count}} photos?",
+    "deselectAll": "Deselect All"
   },
   "actions": {
     "resetAllRatings": "Reset All Ratings",
