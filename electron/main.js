@@ -204,13 +204,15 @@ async function uploadFile(item) {
   const img = nativeImage.createFromPath(item.filePath)
   const { width, height } = img.getSize()
   let imageBuffer
+  const isJpeg = ['.jpg', '.jpeg'].includes(path.extname(item.filePath).toLowerCase())
+  const quality = isJpeg ? 92 : 88
   if (Math.max(width, height) > MAX_SIZE) {
     const isLandscape = width >= height
     const newW = isLandscape ? MAX_SIZE : Math.round(width * MAX_SIZE / height)
     const newH = isLandscape ? Math.round(height * MAX_SIZE / width) : MAX_SIZE
-    imageBuffer = img.resize({ width: newW, height: newH }).toJPEG(88)
+    imageBuffer = img.resize({ width: newW, height: newH }).toJPEG(quality)
   } else {
-    imageBuffer = img.toJPEG(88)
+    imageBuffer = img.toJPEG(quality)
   }
 
   const { Blob } = require('buffer')

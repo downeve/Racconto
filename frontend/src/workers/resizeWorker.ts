@@ -21,7 +21,8 @@ self.addEventListener('message', async (e: MessageEvent<{ file: File }>) => {
     canvas.getContext('2d')!.drawImage(bitmap, 0, 0, newW, newH)
     bitmap.close()
 
-    const blob = await canvas.convertToBlob({ type: 'image/jpeg', quality: 0.88 })
+    const quality = file.type === 'image/jpeg' ? 0.92 : 0.88
+    const blob = await canvas.convertToBlob({ type: 'image/jpeg', quality })
     self.postMessage({ blob })
   } catch (err) {
     self.postMessage({ error: String(err) })
