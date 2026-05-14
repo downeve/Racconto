@@ -62,7 +62,7 @@ class ProjectResponse(BaseModel):
     created_at: datetime
     updated_at: datetime
     deleted_at: Optional[datetime] = None
-    has_local_folder: bool = False
+    linked_folders: list[str] = []
 
     class Config:
         from_attributes = True
@@ -188,28 +188,6 @@ def update_project(
     db.commit()
     db.refresh(db_project)
     return db_project
-
-# PATCH /projects/{project_id}/local-folder
-class LocalFolderUpdate(BaseModel):
-    has_local_folder: bool
-
-@router.patch("/{project_id}/local-folder")
-def update_local_folder(
-    project_id: str,
-    body: LocalFolderUpdate,
-    db: Session = Depends(get_db),
-    current_user_id: str = Depends(get_current_user_id)
-):
-    project = db.query(models.Project).filter(
-        models.Project.id == project_id,
-        models.Project.user_id == current_user_id,
-        models.Project.deleted_at == None
-    ).first()
-    if not project:
-        raise HTTPException(status_code=404, detail="PROJECT_NOT_FOUND")
-    project.has_local_folder = body.has_local_folder
-    db.commit()
-    return {"ok": True}
 
 # DELETE /projects/{project_id}
 @router.delete("/{project_id}")

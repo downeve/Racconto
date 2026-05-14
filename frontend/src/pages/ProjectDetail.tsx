@@ -234,7 +234,7 @@ export default function ProjectDetail({
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc')
   const [deletingMissing, setDeletingMissing] = useState(false)
   const [deletingTrash, setDeletingTrash] = useState(false)
-  const [isProjectFolderLinked, setIsProjectFolderLinked] = useState(false)
+  const [linkedFolders, setLinkedFolders] = useState<Set<string>>(new Set())
   const [trashSelectedIds, setTrashSelectedIds] = useState<Set<string>>(new Set())
   const [filterHasNote, setFilterHasNote] = useState(false)
   const [confirmModal, setConfirmModal] = useState<{ message: string; onConfirm: () => void } | null>(null)
@@ -370,21 +370,23 @@ export default function ProjectDetail({
 
   useEffect(() => {
     if (!isElectron || !numericId) return
-    window.racconto!.getAllMappings().then(mappings => {
-      const linked = Object.values(mappings).some(m => m.projectId === numericId)
-      setIsProjectFolderLinked(linked)
-    })
-    window.racconto!.onFolderUnlinked(() => {
+    const refresh = () => {
       window.racconto!.getAllMappings().then(mappings => {
-        const linked = Object.values(mappings).some(m => m.projectId === numericId)
-        setIsProjectFolderLinked(linked)
+        const folders = new Set(
+          Object.entries(mappings)
+            .filter(([, m]) => m.projectId === numericId)
+            .map(([folderPath]) => folderPath)
+        )
+        setLinkedFolders(folders)
       })
-    })
+    }
+    refresh()
+    window.racconto!.onFolderUnlinked(refresh)
   }, [numericId, isElectron])
 
   useEffect(() => {
     if (isElectron || !project) return
-    setIsProjectFolderLinked(project.has_local_folder ?? false)
+    setLinkedFolders(new Set(project.linked_folders ?? []))
   }, [project, isElectron])
 
   // Electron일 때 사이드바 탭과 동기화
@@ -595,10 +597,10 @@ export default function ProjectDetail({
   }
 
   const canHardDelete = useCallback((photo: Photo): boolean => {
-    if (photo.source !== 'electron') return true
-    if (!isProjectFolderLinked) return true
+    if (photo.source !== 'electron' || !photo.folder) return true
+    if (!linkedFolders.has(photo.folder)) return true
     return !!photo.local_missing
-  }, [isProjectFolderLinked])
+  }, [linkedFolders])
 
   const webTrashPhotos = useMemo(
     () => trashedPhotos.filter(p => canHardDelete(p)),

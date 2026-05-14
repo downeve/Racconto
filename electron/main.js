@@ -110,28 +110,27 @@ ipcMain.handle('folderMap:link', (event, { folderPath, projectId, projectName })
   if (authToken) {
     syncFolderOnStart(folderPath, projectId)
     startWatcherForPath(folderPath)
-    fetchWithAuth(`${API_BASE}/projects/${projectId}/local-folder`, {
-      method: 'PATCH',
+    fetchWithAuth(`${API_BASE}/folder-links/`, {
+      method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ has_local_folder: true }),
-    }).catch(err => console.error('has_local_folder 업데이트 실패:', err))
+      body: JSON.stringify({ project_id: projectId, folder_path: folderPath }),
+    }).catch(err => console.error('folder-links 등록 실패:', err))
   }
   return { success: true }
 })
 
 ipcMain.handle('folderMap:unlink', (event, folderPath) => {
-  const mapping = getAllMappings()[folderPath]
   unlinkFolder(folderPath)
   stopWatcherForPath(folderPath)
   clearQueueForFolder(folderPath)
   mainWindow?.webContents.send('folderMap:unlinked', folderPath)
   console.log('폴더 연결 해제 → 큐 항목 제거:', folderPath)
-  if (mapping?.projectId && authToken) {
-    fetchWithAuth(`${API_BASE}/projects/${mapping.projectId}/local-folder`, {
-      method: 'PATCH',
+  if (authToken) {
+    fetchWithAuth(`${API_BASE}/folder-links/`, {
+      method: 'DELETE',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ has_local_folder: false }),
-    }).catch(err => console.error('has_local_folder 업데이트 실패:', err))
+      body: JSON.stringify({ folder_path: folderPath }),
+    }).catch(err => console.error('folder-links 해제 실패:', err))
   }
   return { success: true }
 })
@@ -147,11 +146,9 @@ ipcMain.handle('folderMap:unlinkByProject', (event, projectId) => {
     }
   })
   if (authToken) {
-    fetchWithAuth(`${API_BASE}/projects/${projectId}/local-folder`, {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ has_local_folder: false }),
-    }).catch(err => console.error('has_local_folder 업데이트 실패:', err))
+    fetchWithAuth(`${API_BASE}/folder-links/by-project/${projectId}`, {
+      method: 'DELETE',
+    }).catch(err => console.error('folder-links 프로젝트 전체 해제 실패:', err))
   }
   return { success: true }
 })
@@ -288,6 +285,11 @@ async function syncFolderOnStart(folderPath, projectId) {
       unlinkFolder(folderPath)
       stopWatcherForPath(folderPath)
       mainWindow?.webContents.send('folderMap:unlinked', folderPath)
+      fetchWithAuth(`${API_BASE}/folder-links/`, {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ folder_path: folderPath }),
+      }).catch(() => {})
       return
     }
     if (!res.ok) return

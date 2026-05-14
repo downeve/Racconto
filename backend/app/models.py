@@ -3,6 +3,7 @@ from sqlalchemy.orm import relationship
 from app.database import Base
 from datetime import datetime
 import enum
+import uuid
 
 class User(Base):
     __tablename__ = "users"
@@ -56,7 +57,20 @@ class Project(Base):
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     deleted_at = Column(DateTime, nullable=True, default=None, index=True)
-    has_local_folder = Column(Boolean, default=False, nullable=False, server_default='false')
+    folder_links = relationship("FolderLink", back_populates="project", cascade="all, delete-orphan", lazy="selectin")
+
+    @property
+    def linked_folders(self) -> list:
+        return [fl.folder_path for fl in self.folder_links]
+
+class FolderLink(Base):
+    __tablename__ = "folder_links"
+    id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
+    user_id = Column(String, ForeignKey("users.id"), nullable=False, index=True)
+    project_id = Column(String, ForeignKey("projects.id"), nullable=False, index=True)
+    folder_path = Column(String, nullable=False)
+    linked_at = Column(DateTime, default=datetime.utcnow)
+    project = relationship("Project", back_populates="folder_links")
 
 class Photo(Base):
     __tablename__ = "photos"
