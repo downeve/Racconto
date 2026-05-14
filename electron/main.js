@@ -110,16 +110,29 @@ ipcMain.handle('folderMap:link', (event, { folderPath, projectId, projectName })
   if (authToken) {
     syncFolderOnStart(folderPath, projectId)
     startWatcherForPath(folderPath)
+    fetchWithAuth(`${API_BASE}/projects/${projectId}/local-folder`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ has_local_folder: true }),
+    }).catch(err => console.error('has_local_folder 업데이트 실패:', err))
   }
   return { success: true }
 })
 
 ipcMain.handle('folderMap:unlink', (event, folderPath) => {
+  const mapping = getAllMappings()[folderPath]
   unlinkFolder(folderPath)
   stopWatcherForPath(folderPath)
   clearQueueForFolder(folderPath)
   mainWindow?.webContents.send('folderMap:unlinked', folderPath)
   console.log('폴더 연결 해제 → 큐 항목 제거:', folderPath)
+  if (mapping?.projectId && authToken) {
+    fetchWithAuth(`${API_BASE}/projects/${mapping.projectId}/local-folder`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ has_local_folder: false }),
+    }).catch(err => console.error('has_local_folder 업데이트 실패:', err))
+  }
   return { success: true }
 })
 
@@ -133,6 +146,13 @@ ipcMain.handle('folderMap:unlinkByProject', (event, projectId) => {
       console.log('프로젝트 삭제로 폴더 연결 해제:', folderPath)
     }
   })
+  if (authToken) {
+    fetchWithAuth(`${API_BASE}/projects/${projectId}/local-folder`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ has_local_folder: false }),
+    }).catch(err => console.error('has_local_folder 업데이트 실패:', err))
+  }
   return { success: true }
 })
 

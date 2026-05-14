@@ -56,6 +56,7 @@ class Project(Base):
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     deleted_at = Column(DateTime, nullable=True, default=None, index=True)
+    has_local_folder = Column(Boolean, default=False, nullable=False, server_default='false')
 
 class Photo(Base):
     __tablename__ = "photos"

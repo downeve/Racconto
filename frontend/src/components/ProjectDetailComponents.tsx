@@ -17,6 +17,7 @@ export interface Project {
   location: string
   is_public: string
   cover_image_url: string
+  has_local_folder?: boolean
 }
 
 export interface ChapterPhotoResponse {

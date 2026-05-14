@@ -382,6 +382,11 @@ export default function ProjectDetail({
     })
   }, [numericId, isElectron])
 
+  useEffect(() => {
+    if (isElectron || !project) return
+    setIsProjectFolderLinked(project.has_local_folder ?? false)
+  }, [project, isElectron])
+
   // Electron일 때 사이드바 탭과 동기화
   useEffect(() => {
     if (electronTab) {
@@ -591,10 +596,9 @@ export default function ProjectDetail({
 
   const canHardDelete = useCallback((photo: Photo): boolean => {
     if (photo.source !== 'electron') return true
-    if (!isElectron) return true
     if (!isProjectFolderLinked) return true
     return !!photo.local_missing
-  }, [isElectron, isProjectFolderLinked])
+  }, [isProjectFolderLinked])
 
   const webTrashPhotos = useMemo(
     () => trashedPhotos.filter(p => canHardDelete(p)),
