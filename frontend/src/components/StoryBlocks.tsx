@@ -246,8 +246,8 @@ export function SortablePhotoChapter({
           {...listeners}
           className={`absolute left-1.5 p-1.5 rounded cursor-grab transition-opacity z-photo-controls ${
             onToggleSelect
-              ? 'top-8 opacity-0 group-hover:opacity-60'
-              : 'top-1.5 opacity-30 group-hover:opacity-100'
+              ? 'top-8 opacity-0 group-hover:opacity-90'
+              : 'top-1.5 opacity-50 group-hover:opacity-100'
           }`}
         >
           <DragHandleDots size={12} tone="on-photo" />
