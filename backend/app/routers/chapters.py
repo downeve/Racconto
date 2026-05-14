@@ -586,6 +586,36 @@ def set_side_by_side(
     return {"message": "나란히 배치가 설정되었습니다."}
 
 
+@router.put("/{chapter_id}/side-by-side/flip")
+def flip_side_by_side(
+    chapter_id: str,
+    body: dict,
+    db: Session = Depends(get_db),
+    current_user_id: str = Depends(get_current_user_id)
+):
+    """Side-by-Side 컬럼 순서 반전 — side-left ↔ side-right"""
+    get_owned_chapter_or_404(chapter_id, current_user_id, db)
+
+    block_id = body.get("block_id")
+    if not block_id:
+        raise HTTPException(status_code=400, detail="block_id required")
+
+    items = db.query(models.ChapterItem).filter(
+        models.ChapterItem.block_id == block_id,
+        models.ChapterItem.chapter_id == chapter_id
+    ).all()
+    if not items:
+        raise HTTPException(status_code=404, detail="BLOCK_NOT_FOUND")
+
+    current_type = items[0].block_type
+    new_type = 'side-right' if current_type == 'side-left' else 'side-left'
+    for item in items:
+        item.block_type = new_type
+
+    db.commit()
+    return {"block_type": new_type}
+
+
 @router.put("/{chapter_id}/side-by-side/cancel")
 def cancel_side_by_side(
     chapter_id: str,

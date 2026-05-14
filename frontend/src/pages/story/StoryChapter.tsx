@@ -90,6 +90,11 @@ function StoryChapterComponent({
     fetchChapterPhotos(chapterId)
   }, [chapterId, fetchChapterPhotos])
 
+  const handleFlipColumns = useCallback(async (blockId: string) => {
+    await axios.put(`${API}/chapters/${chapterId}/side-by-side/flip`, { block_id: blockId })
+    fetchChapterPhotos(chapterId)
+  }, [chapterId, fetchChapterPhotos])
+
   const handleRemoveItem = useCallback(async (cid: string, itemId: string) => {
     const currentItems = itemsRef.current
     const item = currentItems.find(i => i.id === itemId)
@@ -585,6 +590,7 @@ function StoryChapterComponent({
                       handleBlockLayoutChange(chapterId, block.blockId, layout)
                     }
                     onCancelSideBySide={(_cid, textItemId) => handleCancelSideBySide(textItemId)}
+                    onFlipColumns={() => handleFlipColumns(block.blockId)}
                     editingTextItemId={editingTextItemId}
                     textDraft={textDraft}
                     onTextDraftChange={setTextDraft}

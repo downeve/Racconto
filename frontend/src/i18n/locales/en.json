@@ -311,6 +311,7 @@
     "attachLeft": "↑",
     "attachRight": "↓",
     "detach": "Detach",
+    "flipColumns": "Flip columns",
     "sideSingleHint": "Single col layout (Portfolio)",
     "toOtherBlock": "Move",
     "toOtherBlockTitle": "Move to other block",

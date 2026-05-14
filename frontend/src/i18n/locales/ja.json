@@ -299,6 +299,7 @@
     "attachLeft": "↑",
     "attachRight": "↓",
     "detach": "切り離す",
+    "flipColumns": "左右を入れ替える",
     "sideSingleHint": "1列レイアウト (ポートフォリオ)",
     "toOtherBlock": "移動",
     "toOtherBlockTitle": "他のブロックへ移動",

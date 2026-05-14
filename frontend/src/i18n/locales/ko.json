@@ -311,6 +311,7 @@
     "attachLeft": "↑",
     "attachRight": "↓",
     "detach": "분리",
+    "flipColumns": "순서 반전",
     "sideSingleHint": "레이아웃 1열 (포트폴리오)",
     "toOtherBlock": "옮기기",
     "toOtherBlockTitle": "다른 블록으로 옮기기",

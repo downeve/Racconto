@@ -693,6 +693,7 @@ export interface SortableSideBySideBlockProps {
 
   onEdit: (itemId: string, currentText: string) => void
   onLayoutChange: (blockId: string, layout: 'grid' | 'wide' | 'single') => void
+  onFlipColumns?: () => void
   onMoveBlock?: (direction: 'up' | 'down') => void
   isFirst?: boolean
   isLast?: boolean
@@ -702,7 +703,7 @@ export const SortableSideBySideBlock = memo(function SortableSideBySideBlock({
   blockId, chapterId, items, onRemoveItem, onPhotoClick, onCancelSideBySide,
   // 👇 추가된 props 구조분해 할당
   editingTextItemId, textDraft, onTextDraftChange, onSaveText, onCancelEdit,
-  onEdit, onMoveBlock, isFirst, isLast
+  onEdit, onFlipColumns, onMoveBlock, isFirst, isLast
 }: SortableSideBySideBlockProps) {
   const { attributes, listeners, setNodeRef: setSortableRef, transform, transition, isDragging } = useSortable({ id: blockId })
   const style = { transform: CSS.Transform.toString(transform), transition, opacity: isDragging ? 0.5 : 1 }
@@ -816,6 +817,13 @@ export const SortableSideBySideBlock = memo(function SortableSideBySideBlock({
             title="아래로 이동"
           >↓</button>
         )}
+        <button
+          onClick={onFlipColumns}
+          className="text-eyebrow px-1.5 py-1 rounded text-edit-muted hover:bg-edit-paper-2"
+          title={t('story.flipColumns')}
+        >
+          <ArrowLeftRight size={12} strokeWidth={1.5} />
+        </button>
         {textItem && (
           <button
             onClick={() => onCancelSideBySide(chapterId, textItem.id)}
