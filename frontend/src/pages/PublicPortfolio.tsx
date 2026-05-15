@@ -258,6 +258,19 @@ export default function PublicPortfolio() {
     }
   }, [lightboxIndex])
 
+  // 인접 이미지 preload — 앞 1장 + 뒤 2장
+  useEffect(() => {
+    if (lightboxIndex === null || lightboxItems.length === 0) return
+    const indices = [lightboxIndex - 1, lightboxIndex + 1, lightboxIndex + 2]
+      .filter(i => i >= 0 && i < lightboxItems.length)
+    indices.forEach(i => {
+      const url = lightboxItems[i].photo.image_url
+      if (!url) return
+      const img = new Image()
+      img.src = cfUrl(url, 'public')
+    })
+  }, [lightboxIndex, lightboxItems])
+
   // Focus trap for lightbox
   useEffect(() => {
     if (lightboxIndex === null) {
