@@ -932,19 +932,19 @@ function ProjectStory({
           </div>
         )}
 
-        <div className="bg-edit-paper border border-edit-line rounded-btn px-8 py-10">
+        <div className="bg-edit-paper border border-edit-line rounded-btn px-8 pt-10 pb-0">
         {/* 챕터 목록 */}
-        <div className="space-y-8">
+        <div className="divide-y divide-edit-line">
         {chapters
-          .filter(c => !c.parent_id) 
+          .filter(c => !c.parent_id)
           .map((chapter, idx) => {
-            const subChapters = chapters.filter(c => c.parent_id === chapter.id) 
-            
+            const subChapters = chapters.filter(c => c.parent_id === chapter.id)
+
             return (
               <div
                 key={chapter.id}
                 ref={el => { chapterRefs.current[chapter.id] = el }}
-                className="group/chapter"
+                className={`group/chapter${idx > 0 ? ' pt-12' : ''} pb-12`}
               >
                 {/* 최상위 챕터 헤더 — hairline 구조 */}
                 <header className="mb-6">
