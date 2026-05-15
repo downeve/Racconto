@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, selectinload
 from sqlalchemy import case, update as sa_update
 from app.database import get_db
 from app import models
@@ -267,7 +267,9 @@ def get_all_chapter_items(
 
     chapter_ids = [c.id for c in chapters]
 
-    items = db.query(models.ChapterItem).filter(
+    items = db.query(models.ChapterItem).options(
+        selectinload(models.ChapterItem.photo)
+    ).filter(
         models.ChapterItem.chapter_id.in_(chapter_ids)
     ).order_by(
         models.ChapterItem.order_num,
@@ -388,8 +390,9 @@ def get_chapter_items(
 ):
     get_owned_chapter_or_404(chapter_id, current_user_id, db)
 
-    # 변경 후
-    items = db.query(models.ChapterItem).filter(
+    items = db.query(models.ChapterItem).options(
+        selectinload(models.ChapterItem.photo)
+    ).filter(
         models.ChapterItem.chapter_id == chapter_id
     ).order_by(models.ChapterItem.order_num, models.ChapterItem.order_in_block).all()
 

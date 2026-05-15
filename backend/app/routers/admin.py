@@ -22,8 +22,19 @@ CF_ACCOUNT_ID = os.getenv("CF_ACCOUNT_ID")
 
 # 관리자 이메일 화이트리스트 (쉼표 구분, 환경변수)
 # 예: ADMIN_EMAILS=admin@racconto.app,backup@racconto.app
+# 프로덕션에서는 필수 — 미세팅 시 startup 실패. 개발 환경(ENV != "production")에서는
+# 비어 있어도 허용하되 시작 시 경고.
 _raw = os.getenv("ADMIN_EMAILS", "")
 ADMIN_WHITELIST: set[str] = {e.strip() for e in _raw.split(",") if e.strip()}
+_IS_PROD = os.getenv("ENV", "development") == "production"
+
+if not ADMIN_WHITELIST:
+    if _IS_PROD:
+        raise RuntimeError(
+            "ADMIN_EMAILS 환경변수가 설정되지 않았습니다. "
+            "프로덕션에서는 어드민 화이트리스트가 필수입니다."
+        )
+    print("[WARN] ADMIN_EMAILS 미설정 — 개발 환경. 프로덕션 배포 전 반드시 설정하세요.")
 
 class OrphanScanResult(BaseModel):
     orphan_ids: List[str]
@@ -78,7 +89,14 @@ def require_admin(current_user: models.User = Depends(get_current_user)):
             f"at={datetime.utcnow().isoformat()}"
         )
         raise HTTPException(status_code=403, detail="FORBIDDEN")
-    if ADMIN_WHITELIST and current_user.email not in ADMIN_WHITELIST:
+    # 화이트리스트가 비어 있고 프로덕션이면 위에서 이미 startup이 실패했으므로
+    # 여기까지 도달하면 dev 환경. 그래도 fail-closed로 강제하려면 아래 조건을 강화 가능.
+    if not ADMIN_WHITELIST:
+        print(
+            f"[SECURITY] Admin access without whitelist (dev mode) | "
+            f"user_id={current_user.id} | email={current_user.email}"
+        )
+    elif current_user.email not in ADMIN_WHITELIST:
         print(
             f"[SECURITY] Admin whitelist rejected | "
             f"user_id={current_user.id} | "
