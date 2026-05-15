@@ -11,12 +11,14 @@ from datetime import datetime, timedelta
 import os
 import asyncio
 import logging
-from app.routers.photos import delete_cf_files_parallel
+from app.routers.photos import delete_cf_files_parallel, _safe_local_upload_path
+
+logger = logging.getLogger(__name__)
 
 models.Base.metadata.create_all(bind=engine)
 
 # 스키마 마이그레이션 — 버전이 올라간 경우에만 실행
-SCHEMA_VERSION = 3
+SCHEMA_VERSION = 4
 
 def _run_schema_migrations():
     with engine.connect() as conn:
@@ -45,10 +47,39 @@ def _run_schema_migrations():
         conn.execute(text("ALTER TABLE photos ADD COLUMN IF NOT EXISTS original_image_url VARCHAR"))
         conn.execute(text("ALTER TABLE photos ADD COLUMN IF NOT EXISTS is_rotating BOOLEAN NOT NULL DEFAULT false"))
 
+        # v4 — 인덱스 추가 + is_public Boolean 마이그레이션
+        # P-M7: 자주 쿼리되는 컬럼 인덱스 추가
+        conn.execute(text("CREATE INDEX IF NOT EXISTS ix_delivery_links_project_id ON delivery_links(project_id)"))
+        conn.execute(text("CREATE INDEX IF NOT EXISTS ix_delivery_selections_link_id ON delivery_selections(link_id)"))
+        conn.execute(text("CREATE INDEX IF NOT EXISTS ix_chapter_items_photo_id ON chapter_items(photo_id)"))
+        conn.execute(text("CREATE INDEX IF NOT EXISTS ix_chapter_items_block_id ON chapter_items(block_id)"))
+        conn.execute(text("CREATE INDEX IF NOT EXISTS ix_photos_project_filename ON photos(project_id, original_filename)"))
+        conn.execute(text("CREATE INDEX IF NOT EXISTS ix_photos_project_folder ON photos(project_id, folder)"))
+
+        # P-M6: projects.is_public String → Boolean 마이그레이션 (idempotent)
+        col_type = conn.execute(text(
+            "SELECT data_type FROM information_schema.columns "
+            "WHERE table_name='projects' AND column_name='is_public'"
+        )).scalar()
+        if col_type and col_type.lower() not in ("boolean", "bool"):
+            conn.execute(text(
+                "ALTER TABLE projects ALTER COLUMN is_public DROP DEFAULT"
+            ))
+            conn.execute(text(
+                "ALTER TABLE projects ALTER COLUMN is_public TYPE BOOLEAN "
+                "USING (CASE WHEN lower(is_public) IN ('true','t','1','yes') THEN true ELSE false END)"
+            ))
+            conn.execute(text(
+                "ALTER TABLE projects ALTER COLUMN is_public SET DEFAULT false"
+            ))
+            conn.execute(text(
+                "ALTER TABLE projects ALTER COLUMN is_public SET NOT NULL"
+            ))
+
         conn.execute(text("DELETE FROM _schema_version"))
         conn.execute(text(f"INSERT INTO _schema_version (version) VALUES ({SCHEMA_VERSION})"))
         conn.commit()
-        print(f"스키마 마이그레이션 완료: version {SCHEMA_VERSION}")
+        logger.info("스키마 마이그레이션 완료: version %d", SCHEMA_VERSION)
 
 _run_schema_migrations()
 
@@ -121,7 +152,7 @@ def auto_delete_trash():
             if p.image_url and "imagedelivery.net" in p.image_url
         ]
         local_paths = [
-            f"app/uploads/{p.image_url.split('/uploads/')[-1]}"
+            _safe_local_upload_path(p.image_url)
             for p in photos
             if p.image_url and "imagedelivery.net" not in p.image_url
         ]
@@ -130,18 +161,20 @@ def auto_delete_trash():
         if cf_urls:
             asyncio.run(delete_cf_files_parallel(cf_urls))
 
-        # 로컬 파일 삭제
+        # 로컬 파일 삭제 (path traversal 방어된 경로만)
         for path in local_paths:
+            if not path:
+                continue
             try:
                 if os.path.exists(path):
                     os.remove(path)
             except Exception as e:
-                print(f"로컬 파일 삭제 오류: {e}")
+                logger.warning("로컬 파일 삭제 오류: %s", e)
 
         for project in old_projects:
             db.delete(project)
         db.commit()
-        print(f"자동 삭제: {len(old_projects)}개 프로젝트 영구 삭제됨")
+        logger.info("자동 삭제: %d개 프로젝트 영구 삭제됨", len(old_projects))
     finally:
         db.close()
 

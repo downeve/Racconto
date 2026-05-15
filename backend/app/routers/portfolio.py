@@ -1,9 +1,12 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Response
 from sqlalchemy.orm import Session
 from app.database import get_db
 from app import models
 
 router = APIRouter(prefix="/portfolio", tags=["portfolio"])
+
+# 공개 portfolio 응답 캐시 (CDN/브라우저용)
+_PORTFOLIO_CACHE_CONTROL = "public, max-age=60, stale-while-revalidate=300"
 
 
 def _preload_project_data(project_id: str, db: Session) -> tuple[dict, dict]:
@@ -254,7 +257,8 @@ def _build_project_result_from_cache(
 
 
 @router.get("/{username}/{slug}")
-def get_public_project_by_slug(username: str, slug: str, db: Session = Depends(get_db)):
+def get_public_project_by_slug(username: str, slug: str, response: Response, db: Session = Depends(get_db)):
+    response.headers["Cache-Control"] = _PORTFOLIO_CACHE_CONTROL
     user = db.query(models.User).filter(models.User.username == username).first()
     if not user:
         raise HTTPException(status_code=404, detail="USER_NOT_FOUND")
@@ -268,7 +272,7 @@ def get_public_project_by_slug(username: str, slug: str, db: Session = Depends(g
     project = db.query(models.Project).filter(
         models.Project.user_id == user.id,
         models.Project.slug == slug,
-        models.Project.is_public == "true",
+        models.Project.is_public == True,
         models.Project.deleted_at == None
     ).first()
     if not project:
@@ -282,9 +286,10 @@ def get_public_project_by_slug(username: str, slug: str, db: Session = Depends(g
 
 
 @router.get("/")
-def get_portfolio(db: Session = Depends(get_db)):
+def get_portfolio(response: Response, db: Session = Depends(get_db)):
+    response.headers["Cache-Control"] = _PORTFOLIO_CACHE_CONTROL
     projects = db.query(models.Project).filter(
-        models.Project.is_public == "true",
+        models.Project.is_public == True,
         models.Project.deleted_at == None
     ).order_by(models.Project.order_num.asc(), models.Project.created_at.desc()).all()
 
@@ -298,7 +303,8 @@ def get_portfolio(db: Session = Depends(get_db)):
 
 
 @router.get("/{username}")
-def get_public_portfolio(username: str, db: Session = Depends(get_db)):
+def get_public_portfolio(username: str, response: Response, db: Session = Depends(get_db)):
+    response.headers["Cache-Control"] = _PORTFOLIO_CACHE_CONTROL
     user = db.query(models.User).filter(
         models.User.username == username
     ).first()
@@ -316,7 +322,7 @@ def get_public_portfolio(username: str, db: Session = Depends(get_db)):
 
     projects = db.query(models.Project).filter(
         models.Project.user_id == user.id,
-        models.Project.is_public == "true",
+        models.Project.is_public == True,
         models.Project.deleted_at == None
     ).order_by(models.Project.order_num.asc(), models.Project.created_at.desc()).all()
 

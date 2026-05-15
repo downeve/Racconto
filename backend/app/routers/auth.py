@@ -1,15 +1,16 @@
-from fastapi import APIRouter, Depends, HTTPException, BackgroundTasks, Request, status
+from fastapi import APIRouter, Depends, HTTPException, BackgroundTasks, Request, status, Form
 from fastapi.security import OAuth2PasswordRequestForm
-from app.auth import verify_password, create_access_token, get_password_hash, get_current_user
+from app.auth import verify_password, create_access_token, get_password_hash, get_current_user, encrypt_apple_token, decrypt_apple_token
 from app.database import get_db
 from sqlalchemy.orm import Session
 from app import models
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel, EmailStr, Field
 import uuid
 from app.email import send_verification_email, send_password_reset_email, send_farewell_email, send_welcome_email, send_social_welcome_email
 from datetime import datetime, timedelta
 from typing import Optional
 from app.routers.photos import delete_cf_files_parallel
+import logging
 import secrets
 import httpx
 import ssl
@@ -18,6 +19,8 @@ import jwt as pyjwt
 from jwt import PyJWKClient
 import time
 import os
+
+logger = logging.getLogger(__name__)
 
 _ssl_ctx = ssl.create_default_context(cafile=certifi.where())
 
@@ -36,7 +39,7 @@ def _record_activity(user_id: str, ip: str) -> None:
             db.commit()
     except Exception as e:
         db.rollback()
-        print(f"[activity] record error: {e}")
+        logger.warning("[activity] record error: %s", e)
     finally:
         db.close()
 _google_jwks_client = PyJWKClient("https://www.googleapis.com/oauth2/v3/certs", cache_keys=True, ssl_context=_ssl_ctx)
@@ -71,12 +74,12 @@ class Token(BaseModel):
 
 class UserRegister(BaseModel):
     email: EmailStr
-    password: str
+    password: str = Field(min_length=8, max_length=128)
     lang: Optional[str] = 'ko'
 
 class PasswordChange(BaseModel):
     current_password: str
-    new_password: str
+    new_password: str = Field(min_length=8, max_length=128)
 
 class ResendVerification(BaseModel):
     email: str
@@ -98,7 +101,11 @@ class ResetPasswordRequest(BaseModel):
 
 
 @router.post("/resend-verification")
-def resend_verification(body: ResendVerification, db: Session = Depends(get_db)):
+def resend_verification(
+    body: ResendVerification,
+    background_tasks: BackgroundTasks,
+    db: Session = Depends(get_db),
+):
     user = db.query(models.User).filter(models.User.email == body.email).first()
     if not user:
         # 보안상 존재 여부 노출 안 함
@@ -111,18 +118,22 @@ def resend_verification(body: ResendVerification, db: Session = Depends(get_db))
     user.verify_token = secrets.token_urlsafe(32)
     user.verify_token_expires_at = datetime.utcnow() + timedelta(hours=24)
     db.commit()
-    send_verification_email(body.email, user.verify_token)
+    background_tasks.add_task(send_verification_email, body.email, user.verify_token)
     return {"message": "VERIFICATION_SENT"}
 
 
 @router.post("/forgot-password")
-def forgot_password(body: ForgotPasswordRequest, db: Session = Depends(get_db)):
+def forgot_password(
+    body: ForgotPasswordRequest,
+    background_tasks: BackgroundTasks,
+    db: Session = Depends(get_db),
+):
     user = db.query(models.User).filter(models.User.email == body.email).first()
     if user and user.is_verified:
         user.reset_token = secrets.token_urlsafe(32)
         user.reset_token_expires_at = datetime.utcnow() + timedelta(hours=1)
         db.commit()
-        send_password_reset_email(body.email, user.reset_token, lang=body.lang)
+        background_tasks.add_task(send_password_reset_email, body.email, user.reset_token, body.lang)
     return {"message": "RESET_EMAIL_SENT"}
 
 
@@ -143,16 +154,20 @@ def reset_password(body: ResetPasswordRequest, db: Session = Depends(get_db)):
 
 
 @router.post("/register", status_code=201)
-def register(body: UserRegister, db: Session = Depends(get_db)):
+def register(
+    body: UserRegister,
+    background_tasks: BackgroundTasks,
+    db: Session = Depends(get_db),
+):
     existing = db.query(models.User).filter(models.User.email == body.email).first()
     if existing:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="EMAIL_ALREADY_EXISTS"
         )
-    
+
     verify_token = secrets.token_urlsafe(32)
-    
+
     user = models.User(
         id=str(uuid.uuid4()),
         email=body.email,
@@ -166,7 +181,7 @@ def register(body: UserRegister, db: Session = Depends(get_db)):
     db.add(user)
     db.commit()
 
-    send_verification_email(body.email, verify_token, lang=body.lang)
+    background_tasks.add_task(send_verification_email, body.email, verify_token, body.lang)
 
     return {"message": "REGISTER_SUCCESS"}
 
@@ -346,7 +361,7 @@ async def google_login(request: Request, platform: str = "web"):
 
 
 @router.get("/google/callback")
-async def google_callback(request: Request, background_tasks: BackgroundTasks, state: str, code: Optional[str] = None, error: Optional[str] = None, db: Session = Depends(get_db)):
+def google_callback(request: Request, background_tasks: BackgroundTasks, state: str, code: Optional[str] = None, error: Optional[str] = None, db: Session = Depends(get_db)):
     if error:
         return RedirectResponse(f"{FRONTEND_URL}/login?error=cancelled")
     saved_state = request.session.get("oauth_state")
@@ -355,8 +370,8 @@ async def google_callback(request: Request, background_tasks: BackgroundTasks, s
 
     redirect_uri = f"{BACKEND_URL}/auth/google/callback"
 
-    async with httpx.AsyncClient() as client:
-        token_resp = await client.post(
+    with httpx.Client() as client:
+        token_resp = client.post(
             "https://oauth2.googleapis.com/token",
             data={
                 "code": code,
@@ -482,11 +497,15 @@ async def apple_login(request: Request, platform: str = "web"):
 
 
 @router.post("/apple/callback")
-async def apple_callback(request: Request, background_tasks: BackgroundTasks, db: Session = Depends(get_db)):
-    form = await request.form()
-    code = form.get("code")
-    state = form.get("state")
-    user_info_str = form.get("user")
+def apple_callback(
+    request: Request,
+    background_tasks: BackgroundTasks,
+    code: Optional[str] = Form(None),
+    state: Optional[str] = Form(None),
+    user: Optional[str] = Form(None),
+    db: Session = Depends(get_db),
+):
+    user_info_str = user
 
     saved_state = request.cookies.get("apple_oauth_state")
     if not saved_state or saved_state != state:
@@ -495,8 +514,8 @@ async def apple_callback(request: Request, background_tasks: BackgroundTasks, db
     redirect_uri = f"{BACKEND_URL}/auth/apple/callback"
     client_secret = _generate_apple_client_secret()
 
-    async with httpx.AsyncClient() as client:
-        token_resp = await client.post(
+    with httpx.Client() as client:
+        token_resp = client.post(
             "https://appleid.apple.com/auth/token",
             data={
                 "client_id": APPLE_CLIENT_ID,
@@ -573,7 +592,7 @@ async def apple_callback(request: Request, background_tasks: BackgroundTasks, db
             is_new_user = True
 
     if refresh_token:
-        user.apple_refresh_token = refresh_token
+        user.apple_refresh_token = encrypt_apple_token(refresh_token)
     db.commit()
     db.refresh(user)
 
@@ -610,7 +629,7 @@ async def naver_login(request: Request, platform: str = "web"):
 
 
 @router.get("/naver/callback")
-async def naver_callback(
+def naver_callback(
     request: Request,
     background_tasks: BackgroundTasks,
     state: str,
@@ -627,8 +646,8 @@ async def naver_callback(
 
     redirect_uri = f"{BACKEND_URL}/auth/naver/callback"
 
-    async with httpx.AsyncClient() as client:
-        token_resp = await client.post(
+    with httpx.Client() as client:
+        token_resp = client.post(
             "https://nid.naver.com/oauth2.0/token",
             params={
                 "grant_type": "authorization_code",
@@ -646,8 +665,8 @@ async def naver_callback(
 
     naver_access_token = token_data.get("access_token")
 
-    async with httpx.AsyncClient() as client:
-        profile_resp = await client.get(
+    with httpx.Client() as client:
+        profile_resp = client.get(
             "https://openapi.naver.com/v1/nid/me",
             headers={"Authorization": f"Bearer {naver_access_token}"}
         )
@@ -726,7 +745,7 @@ async def line_login(request: Request, platform: str = "web"):
 
 
 @router.get("/line/callback")
-async def line_callback(
+def line_callback(
     request: Request,
     background_tasks: BackgroundTasks,
     state: str,
@@ -743,8 +762,8 @@ async def line_callback(
 
     redirect_uri = f"{BACKEND_URL}/auth/line/callback"
 
-    async with httpx.AsyncClient() as client:
-        token_resp = await client.post(
+    with httpx.Client() as client:
+        token_resp = client.post(
             "https://api.line.me/oauth2/v2.1/token",
             data={
                 "grant_type": "authorization_code",
@@ -762,8 +781,8 @@ async def line_callback(
 
     line_access_token = token_data.get("access_token")
 
-    async with httpx.AsyncClient() as client:
-        profile_resp = await client.get(
+    with httpx.Client() as client:
+        profile_resp = client.get(
             "https://api.line.me/v2/profile",
             headers={"Authorization": f"Bearer {line_access_token}"}
         )
@@ -819,11 +838,14 @@ async def line_callback(
     return RedirectResponse(f"{FRONTEND_URL}/auth/social-callback?token={access_token_jwt}")
 
 
+class AppleIOSLogin(BaseModel):
+    identity_token: Optional[str] = None
+
+
 @router.post("/apple/ios")
-async def apple_ios_login(request: Request, background_tasks: BackgroundTasks, db: Session = Depends(get_db)):
+def apple_ios_login(body: AppleIOSLogin, background_tasks: BackgroundTasks, db: Session = Depends(get_db)):
     """iOS 네이티브 Sign in with Apple 전용 엔드포인트."""
-    body = await request.json()
-    identity_token = body.get("identity_token")
+    identity_token = body.identity_token
     if not identity_token:
         raise HTTPException(status_code=400, detail="MISSING_IDENTITY_TOKEN")
 
@@ -897,7 +919,9 @@ def withdraw(
 
     # Apple 유저: App Store 가이드라인에 따라 탈퇴 전 token revoke
     if current_user.oauth_provider == "apple" and current_user.apple_refresh_token:
-        _revoke_apple_token(current_user.apple_refresh_token)
+        decrypted_token = decrypt_apple_token(current_user.apple_refresh_token)
+        if decrypted_token:
+            _revoke_apple_token(decrypted_token)
     
     """회원 탈퇴 — CF 이미지 삭제 후 유저 및 관련 데이터 삭제"""
     from app.routers.photos import delete_from_cloudflare
