@@ -3,36 +3,39 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
 import { AuthProvider, useAuth } from './context/AuthContext'
 import { useTranslation } from 'react-i18next'
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState, lazy, Suspense } from 'react';
 import Navbar from './components/Navbar'
-import Login from './pages/Login'
-import Dashboard from './pages/Dashboard'
-import Projects from './pages/Projects'
-import ProjectDetail from './pages/ProjectDetail'
-import ProjectEdit from './pages/ProjectEdit'
-import Trash from './pages/Trash'
-import Settings from './pages/Settings'
-import DeliveryPage from './pages/DeliveryPage'
-import Register from './pages/Register'
-import VerifyEmail from './pages/VerifyEmail'
-import ForgotPassword from './pages/ForgotPassword'
-import ResetPassword from './pages/ResetPassword'
-import Admin from './pages/Admin'
-import PublicPortfolio from './pages/PublicPortfolio'
-import LandingPage from './pages/LandingPage'
-import ElectronLandingPage from './pages/ElectronLandingPage'
-import FeaturesPage from './pages/FeaturesPage'
-import MobileLandingPage from './pages/MobileLandingPage'
-import MobileFeaturesPage from './pages/MobileFeaturesPage'
-import AppDownload from './pages/AppDownload'
 import ScrollToTop from './components/ScrollToTop';
 import UploadToast from './components/UploadToast'
 import ElectronSidebar from './components/ElectronSidebar'
 import FeedbackWidget from './components/FeedbackWidget'
 import { getDeviceType } from './utils/deviceDetect'
-import { useState } from 'react'
 import { ElectronSidebarProvider } from './context/ElectronSidebarContext'
-import SocialCallback from './pages/auth/SocialCallback'
+
+// ── 즉시 로드 (인증 흐름 핵심 경로) ──────────────────────────
+import Login from './pages/Login'
+import Dashboard from './pages/Dashboard'
+import Projects from './pages/Projects'
+import Register from './pages/Register'
+import VerifyEmail from './pages/VerifyEmail'
+import ForgotPassword from './pages/ForgotPassword'
+import ResetPassword from './pages/ResetPassword'
+
+// ── 지연 로드 (무거운 페이지 / 비빈번 접근) ──────────────────
+const ProjectDetail      = lazy(() => import('./pages/ProjectDetail'))
+const ProjectEdit        = lazy(() => import('./pages/ProjectEdit'))
+const Trash              = lazy(() => import('./pages/Trash'))
+const Settings           = lazy(() => import('./pages/Settings'))
+const DeliveryPage       = lazy(() => import('./pages/DeliveryPage'))
+const Admin              = lazy(() => import('./pages/Admin'))
+const PublicPortfolio    = lazy(() => import('./pages/PublicPortfolio'))
+const LandingPage        = lazy(() => import('./pages/LandingPage'))
+const ElectronLandingPage = lazy(() => import('./pages/ElectronLandingPage'))
+const FeaturesPage       = lazy(() => import('./pages/FeaturesPage'))
+const MobileLandingPage  = lazy(() => import('./pages/MobileLandingPage'))
+const MobileFeaturesPage = lazy(() => import('./pages/MobileFeaturesPage'))
+const AppDownload        = lazy(() => import('./pages/AppDownload'))
+const SocialCallback     = lazy(() => import('./pages/auth/SocialCallback'))
 
 function PrivateRoute({ children }: { children: React.ReactNode }) {
   const { isAuthenticated, isLoading } = useAuth()
@@ -154,6 +157,7 @@ function AppRoutes() {
       <div style={!isMobileDevice && isAuthenticated && !hideNavbar ? { marginLeft: sidebarWidth + (isMac ? 6 : 0) } : {}}>
         <ScrollToTop />
         <FeedbackWidget />
+        <Suspense fallback={<div className="min-h-screen bg-edit-canvas" />}>
         <Routes>
           <Route path="/login" element={<Login />} />
           <Route path="/auth/social-callback" element={<SocialCallback />} />
@@ -179,6 +183,7 @@ function AppRoutes() {
           <Route path="/:username/:slug" element={<PublicPortfolio />} />
           <Route path="/:username" element={<PublicPortfolio />} />
         </Routes>
+        </Suspense>
       </div>
       <UploadToast />
     </div>
