@@ -81,6 +81,7 @@ export default function PublicPortfolio() {
     queryKey: ['portfolio', username],
     queryFn: async () => (await axios.get(`${API}/portfolio/${username}`)).data,
     enabled: enabled && !slug,
+    staleTime: 1000 * 60 * 5,  // 공개 포트폴리오 — 5분간 fresh 유지
     retry: (_count, err) => !axios.isAxiosError(err) || err.response?.status !== 404,
   })
 
@@ -88,6 +89,7 @@ export default function PublicPortfolio() {
     queryKey: ['portfolioSlug', username, slug],
     queryFn: async () => (await axios.get(`${API}/portfolio/${username}/${slug}`)).data,
     enabled: enabled && !!slug,
+    staleTime: 1000 * 60 * 5,  // 공개 포트폴리오 — 5분간 fresh 유지
     retry: (_count, err) => !axios.isAxiosError(err) || err.response?.status !== 404,
   })
 

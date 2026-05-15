@@ -13,7 +13,6 @@ import type { PortfolioPhoto } from '../../components/PortfolioChapterItems'
 
 const API = import.meta.env.VITE_API_URL
 
-interface Photo { id: string; image_url: string; caption?: string | null }
 interface ChapterItem {
   item_type: 'PHOTO' | 'TEXT'; id?: string; image_url?: string; caption?: string | null
   block_layout?: 'grid' | 'wide' | 'single'; text_content?: string | null
@@ -22,7 +21,7 @@ interface ChapterItem {
 interface Chapter { id: string; title: string; description: string | null; items: ChapterItem[]; sub_chapters: Chapter[] }
 interface PortfolioProject {
   id: string; title: string; description: string | null; cover_image_url: string | null
-  location: string | null; updated_at: string | null; photos: Photo[]; chapters: Chapter[]; extra_photos: Photo[]
+  location: string | null; updated_at: string | null; photos: PortfolioPhoto[]; chapters: Chapter[]; extra_photos: PortfolioPhoto[]
 }
 
 export default function MobilePublicPortfolio() {
@@ -37,7 +36,7 @@ export default function MobilePublicPortfolio() {
   const [darkMode, setDarkMode] = useState(false)
   const [notFound, setNotFound] = useState(false)
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null)
-  const [lightboxItems, setLightboxItems] = useState<{ photo: Photo; title: string }[]>([])
+  const [lightboxItems, setLightboxItems] = useState<{ photo: PortfolioPhoto; title: string }[]>([])
   const [scrollProgress, setScrollProgress] = useState(0)
 
   const chapterIds = selectedProject?.chapters.map(c => c.id) ?? []
@@ -45,7 +44,7 @@ export default function MobilePublicPortfolio() {
 
   useEffect(() => {
     if ((location.state as { resetToList?: boolean } | null)?.resetToList) setSelectedProject(null)
-  }, [location])
+  }, [location.state])
 
   useEffect(() => {
     if (!isAuthenticated && username === '@setup') navigate('/', { replace: true })
@@ -82,17 +81,17 @@ export default function MobilePublicPortfolio() {
   }
 
   const getAllChapterItems = (project: PortfolioProject) => {
-    const items: { photo: Photo; title: string }[] = []
+    const items: { photo: PortfolioPhoto; title: string }[] = []
     project.chapters?.forEach((ch) => {
-      ch.items?.filter(i => i.item_type === 'PHOTO').forEach(i => items.push({ photo: i as Photo, title: ch.title }))
+      ch.items?.filter(i => i.item_type === 'PHOTO').forEach(i => items.push({ photo: i as PortfolioPhoto, title: ch.title }))
       ch.sub_chapters?.forEach(sub => {
-        sub.items?.filter(i => i.item_type === 'PHOTO').forEach(i => items.push({ photo: i as Photo, title: sub.title }))
+        sub.items?.filter(i => i.item_type === 'PHOTO').forEach(i => items.push({ photo: i as PortfolioPhoto, title: sub.title }))
       })
     })
     return items
   }
 
-  const openLightbox = (photo: Photo, items: { photo: Photo; title: string }[]) => {
+  const openLightbox = (photo: PortfolioPhoto, items: { photo: PortfolioPhoto; title: string }[]) => {
     const idx = items.findIndex(item => item.photo.id === photo.id)
     setLightboxItems(items)
     setLightboxIndex(idx !== -1 ? idx : 0)
@@ -270,9 +269,9 @@ export default function MobilePublicPortfolio() {
                       {/* 챕터 아이템 */}
                       <MobilePortfolioChapterItems
                         items={chapter.items || []}
-                        allLightboxItems={allChapterItems as { photo: PortfolioPhoto; title: string }[]}
+                        allLightboxItems={allChapterItems}
                         darkMode={darkMode}
-                        onLightbox={(photo, items) => openLightbox(photo as unknown as Photo, items as { photo: Photo; title: string }[])}
+                        onLightbox={openLightbox}
                       />
 
                       {/* 서브챕터 */}
@@ -289,9 +288,9 @@ export default function MobilePublicPortfolio() {
                           </div>
                           <MobilePortfolioChapterItems
                             items={sub.items || []}
-                            allLightboxItems={allChapterItems as { photo: PortfolioPhoto; title: string }[]}
+                            allLightboxItems={allChapterItems}
                             darkMode={darkMode}
-                            onLightbox={(photo, items) => openLightbox(photo as unknown as Photo, items as { photo: Photo; title: string }[])}
+                            onLightbox={openLightbox}
                           />
                         </div>
                       ))}
@@ -339,7 +338,7 @@ export default function MobilePublicPortfolio() {
             }}
           >
             <img
-              src={cfUrl(lightboxItems[lightboxIndex].photo.image_url, 'public')}
+              src={cfUrl(lightboxItems[lightboxIndex].photo.image_url ?? '', 'public')}
               alt={lightboxItems[lightboxIndex].photo.caption || ''}
               style={{ width: '100%', maxHeight: '100%', objectFit: 'contain' }}
               draggable={false}
@@ -363,7 +362,7 @@ export default function MobilePublicPortfolio() {
                   }}
                 >
                   <img
-                    src={cfUrl(item.photo.image_url, 'grid')}
+                    src={cfUrl(item.photo.image_url ?? '', 'grid')}
                     alt=""
                     className="w-full h-full object-cover block"
                   />
