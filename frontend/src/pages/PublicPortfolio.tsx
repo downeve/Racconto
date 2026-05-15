@@ -8,7 +8,7 @@ import { useAuth } from '../context/AuthContext'
 import PortfolioChapterItems, { type PortfolioPhoto } from '../components/PortfolioChapterItems'
 import PublicNavbar from '../components/PublicNavbar'
 import EmptyState from '../components/EmptyState'
-import { Sun, Moon, MapPin, ChevronLeft, ChevronRight, X, Link2, Check, Share2 } from 'lucide-react'
+import { Sun, Moon, MapPin, ChevronLeft, ChevronRight, X, Link2, Check, Share2, ArrowUp } from 'lucide-react'
 import CoverFallback from '../components/CoverFallback'
 import { cfUrl } from '../utils/cfImage'
 
@@ -720,6 +720,18 @@ export default function PublicPortfolio() {
             </div>
           )}
         </div>
+      )}
+
+      {/* ⬆️ 맨 위로 가기 플로팅 버튼 */}
+      {lightboxIndex === null && (
+        <button
+          id="floating-top-button"
+          onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+          className="fixed bottom-8 right-8 w-10 h-10 bg-edit-ink text-edit-paper rounded-full flex items-center justify-center shadow-deep hover:opacity-80 transition-opacity z-40"
+          title="Top"
+        >
+          <ArrowUp size={16} strokeWidth={1.5} />
+        </button>
       )}
     </div>
   )
