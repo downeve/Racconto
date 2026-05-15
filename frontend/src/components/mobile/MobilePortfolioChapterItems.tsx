@@ -1,6 +1,7 @@
-import { useState } from 'react'
 import MarkdownRenderer from '../MarkdownRenderer'
+import PhotoReveal from '../PhotoReveal'
 import type { PortfolioChapterItem, PortfolioPhoto } from '../PortfolioChapterItems'
+import { cfUrl } from '../../utils/cfImage'
 
 interface Props {
   items: PortfolioChapterItem[]
@@ -12,40 +13,8 @@ interface Props {
 }
 
 export default function MobilePortfolioChapterItems({
-  items, allLightboxItems = [], darkMode, gap = 4, onLightbox
+  items, allLightboxItems = [], darkMode, onLightbox
 }: Props) {
-  const [imageRatios, setImageRatios] = useState<Record<string, number>>({})
-
-  const handleImageLoad = (url: string, e: React.SyntheticEvent<HTMLImageElement>) => {
-    const img = e.currentTarget
-    if (!img.naturalWidth || !img.naturalHeight) return
-    const ratio = img.naturalWidth / img.naturalHeight
-    setImageRatios(prev => prev[url] !== undefined ? prev : { ...prev, [url]: ratio })
-  }
-
-  const renderRow = (rowPhotos: PortfolioChapterItem[], rowKey: string) => {
-    const ratios = rowPhotos.map(p => imageRatios[p.image_url || ''] ?? 1.5)
-
-    return (
-      <div key={rowKey} style={{ display: 'flex', gap: `${gap}px`, marginBottom: `${gap}px` }}>
-        {rowPhotos.map((photo, j) => (
-          <div
-            key={photo.id}
-            style={{ flex: ratios[j], aspectRatio: `${ratios[j] * 100} / 100`, overflow: 'hidden', cursor: 'pointer' }}
-            onClick={() => onLightbox?.(photo as PortfolioPhoto, allLightboxItems)}
-          >
-            <img
-              src={photo.image_url}
-              alt={(photo as PortfolioChapterItem).caption || ''}
-              loading="lazy"
-              className="w-full h-full rounded-photo object-cover block"
-              onLoad={(e) => handleImageLoad(photo.image_url || '', e)}
-            />
-          </div>
-        ))}
-      </div>
-    )
-  }
 
   const renderedBlocks = new Set<string>()
   const blockMap = new Map<string, {
@@ -77,10 +46,15 @@ export default function MobilePortfolioChapterItems({
   items.forEach((item, i) => {
     const bid = item.block_id
 
+    // 독립 텍스트 블록
     if (item.item_type === 'TEXT' && item.block_type !== 'side-left' && item.block_type !== 'side-right') {
       result.push(
         <div key={`text-${i}`} className="my-8">
-          <MarkdownRenderer content={item.text_content || ''} darkMode={darkMode} className="leading-[2.1] [word-break:keep-all] font-serif" />
+          <MarkdownRenderer
+            content={item.text_content || ''}
+            darkMode={darkMode}
+            className="leading-[2] [word-break:keep-all] font-serif text-[15.5px]"
+          />
         </div>
       )
       return
@@ -91,25 +65,30 @@ export default function MobilePortfolioChapterItems({
     const group = blockMap.get(bid)
     if (!group) return
 
-    // Side-by-side → 모바일에서 세로 스택
-    // side-left: 텍스트|사진 → 텍스트 위, 사진 아래
-    // side-right: 사진|텍스트 → 사진 위, 텍스트 아래
+    // Side-by-side → 모바일 vstack
+    // side-left: 텍스트 위, 사진 아래
+    // side-right: 사진 위, 텍스트 아래
     if (group.type === 'SIDE') {
       const isTextFirst = group.blockType === 'side-left'
       const photoBlock = (
         <div className="space-y-2">
           {group.photos.map(photo => (
             <div key={photo.id} className="rounded-photo overflow-hidden cursor-pointer" onClick={() => onLightbox?.(photo as PortfolioPhoto, allLightboxItems)}>
-              <img src={photo.image_url} alt={photo.caption || ''} loading="lazy" className="w-full block rounded-photo" />
+              <img src={cfUrl(photo.image_url, 'grid')} alt={photo.caption || ''} loading="lazy" className="w-full block rounded-photo" />
+              {photo.caption && <p className={`t-caption mt-2 ${darkMode ? 'text-d-faint' : 'text-faint'}`}>{photo.caption}</p>}
             </div>
           ))}
         </div>
       )
       const textBlock = group.text?.text_content ? (
-        <MarkdownRenderer content={group.text.text_content} darkMode={darkMode} className="leading-[2.1] [word-break:keep-all] font-serif px-2" />
+        <MarkdownRenderer
+          content={group.text.text_content}
+          darkMode={darkMode}
+          className="leading-[2] [word-break:keep-all] font-serif text-[15.5px]"
+        />
       ) : null
       result.push(
-        <div key={`side-${bid}`} className="flex flex-col gap-3 my-4">
+        <div key={`side-${bid}`} className="flex flex-col gap-4 my-4">
           {isTextFirst ? textBlock : photoBlock}
           {isTextFirst ? photoBlock : textBlock}
         </div>
@@ -117,29 +96,32 @@ export default function MobilePortfolioChapterItems({
       return
     }
 
-    const layout = group.layout
+    // GRID / WIDE / SINGLE → 모두 1열 풀폭
     const photos = group.photos
-
-    if (layout === 'single') {
-      result.push(
-        <div key={`block-${bid}`} className="mb-4 space-y-2">
-          {photos.map(photo => (
-            <div key={photo.id} className="rounded-photo overflow-hidden cursor-pointer" onClick={() => onLightbox?.(photo as PortfolioPhoto, allLightboxItems)}>
-              <img src={photo.image_url} alt={photo.caption || ''} loading="lazy" className="w-full rounded-photo block" />
-            </div>
-          ))}
-        </div>
-      )
-    } else {
-      const cols = layout === 'wide' ? 2 : 3
-      const rows: PortfolioChapterItem[][] = []
-      for (let k = 0; k < photos.length; k += cols) rows.push(photos.slice(k, k + cols))
-      result.push(
-        <div key={`block-${bid}`} className="mb-1">
-          {rows.map((rowPhotos, rowIdx) => renderRow(rowPhotos, `row-${bid}-${rowIdx}`))}
-        </div>
-      )
-    }
+    result.push(
+      <div key={`block-${bid}`} className="mb-2 space-y-1">
+        {photos.map((photo, pi) => (
+          <PhotoReveal
+            key={photo.id}
+            className="w-full overflow-hidden rounded-photo cursor-pointer"
+            delay={pi * 60}
+            onClick={() => onLightbox?.(photo as PortfolioPhoto, allLightboxItems)}
+          >
+            <img
+              src={cfUrl(photo.image_url, 'grid')}
+              alt={photo.caption || ''}
+              loading="lazy"
+              className="w-full object-cover hover:opacity-90 transition-opacity block"
+            />
+            {photo.caption && (
+              <p className={`t-caption mt-2 ${darkMode ? 'text-d-faint' : 'text-faint'}`}>
+                {photo.caption}
+              </p>
+            )}
+          </PhotoReveal>
+        ))}
+      </div>
+    )
   })
 
   return <>{result}</>
