@@ -87,10 +87,14 @@ def _filter_photos(query, link: models.DeliveryLink):
     return query
 
 
-def _get_delivery_tag_color(db: Session) -> Optional[str]:
-    """설정에서 납품 선택 자동 태그 컬러 조회"""
+def _get_delivery_tag_color(db: Session, user_id: str) -> Optional[str]:
+    """설정에서 납품 선택 자동 태그 컬러 조회.
+
+    M8: 작가(user_id) 본인의 설정만 조회하도록 필터. 이전엔 임의 유저 setting을 가져옴.
+    """
     setting = db.query(models.Setting).filter(
-        models.Setting.key == 'delivery_tag_color'
+        models.Setting.user_id == user_id,
+        models.Setting.key == 'delivery_tag_color',
     ).first()
     # 값이 없거나 빈 문자열이면 태그 안 함
     if not setting or not setting.value:
@@ -191,9 +195,18 @@ def get_selections(
         .filter(models.DeliverySelection.link_id == link_id)
         .all()
     )
+    if not sels:
+        return []
+
+    # P-H2: 개별 SELECT 대신 IN 쿼리 1번
+    photo_ids = [s.photo_id for s in sels]
+    photos_map = {
+        p.id: p
+        for p in db.query(models.Photo).filter(models.Photo.id.in_(photo_ids)).all()
+    }
     result = []
     for s in sels:
-        photo = db.query(models.Photo).filter(models.Photo.id == s.photo_id).first()
+        photo = photos_map.get(s.photo_id)
         if photo:
             result.append(SelectionOut(
                 photo_id=s.photo_id,
@@ -322,7 +335,7 @@ def save_selections(
     # 기존 선택 삭제 후 재삽입
     db.query(models.DeliverySelection).filter(
         models.DeliverySelection.link_id == link_id
-    ).delete()
+    ).delete(synchronize_session=False)
 
     selected_photo_ids = []
     for item in body.selections:
@@ -336,21 +349,31 @@ def save_selections(
         selected_photo_ids.append(item.photo_id)
 
     # ── 자동 컬러 레이블 태깅 ──────────────────────────────
-    tag_color = _get_delivery_tag_color(db)
-    if tag_color:
-        # 이 링크의 프로젝트 사진 전체 조회
-        all_photos = db.query(models.Photo).filter(
-            models.Photo.project_id == link.project_id
-        ).all()
-
-        for photo in all_photos:
-            if photo.id in selected_photo_ids:
+    # P-H4 + M8: 작가(프로젝트 owner)의 설정 조회, photo 전수 로딩 없이 두 번의 UPDATE로 처리
+    project = db.query(models.Project).filter(
+        models.Project.id == link.project_id
+    ).first()
+    if project:
+        tag_color = _get_delivery_tag_color(db, project.user_id)
+        if tag_color:
+            if selected_photo_ids:
                 # 선택된 사진 → 태그 컬러 부여
-                photo.color_label = tag_color
+                db.query(models.Photo).filter(
+                    models.Photo.project_id == link.project_id,
+                    models.Photo.id.in_(selected_photo_ids),
+                ).update({"color_label": tag_color}, synchronize_session=False)
+                # 선택 해제된 사진 중 기존 태그 컬러 → 제거
+                db.query(models.Photo).filter(
+                    models.Photo.project_id == link.project_id,
+                    models.Photo.color_label == tag_color,
+                    ~models.Photo.id.in_(selected_photo_ids),
+                ).update({"color_label": None}, synchronize_session=False)
             else:
-                # 선택 해제된 사진 → 기존에 태그 컬러였으면 제거
-                if photo.color_label == tag_color:
-                    photo.color_label = None
+                # 전체 선택 해제 — 이 프로젝트에서 태그 컬러였던 사진 모두 NULL
+                db.query(models.Photo).filter(
+                    models.Photo.project_id == link.project_id,
+                    models.Photo.color_label == tag_color,
+                ).update({"color_label": None}, synchronize_session=False)
 
     db.commit()
     return {"ok": True, "count": len(selected_photo_ids)}

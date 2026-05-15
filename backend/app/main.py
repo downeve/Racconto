@@ -100,10 +100,15 @@ app.add_middleware(
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173", "https://racconto.app"],
+    allow_origins=[
+        "http://localhost:5173",
+        "https://racconto.app",
+        "https://www.racconto.app",
+        "https://test.racconto.app",
+    ],
     allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+    allow_headers=["Authorization", "Content-Type", "X-Delivery-Password"],
 )
 
 app.include_router(projects.router)
