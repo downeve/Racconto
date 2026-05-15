@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState, useCallback, useMemo } from 'react'
 import { useLightboxZoom } from '../hooks/useLightboxZoom'
+import { useActiveChapter } from '../hooks/useActiveChapter'
 import { useParams, useNavigate, useLocation } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import axios from 'axios'
@@ -110,6 +111,14 @@ export default function PublicPortfolio() {
 
   const activeLightboxItem = lightboxIndex !== null ? lightboxItems[lightboxIndex] : null
   const zoom = useLightboxZoom(lightboxIndex)
+
+  // 스크롤 진행도 + 챕터 active 추적
+  const [scrollProgress, setScrollProgress] = useState(0)
+  const chapterIds = useMemo(
+    () => selectedProject?.chapters.map((c: Chapter) => c.id) ?? [],
+    [selectedProject]
+  )
+  const activeChapterId = useActiveChapter(chapterIds)
   const [longPressActive, setLongPressActive] = useState(false)
   const longPressTimer = useRef<number | null>(null)
 
@@ -276,6 +285,24 @@ export default function PublicPortfolio() {
     el.addEventListener('keydown', handleTab)
     return () => el.removeEventListener('keydown', handleTab)
   }, [lightboxIndex])
+
+  // 스크롤 진행도 계산
+  useEffect(() => {
+    const onScroll = () => {
+      const docH = document.documentElement.scrollHeight
+      const viewH = window.innerHeight
+      const progress = docH <= viewH ? 0 : Math.min(1, window.scrollY / (docH - viewH))
+      setScrollProgress(progress)
+    }
+    window.addEventListener('scroll', onScroll, { passive: true })
+    return () => window.removeEventListener('scroll', onScroll)
+  }, [])
+
+  // 챕터 스크롤 이동
+  const scrollToChapter = useCallback((id: string) => {
+    const el = document.getElementById(`chapter-section-${id}`)
+    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  }, [])
 
   const bg       = darkMode ? 'bg-d-bg text-d-hair'  : 'bg-canvas text-ink'
   const subText  = darkMode ? 'text-d-soft'          : 'text-muted'
@@ -456,7 +483,7 @@ export default function PublicPortfolio() {
                 {selectedProject.chapters.map((ch: Chapter, i: number) => (
                   <a
                     key={ch.id}
-                    href={`#chapter-${ch.id}`}
+                    href={`#chapter-section-${ch.id}`}
                     className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-btn text-small font-sans
                                 ${darkMode
                                   ? 'border border-transparent text-d-soft hover:text-d-hair'
@@ -474,7 +501,7 @@ export default function PublicPortfolio() {
             {selectedProject.chapters.length > 0 ? (
               <div>
                 {selectedProject.chapters.map((chapter: Chapter, idx: number) => (
-                  <section key={chapter.id} id={`chapter-${chapter.id}`} className={idx > 0 ? 'pt-36 md:pt-44' : ''}>
+                  <section key={chapter.id} id={`chapter-section-${chapter.id}`} className={idx > 0 ? 'pt-36 md:pt-44' : ''}>
                     <header className="mb-10">
                       {/* Oversized numeral + capped hairline (Option B) */}
                       <div className="flex items-baseline gap-5">
@@ -729,6 +756,41 @@ export default function PublicPortfolio() {
             </div>
           )}
         </div>
+      )}
+
+      {/* 진행 hairline */}
+      {selectedProject && (
+        <div className="fixed top-0 left-0 right-0 z-30 h-0.5 bg-transparent pointer-events-none">
+          <div
+            className={`h-full transition-[width] duration-150 ${darkMode ? 'bg-d-soft' : 'bg-accent'}`}
+            style={{ width: `${scrollProgress * 100}%` }}
+          />
+        </div>
+      )}
+
+      {/* 우측 dot-rail — 챕터 ≥ 2일 때만 표시 */}
+      {selectedProject && selectedProject.chapters.length > 1 && lightboxIndex === null && (
+        <nav
+          className={`fixed right-6 z-30 flex flex-col items-center gap-3 px-2 py-3
+                      rounded-full border backdrop-blur-md
+                      ${darkMode ? 'bg-d-bg/85 border-d-line' : 'bg-canvas/85 border-hair/60'}`}
+          style={{ top: '50%', transform: 'translateY(-50%)' }}
+          aria-label="챕터 이동"
+        >
+          {selectedProject.chapters.map((ch: Chapter, i: number) => (
+            <button
+              key={ch.id}
+              onClick={() => scrollToChapter(ch.id)}
+              className={`w-6 h-6 rounded-full flex items-center justify-center text-[11px] font-medium transition-colors
+                          ${activeChapterId === ch.id
+                            ? darkMode ? 'bg-d-hair text-d-bg' : 'bg-ink text-canvas'
+                            : darkMode ? 'text-d-soft hover:text-d-hair' : 'text-muted hover:text-ink'}`}
+              aria-label={`${ch.title} 챕터로 이동`}
+            >
+              {i + 1}
+            </button>
+          ))}
+        </nav>
       )}
 
       {/* ⬆️ 맨 위로 가기 플로팅 버튼 */}
