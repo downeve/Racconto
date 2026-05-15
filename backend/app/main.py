@@ -54,9 +54,17 @@ _run_schema_migrations()
 
 app = FastAPI(title="Racconto API")
 
+# SessionMiddleware secret — JWT용 SECRET_KEY와 분리.
+# 미세팅 시 startup 실패 (OAuth state 쿠키 보안에 직접 영향).
+SESSION_SECRET_KEY = os.getenv("SESSION_SECRET_KEY") or os.getenv("SECRET_KEY")
+if not SESSION_SECRET_KEY:
+    raise RuntimeError("SESSION_SECRET_KEY (또는 SECRET_KEY) 환경변수가 설정되지 않았습니다.")
+
 app.add_middleware(
     SessionMiddleware,
-    secret_key=os.getenv("SECRET_KEY", "change-this-in-production")
+    secret_key=SESSION_SECRET_KEY,
+    same_site="lax",
+    https_only=os.getenv("ENV", "development") == "production",
 )
 
 app.add_middleware(

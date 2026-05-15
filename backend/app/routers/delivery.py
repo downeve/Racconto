@@ -104,13 +104,15 @@ def _get_delivery_tag_color(db: Session) -> Optional[str]:
 def create_link(
     body: DeliveryLinkCreate,
     db: Session = Depends(get_db),
-    _: str = Depends(get_current_user_id),
+    current_user_id: str = Depends(get_current_user_id),
 ):
     if not DELIVERY_ENABLED:  # 🆕 추가
         raise HTTPException(status_code=404, detail="Feature not available")
 
+    # 프로젝트 소유권 검증
     project = db.query(models.Project).filter(
         models.Project.id == body.project_id,
+        models.Project.user_id == current_user_id,
         models.Project.deleted_at == None,
     ).first()
     if not project:
@@ -140,10 +142,18 @@ def create_link(
 def list_links(
     project_id: str,
     db: Session = Depends(get_db),
-    _: str = Depends(get_current_user_id),
+    current_user_id: str = Depends(get_current_user_id),
 ):
     if not DELIVERY_ENABLED:  # 🆕 추가
         raise HTTPException(status_code=404, detail="Feature not available")
+
+    # 프로젝트 소유권 검증
+    project = db.query(models.Project.id).filter(
+        models.Project.id == project_id,
+        models.Project.user_id == current_user_id,
+    ).first()
+    if not project:
+        raise HTTPException(status_code=404, detail="프로젝트를 찾을 수 없습니다")
 
     links = (
         db.query(models.DeliveryLink)
@@ -158,12 +168,21 @@ def list_links(
 def get_selections(
     link_id: str,
     db: Session = Depends(get_db),
-    _: str = Depends(get_current_user_id),
+    current_user_id: str = Depends(get_current_user_id),
 ):
     if not DELIVERY_ENABLED:  # 🆕 추가
         raise HTTPException(status_code=404, detail="Feature not available")
 
-    link = db.query(models.DeliveryLink).filter(models.DeliveryLink.id == link_id).first()
+    # link → project → user_id 검증
+    link = (
+        db.query(models.DeliveryLink)
+        .join(models.Project, models.DeliveryLink.project_id == models.Project.id)
+        .filter(
+            models.DeliveryLink.id == link_id,
+            models.Project.user_id == current_user_id,
+        )
+        .first()
+    )
     if not link:
         raise HTTPException(status_code=404, detail="링크를 찾을 수 없습니다")
 
@@ -191,12 +210,21 @@ def get_selections(
 def delete_link(
     link_id: str,
     db: Session = Depends(get_db),
-    _: str = Depends(get_current_user_id),
+    current_user_id: str = Depends(get_current_user_id),
 ):
     if not DELIVERY_ENABLED:  # 🆕 추가
         raise HTTPException(status_code=404, detail="Feature not available")
 
-    link = db.query(models.DeliveryLink).filter(models.DeliveryLink.id == link_id).first()
+    # link → project → user_id 검증
+    link = (
+        db.query(models.DeliveryLink)
+        .join(models.Project, models.DeliveryLink.project_id == models.Project.id)
+        .filter(
+            models.DeliveryLink.id == link_id,
+            models.Project.user_id == current_user_id,
+        )
+        .first()
+    )
     if not link:
         raise HTTPException(status_code=404, detail="링크를 찾을 수 없습니다")
     db.delete(link)

@@ -20,6 +20,26 @@ CF_ACCOUNT_ID = os.getenv("CF_ACCOUNT_ID")
 CF_API_TOKEN = os.getenv("CF_API_TOKEN")
 CF_UPLOAD_URL = f"https://api.cloudflare.com/client/v4/accounts/{CF_ACCOUNT_ID}/images/v1"
 
+
+# CF Images 또는 자기 호스팅 uploads 경로만 허용
+_ALLOWED_IMAGE_HOSTS = ("imagedelivery.net",)
+_ALLOWED_UPLOAD_PREFIX = "/uploads/"
+
+
+def _validate_image_url(image_url: str) -> None:
+    """image_url이 CF Images 또는 자기 호스팅 uploads 경로인지 검증.
+
+    클라이언트가 임의 URL을 저장해 path traversal 또는 외부 자원 임베드를 시도하는 것을 차단.
+    """
+    if not image_url or len(image_url) > 500:
+        raise HTTPException(status_code=400, detail="INVALID_IMAGE_URL")
+    if any(host in image_url for host in _ALLOWED_IMAGE_HOSTS):
+        return
+    # 로컬 업로드 경로 (절대/상대 모두)
+    if _ALLOWED_UPLOAD_PREFIX in image_url and ".." not in image_url:
+        return
+    raise HTTPException(status_code=400, detail="INVALID_IMAGE_URL")
+
 def extract_exif(file_path: str) -> dict:
     exif_data = {}
     try:
@@ -370,6 +390,14 @@ def update_local_missing_by_filename(
     current_user: models.User = Depends(get_current_user)
 ):
     """파일명으로 local_missing 업데이트 (Electron 삭제 감지용)"""
+    # 프로젝트 소유권 검증
+    project = db.query(models.Project.id).filter(
+        models.Project.id == project_id,
+        models.Project.user_id == current_user.id,
+    ).first()
+    if not project:
+        raise HTTPException(status_code=404, detail="PROJECT_NOT_FOUND")
+
     photo = db.query(models.Photo).filter(
         models.Photo.project_id == project_id,
         models.Photo.original_filename == filename,
@@ -457,47 +485,69 @@ def bulk_permanent_delete_photos(
     db: Session = Depends(get_db),
     current_user: models.User = Depends(get_current_user)
 ):
+    from sqlalchemy import func
+
     photos = db.query(models.Photo).join(models.Project).filter(
         models.Photo.id.in_(body.photo_ids),
         models.Project.user_id == current_user.id
     ).all()
+    if not photos:
+        return {"deleted": 0}
 
+    photo_ids = [p.id for p in photos]
+    image_urls = [p.image_url for p in photos if p.image_url]
+
+    # 1. side-by-side 블록 ID 일괄 수집 (전체 photo 한 번에)
+    side_block_ids = {
+        row.block_id
+        for row in db.query(models.ChapterItem.block_id).filter(
+            models.ChapterItem.photo_id.in_(photo_ids),
+            models.ChapterItem.block_type.in_(('side-left', 'side-right')),
+            models.ChapterItem.block_id != None,
+        ).distinct().all()
+        if row.block_id
+    }
+
+    # 2. photo에 연결된 ChapterItem 일괄 삭제
+    db.query(models.ChapterItem).filter(
+        models.ChapterItem.photo_id.in_(photo_ids)
+    ).delete(synchronize_session=False)
+
+    # 3. 삭제 후 side 블록별 남은 PHOTO 수 집계 (한 번에 GROUP BY)
+    if side_block_ids:
+        remaining_counts = dict(
+            db.query(models.ChapterItem.block_id, func.count(models.ChapterItem.id))
+            .filter(
+                models.ChapterItem.block_id.in_(side_block_ids),
+                models.ChapterItem.item_type == 'PHOTO',
+            )
+            .group_by(models.ChapterItem.block_id)
+            .all()
+        )
+        empty_block_ids = [bid for bid in side_block_ids if remaining_counts.get(bid, 0) == 0]
+
+        # 4. PHOTO 없는 블록의 TEXT 아이템을 단독 블록으로 전환 (block_id = id)
+        if empty_block_ids:
+            text_items = db.query(models.ChapterItem).filter(
+                models.ChapterItem.block_id.in_(empty_block_ids),
+                models.ChapterItem.item_type == 'TEXT',
+            ).all()
+            for text_item in text_items:
+                text_item.block_id = text_item.id
+                text_item.block_type = 'default'
+
+    # 5. cover 일괄 정리 (이 사진을 cover로 쓰는 프로젝트들의 cover를 NULL로)
+    if image_urls:
+        db.query(models.Project).filter(
+            models.Project.cover_image_url.in_(image_urls)
+        ).update({"cover_image_url": None}, synchronize_session=False)
+
+    # 6. CF/로컬 파일 분류
     cf_urls = []
     for photo in photos:
-        # side-by-side 블록 block_id 수집 (ChapterItem 삭제 전)
-        side_block_ids = {
-            row.block_id
-            for row in db.query(models.ChapterItem.block_id).filter(
-                models.ChapterItem.photo_id == photo.id,
-                models.ChapterItem.block_type.in_(('side-left', 'side-right')),
-                models.ChapterItem.block_id != None
-            ).all()
-            if row.block_id
-        }
-
-        db.query(models.ChapterItem).filter(
-            models.ChapterItem.photo_id == photo.id
-        ).delete(synchronize_session=False)
-
-        # PHOTO 없는 side-by-side 블록의 TEXT 아이템을 단독 블록으로 전환
-        for block_id in side_block_ids:
-            remaining = db.query(models.ChapterItem).filter(
-                models.ChapterItem.block_id == block_id,
-                models.ChapterItem.item_type == 'PHOTO'
-            ).count()
-            if remaining == 0:
-                for text_item in db.query(models.ChapterItem).filter(
-                    models.ChapterItem.block_id == block_id,
-                    models.ChapterItem.item_type == 'TEXT'
-                ).all():
-                    text_item.block_id = text_item.id
-                    text_item.block_type = 'default'
-
-        clear_cover_if_deleted(photo.project_id, photo.image_url, db)
         if photo.image_url and "imagedelivery.net" in photo.image_url:
             cf_urls.append(photo.image_url)
         elif photo.image_url:
-            # 로컬 파일은 즉시 삭제
             try:
                 file_path = photo.image_url.split('/uploads/')[-1]
                 full_path = f"app/uploads/{file_path}"
@@ -506,16 +556,16 @@ def bulk_permanent_delete_photos(
             except Exception as e:
                 print(f"로컬 파일 삭제 실패 (무시): {e}")
 
-    # DB에서 먼저 삭제 (빠른 응답)
+    # 7. DB에서 먼저 삭제 (빠른 응답)
     db.query(models.Photo).filter(
-        models.Photo.id.in_(body.photo_ids)
+        models.Photo.id.in_(photo_ids)
     ).delete(synchronize_session=False)
     db.commit()
 
     if cf_urls:
         background_tasks.add_task(delete_cf_files_parallel, cf_urls)
 
-    return {"deleted": len(body.photo_ids)}
+    return {"deleted": len(photo_ids)}
 
 
 @router.post("/restore-by-filename", response_model=PhotoResponse)
@@ -574,6 +624,8 @@ def create_photo(
     db: Session = Depends(get_db),
     current_user: models.User = Depends(get_current_user)
 ):
+    _validate_image_url(photo.image_url)
+
     project = db.query(models.Project).filter(
         models.Project.id == photo.project_id,
         models.Project.user_id == current_user.id,
@@ -859,13 +911,20 @@ def update_local_missing(
     current_user: models.User = Depends(get_current_user)
 ):
     """로컬 파일 누락 상태 업데이트 (Electron 앱에서 호출)"""
-    photo = db.query(models.Photo).filter(
-        models.Photo.id == photo_id,
-        models.Photo.deleted_at == None
-    ).first()
+    # photo → project → user_id 검증
+    photo = (
+        db.query(models.Photo)
+        .join(models.Project, models.Photo.project_id == models.Project.id)
+        .filter(
+            models.Photo.id == photo_id,
+            models.Photo.deleted_at == None,
+            models.Project.user_id == current_user.id,
+        )
+        .first()
+    )
     if not photo:
         raise HTTPException(status_code=404, detail="PHOTO_NOT_FOUND")
-    
+
     photo.local_missing = body.local_missing
     db.commit()
     db.refresh(photo)
@@ -880,6 +939,14 @@ def bulk_update_local_missing(
     current_user: models.User = Depends(get_current_user)
 ):
     """앱 시작 시 local_missing 일괄 동기화 (Electron용)"""
+    # 프로젝트 소유권 검증
+    project = db.query(models.Project.id).filter(
+        models.Project.id == project_id,
+        models.Project.user_id == current_user.id,
+    ).first()
+    if not project:
+        raise HTTPException(status_code=404, detail="PROJECT_NOT_FOUND")
+
     filename_to_missing = {item["filename"]: item["local_missing"] for item in body.updates}
     photos = db.query(models.Photo).filter(
         models.Photo.project_id == project_id,

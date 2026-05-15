@@ -44,7 +44,8 @@ def get_current_user(
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         user_id: str = payload.get("sub")
         token_iat: Optional[int] = payload.get("iat")
-        if user_id is None:
+        # iat 없는 구 토큰은 거부 (token_invalidated_at 검증을 우회할 수 있음)
+        if user_id is None or token_iat is None:
             raise credentials_exception
     except jwt.InvalidTokenError:
         raise credentials_exception
@@ -54,15 +55,22 @@ def get_current_user(
         raise credentials_exception
 
     # 비밀번호 변경 후 발급된 토큰인지 검증
-    if user.token_invalidated_at and token_iat is not None:
+    if user.token_invalidated_at:
         if datetime.utcfromtimestamp(token_iat) < user.token_invalidated_at:
             raise credentials_exception
 
     return user
 
 
-def get_current_user_id(token: str = Depends(oauth2_scheme)) -> str:
-    """JWT에서 user_id만 추출. DB 조회 없음. 조회성 엔드포인트에 사용."""
+def get_current_user_id(
+    token: str = Depends(oauth2_scheme),
+    db: Session = Depends(get_db),
+) -> str:
+    """JWT에서 user_id 추출 + 토큰 무효화/유저 존재 검증.
+
+    비밀번호 변경 시 발급된 token_invalidated_at 검사를 위해 단일 컬럼 SELECT 추가.
+    조회성 엔드포인트에 사용 — full User 객체가 필요하면 get_current_user 사용.
+    """
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
         detail="AUTH_INVALID_TOKEN",
@@ -71,8 +79,21 @@ def get_current_user_id(token: str = Depends(oauth2_scheme)) -> str:
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         user_id: str = payload.get("sub")
-        if user_id is None:
+        token_iat: Optional[int] = payload.get("iat")
+        # iat 없는 구 토큰은 거부 (token_invalidated_at 검증을 우회할 수 있음)
+        if user_id is None or token_iat is None:
             raise credentials_exception
     except jwt.InvalidTokenError:
         raise credentials_exception
+
+    # 유저 존재 + 토큰 무효화 검증 (단일 컬럼 SELECT)
+    row = db.query(models.User.token_invalidated_at).filter(
+        models.User.id == user_id
+    ).first()
+    if row is None:
+        raise credentials_exception
+    invalidated_at = row[0]
+    if invalidated_at and datetime.utcfromtimestamp(token_iat) < invalidated_at:
+        raise credentials_exception
+
     return user_id

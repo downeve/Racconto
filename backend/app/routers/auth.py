@@ -197,6 +197,8 @@ def get_me(
     current_user: models.User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
+    from sqlalchemy import select, func
+
     ip = (
         request.headers.get("CF-Connecting-IP")          # Cloudflare 실제 클라이언트 IP
         or request.headers.get("X-Real-IP")
@@ -204,17 +206,30 @@ def get_me(
         or (request.client.host if request.client else "")
     )
     background_tasks.add_task(_record_activity, current_user.id, ip)
-    project_count = db.query(models.Project).filter(
-        models.Project.user_id == current_user.id,
-        models.Project.deleted_at == None
-    ).count()
 
-    # 유저 계정 전체 사진 수 합계 (업로드 제한과 동일 기준, 삭제된 프로젝트 제외)
-    total_photo_count = db.query(models.Photo).join(models.Project).filter(
-        models.Project.user_id == current_user.id,
-        models.Project.deleted_at == None,
-        models.Photo.deleted_at == None
-    ).count()
+    # project_count + total_photo_count를 단일 SQL 라운드트립으로 처리 (scalar subqueries).
+    # 두 카운트 모두 같은 user의 활성 프로젝트가 기준이므로 묶어서 보낼 수 있음.
+    project_count_sq = (
+        select(func.count(models.Project.id))
+        .where(
+            models.Project.user_id == current_user.id,
+            models.Project.deleted_at == None,
+        )
+        .scalar_subquery()
+    )
+    photo_count_sq = (
+        select(func.count(models.Photo.id))
+        .select_from(models.Photo)
+        .join(models.Project, models.Photo.project_id == models.Project.id)
+        .where(
+            models.Project.user_id == current_user.id,
+            models.Project.deleted_at == None,
+            models.Photo.deleted_at == None,
+        )
+        .scalar_subquery()
+    )
+    counts = db.execute(select(project_count_sq, photo_count_sq)).one()
+    project_count, total_photo_count = counts[0], counts[1]
 
     return {
         "user_id": current_user.id,
