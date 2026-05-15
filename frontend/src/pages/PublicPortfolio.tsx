@@ -416,29 +416,57 @@ export default function PublicPortfolio() {
         {selectedProject && (
           <div id="portfolio-print-area">
             <div className="mb-space-md max-w-2xl">
-              {selectedProject.location && (
-                <p className={`t-loc mb-7 ${subText}`}>
-                  <MapPin size={10} strokeWidth={1.5} />{selectedProject.location}
-                </p>
-              )}
+              <div className={`flex flex-wrap items-center gap-3 t-caption mb-5 ${subText}`}>
+                {selectedProject.location && (
+                  <span className="inline-flex items-center gap-1">
+                    <MapPin size={11} strokeWidth={1.5} />
+                    {selectedProject.location}
+                  </span>
+                )}
+                {selectedProject.location && <span className="w-[3px] h-[3px] rounded-full bg-faint dark:bg-d-faint" />}
+                <span>{getAllChapterItems(selectedProject).length} photos</span>
+                {selectedProject.updated_at && (
+                  <>
+                    <span className="w-[3px] h-[3px] rounded-full bg-faint dark:bg-d-faint" />
+                    <span>{new Date(selectedProject.updated_at).toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' })}</span>
+                  </>
+                )}
+              </div>
               {selectedProject.description && (
                 <p className={`font-serif text-[17px] leading-[1.65] italic [word-break:keep-all] whitespace-pre-wrap ${subText}`}>
                   {selectedProject.description}
                 </p>
               )}
-              {selectedProject.updated_at && (
-                <p className={`t-eyebrow mt-5 ${microcopy}`}>
-                  {new Date(selectedProject.updated_at).toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' })}
-                </p>
-              )}
             </div>
+
+            {selectedProject.chapters.length > 1 && (
+              <nav className={`flex flex-wrap gap-2.5 mt-10 py-4 border-y ${darkMode ? 'border-d-line' : 'border-hair'}`}>
+                {selectedProject.chapters.map((ch: Chapter, i: number) => (
+                  <a
+                    key={ch.id}
+                    href={`#chapter-${ch.id}`}
+                    className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-btn text-small font-sans
+                                ${darkMode
+                                  ? 'border border-transparent text-d-soft hover:text-d-hair'
+                                  : 'border border-transparent text-muted hover:text-ink-2'}`}
+                  >
+                    <span className={`font-serif ${darkMode ? 'text-d-soft' : 'text-accent'}`} style={{ fontVariantNumeric: 'oldstyle-nums' }}>
+                      {String(i + 1).padStart(2, '0')}
+                    </span>
+                    {ch.title}
+                  </a>
+                ))}
+              </nav>
+            )}
 
             {selectedProject.chapters.length > 0 ? (
               <div>
                 {selectedProject.chapters.map((chapter: Chapter, idx: number) => (
-                  <section key={chapter.id} className={idx > 0 ? 'pt-32 md:pt-40' : ''}>
+                  <section key={chapter.id} id={`chapter-${chapter.id}`} className={idx > 0 ? 'pt-32 md:pt-40' : ''}>
                     <header className="mb-10 max-w-[560px]">
-
+                      <p className={`t-eyebrow mb-3 ${microcopy}`}>
+                        Chapter {String(idx + 1).padStart(2, '0')}
+                      </p>
                       <h3 className="font-serif text-[32px] leading-[1.1] tracking-[-0.015em] font-normal">
                         {chapter.title}
                       </h3>
@@ -459,8 +487,8 @@ export default function PublicPortfolio() {
                     {chapter.sub_chapters?.map((sub: Chapter) => (
                       <div key={sub.id} className="mt-space-xl">
                         <div className="mb-5">
-
-                          <h4 className="font-serif text-[20px] tracking-tight font-medium">
+                          <p className={`t-eyebrow mb-2 ${microcopy}`}>Section</p>
+                          <h4 className="font-serif text-[20px] tracking-tight font-normal">
                             {sub.title}
                           </h4>
                           {sub.description && (

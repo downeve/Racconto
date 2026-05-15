@@ -154,6 +154,9 @@ export default function PortfolioChapterItems({
     const group = blockMap.get(bid)
     if (!group) return
 
+    // Side block 의미:
+    // - side-left  : 텍스트 왼쪽 / 사진 오른쪽  (모바일: 텍스트 위, 사진 아래)
+    // - side-right : 사진 왼쪽 / 텍스트 오른쪽  (모바일: 사진 위, 텍스트 아래)
     // Side-by-side 블록
     if (group.type === 'SIDE') {
       const sidePhotos = group.photos
