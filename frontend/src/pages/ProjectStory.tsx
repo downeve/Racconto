@@ -932,9 +932,8 @@ function ProjectStory({
           </div>
         )}
 
-        <div className="bg-edit-paper border border-edit-line rounded-btn px-8 pt-10 pb-0">
         {/* 챕터 목록 */}
-        <div className="divide-y divide-edit-line">
+        <div className="space-y-4">
         {chapters
           .filter(c => !c.parent_id)
           .map((chapter, idx) => {
@@ -944,7 +943,7 @@ function ProjectStory({
               <div
                 key={chapter.id}
                 ref={el => { chapterRefs.current[chapter.id] = el }}
-                className={`group/chapter${idx > 0 ? ' pt-12' : ''} pb-12`}
+                className="group/chapter bg-edit-paper border border-edit-line rounded-btn px-8 py-10"
               >
                 {/* 최상위 챕터 헤더 — hairline 구조 */}
                 <header className="mb-6">
@@ -1115,10 +1114,11 @@ function ProjectStory({
 
                 {/* 서브챕터들 */}
                 {subChapters.map((subChapter, subIdx) => (
+                  <div key={subChapter.id}>
+                    <div className="ml-6 border-t border-dashed border-edit-line mt-10 mb-10" />
                   <div
-                    key={subChapter.id}
                     ref={el => { chapterRefs.current[subChapter.id] = el }}
-                    className="ml-6 mt-10 pl-6 border-l border-edit-line group/chapter"
+                    className="ml-6 pl-6 border-l-2 border-edit-line group/chapter"
                   >
                     {/* 서브챕터 헤더 */}
                     <header className="mb-6">
@@ -1233,6 +1233,7 @@ function ProjectStory({
                       onCrossBlockMove={handleCrossBlockMove}
                         />
                   </div>
+                  </div>
                 ))}
               </div>
             ) 
@@ -1244,7 +1245,6 @@ function ProjectStory({
             <p className="text-h3 mb-2">{t('story.noChapter')}</p>
           </div>
         )}
-        </div>
       </div>
 
       {showLibrary && (
