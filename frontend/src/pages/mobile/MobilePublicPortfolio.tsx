@@ -1,5 +1,6 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useMemo } from 'react'
 import { useParams, useNavigate, useLocation } from 'react-router-dom'
+import { useQuery } from '@tanstack/react-query'
 import axios from 'axios'
 import { useTranslation } from 'react-i18next'
 import { useAuth } from '../../context/AuthContext'
@@ -31,10 +32,18 @@ export default function MobilePublicPortfolio() {
   const location = useLocation()
   const { isAuthenticated } = useAuth()
 
-  const [projects, setProjects] = useState<PortfolioProject[]>([])
   const [selectedProject, setSelectedProject] = useState<PortfolioProject | null>(null)
   const [darkMode, setDarkMode] = useState(false)
-  const [notFound, setNotFound] = useState(false)
+
+  const enabled = !!username && username !== '@setup'
+  const { data: portfolioData, isError: notFound } = useQuery({
+    queryKey: ['portfolio', username],
+    queryFn: async () => (await axios.get(`${API}/portfolio/${username}`)).data,
+    enabled,
+    staleTime: 1000 * 60 * 5,
+    retry: (_count, err) => !axios.isAxiosError(err) || err.response?.status !== 404,
+  })
+  const projects = useMemo<PortfolioProject[]>(() => portfolioData?.projects ?? [], [portfolioData])
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null)
   const [lightboxItems, setLightboxItems] = useState<{ photo: PortfolioPhoto; title: string }[]>([])
   const [scrollProgress, setScrollProgress] = useState(0)
@@ -51,16 +60,10 @@ export default function MobilePublicPortfolio() {
   }, [isAuthenticated, username, navigate])
 
   useEffect(() => {
-    if (!username || username === '@setup') { setNotFound(false); return }
-    axios.get(`${API}/portfolio/${username}`)
-      .then(res => {
-        setProjects(res.data.projects)
-        const apiIsDark = res.data.theme === 'dark'
-        const saved = localStorage.getItem(`portfolio_theme_${username}`)
-        setDarkMode(saved !== null ? saved === 'dark' : apiIsDark)
-      })
-      .catch(err => { if (err.response?.status === 404) setNotFound(true) })
-  }, [username])
+    if (!portfolioData?.theme) return
+    const saved = localStorage.getItem(`portfolio_theme_${username}`)
+    setDarkMode(saved !== null ? saved === 'dark' : portfolioData.theme === 'dark')
+  }, [portfolioData, username])
 
   // scroll progress
   useEffect(() => {

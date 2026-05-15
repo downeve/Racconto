@@ -1,5 +1,6 @@
 import { BrowserRouter, Routes, Route, Navigate, useNavigate, useSearchParams } from 'react-router-dom'
 import { useEffect, lazy, Suspense } from 'react'
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { AuthProvider } from './context/AuthContext'
 import Login from './pages/Login'
 import Register from './pages/Register'
@@ -39,8 +40,20 @@ function MobileSocialCallback() {
   )
 }
 
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 1000 * 30,
+      gcTime: 1000 * 60 * 30,
+      retry: 1,
+      refetchOnWindowFocus: false,
+    },
+  },
+})
+
 export default function MobileInfoApp() {
   return (
+    <QueryClientProvider client={queryClient}>
     <AuthProvider>
       <BrowserRouter>
         <Suspense fallback={<div className="min-h-screen bg-edit-canvas" />}>
@@ -60,5 +73,6 @@ export default function MobileInfoApp() {
         </Suspense>
       </BrowserRouter>
     </AuthProvider>
+    </QueryClientProvider>
   )
 }
