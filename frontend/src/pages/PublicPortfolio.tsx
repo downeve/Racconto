@@ -503,10 +503,12 @@ export default function PublicPortfolio() {
                       ratios={ratios}
                       setRatios={setRatios}
                     />
-                    {chapter.sub_chapters?.map((sub: Chapter) => (
+                    {chapter.sub_chapters?.map((sub: Chapter, subIdx: number) => (
                       <div key={sub.id} className="mt-space-xl">
                         <div className="mb-5">
-                          <p className={`t-eyebrow mb-2 ${microcopy}`}>Section</p>
+                          <p className={`t-eyebrow mb-2 ${microcopy}`}>
+                            Section {String(idx + 1).padStart(2, '0')}.{String(subIdx + 1).padStart(2, '0')}.
+                          </p>
                           <h4 className="font-serif text-[20px] tracking-tight font-normal">
                             {sub.title}
                           </h4>
