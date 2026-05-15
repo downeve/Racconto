@@ -105,7 +105,7 @@ export default function MobilePublicPortfolio() {
 
   const scrollToChapter = (id: string) => {
     const el = document.getElementById(`chapter-section-${id}`)
-    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    if (el) el.scrollIntoView({ behavior: 'instant', block: 'start' })
   }
 
   const getAllChapterItems = (project: PortfolioProject) => {
