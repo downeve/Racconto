@@ -11,6 +11,7 @@ from datetime import datetime, timedelta
 from typing import Optional
 from app.routers.photos import delete_cf_files_parallel
 import logging
+import re
 import secrets
 import httpx
 import ssl
@@ -24,6 +25,34 @@ logger = logging.getLogger(__name__)
 
 _ssl_ctx = ssl.create_default_context(cafile=certifi.where())
 
+
+def _anonymize_ip(ip: str) -> Optional[str]:
+    """IP 익명화 (GDPR M6) — IPv4 마지막 옥텟, IPv6 마지막 80비트 마스킹.
+
+    국가 단위 통계는 유지하면서 개별 추적은 차단.
+    """
+    if not ip:
+        return None
+    ip = ip.strip()
+    if not ip:
+        return None
+    # IPv4
+    if ip.count(".") == 3 and ":" not in ip:
+        parts = ip.split(".")
+        if len(parts) == 4:
+            return f"{parts[0]}.{parts[1]}.{parts[2]}.0"
+        return None
+    # IPv6 — 앞 48비트(3그룹)만 보존, 나머지는 0
+    if ":" in ip:
+        try:
+            groups = ip.split(":")
+            head = ":".join(g for g in groups[:3] if g != "")
+            return f"{head}::" if head else None
+        except Exception:
+            return None
+    return None
+
+
 def _record_activity(user_id: str, ip: str) -> None:
     """하루 1회 user_activities upsert (백그라운드 태스크)"""
     from app.database import SessionLocal
@@ -35,7 +64,8 @@ def _record_activity(user_id: str, ip: str) -> None:
             user_id=user_id, date=today
         ).first()
         if not exists:
-            db.add(models.UserActivity(user_id=user_id, date=today, ip_address=ip or None))
+            anonymized = _anonymize_ip(ip) if ip else None
+            db.add(models.UserActivity(user_id=user_id, date=today, ip_address=anonymized))
             db.commit()
     except Exception as e:
         db.rollback()
@@ -122,18 +152,35 @@ def resend_verification(
     return {"message": "VERIFICATION_SENT"}
 
 
+def _process_forgot_password(email: str, lang: str) -> None:
+    """forgot-password 후속 처리 — 사용자 존재 확인 + 토큰 생성 + 이메일 발송.
+
+    H4: 응답 시간이 사용자 존재 여부에 따라 달라지지 않도록 전체를 background로 분리.
+    """
+    from app.database import SessionLocal
+    db = SessionLocal()
+    try:
+        user = db.query(models.User).filter(models.User.email == email).first()
+        if not user or not user.is_verified:
+            return
+        user.reset_token = secrets.token_urlsafe(32)
+        user.reset_token_expires_at = datetime.utcnow() + timedelta(hours=1)
+        db.commit()
+        send_password_reset_email(email, user.reset_token, lang)
+    except Exception:
+        logger.exception("forgot_password background error")
+    finally:
+        db.close()
+
+
 @router.post("/forgot-password")
 def forgot_password(
     body: ForgotPasswordRequest,
     background_tasks: BackgroundTasks,
-    db: Session = Depends(get_db),
 ):
-    user = db.query(models.User).filter(models.User.email == body.email).first()
-    if user and user.is_verified:
-        user.reset_token = secrets.token_urlsafe(32)
-        user.reset_token_expires_at = datetime.utcnow() + timedelta(hours=1)
-        db.commit()
-        background_tasks.add_task(send_password_reset_email, body.email, user.reset_token, body.lang)
+    # 사용자 존재 여부와 무관하게 즉시 동일 응답 (enumeration 차단).
+    # DB 조회/토큰 생성/이메일 발송은 모두 background에서 처리.
+    background_tasks.add_task(_process_forgot_password, body.email, body.lang or 'ko')
     return {"message": "RESET_EMAIL_SENT"}
 
 
@@ -299,9 +346,16 @@ def verify_email(token: str, background_tasks: BackgroundTasks, lang: str = 'ko'
     return {"message": "EMAIL_VERIFIED"}
 
 
+_USERNAME_RE = re.compile(r"^[a-zA-Z0-9_]{3,20}$")
+
+
 @router.get("/check-username/{username}")
 def check_username(username: str, db: Session = Depends(get_db)):
-    exists = db.query(models.User).filter(models.User.username == username).first()
+    # 형식이 잘못된 username은 DB 조회 전에 거부 (H3 enumeration 표면 축소).
+    # 정상 가입 폼에서는 클라이언트가 동일 정규식으로 미리 검증함.
+    if not _USERNAME_RE.match(username):
+        return {"available": False}
+    exists = db.query(models.User.id).filter(models.User.username == username).first()
     return {"available": exists is None}
 
 
@@ -367,6 +421,8 @@ def google_callback(request: Request, background_tasks: BackgroundTasks, state: 
     saved_state = request.session.get("oauth_state")
     if not saved_state or saved_state != state:
         raise HTTPException(status_code=400, detail="INVALID_STATE")
+    # M1: state 1회 사용 후 즉시 정리 (replay 방지)
+    request.session.pop("oauth_state", None)
 
     redirect_uri = f"{BACKEND_URL}/auth/google/callback"
 
@@ -643,6 +699,8 @@ def naver_callback(
     saved_state = request.session.get("oauth_state")
     if not saved_state or saved_state != state:
         raise HTTPException(status_code=400, detail="INVALID_STATE")
+    # M1: state 1회 사용 후 즉시 정리 (replay 방지)
+    request.session.pop("oauth_state", None)
 
     redirect_uri = f"{BACKEND_URL}/auth/naver/callback"
 
@@ -759,6 +817,8 @@ def line_callback(
     saved_state = request.session.get("oauth_state")
     if not saved_state or saved_state != state:
         raise HTTPException(status_code=400, detail="INVALID_STATE")
+    # M1: state 1회 사용 후 즉시 정리 (replay 방지)
+    request.session.pop("oauth_state", None)
 
     redirect_uri = f"{BACKEND_URL}/auth/line/callback"
 

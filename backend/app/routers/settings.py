@@ -6,13 +6,23 @@ from pydantic import BaseModel
 from typing import Dict
 from app.auth import get_current_user, get_current_user_id
 
-SETTING_KEY_MAX_LEN = 100
 SETTING_VALUE_MAX_LEN = 5000
+
+# 허용된 setting 키 (M7) — 클라이언트가 임의 키를 만들지 못하도록 화이트리스트.
+# 새 설정 추가 시 여기에 명시.
+_ALLOWED_SETTING_KEYS: set[str] = {
+    "portfolio_theme",       # 'light' | 'dark'
+    "delivery_tag_color",    # 컬러 레이블 키
+    "default_grid_cols",     # '1' | '2' | '3'
+    "default_show_exif",     # 'true' | 'false'
+    "default_sort_by",       # 정렬 기준
+    "default_sort_order",    # 'asc' | 'desc'
+}
 
 
 def _validate_setting(key: str, value: str):
-    if len(key) > SETTING_KEY_MAX_LEN:
-        raise HTTPException(status_code=400, detail="SETTING_KEY_TOO_LONG")
+    if key not in _ALLOWED_SETTING_KEYS:
+        raise HTTPException(status_code=400, detail="SETTING_KEY_NOT_ALLOWED")
     if len(value) > SETTING_VALUE_MAX_LEN:
         raise HTTPException(status_code=400, detail="SETTING_VALUE_TOO_LONG")
 
