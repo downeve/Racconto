@@ -16,12 +16,6 @@ import { cfUrl } from '../utils/cfImage'
 const API = import.meta.env.VITE_API_URL
 const isElectron = typeof window !== 'undefined' && !!window.racconto
 
-interface Photo {
-  id: string
-  image_url: string
-  caption?: string | null
-}
-
 interface ChapterItem {
   item_type: 'PHOTO' | 'TEXT'
   id?: string
@@ -49,9 +43,9 @@ interface PortfolioProject {
   cover_image_url: string | null
   location: string | null
   updated_at: string | null
-  photos: Photo[]
+  photos: PortfolioPhoto[]
   chapters: Chapter[]
-  extra_photos: Photo[]
+  extra_photos: PortfolioPhoto[]
 }
 
 interface BannerProps {
@@ -87,14 +81,14 @@ export default function PublicPortfolio() {
     queryKey: ['portfolio', username],
     queryFn: async () => (await axios.get(`${API}/portfolio/${username}`)).data,
     enabled: enabled && !slug,
-    retry: (_count, err) => (err as any)?.response?.status !== 404,
+    retry: (_count, err) => !axios.isAxiosError(err) || err.response?.status !== 404,
   })
 
   const { data: slugData, isError: slugError } = useQuery({
     queryKey: ['portfolioSlug', username, slug],
     queryFn: async () => (await axios.get(`${API}/portfolio/${username}/${slug}`)).data,
     enabled: enabled && !!slug,
-    retry: (_count, err) => (err as any)?.response?.status !== 404,
+    retry: (_count, err) => !axios.isAxiosError(err) || err.response?.status !== 404,
   })
 
   const projects = useMemo<PortfolioProject[]>(() => listData?.projects ?? [], [listData])
@@ -102,7 +96,7 @@ export default function PublicPortfolio() {
   const notFound = listError || slugError
 
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null)
-  const [lightboxItems, setLightboxItems] = useState<{ photo: Photo; title: string }[]>([])
+  const [lightboxItems, setLightboxItems] = useState<{ photo: PortfolioPhoto; title: string }[]>([])
   const [showLightboxHint, setShowLightboxHint] = useState(false)
   const [chromeOn, setChromeOn] = useState(true)
   const lightboxHintShownRef = useRef(false)
@@ -131,7 +125,7 @@ export default function PublicPortfolio() {
     if ((location.state as { resetToList?: boolean } | null)?.resetToList) {
       setLocalSelectedProject(null)
     }
-  }, [location])
+  }, [location.state])
 
   useEffect(() => {
     if (!isAuthenticated && username === '@setup') {
@@ -180,14 +174,14 @@ export default function PublicPortfolio() {
 
   const allLightboxItems = useMemo(() => {
     if (!selectedProject) return []
-    const items: { photo: Photo; title: string }[] = []
+    const items: { photo: PortfolioPhoto; title: string }[] = []
     selectedProject.chapters?.forEach((ch: Chapter) => {
       ch.items?.filter((i: ChapterItem) => i.item_type === 'PHOTO').forEach((i: ChapterItem) => {
-        items.push({ photo: i as unknown as Photo, title: ch.title })
+        items.push({ photo: i as PortfolioPhoto, title: ch.title })
       })
       ch.sub_chapters?.forEach((sub: Chapter) => {
         sub.items?.filter((i: ChapterItem) => i.item_type === 'PHOTO').forEach((i: ChapterItem) => {
-          items.push({ photo: i as unknown as Photo, title: sub.title })
+          items.push({ photo: i as PortfolioPhoto, title: sub.title })
         })
       })
     })
@@ -216,7 +210,7 @@ export default function PublicPortfolio() {
     window.open(url, '_blank', 'width=600,height=500,noopener,noreferrer')
   }, [])
 
-  const openLightbox = (photo: Photo, items: { photo: Photo; title: string }[]) => {
+  const openLightbox = (photo: PortfolioPhoto, items: { photo: PortfolioPhoto; title: string }[]) => {
     const idx = items.findIndex(item => item.photo === photo)
     setLightboxItems(items)
     setLightboxIndex(idx !== -1 ? idx : 0)
@@ -535,9 +529,9 @@ export default function PublicPortfolio() {
                     </header>
                     <PortfolioChapterItems
                       items={chapter.items || []}
-                      allLightboxItems={allLightboxItems as { photo: PortfolioPhoto; title: string }[]}
+                      allLightboxItems={allLightboxItems}
                       darkMode={darkMode}
-                      onLightbox={(photo, items) => openLightbox(photo as unknown as Photo, items as { photo: Photo; title: string }[])}
+                      onLightbox={openLightbox}
                     />
                     {chapter.sub_chapters?.map((sub: Chapter, subIdx: number) => (
                       <div key={sub.id} className="mt-space-xl">
@@ -556,9 +550,9 @@ export default function PublicPortfolio() {
                         </div>
                         <PortfolioChapterItems
                           items={sub.items || []}
-                          allLightboxItems={allLightboxItems as { photo: PortfolioPhoto; title: string }[]}
+                          allLightboxItems={allLightboxItems}
                           darkMode={darkMode}
-                          onLightbox={(photo, items) => openLightbox(photo as unknown as Photo, items as { photo: Photo; title: string }[])}
+                          onLightbox={openLightbox}
                         />
                       </div>
                     ))}
@@ -685,7 +679,7 @@ export default function PublicPortfolio() {
           >
             <img
               key={lightboxIndex}
-              src={cfUrl(activeLightboxItem.photo.image_url, 'public')}
+              src={cfUrl(activeLightboxItem.photo.image_url ?? '', 'public')}
               alt={activeLightboxItem.photo.caption || ''}
               className="max-h-full max-w-full object-contain animate-[fade_.35s_ease-out]"
               style={zoom.imgStyle}
@@ -736,7 +730,7 @@ export default function PublicPortfolio() {
                 onClick={e => e.stopPropagation()}
               >
                 <a
-                  href={cfUrl(activeLightboxItem.photo.image_url, 'public')}
+                  href={cfUrl(activeLightboxItem.photo.image_url ?? '', 'public')}
                   download
                   target="_blank"
                   rel="noopener noreferrer"
