@@ -47,7 +47,7 @@ class Project(Base):
     cover_image_url = Column(String)
     location = Column(String)
     shot_date = Column(DateTime)
-    is_public = Column(String, default="false")
+    is_public = Column(Boolean, default=False, nullable=False, server_default='false')
     photos = relationship("Photo", back_populates="project", cascade="all, delete-orphan")
     pitches = relationship("Pitch", back_populates="project", cascade="all, delete-orphan")
     notes = relationship("Note", back_populates="project", cascade="all, delete-orphan")

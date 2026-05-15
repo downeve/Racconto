@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 from sqlalchemy import case, update as sa_update
 from app.database import get_db
 from app import models
-from pydantic import BaseModel
+from pydantic import BaseModel, field_validator
 from typing import Optional
 from datetime import datetime
 from app.auth import get_current_user, get_current_user_id
@@ -44,8 +44,16 @@ class ProjectCreate(BaseModel):
     status: Optional[str] = "in_progress"
     location: Optional[str] = None
     shot_date: Optional[datetime] = None
-    is_public: Optional[str] = "false"
+    is_public: bool = False
     cover_image_url: Optional[str] = None
+
+    # 프론트엔드 호환 — "true"/"false" 문자열도 허용
+    @field_validator('is_public', mode='before')
+    @classmethod
+    def _coerce_is_public(cls, v):
+        if isinstance(v, str):
+            return v.lower() in ('true', 't', '1', 'yes')
+        return bool(v) if v is not None else False
 
 class ProjectResponse(BaseModel):
     id: str
@@ -58,11 +66,20 @@ class ProjectResponse(BaseModel):
     cover_image_url: Optional[str]
     location: Optional[str]
     shot_date: Optional[datetime]
-    is_public: str
+    is_public: str  # 프론트엔드 호환: "true"/"false" 문자열 반환
     created_at: datetime
     updated_at: datetime
     deleted_at: Optional[datetime] = None
     linked_folders: list[str] = []
+
+    @field_validator('is_public', mode='before')
+    @classmethod
+    def _serialize_is_public(cls, v):
+        if isinstance(v, bool):
+            return 'true' if v else 'false'
+        if isinstance(v, str):
+            return v.lower() if v else 'false'
+        return 'false'
 
     class Config:
         from_attributes = True

@@ -17,6 +17,44 @@ ACCESS_TOKEN_EXPIRE_MINUTES = 60 * 24 * 7  # 7일
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/login")
 
+
+# ── Apple refresh token 암호화 (M4) ──────────────────────────────
+# Fernet 대칭 암호화. APPLE_TOKEN_KEY 미세팅 시 평문으로 동작(개발/legacy 호환).
+# 키 생성: python -c "from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())"
+_APPLE_TOKEN_KEY = os.getenv("APPLE_TOKEN_KEY")
+_apple_fernet = None
+if _APPLE_TOKEN_KEY:
+    try:
+        from cryptography.fernet import Fernet
+        _apple_fernet = Fernet(_APPLE_TOKEN_KEY.encode())
+    except Exception as e:
+        print(f"[WARN] APPLE_TOKEN_KEY 로드 실패 — 평문 fallback: {e}")
+else:
+    print("[WARN] APPLE_TOKEN_KEY 미설정 — apple_refresh_token 평문 저장 (프로덕션 권장 X)")
+
+_FERNET_PREFIX = "fernet:"
+
+
+def encrypt_apple_token(token: Optional[str]) -> Optional[str]:
+    if not token or not _apple_fernet:
+        return token
+    return _FERNET_PREFIX + _apple_fernet.encrypt(token.encode()).decode()
+
+
+def decrypt_apple_token(stored: Optional[str]) -> Optional[str]:
+    if not stored:
+        return stored
+    if not stored.startswith(_FERNET_PREFIX):
+        # legacy 평문
+        return stored
+    if not _apple_fernet:
+        # 키 없는데 암호문이 들어옴 — 복호화 불가
+        return None
+    try:
+        return _apple_fernet.decrypt(stored[len(_FERNET_PREFIX):].encode()).decode()
+    except Exception:
+        return None
+
 def verify_password(plain_password: str, hashed_password: str) -> bool:
     return bcrypt.checkpw(plain_password.encode(), hashed_password.encode())
 

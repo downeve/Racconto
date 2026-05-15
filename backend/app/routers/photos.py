@@ -40,6 +40,24 @@ def _validate_image_url(image_url: str) -> None:
         return
     raise HTTPException(status_code=400, detail="INVALID_IMAGE_URL")
 
+
+_UPLOAD_DIR = os.path.realpath("app/uploads")
+
+
+def _safe_local_upload_path(image_url: str) -> Optional[str]:
+    """image_url에서 로컬 업로드 파일 경로를 추출하고 path traversal 방어.
+
+    `app/uploads/` 디렉토리 밖으로 빠져나가는 경로면 None 반환.
+    """
+    try:
+        file_path = image_url.split('/uploads/')[-1]
+        full_path = os.path.realpath(f"app/uploads/{file_path}")
+        if not full_path.startswith(_UPLOAD_DIR + os.sep):
+            return None
+        return full_path
+    except Exception:
+        return None
+
 def extract_exif(file_path: str) -> dict:
     exif_data = {}
     try:
@@ -166,10 +184,16 @@ async def delete_from_cloudflare(image_url: str):
         await _cf_delete_one(client, image_url)
 
 
-async def delete_cf_files_parallel(urls: list[str]):
-    """CF 이미지 병렬 삭제 (단일 AsyncClient 공유)"""
+async def delete_cf_files_parallel(urls: list[str], concurrency: int = 20):
+    """CF 이미지 병렬 삭제 — Semaphore로 동시성 제한 (rate limit/burst 방지)."""
+    semaphore = asyncio.Semaphore(concurrency)
+
+    async def _bounded(client: httpx.AsyncClient, url: str):
+        async with semaphore:
+            await _cf_delete_one(client, url)
+
     async with httpx.AsyncClient() as client:
-        await asyncio.gather(*[_cf_delete_one(client, url) for url in urls])
+        await asyncio.gather(*[_bounded(client, url) for url in urls])
 
 
 def clear_cover_if_deleted(project_id: str, image_url: str, db: Session):
@@ -290,9 +314,15 @@ class BulkLocalMissingUpdate(BaseModel):
 def get_photos(
     project_id: Optional[str] = None,
     include_deleted: bool = False,
+    limit: int = 5000,
+    offset: int = 0,
     db: Session = Depends(get_db),
     current_user: models.User = Depends(get_current_user)
 ):
+    # 페이지네이션 (P-M4) — 기본 5000장, 한 페이지 최대 10000장
+    limit = max(1, min(limit, 10000))
+    offset = max(0, offset)
+
     if project_id:
         project = db.query(models.Project).filter(
             models.Project.id == project_id,
@@ -314,7 +344,7 @@ def get_photos(
         )
         if not include_deleted:
             query = query.filter(models.Photo.deleted_at == None)
-    return query.order_by(models.Photo.order).all()
+    return query.order_by(models.Photo.order).limit(limit).offset(offset).all()
 
 
 @router.get("/cf-upload-url")
@@ -548,13 +578,12 @@ def bulk_permanent_delete_photos(
         if photo.image_url and "imagedelivery.net" in photo.image_url:
             cf_urls.append(photo.image_url)
         elif photo.image_url:
-            try:
-                file_path = photo.image_url.split('/uploads/')[-1]
-                full_path = f"app/uploads/{file_path}"
-                if os.path.exists(full_path):
-                    os.remove(full_path)
-            except Exception as e:
-                print(f"로컬 파일 삭제 실패 (무시): {e}")
+            safe_path = _safe_local_upload_path(photo.image_url)
+            if safe_path and os.path.exists(safe_path):
+                try:
+                    os.remove(safe_path)
+                except Exception as e:
+                    print(f"로컬 파일 삭제 실패 (무시): {e}")
 
     # 7. DB에서 먼저 삭제 (빠른 응답)
     db.query(models.Photo).filter(
@@ -812,13 +841,12 @@ def permanent_delete_photo(
     if photo.image_url and "imagedelivery.net" in photo.image_url:
         background_tasks.add_task(delete_from_cloudflare, photo.image_url)
     elif photo.image_url:
-        try:
-            file_path = photo.image_url.split('/uploads/')[-1]
-            full_path = f"app/uploads/{file_path}"
-            if os.path.exists(full_path):
-                os.remove(full_path)
-        except Exception as e:
-            print(f"로컬 파일 삭제 실패 (무시): {e}")
+        safe_path = _safe_local_upload_path(photo.image_url)
+        if safe_path and os.path.exists(safe_path):
+            try:
+                os.remove(safe_path)
+            except Exception as e:
+                print(f"로컬 파일 삭제 실패 (무시): {e}")
 
     # 3. 사진 데이터 삭제 및 커밋
     db.delete(photo)

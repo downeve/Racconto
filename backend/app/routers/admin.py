@@ -1,7 +1,7 @@
 import httpx
 import requests
 from concurrent.futures import ThreadPoolExecutor
-from fastapi import APIRouter, Depends, HTTPException, BackgroundTasks
+from fastapi import APIRouter, Depends, HTTPException, BackgroundTasks, Response
 from sqlalchemy import func
 from sqlalchemy.orm import Session
 from app.database import get_db
@@ -210,25 +210,55 @@ def get_activity_stats(
 
 @router.get("/users")
 def get_users(
+    response: Response,
+    limit: int = 500,
+    offset: int = 0,
     db: Session = Depends(get_db),
     _: models.User = Depends(require_admin)
 ):
-    users = db.query(models.User).order_by(models.User.created_at.asc()).all()
+    # 페이지네이션 (P-M4) — 기본 500명, 최대 2000명. 총 개수는 헤더로.
+    limit = max(1, min(limit, 2000))
+    offset = max(0, offset)
 
-    project_counts = dict(
-        db.query(models.Project.user_id, func.count(models.Project.id))
-        .filter(models.Project.deleted_at == None)
-        .group_by(models.Project.user_id)
+    total = db.query(func.count(models.User.id)).scalar()
+    response.headers["X-Total-Count"] = str(total or 0)
+    response.headers["X-Limit"] = str(limit)
+    response.headers["X-Offset"] = str(offset)
+
+    users = (
+        db.query(models.User)
+        .order_by(models.User.created_at.asc())
+        .limit(limit)
+        .offset(offset)
         .all()
     )
-    photo_counts = dict(
-        db.query(models.Project.user_id, func.count(models.Photo.id))
-        .join(models.Photo, models.Photo.project_id == models.Project.id)
-        .filter(models.Project.deleted_at == None, models.Photo.deleted_at == None)
-        .group_by(models.Project.user_id)
-        .all()
-    )
+    user_ids = [u.id for u in users]
 
+    project_counts: dict = {}
+    photo_counts: dict = {}
+    if user_ids:
+        project_counts = dict(
+            db.query(models.Project.user_id, func.count(models.Project.id))
+            .filter(
+                models.Project.user_id.in_(user_ids),
+                models.Project.deleted_at == None,
+            )
+            .group_by(models.Project.user_id)
+            .all()
+        )
+        photo_counts = dict(
+            db.query(models.Project.user_id, func.count(models.Photo.id))
+            .join(models.Photo, models.Photo.project_id == models.Project.id)
+            .filter(
+                models.Project.user_id.in_(user_ids),
+                models.Project.deleted_at == None,
+                models.Photo.deleted_at == None,
+            )
+            .group_by(models.Project.user_id)
+            .all()
+        )
+
+    # 응답 shape는 List로 유지 (프론트엔드 호환). 페이지네이션 정보는 위에서 헤더로 설정.
     return [
         {
             "id": u.id,
