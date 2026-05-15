@@ -474,16 +474,23 @@ export default function PublicPortfolio() {
             {selectedProject.chapters.length > 0 ? (
               <div>
                 {selectedProject.chapters.map((chapter: Chapter, idx: number) => (
-                  <section key={chapter.id} id={`chapter-${chapter.id}`} className={idx > 0 ? 'pt-32 md:pt-40' : ''}>
-                    <header className="mb-10 max-w-[560px]">
-                      <p className={`t-eyebrow mb-3 ${microcopy}`}>
-                        Chapter {String(idx + 1).padStart(2, '0')}
-                      </p>
-                      <h3 className="font-serif text-[32px] leading-[1.1] tracking-[-0.015em] font-normal">
+                  <section key={chapter.id} id={`chapter-${chapter.id}`} className={idx > 0 ? 'pt-36 md:pt-44' : ''}>
+                    <header className="mb-10">
+                      {/* Oversized numeral + capped hairline (Option B) */}
+                      <div className="flex items-baseline gap-5">
+                        <span
+                          className={`font-serif font-light leading-none tracking-[-0.04em] [font-variant-numeric:oldstyle-nums] ${darkMode ? 'text-d-soft' : 'text-accent'}`}
+                          style={{ fontSize: 'clamp(72px, 8vw, 112px)' }}
+                        >
+                          {String(idx + 1).padStart(2, '0')}
+                        </span>
+                        <div className={`flex-1 max-w-[480px] h-[0.5px] ${darkMode ? 'bg-d-line' : 'bg-hair'}`} />
+                      </div>
+                      <h3 className="font-serif text-[32px] leading-[1.1] tracking-[-0.015em] font-normal mt-6">
                         {chapter.title}
                       </h3>
                       {chapter.description && (
-                        <p className={`mt-5 font-serif text-[16px] leading-[1.65] [word-break:keep-all] whitespace-pre-wrap ${subText}`}>
+                        <p className={`mt-[18px] font-serif text-[16px] leading-[1.65] [word-break:keep-all] whitespace-pre-wrap ${subText}`}>
                           {chapter.description}
                         </p>
                       )}
