@@ -401,6 +401,8 @@
     "startMessage": "Make your own portfolio.",
     "startMessage2": "Portfolio address not set. Register your username in Settings.",
     "noUser": "'s portfolio could not be found.",
+    "noUserBody": "This portfolio does not exist or is set to private.",
+    "exploreOthers": "Explore other portfolios",
     "column": "Layout:",
     "columnSingle": "1",
     "columnWide": "2",

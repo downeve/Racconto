@@ -295,10 +295,16 @@ export default function PublicPortfolio() {
 
   if (notFound) {
     return (
-      <div className={`fixed inset-0 z-[100] flex flex-col ${darkMode ? 'bg-ink text-hair' : 'bg-canvas text-ink'}`}>
-        <PublicNavbar />
-        <main className="flex-1 flex items-center justify-center px-6 pb-32">
-          <EmptyState heading={`@${username}${t('portfolio.noUser')}`} />
+      <div className={`min-h-screen ${bg}`}>
+        {!isAuthenticated && <PublicNavbar username={username} darkMode={darkMode} portfolio onToggleDark={handleToggleDark} />}
+        {!isAuthenticated && <div className="h-14" />}
+        <main className="flex items-center justify-center px-6 py-24">
+          <EmptyState
+            heading={`@${username}${t('portfolio.noUser')}`}
+            body={t('portfolio.noUserBody')}
+            cta={<a href="/" className="t-caption underline text-muted hover:text-ink-2">{t('portfolio.exploreOthers')}</a>}
+            darkMode={darkMode}
+          />
         </main>
       </div>
     )

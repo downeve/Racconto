@@ -401,6 +401,8 @@
     "startMessage": "나만의 포트폴리오를 만드세요.",
     "startMessage2": "아직 포트폴리오 주소를 설정하지 않았습니다. 설정에서 사용자 이름을 등록하세요.",
     "noUser": "의 포트폴리오를 찾을 수 없습니다.",
+    "noUserBody": "이 사용자의 포트폴리오는 존재하지 않거나 비공개 상태입니다.",
+    "exploreOthers": "다른 포트폴리오 둘러보기",
     "column": "레이아웃:",
     "columnSingle": "1열",
     "columnWide": "2열",
