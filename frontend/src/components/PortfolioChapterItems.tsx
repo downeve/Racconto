@@ -1,4 +1,5 @@
 import type { CSSProperties } from 'react'
+import { useState } from 'react'
 import MarkdownRenderer from './MarkdownRenderer'
 import { cfUrl } from '../utils/cfImage'
 import PhotoReveal from './PhotoReveal'
@@ -37,8 +38,6 @@ interface Props {
   darkMode: boolean
   containerWidth?: number          // 기본값: PORTFOLIO_WIDTH - 48
   onLightbox?: (photo: PortfolioPhoto, items: { photo: PortfolioPhoto; title: string }[]) => void
-  ratios: Record<string, number>
-  setRatios: React.Dispatch<React.SetStateAction<Record<string, number>>>
 }
 
 export default function PortfolioChapterItems({
@@ -47,10 +46,9 @@ export default function PortfolioChapterItems({
   darkMode,
   containerWidth,
   onLightbox,
-  ratios: imageRatios,
-  setRatios: setImageRatios,
 }: Props) {
   const effectiveWidth = containerWidth ?? PORTFOLIO_WIDTH - 48
+  const [imageRatios, setImageRatios] = useState<Record<string, number>>({})
 
   const handleImageLoad = (url: string, e: React.SyntheticEvent<HTMLImageElement>) => {
     const img = e.currentTarget

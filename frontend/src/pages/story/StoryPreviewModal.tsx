@@ -1,4 +1,3 @@
-import { useState } from 'react'
 import { Sun, Moon } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import PortfolioChapterItems, { type PortfolioChapterItem } from '../../components/PortfolioChapterItems'
@@ -37,7 +36,6 @@ export default function StoryPreviewModal({
   closeChapterPreview,
 }: StoryPreviewModalProps) {
   const { t } = useTranslation()
-  const [previewRatios, setPreviewRatios] = useState<Record<string, number>>({})
 
   return (
     <>
@@ -112,8 +110,6 @@ export default function StoryPreviewModal({
                         <PortfolioChapterItems
                           items={items as PortfolioChapterItem[]}
                           darkMode={dm}
-                          ratios={previewRatios}
-                          setRatios={setPreviewRatios}
                         />
 
                         {/* 서브챕터 */}
@@ -136,8 +132,6 @@ export default function StoryPreviewModal({
                             <PortfolioChapterItems
                               items={getVisibleChapterItems(sub.id) as PortfolioChapterItem[]}
                               darkMode={dm}
-                              ratios={previewRatios}
-                              setRatios={setPreviewRatios}
                             />
                           </div>
                         ))}
@@ -223,8 +217,6 @@ export default function StoryPreviewModal({
                     items={getVisibleChapterItems(chapterPreviewId) as PortfolioChapterItem[]}
                     darkMode={dm}
                     containerWidth={832}
-                    ratios={previewRatios}
-                    setRatios={setPreviewRatios}
                   />
                 </div>
               </div>

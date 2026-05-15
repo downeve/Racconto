@@ -105,7 +105,6 @@ export default function PublicPortfolio() {
   const [lightboxItems, setLightboxItems] = useState<{ photo: Photo; title: string }[]>([])
   const [showLightboxHint, setShowLightboxHint] = useState(false)
   const [chromeOn, setChromeOn] = useState(true)
-  const [ratios, setRatios] = useState<Record<string, number>>({})
   const lightboxHintShownRef = useRef(false)
   const lightboxRef = useRef<HTMLDivElement>(null)
   const lightboxWasOpenRef = useRef(false)
@@ -179,20 +178,21 @@ export default function PublicPortfolio() {
     }
   }
 
-  const getAllChapterItems = (project: PortfolioProject) => {
+  const allLightboxItems = useMemo(() => {
+    if (!selectedProject) return []
     const items: { photo: Photo; title: string }[] = []
-    project.chapters?.forEach((ch) => {
-      ch.items?.filter(i => i.item_type === 'PHOTO').forEach(i => {
-        items.push({ photo: i as Photo, title: ch.title })
+    selectedProject.chapters?.forEach((ch: Chapter) => {
+      ch.items?.filter((i: ChapterItem) => i.item_type === 'PHOTO').forEach((i: ChapterItem) => {
+        items.push({ photo: i as unknown as Photo, title: ch.title })
       })
-      ch.sub_chapters?.forEach((sub) => {
-        sub.items?.filter(i => i.item_type === 'PHOTO').forEach(i => {
-          items.push({ photo: i as Photo, title: sub.title })
+      ch.sub_chapters?.forEach((sub: Chapter) => {
+        sub.items?.filter((i: ChapterItem) => i.item_type === 'PHOTO').forEach((i: ChapterItem) => {
+          items.push({ photo: i as unknown as Photo, title: sub.title })
         })
       })
     })
     return items
-  }
+  }, [selectedProject])
 
   const [copied, setCopied] = useState(false)
 
@@ -474,7 +474,7 @@ export default function PublicPortfolio() {
                   </span>
                 )}
                 {selectedProject.location && <span className="w-[3px] h-[3px] rounded-full bg-faint dark:bg-d-faint" />}
-                <span>{getAllChapterItems(selectedProject).length} photos</span>
+                <span>{allLightboxItems.length} photos</span>
                 {selectedProject.updated_at && (
                   <>
                     <span className="w-[3px] h-[3px] rounded-full bg-faint dark:bg-d-faint" />
@@ -535,11 +535,9 @@ export default function PublicPortfolio() {
                     </header>
                     <PortfolioChapterItems
                       items={chapter.items || []}
-                      allLightboxItems={getAllChapterItems(selectedProject) as { photo: PortfolioPhoto; title: string }[]}
+                      allLightboxItems={allLightboxItems as { photo: PortfolioPhoto; title: string }[]}
                       darkMode={darkMode}
                       onLightbox={(photo, items) => openLightbox(photo as unknown as Photo, items as { photo: Photo; title: string }[])}
-                      ratios={ratios}
-                      setRatios={setRatios}
                     />
                     {chapter.sub_chapters?.map((sub: Chapter, subIdx: number) => (
                       <div key={sub.id} className="mt-space-xl">
@@ -558,11 +556,9 @@ export default function PublicPortfolio() {
                         </div>
                         <PortfolioChapterItems
                           items={sub.items || []}
-                          allLightboxItems={getAllChapterItems(selectedProject) as { photo: PortfolioPhoto; title: string }[]}
+                          allLightboxItems={allLightboxItems as { photo: PortfolioPhoto; title: string }[]}
                           darkMode={darkMode}
                           onLightbox={(photo, items) => openLightbox(photo as unknown as Photo, items as { photo: Photo; title: string }[])}
-                          ratios={ratios}
-                          setRatios={setRatios}
                         />
                       </div>
                     ))}
