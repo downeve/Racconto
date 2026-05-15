@@ -108,6 +108,7 @@ export default function PublicPortfolio() {
   const [ratios, setRatios] = useState<Record<string, number>>({})
   const lightboxHintShownRef = useRef(false)
   const lightboxRef = useRef<HTMLDivElement>(null)
+  const lightboxWasOpenRef = useRef(false)
 
   const activeLightboxItem = lightboxIndex !== null ? lightboxItems[lightboxIndex] : null
   const zoom = useLightboxZoom(lightboxIndex)
@@ -265,15 +266,25 @@ export default function PublicPortfolio() {
 
   // Focus trap for lightbox
   useEffect(() => {
-    if (lightboxIndex === null || !lightboxRef.current) return
+    if (lightboxIndex === null) {
+      lightboxWasOpenRef.current = false
+      return
+    }
+    if (!lightboxRef.current) return
     const el = lightboxRef.current
     const focusables = el.querySelectorAll<HTMLElement>('button, [tabindex]:not([tabindex="-1"])')
-    if (focusables.length) focusables[0].focus()
+
+    // 열릴 때만 최초 포커스 — 키보드 네비게이션(화살표) 시에는 재포커스 안 함
+    if (!lightboxWasOpenRef.current && focusables.length) {
+      focusables[0].focus()
+      lightboxWasOpenRef.current = true
+    }
 
     const handleTab = (e: KeyboardEvent) => {
       if (e.key !== 'Tab') return
-      const first = focusables[0]
-      const last = focusables[focusables.length - 1]
+      const focs = el.querySelectorAll<HTMLElement>('button, [tabindex]:not([tabindex="-1"])')
+      const first = focs[0]
+      const last = focs[focs.length - 1]
       if (e.shiftKey && document.activeElement === first) {
         e.preventDefault()
         last.focus()
@@ -771,10 +782,9 @@ export default function PublicPortfolio() {
       {/* 우측 dot-rail — 챕터 ≥ 2일 때만 표시 */}
       {selectedProject && selectedProject.chapters.length > 1 && lightboxIndex === null && (
         <nav
-          className={`fixed right-6 z-30 flex flex-col items-center gap-3 px-2 py-3
+          className={`fixed bottom-8 left-1/2 -translate-x-1/2 z-30 flex flex-row items-center gap-3 px-3 py-2
                       rounded-full border backdrop-blur-md
                       ${darkMode ? 'bg-d-bg/85 border-d-line' : 'bg-canvas/85 border-hair/60'}`}
-          style={{ top: '50%', transform: 'translateY(-50%)' }}
           aria-label="챕터 이동"
         >
           {selectedProject.chapters.map((ch: Chapter, i: number) => (

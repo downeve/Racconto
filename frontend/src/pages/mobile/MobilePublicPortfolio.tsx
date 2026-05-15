@@ -145,10 +145,10 @@ export default function MobilePublicPortfolio() {
       {/* 우측 dot-rail (챕터 점프, 상세 화면) */}
       {selectedProject && selectedProject.chapters.length > 1 && (
         <nav
-          className={`fixed right-2 z-10 flex flex-col items-center gap-3.5 px-2 py-3
+          className={`fixed left-1/2 -translate-x-1/2 z-10 flex flex-row items-center gap-3 px-3 py-2
                        rounded-full border backdrop-blur-md
                        ${darkMode ? 'bg-d-bg/85 border-d-line' : 'bg-canvas/85 border-hair/60'}`}
-          style={{ top: 'calc(env(safe-area-inset-top) + 80px)' }}
+          style={{ bottom: 'calc(env(safe-area-inset-bottom) + 24px)' }}
           aria-label="챕터 이동"
         >
           {selectedProject.chapters.map((ch, i) => (
