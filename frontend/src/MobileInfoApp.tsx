@@ -1,15 +1,16 @@
 import { BrowserRouter, Routes, Route, Navigate, useNavigate, useSearchParams } from 'react-router-dom'
-import { useEffect } from 'react'
+import { useEffect, lazy, Suspense } from 'react'
 import { AuthProvider } from './context/AuthContext'
-import MobileAppInfo from './pages/MobileAppInfo'
-import MobileLandingPage from './pages/MobileLandingPage'
-import MobilePublicPortfolio from './pages/mobile/MobilePublicPortfolio'
-import AppDownload from './pages/AppDownload'
 import Login from './pages/Login'
 import Register from './pages/Register'
 import VerifyEmail from './pages/VerifyEmail'
 import ForgotPassword from './pages/ForgotPassword'
 import ResetPassword from './pages/ResetPassword'
+
+const MobileAppInfo          = lazy(() => import('./pages/MobileAppInfo'))
+const MobileLandingPage      = lazy(() => import('./pages/MobileLandingPage'))
+const MobilePublicPortfolio  = lazy(() => import('./pages/mobile/MobilePublicPortfolio'))
+const AppDownload            = lazy(() => import('./pages/AppDownload'))
 
 function MobileSocialCallback() {
   const [searchParams] = useSearchParams()
@@ -42,6 +43,7 @@ export default function MobileInfoApp() {
   return (
     <AuthProvider>
       <BrowserRouter>
+        <Suspense fallback={<div className="min-h-screen bg-edit-canvas" />}>
         <Routes>
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
@@ -55,6 +57,7 @@ export default function MobileInfoApp() {
           <Route path="/:username" element={<MobilePublicPortfolio />} />
           <Route path="*" element={<MobileLandingPage />} />
         </Routes>
+        </Suspense>
       </BrowserRouter>
     </AuthProvider>
   )
