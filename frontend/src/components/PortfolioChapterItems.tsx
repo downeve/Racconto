@@ -1,4 +1,3 @@
-import { useState } from 'react'
 import type { CSSProperties } from 'react'
 import MarkdownRenderer from './MarkdownRenderer'
 import { cfUrl } from '../utils/cfImage'
@@ -36,6 +35,8 @@ interface Props {
   containerWidth?: number          // 기본값: PORTFOLIO_WIDTH - 48
   gap?: number                     // 기본값: PORTFOLIO_GAP
   onLightbox?: (photo: PortfolioPhoto, items: { photo: PortfolioPhoto; title: string }[]) => void
+  ratios: Record<string, number>
+  setRatios: React.Dispatch<React.SetStateAction<Record<string, number>>>
 }
 
 export default function PortfolioChapterItems({
@@ -45,9 +46,9 @@ export default function PortfolioChapterItems({
   containerWidth,
   gap,
   onLightbox,
+  ratios: imageRatios,
+  setRatios: setImageRatios,
 }: Props) {
-  const [imageRatios, setImageRatios] = useState<Record<string, number>>({})
-
   const effectiveWidth = containerWidth ?? PORTFOLIO_WIDTH - 48
   const effectiveGap = gap ?? PORTFOLIO_GAP
 

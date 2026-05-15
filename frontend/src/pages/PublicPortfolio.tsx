@@ -103,6 +103,7 @@ export default function PublicPortfolio() {
   const [lightboxItems, setLightboxItems] = useState<{ photo: Photo; title: string }[]>([])
   const [showLightboxHint, setShowLightboxHint] = useState(false)
   const [chromeOn, setChromeOn] = useState(true)
+  const [ratios, setRatios] = useState<Record<string, number>>({})
   const lightboxHintShownRef = useRef(false)
   const lightboxRef = useRef<HTMLDivElement>(null)
 
@@ -452,6 +453,8 @@ export default function PublicPortfolio() {
                       allLightboxItems={getAllChapterItems(selectedProject) as { photo: PortfolioPhoto; title: string }[]}
                       darkMode={darkMode}
                       onLightbox={(photo, items) => openLightbox(photo as unknown as Photo, items as { photo: Photo; title: string }[])}
+                      ratios={ratios}
+                      setRatios={setRatios}
                     />
                     {chapter.sub_chapters?.map((sub: Chapter) => (
                       <div key={sub.id} className="mt-space-xl">
@@ -471,6 +474,8 @@ export default function PublicPortfolio() {
                           allLightboxItems={getAllChapterItems(selectedProject) as { photo: PortfolioPhoto; title: string }[]}
                           darkMode={darkMode}
                           onLightbox={(photo, items) => openLightbox(photo as unknown as Photo, items as { photo: Photo; title: string }[])}
+                          ratios={ratios}
+                          setRatios={setRatios}
                         />
                       </div>
                     ))}
