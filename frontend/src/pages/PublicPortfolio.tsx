@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState, useCallback, useMemo } from 'react'
+import { useLightboxZoom } from '../hooks/useLightboxZoom'
 import { useParams, useNavigate, useLocation } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import axios from 'axios'
@@ -108,6 +109,9 @@ export default function PublicPortfolio() {
   const lightboxRef = useRef<HTMLDivElement>(null)
 
   const activeLightboxItem = lightboxIndex !== null ? lightboxItems[lightboxIndex] : null
+  const zoom = useLightboxZoom(lightboxIndex)
+  const [longPressActive, setLongPressActive] = useState(false)
+  const longPressTimer = useRef<number | null>(null)
 
   const { t } = useTranslation()
   const navigate = useNavigate()
@@ -628,13 +632,34 @@ export default function PublicPortfolio() {
           )}
 
           {/* Image */}
-          <div className="flex-1 flex items-center justify-center p-4 overflow-hidden">
+          <div
+            className="flex-1 flex items-center justify-center p-4 overflow-hidden select-none"
+            onDoubleClick={zoom.handleDoubleClick}
+            onTouchMove={zoom.handleTouchMove}
+            onTouchEnd={zoom.handleTouchEnd}
+            onClick={e => e.stopPropagation()}
+            onContextMenu={e => e.preventDefault()}
+          >
             <img
               key={lightboxIndex}
               src={cfUrl(activeLightboxItem.photo.image_url, 'public')}
               alt={activeLightboxItem.photo.caption || ''}
               className="max-h-full max-w-full object-contain animate-[fade_.35s_ease-out]"
-              onClick={e => e.stopPropagation()}
+              style={zoom.imgStyle}
+              draggable={false}
+              onTouchStart={e => {
+                longPressTimer.current = window.setTimeout(() => setLongPressActive(true), 500)
+                ;(e.currentTarget as any)._tx = e.touches[0]?.clientX
+              }}
+              onTouchEnd={() => {
+                if (longPressTimer.current) { clearTimeout(longPressTimer.current); longPressTimer.current = null }
+              }}
+              onMouseDown={() => {
+                longPressTimer.current = window.setTimeout(() => setLongPressActive(true), 500)
+              }}
+              onMouseUp={() => {
+                if (longPressTimer.current) { clearTimeout(longPressTimer.current); longPressTimer.current = null }
+              }}
             />
           </div>
 
@@ -654,6 +679,44 @@ export default function PublicPortfolio() {
           {showLightboxHint && (
             <div className="absolute bottom-8 left-1/2 -translate-x-1/2 px-4 py-2 bg-d-line/70 pointer-events-none whitespace-nowrap">
               <span className="t-caption text-d-faint">← → ESC</span>
+            </div>
+          )}
+
+          {/* Long-press action sheet */}
+          {longPressActive && activeLightboxItem && (
+            <div
+              className="absolute inset-0 z-20 flex items-end justify-center"
+              onClick={() => setLongPressActive(false)}
+            >
+              <div
+                className="w-full max-w-sm mx-4 mb-8 bg-d-bg/95 backdrop-blur-md rounded-[4px] overflow-hidden"
+                onClick={e => e.stopPropagation()}
+              >
+                <a
+                  href={cfUrl(activeLightboxItem.photo.image_url, 'public')}
+                  download
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center px-5 py-4 t-caption text-d-hair border-b border-d-line hover:bg-d-line/30"
+                  onClick={() => setLongPressActive(false)}
+                >
+                  사진 저장
+                </a>
+                {activeLightboxItem.photo.caption && (
+                  <button
+                    className="w-full flex items-center px-5 py-4 t-caption text-d-hair border-b border-d-line hover:bg-d-line/30 text-left"
+                    onClick={() => { navigator.clipboard.writeText(activeLightboxItem.photo.caption || '').catch(() => {}); setLongPressActive(false) }}
+                  >
+                    캡션 복사
+                  </button>
+                )}
+                <button
+                  className="w-full flex items-center px-5 py-4 t-caption text-d-faint hover:bg-d-line/30 text-left"
+                  onClick={() => setLongPressActive(false)}
+                >
+                  취소
+                </button>
+              </div>
             </div>
           )}
         </div>
