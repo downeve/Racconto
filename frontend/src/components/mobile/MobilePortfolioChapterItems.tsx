@@ -99,7 +99,7 @@ export default function MobilePortfolioChapterItems({
     // GRID / WIDE / SINGLE → 모두 1열 풀폭
     const photos = group.photos
     result.push(
-      <div key={`block-${bid}`} className="mb-2 space-y-1">
+      <div key={`block-${bid}`} className="mb-6 space-y-2">
         {photos.map((photo, pi) => (
           <PhotoReveal
             key={photo.id}
