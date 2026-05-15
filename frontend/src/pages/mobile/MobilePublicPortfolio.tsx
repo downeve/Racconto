@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo, useCallback } from 'react'
+import { useEffect, useState, useMemo, useCallback, useRef } from 'react'
 import { useParams, useNavigate, useLocation } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import axios from 'axios'
@@ -63,6 +63,9 @@ export default function MobilePublicPortfolio() {
     window.open(url, '_blank', 'width=600,height=500,noopener,noreferrer')
   }, [])
   const [scrollProgress, setScrollProgress] = useState(0)
+  const [isScrolling, setIsScrolling] = useState(false)
+  const [isTouchingRail, setIsTouchingRail] = useState(false)
+  const scrollEndTimerRef = useRef<number | null>(null)
 
   const chapterIds = selectedProject?.chapters.map(c => c.id) ?? []
   const activeChapterId = useActiveChapter(chapterIds)
@@ -81,7 +84,7 @@ export default function MobilePublicPortfolio() {
     setDarkMode(saved !== null ? saved === 'dark' : portfolioData.theme === 'dark')
   }, [portfolioData, username])
 
-  // scroll progress
+  // scroll progress + dot-rail scroll 감지
   useEffect(() => {
     if (!selectedProject) return
     const handleScroll = () => {
@@ -89,9 +92,15 @@ export default function MobilePublicPortfolio() {
       const viewH = window.innerHeight
       const progress = docH <= viewH ? 0 : Math.min(1, window.scrollY / (docH - viewH))
       setScrollProgress(progress)
+      setIsScrolling(true)
+      if (scrollEndTimerRef.current) clearTimeout(scrollEndTimerRef.current)
+      scrollEndTimerRef.current = window.setTimeout(() => setIsScrolling(false), 400)
     }
     window.addEventListener('scroll', handleScroll, { passive: true })
-    return () => window.removeEventListener('scroll', handleScroll)
+    return () => {
+      window.removeEventListener('scroll', handleScroll)
+      if (scrollEndTimerRef.current) clearTimeout(scrollEndTimerRef.current)
+    }
   }, [selectedProject])
 
   const scrollToChapter = (id: string) => {
@@ -164,9 +173,15 @@ export default function MobilePublicPortfolio() {
       {selectedProject && selectedProject.chapters.length > 1 && (
         <nav
           className={`fixed left-1/2 -translate-x-1/2 z-10 flex flex-row items-center gap-3 px-3 py-2
-                       rounded-full border backdrop-blur-md
+                       rounded-full border backdrop-blur-md transition-opacity duration-300
                        ${darkMode ? 'bg-d-bg/85 border-d-line' : 'bg-canvas/85 border-hair/60'}`}
-          style={{ bottom: 'calc(env(safe-area-inset-bottom) + 24px)' }}
+          style={{
+            bottom: 'calc(env(safe-area-inset-bottom) + 24px)',
+            opacity: isTouchingRail ? 1 : isScrolling ? 0.35 : 0.55,
+          }}
+          onTouchStart={() => setIsTouchingRail(true)}
+          onTouchEnd={() => setIsTouchingRail(false)}
+          onTouchCancel={() => setIsTouchingRail(false)}
           aria-label="챕터 이동"
         >
           {selectedProject.chapters.map((ch, i) => (
