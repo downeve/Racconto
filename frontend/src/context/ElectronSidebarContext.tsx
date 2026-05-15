@@ -125,8 +125,8 @@ export function ElectronSidebarProvider({ children }: { children: ReactNode }) {
         successCount++
 
       } catch (error) {
-        const status = (error as any)?.response?.status
-        const detail = (error as any)?.response?.data?.detail
+        const status = axios.isAxiosError(error) ? error.response?.status : undefined
+        const detail = axios.isAxiosError(error) ? error.response?.data?.detail : undefined
         const code = typeof detail === 'object' ? detail.code : detail
 
         if (status === 401) {

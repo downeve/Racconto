@@ -366,7 +366,7 @@ export default function ProjectDetail({
       )
     })
     return () => window.racconto?.offDeletedFile?.()
-  }, [])
+  }, [queryClient])
 
   useEffect(() => {
     if (!isElectron || !numericId) return

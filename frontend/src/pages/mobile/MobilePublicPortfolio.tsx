@@ -1,18 +1,19 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useState, useMemo } from 'react'
 import { useParams, useNavigate, useLocation } from 'react-router-dom'
+import { useQuery } from '@tanstack/react-query'
 import axios from 'axios'
 import { useTranslation } from 'react-i18next'
 import { useAuth } from '../../context/AuthContext'
-import { Sun, Moon, MapPin, X, ChevronLeft, ChevronRight } from 'lucide-react'
+import { MapPin, X, ChevronLeft } from 'lucide-react'
 import CoverFallback from '../../components/CoverFallback'
-import MarkdownRenderer from '../../components/MarkdownRenderer'
-import PhotoReveal from '../../components/PhotoReveal'
 import EmptyState from '../../components/EmptyState'
+import MobilePortfolioChapterItems from '../../components/mobile/MobilePortfolioChapterItems'
 import { cfUrl } from '../../utils/cfImage'
+import { useActiveChapter } from '../../hooks/useActiveChapter'
+import type { PortfolioPhoto } from '../../components/PortfolioChapterItems'
 
 const API = import.meta.env.VITE_API_URL
 
-interface Photo { id: string; image_url: string; caption?: string | null }
 interface ChapterItem {
   item_type: 'PHOTO' | 'TEXT'; id?: string; image_url?: string; caption?: string | null
   block_layout?: 'grid' | 'wide' | 'single'; text_content?: string | null
@@ -21,119 +22,8 @@ interface ChapterItem {
 interface Chapter { id: string; title: string; description: string | null; items: ChapterItem[]; sub_chapters: Chapter[] }
 interface PortfolioProject {
   id: string; title: string; description: string | null; cover_image_url: string | null
-  location: string | null; updated_at: string | null; photos: Photo[]; chapters: Chapter[]; extra_photos: Photo[]
+  location: string | null; updated_at: string | null; photos: PortfolioPhoto[]; chapters: Chapter[]; extra_photos: PortfolioPhoto[]
 }
-
-// ── 심플 아이템 렌더러 ────────────────────────────────────────
-interface SimpleItemsProps {
-  items: ChapterItem[]
-  darkMode: boolean
-  allLightboxItems: { photo: Photo; title: string }[]
-  onLightbox: (photo: Photo, items: { photo: Photo; title: string }[]) => void
-}
-
-function SimpleMobileItems({ items, darkMode, allLightboxItems, onLightbox }: SimpleItemsProps) {
-  const rendered = new Set<string>()
-  const elements: React.ReactNode[] = []
-
-  items.forEach((item, i) => {
-    if (item.item_type === 'TEXT') {
-      elements.push(
-        <div key={`text-${i}`} className="my-5">
-          <MarkdownRenderer
-            content={item.text_content || ''}
-            darkMode={darkMode}
-            className="leading-[2.1] [word-break:keep-all] font-serif text-sm"
-          />
-        </div>
-      )
-      return
-    }
-
-    const bid = item.block_id
-    if (bid) {
-      if (rendered.has(bid)) return
-      rendered.add(bid)
-
-      const blockPhotos = items
-        .filter(p => p.item_type === 'PHOTO' && p.block_id === bid)
-        .sort((a, b) => (a.order_in_block ?? 0) - (b.order_in_block ?? 0))
-
-      elements.push(
-        <div key={`block-${bid}`} className="space-y-2 mb-2">
-          {blockPhotos.map((photo, pi) => (
-            <PhotoReveal
-              key={photo.id}
-              className="w-full overflow-hidden rounded-photo cursor-pointer"
-              delay={pi * 60}
-              onClick={() => onLightbox(photo as Photo, allLightboxItems)}
-            >
-              <img
-                src={cfUrl(photo.image_url, 'grid')}
-                alt={photo.caption || ''}
-                loading="lazy"
-                className="w-full object-cover hover:opacity-90 transition-opacity block"
-              />
-              {photo.caption && (
-                <p className={`t-caption mt-2.5 ${darkMode ? 'text-d-faint' : 'text-faint'}`}>
-                  {photo.caption}
-                </p>
-              )}
-            </PhotoReveal>
-          ))}
-        </div>
-      )
-    } else {
-      elements.push(
-        <PhotoReveal
-          key={`photo-${item.id ?? i}`}
-          className="w-full overflow-hidden rounded-photo cursor-pointer mb-2"
-          onClick={() => onLightbox(item as Photo, allLightboxItems)}
-        >
-          <img
-            src={cfUrl(item.image_url, 'grid')}
-            alt={item.caption || ''}
-            loading="lazy"
-            className="w-full object-cover hover:opacity-90 transition-opacity block"
-          />
-          {item.caption && (
-            <p className={`t-caption mt-2.5 ${darkMode ? 'text-d-faint' : 'text-faint'}`}>
-              {item.caption}
-            </p>
-          )}
-        </PhotoReveal>
-      )
-    }
-  })
-
-  return <>{elements}</>
-}
-
-// ── 배너 컴포넌트 ─────────────────────────────────────────────
-
-interface BannerProps {
-  username: string
-  projects: PortfolioProject[]
-  darkMode: boolean
-}
-
-function MobilePortfolioBanner({ username, projects, darkMode }: BannerProps) {
-  const projectCount = projects.length
-  const eyebrowColor = darkMode ? 'text-d-soft' : 'text-muted'
-  return (
-    <div className="pb-2">
-      <p className={`t-eyebrow mb-2 ${eyebrowColor}`}>
-        Portfolio
-        {projectCount > 0 && <span className="ml-2 opacity-70">· {projectCount} {projectCount === 1 ? 'project' : 'projects'}</span>}
-      </p>
-      <h1 className="font-serif font-normal leading-[1.1] tracking-[-0.015em]" style={{ fontSize: 'clamp(24px, 6vw, 32px)' }}>
-        @{username}
-      </h1>
-    </div>
-  )
-}
-
-// ── 메인 컴포넌트 ─────────────────────────────────────────────
 
 export default function MobilePublicPortfolio() {
   const { username } = useParams()
@@ -142,65 +32,77 @@ export default function MobilePublicPortfolio() {
   const location = useLocation()
   const { isAuthenticated } = useAuth()
 
-  const [projects, setProjects] = useState<PortfolioProject[]>([])
   const [selectedProject, setSelectedProject] = useState<PortfolioProject | null>(null)
   const [darkMode, setDarkMode] = useState(false)
-  const [notFound, setNotFound] = useState(false)
+
+  const enabled = !!username && username !== '@setup'
+  const { data: portfolioData, isError: notFound } = useQuery({
+    queryKey: ['portfolio', username],
+    queryFn: async () => (await axios.get(`${API}/portfolio/${username}`)).data,
+    enabled,
+    staleTime: 1000 * 60 * 5,
+    retry: (_count, err) => !axios.isAxiosError(err) || err.response?.status !== 404,
+  })
+  const projects = useMemo<PortfolioProject[]>(() => portfolioData?.projects ?? [], [portfolioData])
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null)
-  const [lightboxItems, setLightboxItems] = useState<{ photo: Photo; title: string }[]>([])
-  const containerRef = useRef<HTMLDivElement>(null)
+  const [lightboxItems, setLightboxItems] = useState<{ photo: PortfolioPhoto; title: string }[]>([])
+  const [scrollProgress, setScrollProgress] = useState(0)
+
+  const chapterIds = selectedProject?.chapters.map(c => c.id) ?? []
+  const activeChapterId = useActiveChapter(chapterIds)
 
   useEffect(() => {
     if ((location.state as { resetToList?: boolean } | null)?.resetToList) setSelectedProject(null)
-  }, [location])
+  }, [location.state])
 
   useEffect(() => {
     if (!isAuthenticated && username === '@setup') navigate('/', { replace: true })
   }, [isAuthenticated, username, navigate])
 
   useEffect(() => {
-    if (!username || username === '@setup') { setNotFound(false); return }
-    axios.get(`${API}/portfolio/${username}`)
-      .then(res => {
-        setProjects(res.data.projects)
-        const apiIsDark = res.data.theme === 'dark'
-        const saved = localStorage.getItem(`portfolio_theme_${username}`)
-        setDarkMode(saved !== null ? saved === 'dark' : apiIsDark)
-      })
-      .catch(err => { if (err.response?.status === 404) setNotFound(true) })
-  }, [username])
+    if (!portfolioData?.theme) return
+    const saved = localStorage.getItem(`portfolio_theme_${username}`)
+    setDarkMode(saved !== null ? saved === 'dark' : portfolioData.theme === 'dark')
+  }, [portfolioData, username])
 
-  const handleToggleDark = () => {
-    setDarkMode(v => {
-      const next = !v
-      if (username) localStorage.setItem(`portfolio_theme_${username}`, next ? 'dark' : 'light')
-      return next
-    })
+  // scroll progress
+  useEffect(() => {
+    if (!selectedProject) return
+    const handleScroll = () => {
+      const docH = document.documentElement.scrollHeight
+      const viewH = window.innerHeight
+      const progress = docH <= viewH ? 0 : Math.min(1, window.scrollY / (docH - viewH))
+      setScrollProgress(progress)
+    }
+    window.addEventListener('scroll', handleScroll, { passive: true })
+    return () => window.removeEventListener('scroll', handleScroll)
+  }, [selectedProject])
+
+  const scrollToChapter = (id: string) => {
+    const el = document.getElementById(`chapter-section-${id}`)
+    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' })
   }
 
   const getAllChapterItems = (project: PortfolioProject) => {
-    const items: { photo: Photo; title: string }[] = []
+    const items: { photo: PortfolioPhoto; title: string }[] = []
     project.chapters?.forEach((ch) => {
-      ch.items?.filter(i => i.item_type === 'PHOTO').forEach(i => items.push({ photo: i as Photo, title: ch.title }))
+      ch.items?.filter(i => i.item_type === 'PHOTO').forEach(i => items.push({ photo: i as PortfolioPhoto, title: ch.title }))
       ch.sub_chapters?.forEach(sub => {
-        sub.items?.filter(i => i.item_type === 'PHOTO').forEach(i => items.push({ photo: i as Photo, title: sub.title }))
+        sub.items?.filter(i => i.item_type === 'PHOTO').forEach(i => items.push({ photo: i as PortfolioPhoto, title: sub.title }))
       })
     })
     return items
   }
 
-  const openLightbox = (photo: Photo, items: { photo: Photo; title: string }[]) => {
+  const openLightbox = (photo: PortfolioPhoto, items: { photo: PortfolioPhoto; title: string }[]) => {
     const idx = items.findIndex(item => item.photo.id === photo.id)
     setLightboxItems(items)
     setLightboxIndex(idx !== -1 ? idx : 0)
   }
 
-  const bg       = darkMode ? 'bg-d-bg text-d-hair'  : 'bg-canvas text-ink'
-  const subText  = darkMode ? 'text-d-soft'          : 'text-muted'
+  const bg      = darkMode ? 'bg-d-bg text-d-hair'  : 'bg-canvas text-ink'
+  const subText = darkMode ? 'text-d-soft'           : 'text-muted'
   const microcopy = darkMode ? 'text-d-faint'        : 'text-faint'
-  const barBg    = darkMode
-    ? 'bg-d-bg/85 border-b border-d-line'
-    : 'bg-canvas/85 border-b border-hair/60'
 
   if (notFound) {
     return (
@@ -215,141 +117,182 @@ export default function MobilePublicPortfolio() {
 
   return (
     <div className={`min-h-screen ${bg}`}>
-      {/* Sticky top bar */}
-      <header
-        className={`sticky top-0 z-10 ${barBg} backdrop-blur-md`}
-        style={{ paddingTop: 'env(safe-area-inset-top)' }}
-      >
-        <div className="h-12 px-3 flex items-center justify-between">
-          {selectedProject ? (
-            <button
-              onClick={() => { setSelectedProject(null); window.scrollTo(0, 0) }}
-              className="min-w-11 min-h-11 flex items-center justify-center -ml-2 opacity-70"
-            >
-              <ChevronLeft size={20} strokeWidth={1.5} />
-            </button>
-          ) : (
-            <span className="w-11" />
-          )}
-          <button
-            onClick={handleToggleDark}
-            aria-label="다크 모드 전환"
-            className="min-w-11 min-h-11 flex items-center justify-center opacity-60"
-          >
-            {darkMode ? <Sun size={16} strokeWidth={1.5} /> : <Moon size={16} strokeWidth={1.5} />}
-          </button>
-        </div>
-      </header>
 
-      <div ref={containerRef} className="px-4">
+      {/* 진행 hairline */}
+      {selectedProject && (
+        <div className="fixed top-0 left-0 right-0 z-30 h-0.5 bg-transparent pointer-events-none">
+          <div
+            className="h-full bg-accent transition-[width] duration-200"
+            style={{ width: `${scrollProgress * 100}%` }}
+          />
+        </div>
+      )}
+
+      {/* floating back button (상세 화면) */}
+      {selectedProject && (
+        <button
+          onClick={() => { setSelectedProject(null); window.scrollTo(0, 0) }}
+          className={`fixed left-3 z-20 w-9 h-9 rounded-full border flex items-center justify-center
+                      ${darkMode
+                        ? 'bg-d-bg/85 border-d-line'
+                        : 'bg-canvas/85 border-hair/60'}
+                      backdrop-blur-md`}
+          style={{ top: 'calc(env(safe-area-inset-top) + 14px)' }}
+          aria-label="뒤로 가기"
+        >
+          <ChevronLeft size={16} strokeWidth={1.5} />
+        </button>
+      )}
+
+      {/* 우측 dot-rail (챕터 점프, 상세 화면) */}
+      {selectedProject && selectedProject.chapters.length > 1 && (
+        <nav
+          className={`fixed left-1/2 -translate-x-1/2 z-10 flex flex-row items-center gap-3 px-3 py-2
+                       rounded-full border backdrop-blur-md
+                       ${darkMode ? 'bg-d-bg/85 border-d-line' : 'bg-canvas/85 border-hair/60'}`}
+          style={{ bottom: 'calc(env(safe-area-inset-bottom) + 24px)' }}
+          aria-label="챕터 이동"
+        >
+          {selectedProject.chapters.map((ch, i) => (
+            <button
+              key={ch.id}
+              onClick={() => scrollToChapter(ch.id)}
+              className={`w-[22px] h-[22px] rounded-full flex items-center justify-center text-[11px] font-medium transition-colors
+                          ${activeChapterId === ch.id
+                            ? darkMode ? 'bg-d-hair text-d-bg' : 'bg-ink text-canvas'
+                            : darkMode ? 'text-d-soft' : 'text-muted'}`}
+              aria-label={`${ch.title} 챕터로 이동`}
+            >
+              {i + 1}
+            </button>
+          ))}
+        </nav>
+      )}
+
+      <div className="px-[22px]">
         {!selectedProject ? (
           // ── 프로젝트 목록 ──────────────────────────────────
           <>
-          <div className="pt-8 pb-6">
-            <MobilePortfolioBanner
-              username={username!}
-              projects={projects}
-              darkMode={darkMode}
-            />
-          </div>
-          <div className="flex flex-col gap-12 pb-8">
-            {projects.map(project => (
-              <article
-                key={project.id}
-                className="cursor-pointer group"
-                onClick={() => { setSelectedProject(project); window.scrollTo(0, 0) }}
-              >
-                <div className={`aspect-[4/5] overflow-hidden ${darkMode ? 'bg-d-surface' : 'bg-[oklch(0.92_0.012_75)]'}`}>
-                  {project.cover_image_url ? (
-                    <img
-                      src={cfUrl(project.cover_image_url, 'cover')}
-                      className="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-[1.02]"
-                      alt={project.title}
-                    />
-                  ) : (
-                    <CoverFallback title={project.title} dark={darkMode} />
+            <div style={{ paddingTop: 'calc(env(safe-area-inset-top) + 48px)' }} className="pb-6">
+              <p className={`t-eyebrow mb-3 ${microcopy}`}>
+                Portfolio
+                {projects.length > 0 && <span className="ml-2 opacity-70">· {projects.length} {projects.length === 1 ? 'project' : 'projects'}</span>}
+              </p>
+              <h1 className="font-serif font-normal leading-[1.05] tracking-[-0.02em]" style={{ fontSize: 'clamp(24px, 6vw, 32px)' }}>
+                @{username}
+              </h1>
+            </div>
+            <div className="flex flex-col gap-12 pb-16">
+              {projects.map(project => (
+                <article
+                  key={project.id}
+                  className="cursor-pointer group"
+                  onClick={() => { setSelectedProject(project); window.scrollTo(0, 0) }}
+                >
+                  <div className={`aspect-[4/5] overflow-hidden ${darkMode ? 'bg-d-surface' : 'bg-[oklch(0.92_0.012_75)]'}`}>
+                    {project.cover_image_url ? (
+                      <img
+                        src={cfUrl(project.cover_image_url, 'cover')}
+                        className="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-[1.02]"
+                        alt={project.title}
+                      />
+                    ) : (
+                      <CoverFallback title={project.title} dark={darkMode} />
+                    )}
+                  </div>
+                  <h3 className="mt-3 font-serif text-[18px] tracking-tight font-normal [word-break:keep-all]">
+                    {project.title}
+                  </h3>
+                  {project.location && (
+                    <p className={`t-loc mt-1.5 ${subText}`}>
+                      <MapPin size={10} strokeWidth={1.5} />{project.location}
+                    </p>
                   )}
-                </div>
-                <h3 className="mt-3 font-serif text-[18px] tracking-tight font-normal [word-break:keep-all]">
-                  {project.title}
-                </h3>
-                {project.location && (
-                  <p className={`t-loc mt-1.5 ${subText}`}>
-                    <MapPin size={10} strokeWidth={1.5} />{project.location}
-                  </p>
-                )}
-              </article>
-            ))}
-            {projects.length === 0 && (
-              <EmptyState heading={t('portfolio.noPublicProjects')} darkMode={darkMode} />
-            )}
-          </div>
+                </article>
+              ))}
+              {projects.length === 0 && (
+                <EmptyState heading={t('portfolio.noPublicProjects')} darkMode={darkMode} />
+              )}
+            </div>
           </>
         ) : (
-          // ── 프로젝트 상세 ──────────────────────────────────
-          <div className="pb-12 pt-8">
+          // ── 프로젝트 상세 — V2 Document Reader ────────────
+          <div className="pb-16">
             {/* 프로젝트 헤더 */}
-            <h1 className="font-serif text-[26px] leading-[1.1] font-normal tracking-tight mb-2 [word-break:keep-all]">
-              {selectedProject.title}
-            </h1>
-            {selectedProject.location && (
-              <p className={`t-loc mb-5 ${subText}`}>
-                <MapPin size={10} strokeWidth={1.5} />{selectedProject.location}
-              </p>
-            )}
-            {selectedProject.description && (
-              <p className={`font-serif text-[15px] leading-[1.65] italic mb-4 [word-break:keep-all] whitespace-pre-wrap ${subText}`}>
-                {selectedProject.description}
-              </p>
-            )}
-            {selectedProject.updated_at && (
-              <p className={`t-eyebrow mb-6 ${microcopy}`}>
-                {new Date(selectedProject.updated_at).toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' })}
-              </p>
-            )}
+            <div style={{ paddingTop: 'calc(env(safe-area-inset-top) + 90px)' }}>
+              <div className={`flex flex-wrap items-center gap-3 t-caption mb-4 ${subText}`}>
+                {selectedProject.location && (
+                  <span className="inline-flex items-center gap-1">
+                    <MapPin size={11} strokeWidth={1.5} />
+                    {selectedProject.location}
+                  </span>
+                )}
+                {selectedProject.location && <span className="w-[3px] h-[3px] rounded-full bg-faint dark:bg-d-faint" />}
+                <span>{selectedProject.chapters.length} chapters</span>
+              </div>
+              <h1 className="font-serif text-[38px] font-normal leading-[1.05] tracking-[-0.02em] [word-break:keep-all]">
+                {selectedProject.title}
+              </h1>
+              {selectedProject.description && (
+                <p className={`font-serif text-[17px] leading-[1.75] mt-7 [word-break:keep-all] whitespace-pre-wrap ${subText}`}>
+                  {selectedProject.description}
+                </p>
+              )}
+            </div>
 
             {/* 챕터 목록 */}
             {selectedProject.chapters.length > 0 ? (
-              <div>
+              <div className="mt-16">
                 {selectedProject.chapters.map((chapter, idx) => {
                   const allChapterItems = getAllChapterItems(selectedProject)
                   return (
-                    <div key={chapter.id} className={idx > 0 ? 'pt-24' : ''}>
-                      {/* 챕터 헤더 */}
-                      <div className="mb-5">
-                        <p className={`t-eyebrow mb-1.5 ${microcopy}`}>Chapter</p>
-                        <h2 className="font-serif text-[22px] tracking-tight font-normal [word-break:keep-all]">{chapter.title}</h2>
+                    <div
+                      key={chapter.id}
+                      id={`chapter-section-${chapter.id}`}
+                      className={idx > 0 ? 'pt-20' : ''}
+                    >
+                      {/* 챕터 헤더 — oversized number + hairline + serif title */}
+                      <header className="mb-8">
+                        <div className="flex items-baseline gap-3.5 mb-3.5">
+                          <span className={`font-serif text-[52px] font-light tracking-[-0.04em] leading-none ${darkMode ? 'text-d-soft' : 'text-accent'}`}>
+                            {String(idx + 1).padStart(2, '0')}
+                          </span>
+                          <div className={`flex-1 h-px ${darkMode ? 'bg-d-line' : 'bg-hair'}`} />
+                        </div>
+                        <h2 className="font-serif text-[28px] leading-[1.12] tracking-[-0.015em] font-normal [word-break:keep-all]">
+                          {chapter.title}
+                        </h2>
                         {chapter.description && (
-                          <p className={`text-sm font-serif mt-2 [word-break:keep-all] whitespace-pre-wrap leading-relaxed ${subText}`}>
+                          <p className={`font-serif text-[15px] italic leading-[1.7] mt-3 [word-break:keep-all] ${subText}`}>
                             {chapter.description}
                           </p>
                         )}
-                      </div>
+                      </header>
 
                       {/* 챕터 아이템 */}
-                      <SimpleMobileItems
+                      <MobilePortfolioChapterItems
                         items={chapter.items || []}
-                        darkMode={darkMode}
                         allLightboxItems={allChapterItems}
+                        darkMode={darkMode}
                         onLightbox={openLightbox}
                       />
 
                       {/* 서브챕터 */}
                       {chapter.sub_chapters?.map((sub) => (
-                        <div key={sub.id} className="mt-16">
-                          <div className="mb-4">
-                            <p className={`t-eyebrow mb-1.5 ${microcopy}`}>Section</p>
-                            <h3 className="font-serif text-[18px] tracking-tight font-medium [word-break:keep-all]">{sub.title}</h3>
+                        <div key={sub.id} className="mt-14">
+                          <div className="mb-5">
+                            <p className={`t-eyebrow mb-2 ${microcopy}`}>Section</p>
+                            <h3 className="font-serif text-[20px] tracking-tight font-normal [word-break:keep-all]">{sub.title}</h3>
                             {sub.description && (
-                              <p className={`text-xs font-serif mt-1.5 [word-break:keep-all] whitespace-pre-wrap leading-relaxed ${subText}`}>
+                              <p className={`text-sm font-serif mt-1.5 [word-break:keep-all] whitespace-pre-wrap leading-relaxed ${subText}`}>
                                 {sub.description}
                               </p>
                             )}
                           </div>
-                          <SimpleMobileItems
+                          <MobilePortfolioChapterItems
                             items={sub.items || []}
-                            darkMode={darkMode}
                             allLightboxItems={allChapterItems}
+                            darkMode={darkMode}
                             onLightbox={openLightbox}
                           />
                         </div>
@@ -365,26 +308,30 @@ export default function MobilePublicPortfolio() {
         )}
       </div>
 
-      {/* Lightbox */}
+      {/* Lightbox — filmstrip (Phase 4 mobile) */}
       {lightboxIndex !== null && lightboxItems[lightboxIndex] && (
         <div
           className="fixed inset-0 bg-[oklch(0.12_0.012_60/0.98)] z-50 flex flex-col"
           style={{ paddingTop: 'env(safe-area-inset-top)', paddingBottom: 'env(safe-area-inset-bottom)' }}
         >
-          <div className="flex items-center justify-between px-4 py-2 shrink-0">
+          {/* 상단: 닫기 + italic 캡션 */}
+          <div className="flex items-center justify-between px-4 shrink-0 h-11">
             <button
               aria-label="닫기"
               onClick={() => setLightboxIndex(null)}
               className="min-w-[44px] min-h-[44px] flex items-center justify-center"
             >
-              <X size={22} strokeWidth={1.5} className="text-d-faint" />
+              <X size={20} strokeWidth={1.5} className="text-d-faint" />
             </button>
-            <span className="t-numeral text-d-faint">{lightboxIndex + 1} / {lightboxItems.length}</span>
+            <span className="font-serif italic text-[13px] text-d-faint/70 text-center px-2 truncate flex-1">
+              {lightboxItems[lightboxIndex].photo.caption || lightboxItems[lightboxIndex].title}
+            </span>
             <div className="w-[44px]" />
           </div>
 
+          {/* 메인 이미지 (스와이프) */}
           <div
-            className="flex-1 flex items-center justify-center relative"
+            className="flex-1 flex items-center justify-center overflow-hidden"
             onTouchStart={e => { (e.currentTarget as any)._tx = e.touches[0].clientX }}
             onTouchEnd={e => {
               const startX = (e.currentTarget as any)._tx ?? 0
@@ -394,38 +341,38 @@ export default function MobilePublicPortfolio() {
             }}
           >
             <img
-              src={lightboxItems[lightboxIndex].photo.image_url}
+              src={cfUrl(lightboxItems[lightboxIndex].photo.image_url ?? '', 'public')}
               alt={lightboxItems[lightboxIndex].photo.caption || ''}
-              style={{ width: '100%', height: '100dvh', objectFit: 'contain' }}
+              style={{ width: '100%', maxHeight: '100%', objectFit: 'contain' }}
               draggable={false}
             />
-            {lightboxIndex > 0 && (
-              <button
-                aria-label="이전 사진"
-                onClick={() => setLightboxIndex(v => v! - 1)}
-                className="absolute left-2 min-w-[44px] min-h-[44px] flex items-center justify-center bg-d-line/50"
-              >
-                <ChevronLeft size={22} strokeWidth={1.5} className="text-d-faint" />
-              </button>
-            )}
-            {lightboxIndex < lightboxItems.length - 1 && (
-              <button
-                aria-label="다음 사진"
-                onClick={() => setLightboxIndex(v => v! + 1)}
-                className="absolute right-2 min-w-[44px] min-h-[44px] flex items-center justify-center bg-d-line/50"
-              >
-                <ChevronRight size={22} strokeWidth={1.5} className="text-d-faint" />
-              </button>
-            )}
           </div>
 
-          {lightboxItems[lightboxIndex].photo.caption && (
-            <div className="shrink-0 px-4 py-2 text-center">
-              <span className="t-caption text-d-faint">
-                {lightboxItems[lightboxIndex].photo.caption}
-              </span>
+          {/* 하단 filmstrip */}
+          <div className="shrink-0 h-[72px] flex items-center">
+            <div className="overflow-x-auto flex gap-1 px-3 w-full snap-x snap-mandatory scroll-px-3">
+              {lightboxItems.map((item, i) => (
+                <button
+                  key={i}
+                  onClick={() => setLightboxIndex(i)}
+                  className="shrink-0 snap-start"
+                  style={{
+                    width: 56, height: 56,
+                    opacity: i === lightboxIndex ? 1 : 0.55,
+                    outline: i === lightboxIndex ? '2px solid #8C4A1F' : 'none',
+                    outlineOffset: 1,
+                    overflow: 'hidden',
+                  }}
+                >
+                  <img
+                    src={cfUrl(item.photo.image_url ?? '', 'grid')}
+                    alt=""
+                    className="w-full h-full object-cover block"
+                  />
+                </button>
+              ))}
             </div>
-          )}
+          </div>
         </div>
       )}
     </div>

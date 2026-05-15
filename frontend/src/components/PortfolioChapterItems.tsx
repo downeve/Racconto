@@ -1,11 +1,14 @@
-import { useState } from 'react'
 import type { CSSProperties } from 'react'
+import { useState } from 'react'
 import MarkdownRenderer from './MarkdownRenderer'
 import { cfUrl } from '../utils/cfImage'
 import PhotoReveal from './PhotoReveal'
 
 export const PORTFOLIO_WIDTH = 896  // max-w-4xl. 폭 변경 시 이 값과 className 함께 수정
-export const PORTFOLIO_GAP = 6      // px — 사진 사이 간격
+export const PORTFOLIO_GAP = {
+  grid: 14,  // 3열 — 셀폭의 ~5%
+  wide: 20,  // 2열 — 셀폭의 ~5%, SIDE(24~28)와도 일치
+} as const
 
 // ── 공통 타입 ──────────────────────────────────────────────
 
@@ -34,7 +37,6 @@ interface Props {
   allLightboxItems?: { photo: PortfolioPhoto; title: string }[]
   darkMode: boolean
   containerWidth?: number          // 기본값: PORTFOLIO_WIDTH - 48
-  gap?: number                     // 기본값: PORTFOLIO_GAP
   onLightbox?: (photo: PortfolioPhoto, items: { photo: PortfolioPhoto; title: string }[]) => void
 }
 
@@ -43,13 +45,10 @@ export default function PortfolioChapterItems({
   allLightboxItems = [],
   darkMode,
   containerWidth,
-  gap,
   onLightbox,
 }: Props) {
-  const [imageRatios, setImageRatios] = useState<Record<string, number>>({})
-
   const effectiveWidth = containerWidth ?? PORTFOLIO_WIDTH - 48
-  const effectiveGap = gap ?? PORTFOLIO_GAP
+  const [imageRatios, setImageRatios] = useState<Record<string, number>>({})
 
   const handleImageLoad = (url: string, e: React.SyntheticEvent<HTMLImageElement>) => {
     const img = e.currentTarget
@@ -64,15 +63,16 @@ export default function PortfolioChapterItems({
   // 한 행 렌더 — 비율 합으로 행 높이 계산
   const renderRow = (
     rowPhotos: PortfolioChapterItem[],
+    gap: number,
     rowKey: string
   ): React.ReactNode => {
     const ratios = rowPhotos.map(p => imageRatios[p.image_url || ''] ?? 1.5)
-    const totalGap = effectiveGap * (rowPhotos.length - 1)
+    const totalGap = gap * (rowPhotos.length - 1)
     const sumRatios = ratios.reduce((a, r) => a + r, 0)
     const rowHeight = (effectiveWidth - totalGap) / sumRatios
 
     return (
-      <div key={rowKey} style={{ display: 'flex', gap: `${effectiveGap}px`, marginBottom: `${effectiveGap}px` }}>
+      <div key={rowKey} style={{ display: 'flex', gap: `${gap}px`, marginBottom: `${gap}px` }}>
         {rowPhotos.map((photo, j) => (
           <PhotoReveal
             key={photo.id}
@@ -153,6 +153,9 @@ export default function PortfolioChapterItems({
     const group = blockMap.get(bid)
     if (!group) return
 
+    // Side block 의미:
+    // - side-left  : 텍스트 왼쪽 / 사진 오른쪽  (모바일: 텍스트 위, 사진 아래)
+    // - side-right : 사진 왼쪽 / 텍스트 오른쪽  (모바일: 사진 위, 텍스트 아래)
     // Side-by-side 블록
     if (group.type === 'SIDE') {
       const sidePhotos = group.photos
@@ -252,6 +255,7 @@ export default function PortfolioChapterItems({
       )
     } else {
       const cols = layout === 'wide' ? 2 : 3
+      const gap  = layout === 'wide' ? PORTFOLIO_GAP.wide : PORTFOLIO_GAP.grid
       const rows: PortfolioChapterItem[][] = []
       for (let k = 0; k < photos.length; k += cols) {
         rows.push(photos.slice(k, k + cols))
@@ -259,7 +263,7 @@ export default function PortfolioChapterItems({
       result.push(
         <div key={`block-${bid}`} className="mb-space-xs">
           {rows.map((rowPhotos, rowIdx) =>
-            renderRow(rowPhotos, `row-${bid}-${rowIdx}`)
+            renderRow(rowPhotos, gap, `row-${bid}-${rowIdx}`)
           )}
         </div>
       )

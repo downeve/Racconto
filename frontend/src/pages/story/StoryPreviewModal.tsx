@@ -46,7 +46,6 @@ export default function StoryPreviewModal({
         const headerBg = dm ? 'bg-ink/90 border-hair/10' : 'bg-canvas/90 border-faint'
         const subText = dm ? 'text-faint' : 'text-muted'
         const divider = dm ? 'bg-muted' : 'bg-faint'
-        const accent = dm ? 'bg-card/30' : 'bg-faint'
         const closeColor = dm ? 'text-faint hover:text-hair' : 'text-faint hover:text-ink-2'
         const toggleClass = dm
           ? 'border-muted text-faint hover:text-hair'
@@ -85,23 +84,28 @@ export default function StoryPreviewModal({
                     const subChapters = chapters.filter(c => c.parent_id === chapter.id)
                     const items = getVisibleChapterItems(chapter.id)
                     return (
-                      <div key={chapter.id} className="pt-space-lg">
-                        {idx > 0 && <div className={`h-px mb-space-md ${divider}`} />}
+                      <div key={chapter.id} className={idx > 0 ? 'pt-36' : 'pt-space-lg'}>
 
-                        {/* 챕터 헤더 */}
-                        <div className="mb-space-md">
-                          <div className="mb-2">
-                            <h3 className="text-h2 font-bold font-serif mb-4 tracking-tight">
-                              {chapter.title}
-                            </h3>
+                        {/* 챕터 헤더 — oversized numeral + capped hairline */}
+                        <header className="mb-10">
+                          <div className="flex items-baseline gap-5">
+                            <span
+                              className={`font-serif font-light leading-none tracking-[-0.04em] [font-variant-numeric:oldstyle-nums] ${dm ? 'text-d-soft' : 'text-accent'}`}
+                              style={{ fontSize: 'clamp(72px, 8vw, 112px)' }}
+                            >
+                              {String(idx + 1).padStart(2, '0')}
+                            </span>
+                            <div className={`flex-1 max-w-[480px] h-[0.5px] ${dm ? 'bg-d-line' : 'bg-hair'}`} />
                           </div>
+                          <h3 className="font-serif text-[32px] leading-[1.1] tracking-[-0.015em] font-normal mt-6">
+                            {chapter.title}
+                          </h3>
                           {chapter.description && (
-                            <p className={`text-body font-serif max-w-xl [word-break:keep-all] whitespace-pre-wrap mt-2 ${subText}`}>
+                            <p className={`mt-[18px] font-serif text-[16px] leading-[1.65] [word-break:keep-all] whitespace-pre-wrap ${subText}`}>
                               {chapter.description}
                             </p>
                           )}
-                          <div className={`mt-6 h-px w-12 ${accent}`} />
-                        </div>
+                        </header>
 
                         <PortfolioChapterItems
                           items={items as PortfolioChapterItem[]}
@@ -109,15 +113,16 @@ export default function StoryPreviewModal({
                         />
 
                         {/* 서브챕터 */}
-                        {subChapters.map((sub) => (
+                        {subChapters.map((sub, subIdx) => (
                           <div key={sub.id} className="mt-space-md">
                             <div className={`h-px mb-10 w-1/3 ${divider}`} />
                             <div className="mb-8">
-                              <div className="mb-2">
-                                <h4 className="text-h3 font-serif font-semibold">
-                                  {sub.title}
-                                </h4>
-                              </div>
+                              <p className={`t-eyebrow mb-2 ${dm ? 'text-d-faint' : 'text-faint'}`}>
+                                Section {String(idx + 1).padStart(2, '0')}.{String(subIdx + 1).padStart(2, '0')}.
+                              </p>
+                              <h4 className="font-serif text-[20px] tracking-tight font-normal">
+                                {sub.title}
+                              </h4>
                               {sub.description && (
                                 <p className={`text-body font-serif mt-2 max-w-xl [word-break:keep-all] whitespace-pre-wrap ${subText}`}>
                                   {sub.description}
