@@ -1,6 +1,9 @@
+import logging
 import sib_api_v3_sdk
 from sib_api_v3_sdk.rest import ApiException
 import os
+
+logger = logging.getLogger(__name__)
 
 BREVO_API_KEY = os.getenv("BREVO_API_KEY")
 FROM_EMAIL = "noreply@racconto.app"
@@ -154,7 +157,7 @@ def send_password_reset_email(to_email: str, reset_token: str, lang: str = 'ko')
         api_instance.send_transac_email(send_smtp_email)
         return True
     except ApiException as e:
-        print(f"비밀번호 재설정 이메일 발송 실패: {e}")
+        logger.error("비밀번호 재설정 이메일 발송 실패: %s", e)
         return False
 
 
@@ -218,7 +221,7 @@ def send_verification_email(to_email: str, verify_token: str, lang: str = 'ko'):
         api_instance.send_transac_email(send_smtp_email)
         return True
     except ApiException as e:
-        print(f"이메일 발송 실패: {e}")
+        logger.error("이메일 발송 실패: %s", e)
         return False
 
 
@@ -313,7 +316,7 @@ def send_welcome_email(to_email: str, lang: str = 'ko'):
         api_instance.send_transac_email(send_smtp_email)
         return True
     except ApiException as e:
-        print(f"웰컴 이메일 발송 실패: {e}")
+        logger.error("웰컴 이메일 발송 실패: %s", e)
         return False
 
 
@@ -408,7 +411,7 @@ def send_social_welcome_email(to_email: str, lang: str = 'ko'):
         api_instance.send_transac_email(send_smtp_email)
         return True
     except ApiException as e:
-        print(f"소셜 웰컴 이메일 발송 실패: {e}")
+        logger.error("소셜 웰컴 이메일 발송 실패: %s", e)
         return False
 
 
@@ -488,7 +491,7 @@ def send_farewell_email(to_email: str, lang: str = 'ko'):
         api_instance.send_transac_email(send_smtp_email)
         return True
     except ApiException as e:
-        print(f"탈퇴 안내 이메일 발송 실패: {e}")
+        logger.error("탈퇴 안내 이메일 발송 실패: %s", e)
         return False
 
 
@@ -533,4 +536,4 @@ def send_notice_email(to_email: str, subject: str, content: str):
         # 2. 여기서 중복되던 인스턴스 생성 코드를 제거하고 전역 api_instance를 그대로 사용합니다.
         api_instance.send_transac_email(send_smtp_email)
     except Exception as e:
-        print(f"공지 이메일 발송 실패 ({to_email}): {e}")
+        logger.error("공지 이메일 발송 실패 (%s): %s", to_email, e)

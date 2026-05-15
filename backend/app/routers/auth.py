@@ -4,12 +4,13 @@ from app.auth import verify_password, create_access_token, get_password_hash, ge
 from app.database import get_db
 from sqlalchemy.orm import Session
 from app import models
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel, EmailStr, Field
 import uuid
 from app.email import send_verification_email, send_password_reset_email, send_farewell_email, send_welcome_email, send_social_welcome_email
 from datetime import datetime, timedelta
 from typing import Optional
 from app.routers.photos import delete_cf_files_parallel
+import logging
 import secrets
 import httpx
 import ssl
@@ -18,6 +19,8 @@ import jwt as pyjwt
 from jwt import PyJWKClient
 import time
 import os
+
+logger = logging.getLogger(__name__)
 
 _ssl_ctx = ssl.create_default_context(cafile=certifi.where())
 
@@ -36,7 +39,7 @@ def _record_activity(user_id: str, ip: str) -> None:
             db.commit()
     except Exception as e:
         db.rollback()
-        print(f"[activity] record error: {e}")
+        logger.warning("[activity] record error: %s", e)
     finally:
         db.close()
 _google_jwks_client = PyJWKClient("https://www.googleapis.com/oauth2/v3/certs", cache_keys=True, ssl_context=_ssl_ctx)
@@ -71,12 +74,12 @@ class Token(BaseModel):
 
 class UserRegister(BaseModel):
     email: EmailStr
-    password: str
+    password: str = Field(min_length=8, max_length=128)
     lang: Optional[str] = 'ko'
 
 class PasswordChange(BaseModel):
     current_password: str
-    new_password: str
+    new_password: str = Field(min_length=8, max_length=128)
 
 class ResendVerification(BaseModel):
     email: str
@@ -98,7 +101,11 @@ class ResetPasswordRequest(BaseModel):
 
 
 @router.post("/resend-verification")
-def resend_verification(body: ResendVerification, db: Session = Depends(get_db)):
+def resend_verification(
+    body: ResendVerification,
+    background_tasks: BackgroundTasks,
+    db: Session = Depends(get_db),
+):
     user = db.query(models.User).filter(models.User.email == body.email).first()
     if not user:
         # 보안상 존재 여부 노출 안 함
@@ -111,18 +118,22 @@ def resend_verification(body: ResendVerification, db: Session = Depends(get_db))
     user.verify_token = secrets.token_urlsafe(32)
     user.verify_token_expires_at = datetime.utcnow() + timedelta(hours=24)
     db.commit()
-    send_verification_email(body.email, user.verify_token)
+    background_tasks.add_task(send_verification_email, body.email, user.verify_token)
     return {"message": "VERIFICATION_SENT"}
 
 
 @router.post("/forgot-password")
-def forgot_password(body: ForgotPasswordRequest, db: Session = Depends(get_db)):
+def forgot_password(
+    body: ForgotPasswordRequest,
+    background_tasks: BackgroundTasks,
+    db: Session = Depends(get_db),
+):
     user = db.query(models.User).filter(models.User.email == body.email).first()
     if user and user.is_verified:
         user.reset_token = secrets.token_urlsafe(32)
         user.reset_token_expires_at = datetime.utcnow() + timedelta(hours=1)
         db.commit()
-        send_password_reset_email(body.email, user.reset_token, lang=body.lang)
+        background_tasks.add_task(send_password_reset_email, body.email, user.reset_token, body.lang)
     return {"message": "RESET_EMAIL_SENT"}
 
 
@@ -143,16 +154,20 @@ def reset_password(body: ResetPasswordRequest, db: Session = Depends(get_db)):
 
 
 @router.post("/register", status_code=201)
-def register(body: UserRegister, db: Session = Depends(get_db)):
+def register(
+    body: UserRegister,
+    background_tasks: BackgroundTasks,
+    db: Session = Depends(get_db),
+):
     existing = db.query(models.User).filter(models.User.email == body.email).first()
     if existing:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="EMAIL_ALREADY_EXISTS"
         )
-    
+
     verify_token = secrets.token_urlsafe(32)
-    
+
     user = models.User(
         id=str(uuid.uuid4()),
         email=body.email,
@@ -166,7 +181,7 @@ def register(body: UserRegister, db: Session = Depends(get_db)):
     db.add(user)
     db.commit()
 
-    send_verification_email(body.email, verify_token, lang=body.lang)
+    background_tasks.add_task(send_verification_email, body.email, verify_token, body.lang)
 
     return {"message": "REGISTER_SUCCESS"}
 

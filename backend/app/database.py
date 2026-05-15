@@ -9,10 +9,16 @@ load_dotenv()
 
 DATABASE_URL = os.getenv("DATABASE_URL")
 
+# DB 커넥션 풀 크기 — 환경변수로 조정 (P-L1).
+# PG 기본 max_connections=100. uvicorn worker × (pool_size + max_overflow) 가 이를 넘지 않도록.
+# 단일 워커 기준 보수적 기본값 사용. 멀티워커 스케일 시 줄이거나 PG max_connections 늘릴 것.
+_DB_POOL_SIZE = int(os.getenv("DB_POOL_SIZE", "10"))
+_DB_MAX_OVERFLOW = int(os.getenv("DB_MAX_OVERFLOW", "10"))
+
 engine = create_engine(
     DATABASE_URL,
-    pool_size=10,       # 기본 커넥션 수 (기본값 5)
-    max_overflow=20,    # 초과 허용 커넥션 수 (기본값 10) → 최대 30개 동시 처리
+    pool_size=_DB_POOL_SIZE,
+    max_overflow=_DB_MAX_OVERFLOW,
     pool_timeout=30,    # 커넥션 대기 최대 시간(초)
     pool_recycle=1800,  # 30분마다 커넥션 재생성 (DB 세션 만료 방지)
 )

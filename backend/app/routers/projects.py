@@ -9,9 +9,12 @@ from datetime import datetime
 from app.auth import get_current_user, get_current_user_id
 from app.routers.photos import delete_cf_files_parallel
 import asyncio
+import logging
 import uuid
 import os
 import re
+
+logger = logging.getLogger(__name__)
 
 
 def slugify(text: str) -> str:
@@ -308,7 +311,7 @@ def delete_photo_files_in_background(photo_urls: list[str]):
             if os.path.exists(full_path):
                 os.remove(full_path)
         except Exception as e:
-            print(f"로컬 파일 삭제 실패: {e}")
+            logger.warning("로컬 파일 삭제 실패: %s", e)
 
 # DELETE /projects/{project_id}/permanent
 @router.delete("/{project_id}/permanent")

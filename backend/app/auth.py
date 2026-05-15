@@ -1,7 +1,10 @@
 from datetime import datetime, timedelta
 from typing import Optional
+import logging
 import jwt
 import bcrypt
+
+logger = logging.getLogger(__name__)
 from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
 from sqlalchemy.orm import Session
@@ -28,9 +31,9 @@ if _APPLE_TOKEN_KEY:
         from cryptography.fernet import Fernet
         _apple_fernet = Fernet(_APPLE_TOKEN_KEY.encode())
     except Exception as e:
-        print(f"[WARN] APPLE_TOKEN_KEY 로드 실패 — 평문 fallback: {e}")
+        logger.warning("APPLE_TOKEN_KEY 로드 실패 — 평문 fallback: %s", e)
 else:
-    print("[WARN] APPLE_TOKEN_KEY 미설정 — apple_refresh_token 평문 저장 (프로덕션 권장 X)")
+    logger.warning("APPLE_TOKEN_KEY 미설정 — apple_refresh_token 평문 저장 (프로덕션 권장 X)")
 
 _FERNET_PREFIX = "fernet:"
 

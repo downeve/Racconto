@@ -8,6 +8,7 @@ from datetime import datetime
 import uuid
 import os
 import asyncio
+import logging
 import httpx
 from PIL import Image as PilImage
 from app.auth import get_current_user
@@ -15,6 +16,8 @@ import io
 
 from PIL import Image
 from PIL.ExifTags import TAGS, GPSTAGS
+
+logger = logging.getLogger(__name__)
 
 CF_ACCOUNT_ID = os.getenv("CF_ACCOUNT_ID")
 CF_API_TOKEN = os.getenv("CF_API_TOKEN")
@@ -133,7 +136,7 @@ def extract_exif(file_path: str) -> dict:
                 exif_data['gps_lng'] = str(lng)
 
     except Exception as e:
-        print(f"EXIF 추출 오류: {e}")
+        logger.warning("EXIF 추출 오류: %s", e)
 
     return exif_data
 
@@ -175,7 +178,7 @@ async def _cf_delete_one(client: httpx.AsyncClient, image_url: str):
             headers={"Authorization": f"Bearer {CF_API_TOKEN}"},
         )
     except Exception as e:
-        print(f"CF 이미지 삭제 실패 (무시): {e}")
+        logger.warning("CF 이미지 삭제 실패 (무시): %s", e)
 
 
 async def delete_from_cloudflare(image_url: str):
@@ -583,7 +586,7 @@ def bulk_permanent_delete_photos(
                 try:
                     os.remove(safe_path)
                 except Exception as e:
-                    print(f"로컬 파일 삭제 실패 (무시): {e}")
+                    logger.warning("로컬 파일 삭제 실패 (무시): %s", e)
 
     # 7. DB에서 먼저 삭제 (빠른 응답)
     db.query(models.Photo).filter(
@@ -846,7 +849,7 @@ def permanent_delete_photo(
             try:
                 os.remove(safe_path)
             except Exception as e:
-                print(f"로컬 파일 삭제 실패 (무시): {e}")
+                logger.warning("로컬 파일 삭제 실패 (무시): %s", e)
 
     # 3. 사진 데이터 삭제 및 커밋
     db.delete(photo)
@@ -898,8 +901,9 @@ def rotate_photo(
                 resp = httpx.get(original_url, timeout=30, follow_redirects=True)
                 resp.raise_for_status()
                 image_bytes = resp.content
-            except Exception as e:
-                raise HTTPException(status_code=502, detail=f"이미지 다운로드 실패: {e}")
+            except Exception:
+                logger.exception("이미지 다운로드 실패 (rotate_photo): %s", original_url)
+                raise HTTPException(status_code=502, detail="IMAGE_DOWNLOAD_FAILED")
 
             filename = f"{photo_id}_rotated.jpg"
             new_image_url = rotate_and_upload_to_cloudflare(image_bytes, filename, new_rotation)
@@ -925,10 +929,11 @@ def rotate_photo(
         photo.is_rotating = False
         db.commit()
         raise
-    except Exception as e:
+    except Exception:
         photo.is_rotating = False
         db.commit()
-        raise HTTPException(status_code=500, detail=f"회전 처리 실패: {e}")
+        logger.exception("회전 처리 실패: photo_id=%s", photo_id)
+        raise HTTPException(status_code=500, detail="ROTATE_FAILED")
 
 
 @router.patch("/{photo_id}/local-missing")

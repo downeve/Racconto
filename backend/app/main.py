@@ -13,6 +13,8 @@ import asyncio
 import logging
 from app.routers.photos import delete_cf_files_parallel, _safe_local_upload_path
 
+logger = logging.getLogger(__name__)
+
 models.Base.metadata.create_all(bind=engine)
 
 # 스키마 마이그레이션 — 버전이 올라간 경우에만 실행
@@ -77,7 +79,7 @@ def _run_schema_migrations():
         conn.execute(text("DELETE FROM _schema_version"))
         conn.execute(text(f"INSERT INTO _schema_version (version) VALUES ({SCHEMA_VERSION})"))
         conn.commit()
-        print(f"스키마 마이그레이션 완료: version {SCHEMA_VERSION}")
+        logger.info("스키마 마이그레이션 완료: version %d", SCHEMA_VERSION)
 
 _run_schema_migrations()
 
@@ -167,12 +169,12 @@ def auto_delete_trash():
                 if os.path.exists(path):
                     os.remove(path)
             except Exception as e:
-                print(f"로컬 파일 삭제 오류: {e}")
+                logger.warning("로컬 파일 삭제 오류: %s", e)
 
         for project in old_projects:
             db.delete(project)
         db.commit()
-        print(f"자동 삭제: {len(old_projects)}개 프로젝트 영구 삭제됨")
+        logger.info("자동 삭제: %d개 프로젝트 영구 삭제됨", len(old_projects))
     finally:
         db.close()
 

@@ -1,4 +1,5 @@
 import httpx
+import logging
 import requests
 from concurrent.futures import ThreadPoolExecutor
 from fastapi import APIRouter, Depends, HTTPException, BackgroundTasks, Response
@@ -13,6 +14,9 @@ from app.routers.photos import delete_from_cloudflare, delete_cf_files_parallel
 from app.email import send_notice_email
 from datetime import datetime, timedelta
 import os
+
+logger = logging.getLogger(__name__)
+security_logger = logging.getLogger("racconto.security")
 
 router = APIRouter(prefix="/racconto-admin", tags=["admin"])
 
@@ -34,7 +38,7 @@ if not ADMIN_WHITELIST:
             "ADMIN_EMAILS 환경변수가 설정되지 않았습니다. "
             "프로덕션에서는 어드민 화이트리스트가 필수입니다."
         )
-    print("[WARN] ADMIN_EMAILS 미설정 — 개발 환경. 프로덕션 배포 전 반드시 설정하세요.")
+    logger.warning("ADMIN_EMAILS 미설정 — 개발 환경. 프로덕션 배포 전 반드시 설정하세요.")
 
 class OrphanScanResult(BaseModel):
     orphan_ids: List[str]
@@ -52,7 +56,7 @@ def _delete_cf_by_id(image_id: str):
             headers={"Authorization": f"Bearer {CF_TOKEN}"},
         )
     except Exception as e:
-        print(f"CF orphan 삭제 실패 (무시): {e}")
+        logger.warning("CF orphan 삭제 실패 (무시): %s", e)
 
 def _delete_cf_ids_parallel(image_ids: List[str]):
     with ThreadPoolExecutor(max_workers=10) as executor:
@@ -82,26 +86,22 @@ class EmailTemplateUpdate(BaseModel):
 
 def require_admin(current_user: models.User = Depends(get_current_user)):
     if not current_user.is_admin:
-        print(
-            f"[SECURITY] Unauthorized admin access attempt | "
-            f"user_id={current_user.id} | "
-            f"email={current_user.email} | "
-            f"at={datetime.utcnow().isoformat()}"
+        security_logger.warning(
+            "Unauthorized admin access attempt user_id=%s email=%s",
+            current_user.id, current_user.email,
         )
         raise HTTPException(status_code=403, detail="FORBIDDEN")
     # 화이트리스트가 비어 있고 프로덕션이면 위에서 이미 startup이 실패했으므로
     # 여기까지 도달하면 dev 환경. 그래도 fail-closed로 강제하려면 아래 조건을 강화 가능.
     if not ADMIN_WHITELIST:
-        print(
-            f"[SECURITY] Admin access without whitelist (dev mode) | "
-            f"user_id={current_user.id} | email={current_user.email}"
+        security_logger.warning(
+            "Admin access without whitelist (dev mode) user_id=%s email=%s",
+            current_user.id, current_user.email,
         )
     elif current_user.email not in ADMIN_WHITELIST:
-        print(
-            f"[SECURITY] Admin whitelist rejected | "
-            f"user_id={current_user.id} | "
-            f"email={current_user.email} | "
-            f"at={datetime.utcnow().isoformat()}"
+        security_logger.warning(
+            "Admin whitelist rejected user_id=%s email=%s",
+            current_user.id, current_user.email,
         )
         raise HTTPException(status_code=403, detail="FORBIDDEN")
     return current_user
@@ -135,7 +135,7 @@ def _resolve_ip_countries(db, unresolved: list) -> None:
                     if cc and cc != "":
                         ip_country_map[item["query"]] = cc
         except Exception as e:
-            print(f"[ip-api] resolve error: {e}")
+            logger.warning("[ip-api] resolve error: %s", e)
 
     for a in unresolved:
         if a.ip_address in ip_country_map:
@@ -400,9 +400,9 @@ async def get_external_stats(current_user: models.User = Depends(require_admin))
                             if net_list:
                                 stats["linode"]["net_out"] = round(net_list[-1][1] / 1024 / 1024, 2)
 
-        except Exception as e:
-            print(f"Stats Error: {e}")
-            raise HTTPException(status_code=500, detail="외부 API 정보 조회 중 오류가 발생했습니다.")
+        except Exception:
+            logger.exception("Stats Error")
+            raise HTTPException(status_code=500, detail="STATS_FETCH_FAILED")
 
     return stats
 
