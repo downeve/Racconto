@@ -110,7 +110,7 @@ export default function MobileLandingPage() {
       <section ref={featuresRef} className="bg-edit-paper px-6 py-12">
         <div className="text-center mb-10">
           <p className="t-eyebrow text-edit-muted mb-2">{t('landing.featuresEyebrow')}</p>
-          <h2 className="font-serif text-h2 text-edit-ink font-normal tracking-tight whitespace-pre-line break-keep">
+          <h2 className="font-serif text-h2 text-edit-ink font-normal tracking-tight whitespace-pre-line">
             {t('landing.featuresTitle')}
           </h2>
         </div>
