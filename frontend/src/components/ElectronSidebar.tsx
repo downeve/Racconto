@@ -264,7 +264,7 @@ export default function ElectronSidebar({ activeTab, onTabChange, showTabs, widt
                 </button>
                 <div className="absolute right-1 top-1/2 -translate-y-1/2 hidden group-hover/proj:flex items-center gap-0.5">
                   <button
-                    onClick={e => { e.stopPropagation(); navigate(`/projects/${project.slug ?? project.id}/edit`, { state: { from: location.pathname } }) }}
+                    onClick={e => { e.stopPropagation(); navigate(`/projects/${project.slug ?? project.id}/edit`, { state: { from: `/projects/${project.slug ?? project.id}` } }) }}
                     className="p-1 rounded-[1px] text-edit-faint hover:text-edit-ink hover:bg-edit-paper-2 transition-colors"
                     title={t('common.edit')}
                   >
