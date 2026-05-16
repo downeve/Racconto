@@ -7,7 +7,7 @@ import { Wordmark } from '../components/Wordmark'
 
 export default function LandingPage() {
   const { t, i18n } = useTranslation()
-  const lang = i18n.language.startsWith('ko') ? 'ko' : 'en'
+  const lang = i18n.language.startsWith('ko') ? 'ko' : i18n.language.startsWith('ja') ? 'ja' : 'en'
   const ss = (name: string, ext: string = 'webp') => `./screenshots/${name}_${lang}.${ext}`
   const featuresRef = useRef<HTMLDivElement>(null)
 
