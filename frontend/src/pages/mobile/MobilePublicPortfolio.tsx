@@ -7,6 +7,7 @@ import { useAuth } from '../../context/AuthContext'
 import { MapPin, X, ChevronLeft, Link2, Check, Share2 } from 'lucide-react'
 import CoverFallback from '../../components/CoverFallback'
 import EmptyState from '../../components/EmptyState'
+import PublicNavbar from '../../components/PublicNavbar'
 import MobilePortfolioChapterItems from '../../components/mobile/MobilePortfolioChapterItems'
 import { cfUrl } from '../../utils/cfImage'
 import { useActiveChapter } from '../../hooks/useActiveChapter'
@@ -84,6 +85,14 @@ export default function MobilePublicPortfolio() {
     setDarkMode(saved !== null ? saved === 'dark' : portfolioData.theme === 'dark')
   }, [portfolioData, username])
 
+  const handleToggleDark = () => {
+    setDarkMode(prev => {
+      const next = !prev
+      if (username) localStorage.setItem(`portfolio_theme_${username}`, next ? 'dark' : 'light')
+      return next
+    })
+  }
+
   // scroll progress + dot-rail scroll 감지
   useEffect(() => {
     if (!selectedProject) return
@@ -142,6 +151,16 @@ export default function MobilePublicPortfolio() {
 
   return (
     <div className={`min-h-screen ${bg}`}>
+
+      {/* Navbar */}
+      {!isAuthenticated && (
+        <PublicNavbar
+          username={username}
+          darkMode={darkMode}
+          portfolio
+          onToggleDark={handleToggleDark}
+        />
+      )}
 
       {/* 진행 hairline */}
       {selectedProject && (
@@ -204,7 +223,7 @@ export default function MobilePublicPortfolio() {
         {!selectedProject ? (
           // ── 프로젝트 목록 ──────────────────────────────────
           <>
-            <div style={{ paddingTop: 'calc(env(safe-area-inset-top) + 48px)' }} className="pb-6">
+            <div style={{ paddingTop: 'calc(env(safe-area-inset-top) + 56px)' }} className="pb-6">
               <p className={`t-eyebrow mb-3 ${microcopy}`}>
                 Portfolio
                 {projects.length > 0 && <span className="ml-2 opacity-70">· {projects.length} {projects.length === 1 ? 'project' : 'projects'}</span>}
