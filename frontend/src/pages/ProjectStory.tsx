@@ -543,17 +543,18 @@ function ProjectStory({
       setChapterPhotos(prev => {
         const all = prev[chapterId] || []
         const sourceOrderNum = all.find(i => i.id === itemId)?.order_num ?? 0
-        const usedOrderNums = new Set(all.map(i => i.order_num))
-        let newOrderNum = sourceOrderNum + 1
-        while (usedOrderNums.has(newOrderNum)) newOrderNum++
+        // source 바로 뒤(order_num + 1)에 자리를 만들기 위해 후속 아이템 +1 시프트.
+        // (이전엔 빈 order_num까지 +1 반복 → 후속 블록이 빽빽하면 맨 끝으로 밀려남)
+        const targetOrderNum = sourceOrderNum + 1
         const sourceRemaining = all.filter(i =>
           i.block_id === sourceBlockId && i.item_type === 'PHOTO' && i.id !== itemId
         )
         const updated = all.map(i => {
-          if (i.id === itemId) return { ...i, block_id: newBlockId, order_in_block: 0, order_num: newOrderNum, block_layout: 'grid' as const }
-          const srcIdx = sourceRemaining.findIndex(s => s.id === i.id)
-          if (srcIdx !== -1) return { ...i, order_in_block: srcIdx }
-          return i
+          if (i.id === itemId) return { ...i, block_id: newBlockId, order_in_block: 0, order_num: targetOrderNum, block_layout: 'grid' as const }
+          const shifted = i.order_num >= targetOrderNum ? { ...i, order_num: i.order_num + 1 } : i
+          const srcIdx = sourceRemaining.findIndex(s => s.id === shifted.id)
+          if (srcIdx !== -1) return { ...shifted, order_in_block: srcIdx }
+          return shifted
         })
         if (sourceRemaining.length === 0) {
           return { ...prev, [chapterId]: updated.map(i => i.block_id === sourceBlockId && i.item_type === 'TEXT' ? { ...i, block_id: crypto.randomUUID(), block_type: 'default' } : i) }

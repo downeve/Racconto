@@ -750,15 +750,19 @@ def move_item_to_block(
     if target_items:
         item.order_num = target_items[0].order_num
     else:
-        used_order_nums = {
-            row[0] for row in db.query(models.ChapterItem.order_num)
-            .filter(models.ChapterItem.chapter_id == chapter_id)
-            .all()
-        }
-        new_order_num = item.order_num + 1
-        while new_order_num in used_order_nums:
-            new_order_num += 1
-        item.order_num = new_order_num
+        # 새 블록: source 바로 뒤(order_num + 1)에 자리를 만들기 위해 후속 아이템들을 +1 시프트.
+        # 기존엔 빈 order_num을 찾을 때까지 +1 반복했는데, 후속 블록 order_num이 빽빽하면
+        # 새 블록이 챕터 맨 끝으로 밀려나는 비결정적 동작이 있어 시프트 방식으로 변경.
+        target_order_num = item.order_num + 1
+        db.query(models.ChapterItem).filter(
+            models.ChapterItem.chapter_id == chapter_id,
+            models.ChapterItem.order_num >= target_order_num,
+            models.ChapterItem.id != item.id,
+        ).update(
+            {models.ChapterItem.order_num: models.ChapterItem.order_num + 1},
+            synchronize_session=False,
+        )
+        item.order_num = target_order_num
 
     # 원래 블록에 PHOTO가 남아있는지 확인
     remaining = db.query(models.ChapterItem).filter(
