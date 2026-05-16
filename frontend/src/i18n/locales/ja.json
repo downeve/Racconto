@@ -56,8 +56,15 @@
     "google": "Googleで続行",
     "apple": "Appleで続行",
     "naver": "Naverで続行",
+    "line": "LINEで続行",
     "social": {
       "processing": "ソーシャルログイン処理中..."
+    },
+    "urlError": {
+      "test_restricted": "このテストサーバーは管理者アカウントのみアクセスできます。",
+      "cancelled": "ログインがキャンセルされました。",
+      "social_login_failed": "ソーシャルログインに失敗しました。もう一度お試しください。",
+      "no_token": "認証トークンを受信できませんでした。もう一度お試しください。"
     }
   },
   "register": {
@@ -185,6 +192,11 @@
     "privateProject": "非公開",
     "publicProject": "公開 (ポートフォリオに含む)",
     "location": "場所",
+    "labelTitle": "タイトル",
+    "labelDescription": "説明",
+    "labelLocation": "場所",
+    "labelStatus": "プロジェクト状態",
+    "labelVisibility": "公開設定",
     "noLocalFile": "ローカルファイルなし",
     "noLocalFile2": "ローカルファイルがない画像"
   },
@@ -347,7 +359,12 @@
     "sideBySideBelow": "テキストの下側に横並び",
     "selected": "{{count}} 枚選択中",
     "deselectAll": "選択解除",
-    "bulkDeleteConfirm": "選択した {{count}} 枚の写真を削除しますか？ つながりも解除されます。"
+    "bulkDeleteConfirm": "選択した {{count}} 枚の写真を削除しますか？ つながりも解除されます。",
+    "layoutGuide": "画像レイアウトガイド",
+    "layoutGuide2": "(ポートフォリオ基準)",
+    "photoLibrary": "写真ライブラリ",
+    "addToChapterCount": "{{count}} 枚追加",
+    "noPhotos": "写真がありません。"
   },
   "note": {
     "title": "ノート",
@@ -384,6 +401,8 @@
     "startMessage": "自分だけのポートフォリオを作成してください。",
     "startMessage2": "ポートフォリオのアドレスが設定されていません。設定でユーザー名を登録してください。",
     "noUser": "様のポートフォリオが見つかりません。",
+    "noUserBody": "このポートフォリオは存在しないか、非公開に設定されています。",
+    "exploreOthers": "他のポートフォリオを見る",
     "column": "レイアウト:",
     "columnSingle": "1列",
     "columnWide": "2列",
@@ -502,7 +521,13 @@
     "deleteAllWebConfirm": "ゴミ箱内の {{count}} 枚の写真を永久に削除しますか？",
     "deleteAllLocalBlocked": "選択した写真の中にローカルフォルダと連携されたものがあります。PCからファイルを削除するか、フォルダの連携を解除してください。",
     "deleteAllMixedConfirm": "ローカルフォルダと連携された {{local}} 枚の写真は、PCから直接削除する必要があります。\nウェブでアップロードした {{web}} 枚の写真のみ永久削除しますか？",
-    "localSyncBadge": "💻 PCから削除、またはフォルダ連携解除"
+    "localSyncBadge": "💻 PCから削除、またはフォルダ連携解除",
+    "selectedCount": "{{count}} 枚選択中",
+    "bulkRestore": "復元",
+    "bulkDelete": "完全削除",
+    "bulkDeleteConfirm": "選択した {{count}} 枚を完全に削除しますか？元に戻せません。",
+    "bulkDeleteLocalSkipped": "ローカル連携の写真 {{skipped}} 枚はスキップし、{{count}} 枚のみ削除しますか？",
+    "deselectAll": "選択解除"
   },
   "actions": {
     "resetAllRatings": "すべての評価をリセット",
