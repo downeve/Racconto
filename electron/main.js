@@ -682,6 +682,11 @@ function createWindow() {
     })
   }
 
+  // 드롭된 파일 URL로 페이지가 이동/리로드되는 기본 동작 방어 (드래그앤드롭 업로드 보호)
+  mainWindow.webContents.on('will-navigate', (e, url) => {
+    if (url.startsWith('file://')) e.preventDefault()
+  })
+  mainWindow.webContents.on('will-prevent-unload', (e) => e.preventDefault())
 }
 
 // ── 앱 메뉴 ──────────────────────────────────────────

@@ -530,14 +530,14 @@ export default function ProjectDetail({
   }
 
   const handleDragEnter = (e: React.DragEvent) => {
-    if (uploading) return
+    if (uploading || activeTab !== 'photos') return
     if (!Array.from(e.dataTransfer.types).includes('Files')) return
     e.preventDefault()
     dragDepthRef.current++
     if (dragDepthRef.current === 1) setIsDragOver(true)
   }
   const handleDragOver = (e: React.DragEvent) => {
-    if (uploading) return
+    if (uploading || activeTab !== 'photos') return
     if (!Array.from(e.dataTransfer.types).includes('Files')) return
     e.preventDefault()
     e.dataTransfer.dropEffect = 'copy'
@@ -552,7 +552,7 @@ export default function ProjectDetail({
     e.preventDefault()
     dragDepthRef.current = 0
     setIsDragOver(false)
-    if (uploading || !numericId) return
+    if (uploading || activeTab !== 'photos' || !numericId) return
 
     const items = Array.from(e.dataTransfer.items)
     const hasFolder = items.some(it => {
@@ -926,7 +926,18 @@ export default function ProjectDetail({
   const sidebarSlot = document.getElementById('sidebar-content-slot')
 
   return (
-    <div className="p-6 max-w-7xl mx-auto px-6">
+    <div
+      className="p-6 max-w-7xl mx-auto px-6 relative"
+      onDragEnter={handleDragEnter}
+      onDragOver={handleDragOver}
+      onDragLeave={handleDragLeave}
+      onDrop={handleDrop}
+    >
+      {isDragOver && (
+        <div className="fixed inset-0 z-modal bg-edit-ink/15 backdrop-blur-[2px] border-2 border-dashed border-edit-ink pointer-events-none flex items-center justify-center">
+          <p className="text-h3 text-edit-ink">{t('photo.upload.dropHere')}</p>
+        </div>
+      )}
       {sidebarSlot && activeTab === 'photos' && createPortal(
         <PhotosSidebarContent
           photos={photos}
@@ -1055,14 +1066,7 @@ export default function ProjectDetail({
       )}
 
       {/* 사진 탭 — 필터/업로드 패널은 사이드바(Portal)로 렌더 */}
-      <div
-        style={{ display: activeTab === 'photos' ? 'block' : 'none' }}
-        onDragEnter={handleDragEnter}
-        onDragOver={handleDragOver}
-        onDragLeave={handleDragLeave}
-        onDrop={handleDrop}
-        className="relative"
-      >
+      <div style={{ display: activeTab === 'photos' ? 'block' : 'none' }}>
         {/* 폴더 업로드 fallback (Safari/Firefox 등 showDirectoryPicker 미지원 시) */}
         <input
           ref={folderFallbackInputRef}
@@ -1074,12 +1078,6 @@ export default function ProjectDetail({
           disabled={uploading}
           {...{ webkitdirectory: '' } as any}
         />
-        {/* 드래그 오버레이 */}
-        {isDragOver && (
-          <div className="fixed inset-0 z-modal bg-edit-ink/15 backdrop-blur-[2px] border-2 border-dashed border-edit-ink pointer-events-none flex items-center justify-center">
-            <p className="text-h3 text-edit-ink">{t('photo.upload.dropHere')}</p>
-          </div>
-        )}
 
           {/* 사진 갤러리 */}
 
