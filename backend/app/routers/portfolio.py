@@ -6,7 +6,7 @@ from app import models
 router = APIRouter(prefix="/portfolio", tags=["portfolio"])
 
 # 공개 portfolio 응답 캐시 (CDN/브라우저용)
-_PORTFOLIO_CACHE_CONTROL = "public, max-age=60, stale-while-revalidate=300"
+_PORTFOLIO_CACHE_CONTROL = "no-cache"
 
 
 def _preload_project_data(project_id: str, db: Session) -> tuple[dict, dict]:
