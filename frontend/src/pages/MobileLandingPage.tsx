@@ -9,6 +9,9 @@ export default function MobileLandingPage() {
   const lang = i18n.language.startsWith('ko') ? 'ko' : i18n.language.startsWith('ja') ? 'ja' : 'en'
   const ss = (name: string, ext: string = 'webp') => `./screenshots/${name}_${lang}.${ext}`
   const sv = (name: string) => `./screenshots/${name}_${lang}`
+  // 한국어만 word-break: keep-all 적용 (어절 단위 줄바꿈). 일본어는 공백이 없어 단일 단어로
+  // 처리되며 horizontal overflow를 일으키므로 제외. 영어는 공백이 있어 영향 없음.
+  const breakKeep = lang === 'ko' ? 'break-keep' : ''
   const featuresRef = useRef<HTMLDivElement>(null)
 
   const scrollToFeatures = () => {
@@ -67,11 +70,11 @@ export default function MobileLandingPage() {
           aria-hidden
         />
         <p className="relative text-menu font-mono tracking-[0.18em] uppercase text-edit-muted mb-5 text-center">{t('landing.heroEyebrow')}</p>
-        <h1 className="relative font-serif text-h1 text-edit-ink font-normal tracking-tight
-                       leading-[1.1] mb-6 break-keep text-center">
+        <h1 className={`relative font-serif text-h1 text-edit-ink font-normal tracking-tight
+                       leading-[1.1] mb-6 ${breakKeep} text-center`}>
           {t('landing.heroTitle')}<br />{t('landing.heroTitle2')}
         </h1>
-        <p className="relative font-serif text-h2 text-edit-ink/75 leading-[1.65] mb-10 text-center">
+        <p className={`relative font-serif text-h2 text-edit-ink/75 leading-[1.65] mb-10 text-center ${breakKeep}`}>
           {t('landing.heroSubtitle')}
         </p>
         <Link
@@ -110,7 +113,7 @@ export default function MobileLandingPage() {
       <section ref={featuresRef} className="bg-edit-paper px-6 py-12">
         <div className="text-center mb-10">
           <p className="t-eyebrow text-edit-muted mb-2">{t('landing.featuresEyebrow')}</p>
-          <h2 className="font-serif text-h2 text-edit-ink font-normal tracking-tight whitespace-pre-line">
+          <h2 className={`font-serif text-h2 text-edit-ink font-normal tracking-tight whitespace-pre-line ${breakKeep}`}>
             {t('landing.featuresTitle')}
           </h2>
         </div>
@@ -118,11 +121,11 @@ export default function MobileLandingPage() {
         <div className="space-y-16">
           {features.map(f => (
             <div key={f.key} className="text-center">
-              <h3 className="font-serif text-h2 text-edit-ink font-normal
-                             tracking-tight leading-[1.15] mb-4 whitespace-pre-line">
+              <h3 className={`font-serif text-h2 text-edit-ink font-normal
+                             tracking-tight leading-[1.15] mb-4 whitespace-pre-line ${breakKeep}`}>
                 {f.title}
               </h3>
-              <p className="font-serif text-body text-edit-ink/75 leading-[1.7]">
+              <p className={`font-serif text-body text-edit-ink/75 leading-[1.7] ${breakKeep}`}>
                 {f.desc}
               </p>
               {f.video ? (
@@ -143,10 +146,10 @@ export default function MobileLandingPage() {
         <div className="border border-edit-line bg-edit-paper-2 rounded-[1px]
                         px-5 py-7 text-center max-w-sm mx-auto">
           <Monitor size={28} strokeWidth={1.25} className="mx-auto mb-4 text-edit-muted" />
-          <p className="font-serif text-h3 text-edit-ink mb-2 break-keep">
+          <p className={`font-serif text-h3 text-edit-ink mb-2 ${breakKeep}`}>
             {t('landing.desktopOptimizationInfo')}
           </p>
-          <p className="text-body text-edit-muted leading-relaxed">
+          <p className={`text-body text-edit-muted leading-relaxed ${breakKeep}`}>
             {t('landing.desktopOptimizationDesc')}
           </p>
         </div>
@@ -155,10 +158,10 @@ export default function MobileLandingPage() {
       {/* Beta CTA */}
       <section className="bg-edit-ink text-edit-paper px-6 py-16 text-center">
         <p className="t-eyebrow text-edit-paper/60 mb-4">{t('landing.betaEyebrow')}</p>
-        <h2 className="font-serif text-h2 font-normal tracking-tight mb-3 break-keep">
+        <h2 className={`font-serif text-h2 font-normal tracking-tight mb-3 ${breakKeep}`}>
           {t('landing.betaTitle')}
         </h2>
-        <p className="text-body text-edit-paper/75 leading-relaxed mb-2">
+        <p className={`text-body text-edit-paper/75 leading-relaxed mb-2 ${breakKeep}`}>
           {t('landing.betaDesc')}
         </p>
         <p className="t-eyebrow text-edit-paper/40 mb-10">{t('landing.betaLimit')}</p>
