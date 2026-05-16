@@ -8,6 +8,7 @@ export default function MobileLandingPage() {
   const { t, i18n } = useTranslation()
   const lang = i18n.language.startsWith('ko') ? 'ko' : i18n.language.startsWith('ja') ? 'ja' : 'en'
   const ss = (name: string, ext: string = 'webp') => `./screenshots/${name}_${lang}.${ext}`
+  const sv = (name: string) => `./screenshots/${name}_${lang}`
   const featuresRef = useRef<HTMLDivElement>(null)
 
   const scrollToFeatures = () => {
@@ -22,13 +23,13 @@ export default function MobileLandingPage() {
       key: 'story',
       title: t('landing.feature1Title'),
       desc: t('landing.feature1Desc'),
-      image: ss('screenshot-story', 'gif'),
+      video: sv('screenshot-story'),
     },
     {
       key: 'desktop',
       title: t('landing.feature2Title'),
       desc: t('landing.feature2Desc'),
-      image: ss('screenshot-electron-1', 'gif'),
+      video: sv('screenshot-electron-1'),
     },
     {
       key: 'notes',
@@ -46,7 +47,7 @@ export default function MobileLandingPage() {
       key: 'portfolio',
       title: t('landing.feature5Title'),
       desc: t('landing.feature5Desc'),
-      image: ss('screenshot-portfolio', 'gif'),
+      video: sv('screenshot-portfolio'),
     },
   ]
 
@@ -124,9 +125,14 @@ export default function MobileLandingPage() {
               <p className="font-serif text-body text-edit-ink/75 leading-[1.7] break-keep">
                 {f.desc}
               </p>
-              {f.image && (
+              {f.video ? (
+                <video autoPlay muted loop playsInline className="w-full mt-6 block border border-edit-line">
+                  <source src={`${f.video}.webm`} type="video/webm" />
+                  <source src={`${f.video}.mp4`} type="video/mp4" />
+                </video>
+              ) : f.image ? (
                 <img src={f.image} alt={f.title} className="w-full mt-6 block border border-edit-line" />
-              )}
+              ) : null}
             </div>
           ))}
         </div>
