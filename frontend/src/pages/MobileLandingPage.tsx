@@ -71,7 +71,7 @@ export default function MobileLandingPage() {
                        leading-[1.1] mb-6 break-keep text-center">
           {t('landing.heroTitle')}<br />{t('landing.heroTitle2')}
         </h1>
-        <p className="relative font-serif text-h2 text-edit-ink/75 leading-[1.65] mb-10 break-keep text-center">
+        <p className="relative font-serif text-h2 text-edit-ink/75 leading-[1.65] mb-10 text-center">
           {t('landing.heroSubtitle')}
         </p>
         <Link
@@ -110,7 +110,7 @@ export default function MobileLandingPage() {
       <section ref={featuresRef} className="bg-edit-paper px-6 py-12">
         <div className="text-center mb-10">
           <p className="t-eyebrow text-edit-muted mb-2">{t('landing.featuresEyebrow')}</p>
-          <h2 className="font-serif text-h2 text-edit-ink font-normal tracking-tight">
+          <h2 className="font-serif text-h2 text-edit-ink font-normal tracking-tight whitespace-pre-line break-keep">
             {t('landing.featuresTitle')}
           </h2>
         </div>
@@ -119,10 +119,10 @@ export default function MobileLandingPage() {
           {features.map(f => (
             <div key={f.key} className="text-center">
               <h3 className="font-serif text-h2 text-edit-ink font-normal
-                             tracking-tight leading-[1.15] mb-4 break-keep">
+                             tracking-tight leading-[1.15] mb-4 whitespace-pre-line">
                 {f.title}
               </h3>
-              <p className="font-serif text-body text-edit-ink/75 leading-[1.7] break-keep">
+              <p className="font-serif text-body text-edit-ink/75 leading-[1.7]">
                 {f.desc}
               </p>
               {f.video ? (
@@ -146,7 +146,7 @@ export default function MobileLandingPage() {
           <p className="font-serif text-h3 text-edit-ink mb-2 break-keep">
             {t('landing.desktopOptimizationInfo')}
           </p>
-          <p className="text-body text-edit-muted leading-relaxed break-keep">
+          <p className="text-body text-edit-muted leading-relaxed">
             {t('landing.desktopOptimizationDesc')}
           </p>
         </div>
@@ -158,7 +158,7 @@ export default function MobileLandingPage() {
         <h2 className="font-serif text-h2 font-normal tracking-tight mb-3 break-keep">
           {t('landing.betaTitle')}
         </h2>
-        <p className="text-body text-edit-paper/75 leading-relaxed mb-2 break-keep">
+        <p className="text-body text-edit-paper/75 leading-relaxed mb-2">
           {t('landing.betaDesc')}
         </p>
         <p className="t-eyebrow text-edit-paper/40 mb-10">{t('landing.betaLimit')}</p>
