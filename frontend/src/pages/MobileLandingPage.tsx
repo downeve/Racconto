@@ -99,7 +99,7 @@ export default function MobileLandingPage() {
           {t('landing.demoTitle')}
         </h2>
         <img
-          src={ss('screenshot-main')}
+          src={ss('screenshot-main-mobile')}
           alt="Racconto app"
           className="w-full block border border-edit-line"
         />
