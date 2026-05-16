@@ -10,6 +10,9 @@ export default function LandingPage() {
   const lang = i18n.language.startsWith('ko') ? 'ko' : i18n.language.startsWith('ja') ? 'ja' : 'en'
   const ss = (name: string, ext: string = 'webp') => `./screenshots/${name}_${lang}.${ext}`
   const sv = (name: string) => `./screenshots/${name}_${lang}`
+  // 일본어는 공백이 없어 word-break: keep-all 적용 시 전체 문장이 한 단어로
+  // 처리되어 horizontal overflow가 생긴다. ja에서만 break-keep 제외.
+  const breakKeep = lang === 'ja' ? '' : 'break-keep'
   const featuresRef = useRef<HTMLDivElement>(null)
 
   const scrollToFeatures = () => {
@@ -85,12 +88,12 @@ export default function LandingPage() {
           <p className="text-menu md:text-small font-mono tracking-[0.18em] uppercase text-edit-muted mb-6">
             {t('landing.heroEyebrow')}
           </p>
-          <h1 className="font-serif text-h1 md:text-display text-edit-ink
-                         font-normal tracking-tight leading-[1.05] mb-8 break-keep">
+          <h1 className={`font-serif text-h1 md:text-display text-edit-ink
+                         font-normal tracking-tight leading-[1.05] mb-8 ${breakKeep}`}>
             {t('landing.heroTitle')}<br />{t('landing.heroTitle2')}
           </h1>
-          <p className="font-serif text-h3 md:text-h2 text-edit-muted
-                        leading-[1.65] mb-12 max-w-xl mx-auto break-keep">
+          <p className={`font-serif text-h3 md:text-h2 text-edit-muted
+                        leading-[1.65] mb-12 max-w-xl mx-auto ${breakKeep}`}>
             {t('landing.heroSubtitle')}
           </p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4 sm:gap-8">
@@ -136,7 +139,7 @@ export default function LandingPage() {
               alt="Racconto app"
               className="w-full block border border-edit-line"
             />
-            <figcaption className="t-caption text-edit-faint mt-4 text-center max-w-md mx-auto break-keep">
+            <figcaption className={`t-caption text-edit-faint mt-4 text-center max-w-md mx-auto ${breakKeep}`}>
               {t('landing.mainCaption')}
             </figcaption>
           </figure>
@@ -144,13 +147,13 @@ export default function LandingPage() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-12 md:gap-16">
             <figure>
               <img src={ss('screenshot-lightbox')} alt="Lightbox view" className="w-full block border border-edit-line" />
-              <figcaption className="t-caption text-edit-faint mt-3 text-center break-keep">
+              <figcaption className={`t-caption text-edit-faint mt-3 text-center ${breakKeep}`}>
                 {t('landing.lightboxCaption')}
               </figcaption>
             </figure>
             <figure>
               <img src={ss('screenshot-note-panel')} alt="Note panel" className="w-full block border border-edit-line" />
-              <figcaption className="t-caption text-edit-faint mt-3 text-center break-keep">
+              <figcaption className={`t-caption text-edit-faint mt-3 text-center ${breakKeep}`}>
                 {t('landing.coverCaption')}
               </figcaption>
             </figure>
@@ -163,7 +166,7 @@ export default function LandingPage() {
         <div className="max-w-6xl mx-auto">
           <header className="text-center mb-20">
             <p className="text-caption font-mono tracking-[0.18em] uppercase font-medium text-edit-muted mb-4">{t('landing.featuresEyebrow')}</p>
-            <h2 className="font-serif text-h1 text-edit-ink font-normal tracking-tight break-keep">
+            <h2 className={`font-serif text-h1 text-edit-ink font-normal tracking-tight ${breakKeep}`}>
               {t('landing.featuresTitle')}
             </h2>
           </header>
@@ -188,13 +191,13 @@ export default function LandingPage() {
                 </div>
                 {/* 텍스트 — 35% */}
                 <div className="md:col-span-4">
-                  <h3 className="font-serif text-h2 text-edit-ink font-normal tracking-tight mb-4 break-keep">
+                  <h3 className={`font-serif text-h2 text-edit-ink font-normal tracking-tight mb-4 ${breakKeep}`}>
                     {f.title}
                   </h3>
-                  <p className="font-serif text-body text-edit-ink/80 leading-[1.7] break-keep">
+                  <p className={`font-serif text-body text-edit-ink/80 leading-[1.7] ${breakKeep}`}>
                     {f.desc}
                   </p>
-                  {f.key === 'desktop' && <DesktopAppInlineLink t={t} />}
+                  {f.key === 'desktop' && <DesktopAppInlineLink t={t} breakKeep={breakKeep} />}
                 </div>
               </div>
             ))}
@@ -206,10 +209,10 @@ export default function LandingPage() {
       <section className="bg-edit-ink text-edit-paper px-6 md:px-12 py-32">
         <div className="max-w-3xl mx-auto text-center">
           <p className="text-caption font-mono tracking-[0.18em] uppercase font-medium text-edit-paper/60 mb-4">{t('landing.betaEyebrow')}</p>
-          <h2 className="font-serif text-h1 md:text-display font-normal tracking-tight mb-6 break-keep">
+          <h2 className={`font-serif text-h1 md:text-display font-normal tracking-tight mb-6 ${breakKeep}`}>
             {t('landing.betaTitle')}
           </h2>
-          <p className="font-serif text-body md:text-h3 text-edit-paper/75 leading-[1.65] mb-4 break-keep">
+          <p className={`font-serif text-body md:text-h3 text-edit-paper/75 leading-[1.65] mb-4 ${breakKeep}`}>
             {t('landing.betaDesc')}
           </p>
           <p className="text-caption font-mono tracking-[0.18em] uppercase font-medium text-edit-paper/40 mb-12">{t('landing.betaLimit')}</p>
@@ -241,7 +244,7 @@ export default function LandingPage() {
   )
 }
 
-function DesktopAppInlineLink({ t }: { t: (key: string) => string }) {
+function DesktopAppInlineLink({ t, breakKeep }: { t: (key: string) => string; breakKeep: string }) {
   return (
     <div className="mt-8 pt-6 border-t border-edit-line">
       <p className="text-caption font-mono tracking-[0.18em] uppercase font-medium text-edit-muted mb-3">
@@ -258,7 +261,7 @@ function DesktopAppInlineLink({ t }: { t: (key: string) => string }) {
           className="ml-1 transition-transform
                      group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
       </Link>
-      <p className="t-caption text-edit-faint mt-2 break-keep">
+      <p className={`t-caption text-edit-faint mt-2 ${breakKeep}`}>
         {t('landing.dlNote')}
       </p>
     </div>

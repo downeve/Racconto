@@ -212,6 +212,10 @@ export function SortablePhotoChapter({
     opacity: isDragging ? 0.5 : 1,
   }
 
+  // 다중 선택이 활성화된 상태(anySelected)에서는 이미지 클릭이 라이트박스 등
+  // 다른 onClick 효과를 트리거하지 않고 선택 토글만 수행한다.
+  const selectionMode = anySelected && !!onToggleSelect
+
   return (
     <div ref={setNodeRef} style={style} className="flex flex-col w-full h-full">
       <div className={`relative group rounded overflow-hidden aspect-[3/2] shadow transition-[box-shadow] ${
@@ -221,7 +225,13 @@ export function SortablePhotoChapter({
           src={cfUrl(imageUrl, 'grid')}
           alt={caption || undefined}
           className="absolute inset-0 w-full h-full object-contain cursor-pointer"
-          onClick={onClick}
+          onClick={(e) => {
+            if (selectionMode) {
+              onToggleSelect!(id, e.shiftKey, e.metaKey || e.ctrlKey)
+            } else {
+              onClick()
+            }
+          }}
         />
         <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity z-block-handle pointer-events-none
                         bg-[radial-gradient(ellipse_at_center,transparent_60%,rgba(0,0,0,0.32)_100%)]" />
