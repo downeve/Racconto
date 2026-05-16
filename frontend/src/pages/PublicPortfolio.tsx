@@ -281,7 +281,6 @@ export default function PublicPortfolio() {
     }
     if (!lightboxRef.current) return
     const el = lightboxRef.current
-    const focusables = el.querySelectorAll<HTMLElement>('button, [tabindex]:not([tabindex="-1"])')
 
     // 열릴 때만 최초 포커스 — 컨테이너에 포커스해서 키 이벤트 수신, 버튼 focus ring 방지
     if (!lightboxWasOpenRef.current) {

@@ -217,7 +217,9 @@
       "limitExceededPartial": "{{success}} uploaded · limit reached",
       "fail": "{{count}} file(s) failed to upload",
       "allSkipped": "{{count}} photo(s) already exist — skipped",
-      "folderConfirm": "Upload {{count}} photo(s) from this folder?"
+      "folderConfirm": "Upload {{count}} photo(s) from this folder?",
+      "dropHere": "Drop folder or photos here",
+      "noImagesFound": "No supported image files found"
     },
     "trashComment": {
       "DeleteAllConfirm": "Are you sure you want to permanently delete all {{count}} photos in the trash?"

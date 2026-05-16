@@ -217,7 +217,9 @@
       "limitExceededPartial": "{{success}} 枚完了 · 制限超過",
       "fail": "{{count}} 個のファイルのアップロードに失敗しました",
       "allSkipped": "すでに存在する {{count}} 枚の写真をスキップしました",
-      "folderConfirm": "このフォルダ内の写真 {{count}} 枚をアップロードしますか？"
+      "folderConfirm": "このフォルダ内の写真 {{count}} 枚をアップロードしますか？",
+      "dropHere": "フォルダまたは写真をここにドロップしてください",
+      "noImagesFound": "対応している画像ファイルがありません"
     },
     "trashComment": {
       "DeleteAllConfirm": "ゴミ箱にある {{count}} 枚の写真をすべて完全に削除しますか？"

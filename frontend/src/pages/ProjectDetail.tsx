@@ -25,6 +25,76 @@ const getFolderDisplayName = (folder: string) =>
 const isLocalSyncFolder = (folder: string) =>
   folder.startsWith('/') || /^[A-Za-z]:\\/.test(folder)
 
+const ALLOWED_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp']
+
+// File 객체에 webkitRelativePath 부여 (showDirectoryPicker/drag-drop 결과를 webkitdirectory와 동일하게 처리)
+const assignRelativePath = (file: File, relPath: string): File => {
+  try {
+    Object.defineProperty(file, 'webkitRelativePath', { value: relPath, configurable: true })
+    return file
+  } catch {
+    return file
+  }
+}
+
+// File System Access API의 FileSystemDirectoryHandle 재귀 enumerate
+const collectFilesFromDirHandle = async (
+  dirHandle: any,
+  prefix: string
+): Promise<File[]> => {
+  const out: File[] = []
+  for await (const entry of dirHandle.values()) {
+    if (entry.kind === 'file') {
+      const f: File = await entry.getFile()
+      if (ALLOWED_IMAGE_TYPES.includes(f.type)) {
+        out.push(assignRelativePath(f, `${prefix}/${f.name}`))
+      }
+    } else if (entry.kind === 'directory') {
+      const sub = await collectFilesFromDirHandle(entry, `${prefix}/${entry.name}`)
+      out.push(...sub)
+    }
+  }
+  return out
+}
+
+// 드래그앤드롭의 FileSystemEntry 재귀 enumerate
+const collectFilesFromEntry = async (entry: any, prefix: string): Promise<File[]> => {
+  if (entry.isFile) {
+    return new Promise<File[]>(resolve => {
+      entry.file(
+        (f: File) => {
+          if (ALLOWED_IMAGE_TYPES.includes(f.type)) {
+            resolve([assignRelativePath(f, prefix ? `${prefix}/${f.name}` : f.name)])
+          } else {
+            resolve([])
+          }
+        },
+        () => resolve([])
+      )
+    })
+  }
+  if (entry.isDirectory) {
+    const reader = entry.createReader()
+    const allEntries: any[] = []
+    // readEntries는 한 번에 100개씩만 반환하므로 빌 때까지 반복
+    const readBatch = (): Promise<void> => new Promise(resolve => {
+      reader.readEntries((entries: any[]) => {
+        if (entries.length === 0) return resolve()
+        allEntries.push(...entries)
+        readBatch().then(resolve)
+      }, () => resolve())
+    })
+    await readBatch()
+    const subPrefix = prefix ? `${prefix}/${entry.name}` : entry.name
+    const out: File[] = []
+    for (const sub of allEntries) {
+      out.push(...(await collectFilesFromEntry(sub, subPrefix)))
+    }
+    return out
+  }
+  return []
+}
+
 interface PhotosSidebarContentProps {
   photos: Photo[]
   trashedPhotos: Photo[]
@@ -40,6 +110,7 @@ interface PhotosSidebarContentProps {
   isAllActive: boolean
   selectionMode: boolean
   handleUpload: (e: React.ChangeEvent<HTMLInputElement>, type: 'photo' | 'folder') => void
+  onFolderUploadClick: () => void
   handleResetAll: () => void
   handleDeleteFolder: (folder: string) => void
   setFilterFolder: React.Dispatch<React.SetStateAction<string | null>>
@@ -60,7 +131,7 @@ function PhotosSidebarContent({
   photos, trashedPhotos, uploading, uploadProgress,
   photoSubTab, filterFolder, filterRating, filterColor, filterHasNote,
   photoNoteIds, colorLabels, isAllActive, selectionMode,
-  handleUpload, handleResetAll, handleDeleteFolder,
+  handleUpload, onFolderUploadClick, handleResetAll, handleDeleteFolder,
   setFilterFolder, setPhotoSubTab, fetchTrash,
   setSelectionMode, setSelectedPhotoIds, setShowBulkChapterMenu,
   exitTrash, setFilterHasNote, setFilterRating, handleClearRatings,
@@ -87,12 +158,16 @@ function PhotosSidebarContent({
             : <><Upload size={12} strokeWidth={1.5} />{t('photo.uploadPhotos')}</>}
           <input type="file" accept="image/jpeg, image/png, image/webp" multiple className="hidden" onChange={e => handleUpload(e, 'photo')} disabled={uploading} />
         </label>
-        <label className={`flex-1 cursor-pointer text-[0.8125rem] font-sans font-medium px-2 py-2 inline-flex items-center justify-center gap-1.5 border border-edit-line text-edit-muted hover:text-edit-ink hover:border-edit-line-strong rounded-[1px] transition-colors ${uploading ? 'opacity-60 cursor-not-allowed' : ''}`}>
+        <button
+          type="button"
+          onClick={onFolderUploadClick}
+          disabled={uploading}
+          className={`flex-1 cursor-pointer text-[0.8125rem] font-sans font-medium px-2 py-2 inline-flex items-center justify-center gap-1.5 border border-edit-line text-edit-muted hover:text-edit-ink hover:border-edit-line-strong rounded-[1px] transition-colors ${uploading ? 'opacity-60 cursor-not-allowed' : ''}`}
+        >
           {uploading && uploadProgress?.type === 'folder'
             ? <><div className="w-3 h-3 border border-edit-muted/40 border-t-edit-muted rounded-full animate-spin shrink-0" />{uploadProgress.current} / {uploadProgress.total}</>
             : <><FolderUp size={12} strokeWidth={1.5} />{t('photo.uploadFolder')}</>}
-          <input type="file" accept="image/jpeg, image/png, image/webp" multiple className="hidden" onChange={e => handleUpload(e, 'folder')} disabled={uploading} {...{ webkitdirectory: '' } as any} />
-        </label>
+        </button>
       </div>
 
       {/* 라이브러리 */}
@@ -238,6 +313,9 @@ export default function ProjectDetail({
   const [trashSelectedIds, setTrashSelectedIds] = useState<Set<string>>(new Set())
   const [filterHasNote, setFilterHasNote] = useState(false)
   const [confirmModal, setConfirmModal] = useState<{ message: string; onConfirm: () => void } | null>(null)
+  const [isDragOver, setIsDragOver] = useState(false)
+  const dragDepthRef = useRef(0)
+  const folderFallbackInputRef = useRef<HTMLInputElement | null>(null)
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' | 'warning' } | null>(null)
   const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
   const [chapterPhotoVersion, setChapterPhotoVersion] = useState(0)
@@ -412,11 +490,84 @@ export default function ProjectDetail({
   const handleUpload = (e: React.ChangeEvent<HTMLInputElement>, type: 'photo' | 'folder') => {
     if (!e.target.files || !numericId) return
     const inputEl = e.target
-    const allowedTypes = ['image/jpeg', 'image/png', 'image/webp']
-    const validFiles = Array.from(e.target.files).filter(file => allowedTypes.includes(file.type))
+    const validFiles = Array.from(e.target.files).filter(file => ALLOWED_IMAGE_TYPES.includes(file.type))
     inputEl.value = ''
     if (validFiles.length === 0) return
     startUpload(validFiles, numericId, photos.filter(p => p.original_filename != null) as any, type)
+  }
+
+  // showDirectoryPicker / drag-and-drop 공통: ConfirmModal로 이미지 개수 확인 후 업로드
+  const confirmAndUpload = (files: File[], type: 'photo' | 'folder') => {
+    if (!numericId) return
+    if (files.length === 0) {
+      showToast(t('photo.upload.noImagesFound'), 'warning')
+      return
+    }
+    setConfirmModal({
+      message: t('photo.upload.folderConfirm', { count: files.length }),
+      onConfirm: () => {
+        setConfirmModal(null)
+        startUpload(files, numericId, photos.filter(p => p.original_filename != null) as any, type)
+      },
+    })
+  }
+
+  const handleFolderUploadClick = async () => {
+    if (uploading || !numericId) return
+    // Chrome/Edge: File System Access API — 브라우저 기본 alert 우회
+    if ('showDirectoryPicker' in window) {
+      try {
+        const dirHandle = await (window as any).showDirectoryPicker()
+        const files = await collectFilesFromDirHandle(dirHandle, dirHandle.name)
+        confirmAndUpload(files, 'folder')
+      } catch (err: any) {
+        if (err?.name !== 'AbortError') console.error(err)
+      }
+      return
+    }
+    // Safari/Firefox: webkitdirectory input fallback (이 경우 브라우저 기본 확인창은 우회 불가)
+    folderFallbackInputRef.current?.click()
+  }
+
+  const handleDragEnter = (e: React.DragEvent) => {
+    if (uploading) return
+    if (!Array.from(e.dataTransfer.types).includes('Files')) return
+    e.preventDefault()
+    dragDepthRef.current++
+    if (dragDepthRef.current === 1) setIsDragOver(true)
+  }
+  const handleDragOver = (e: React.DragEvent) => {
+    if (uploading) return
+    if (!Array.from(e.dataTransfer.types).includes('Files')) return
+    e.preventDefault()
+    e.dataTransfer.dropEffect = 'copy'
+  }
+  const handleDragLeave = (e: React.DragEvent) => {
+    if (!Array.from(e.dataTransfer.types).includes('Files')) return
+    e.preventDefault()
+    dragDepthRef.current = Math.max(0, dragDepthRef.current - 1)
+    if (dragDepthRef.current === 0) setIsDragOver(false)
+  }
+  const handleDrop = async (e: React.DragEvent) => {
+    e.preventDefault()
+    dragDepthRef.current = 0
+    setIsDragOver(false)
+    if (uploading || !numericId) return
+
+    const items = Array.from(e.dataTransfer.items)
+    const hasFolder = items.some(it => {
+      const entry = (it as any).webkitGetAsEntry?.()
+      return entry?.isDirectory
+    })
+
+    const collected: File[] = []
+    for (const item of items) {
+      if (item.kind !== 'file') continue
+      const entry = (item as any).webkitGetAsEntry?.()
+      if (!entry) continue
+      collected.push(...(await collectFilesFromEntry(entry, '')))
+    }
+    confirmAndUpload(collected, hasFolder ? 'folder' : 'photo')
   }
 
   // ProjectDetail.tsx 내부의 handleSetCover 수정
@@ -792,6 +943,7 @@ export default function ProjectDetail({
           isAllActive={isAllActive}
           selectionMode={selectionMode}
           handleUpload={handleUpload}
+          onFolderUploadClick={handleFolderUploadClick}
           handleResetAll={handleResetAll}
           handleDeleteFolder={handleDeleteFolder}
           setFilterFolder={setFilterFolder}
@@ -903,7 +1055,31 @@ export default function ProjectDetail({
       )}
 
       {/* 사진 탭 — 필터/업로드 패널은 사이드바(Portal)로 렌더 */}
-      <div style={{ display: activeTab === 'photos' ? 'block' : 'none' }}>
+      <div
+        style={{ display: activeTab === 'photos' ? 'block' : 'none' }}
+        onDragEnter={handleDragEnter}
+        onDragOver={handleDragOver}
+        onDragLeave={handleDragLeave}
+        onDrop={handleDrop}
+        className="relative"
+      >
+        {/* 폴더 업로드 fallback (Safari/Firefox 등 showDirectoryPicker 미지원 시) */}
+        <input
+          ref={folderFallbackInputRef}
+          type="file"
+          accept="image/jpeg, image/png, image/webp"
+          multiple
+          className="hidden"
+          onChange={e => handleUpload(e, 'folder')}
+          disabled={uploading}
+          {...{ webkitdirectory: '' } as any}
+        />
+        {/* 드래그 오버레이 */}
+        {isDragOver && (
+          <div className="fixed inset-0 z-modal bg-edit-ink/15 backdrop-blur-[2px] border-2 border-dashed border-edit-ink pointer-events-none flex items-center justify-center">
+            <p className="text-h3 text-edit-ink">{t('photo.upload.dropHere')}</p>
+          </div>
+        )}
 
           {/* 사진 갤러리 */}
 
