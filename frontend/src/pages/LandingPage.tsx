@@ -7,8 +7,9 @@ import { Wordmark } from '../components/Wordmark'
 
 export default function LandingPage() {
   const { t, i18n } = useTranslation()
-  const lang = i18n.language.startsWith('ko') ? 'ko' : 'en'
+  const lang = i18n.language.startsWith('ko') ? 'ko' : i18n.language.startsWith('ja') ? 'ja' : 'en'
   const ss = (name: string, ext: string = 'webp') => `./screenshots/${name}_${lang}.${ext}`
+  const sv = (name: string) => `./screenshots/${name}_${lang}`
   const featuresRef = useRef<HTMLDivElement>(null)
 
   const scrollToFeatures = () => {
@@ -23,14 +24,14 @@ export default function LandingPage() {
       key: 'story',
       title: t('landing.feature1Title'),
       desc: t('landing.feature1Desc'),
-      image: ss('screenshot-story', 'gif'),
+      video: sv('screenshot-story'),
       imageAlt: 'Story structure',
     },
     {
       key: 'desktop',
       title: t('landing.feature2Title'),
       desc: t('landing.feature2Desc'),
-      image: ss('screenshot-electron-1', 'gif'),
+      video: sv('screenshot-electron-1'),
       imageAlt: 'Desktop app',
     },
     {
@@ -51,7 +52,7 @@ export default function LandingPage() {
       key: 'portfolio',
       title: t('landing.feature5Title'),
       desc: t('landing.feature5Desc'),
-      image: ss('screenshot-portfolio', 'gif'),
+      video: sv('screenshot-portfolio'),
       imageAlt: 'Public portfolio',
     },
   ]
@@ -176,7 +177,14 @@ export default function LandingPage() {
               >
                 {/* 이미지 — 65% */}
                 <div className="md:col-span-8">
-                  <img src={f.image} alt={f.imageAlt} className="w-full block border border-edit-line" />
+                  {f.video ? (
+                    <video autoPlay muted loop playsInline className="w-full block border border-edit-line">
+                      <source src={`${f.video}.webm`} type="video/webm" />
+                      <source src={`${f.video}.mp4`} type="video/mp4" />
+                    </video>
+                  ) : (
+                    <img src={f.image} alt={f.imageAlt} className="w-full block border border-edit-line" />
+                  )}
                 </div>
                 {/* 텍스트 — 35% */}
                 <div className="md:col-span-4">
