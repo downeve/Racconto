@@ -283,9 +283,9 @@ export default function PublicPortfolio() {
     const el = lightboxRef.current
     const focusables = el.querySelectorAll<HTMLElement>('button, [tabindex]:not([tabindex="-1"])')
 
-    // 열릴 때만 최초 포커스 — 키보드 네비게이션(화살표) 시에는 재포커스 안 함
-    if (!lightboxWasOpenRef.current && focusables.length) {
-      focusables[0].focus()
+    // 열릴 때만 최초 포커스 — 컨테이너에 포커스해서 키 이벤트 수신, 버튼 focus ring 방지
+    if (!lightboxWasOpenRef.current) {
+      el.focus()
       lightboxWasOpenRef.current = true
     }
 
@@ -636,7 +636,8 @@ export default function PublicPortfolio() {
           ref={lightboxRef}
           role="dialog"
           aria-modal="true"
-          className="fixed inset-0 bg-[oklch(0.12_0.012_60/0.98)] z-50 flex flex-col"
+          tabIndex={-1}
+          className="fixed inset-0 bg-[oklch(0.12_0.012_60/0.98)] z-50 flex flex-col outline-none"
           onClick={() => setLightboxIndex(null)}
         >
           {/* Thin top bar: chapter title, counter, close */}
