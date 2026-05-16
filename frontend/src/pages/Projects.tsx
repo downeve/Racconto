@@ -88,7 +88,8 @@ export default function Projects() {
   const setField = (key: keyof typeof FORM_INITIAL, value: string) =>
     setFormData(prev => ({ ...prev, [key]: value }))
   const { triggerRefresh } = useElectronSidebar()
-  const { t } = useTranslation()
+  const { t, i18n } = useTranslation()
+  const isEn = i18n.language.startsWith('en')
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 8 } }))
 
   // ── 프로젝트 목록 조회 ────────────────────────────────────────
@@ -234,7 +235,7 @@ export default function Projects() {
             <div className="py-5 grid grid-cols-2 gap-8">
               <div>
                 <p className="t-eyebrow text-edit-muted mb-2">{t('project.labelStatus')}</p>
-                <div className="inline-flex border border-edit-line rounded-btn p-0.5 flex-wrap gap-0.5">
+                <div className={`${isEn ? 'grid grid-cols-2' : 'flex'} w-full border border-edit-line rounded-btn p-0.5 gap-0.5`}>
                   {[
                     { value: 'in_progress', label: t('project.statusInProgress') },
                     { value: 'completed',   label: t('project.statusCompleted') },
@@ -242,7 +243,7 @@ export default function Projects() {
                     { value: 'archived',    label: t('project.statusArchived') },
                   ].map(opt => (
                     <button key={opt.value} type="button" onClick={() => setField('status', opt.value)}
-                      className={`t-caption px-3 py-1.5 rounded-btn transition-colors duration-150 ${formData.status === opt.value ? 'bg-edit-ink text-edit-paper' : 'text-edit-muted hover:text-edit-ink'}`}>
+                      className={`flex-1 t-caption px-2 py-1.5 rounded-btn text-center transition-colors duration-150 ${formData.status === opt.value ? 'bg-edit-ink text-edit-paper' : 'text-edit-muted hover:text-edit-ink'}`}>
                       {opt.label}
                     </button>
                   ))}
@@ -250,13 +251,13 @@ export default function Projects() {
               </div>
               <div>
                 <p className="t-eyebrow text-edit-muted mb-2">{t('project.labelVisibility')}</p>
-                <div className="inline-flex border border-edit-line rounded-btn p-0.5 flex-wrap gap-0.5">
+                <div className="flex w-full border border-edit-line rounded-btn p-0.5 gap-0.5">
                   {[
                     { value: 'false', label: t('project.privateProject') },
                     { value: 'true',  label: t('project.publicProject') },
                   ].map(opt => (
                     <button key={opt.value} type="button" onClick={() => setField('isPublic', opt.value)}
-                      className={`t-caption px-3 py-1.5 rounded-btn transition-colors duration-150 ${formData.isPublic === opt.value ? 'bg-edit-ink text-edit-paper' : 'text-edit-muted hover:text-edit-ink'}`}>
+                      className={`flex-1 t-caption px-2 py-1.5 rounded-btn text-center transition-colors duration-150 ${formData.isPublic === opt.value ? 'bg-edit-ink text-edit-paper' : 'text-edit-muted hover:text-edit-ink'}`}>
                       {opt.label}
                     </button>
                   ))}

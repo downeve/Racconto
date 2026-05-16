@@ -48,7 +48,7 @@ One-click public portfolio at `/p/your-username`. Share your work with a clean, 
 ### 💻 Electron Desktop App
 Auto-watch folders and upload photos in the background. Works offline with an upload queue.
 
-![Electron App](./screenshots/screenshot-electron.webp)
+![Electron App](./screenshots/screenshot-electron.gif)
 
 ---
 

@@ -53,14 +53,20 @@ function SegmentedControl({ value, onChange, options }: {
   value: string; onChange: (v: string) => void
   options: { value: string; label: string }[]
 }) {
+  const { i18n } = useTranslation()
+  const isEn = i18n.language.startsWith('en')
+  // en + 버튼 4개: 2×2 그리드, 그 외: 1행 flex
+  const wrapClass = isEn && options.length === 4
+    ? 'grid grid-cols-2'
+    : 'flex'
   return (
-    <div className="inline-flex border border-edit-line rounded-[1px] p-0.5 flex-wrap gap-0.5">
+    <div className={`${wrapClass} w-full border border-edit-line rounded-[1px] p-0.5 gap-0.5`}>
       {options.map(opt => (
         <button
           key={opt.value}
           type="button"
           onClick={() => onChange(opt.value)}
-          className={`t-caption px-3 py-1.5 rounded-[1px] transition-colors duration-150 ${
+          className={`flex-1 t-caption px-2 py-1.5 rounded-[1px] text-center transition-colors duration-150 ${
             value === opt.value
               ? 'bg-edit-ink text-edit-paper'
               : 'text-edit-muted hover:text-edit-ink'
