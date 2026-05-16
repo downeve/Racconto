@@ -235,3 +235,6 @@ imageTmp/
 
 # Claude Code worktrees
 .claude/worktrees/
+
+# 임시 대시보드 HTML
+racconto_dashboard_v3.html
