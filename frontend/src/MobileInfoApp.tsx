@@ -68,6 +68,7 @@ export default function MobileInfoApp() {
           <Route path="/mobile-app-info" element={<MobileAppInfo />} />
           <Route path="/download" element={<AppDownload />} />
           <Route path="/:username" element={<MobilePublicPortfolio />} />
+          <Route path="/:username/:slug" element={<MobilePublicPortfolio />} />
           <Route path="*" element={<MobileLandingPage />} />
         </Routes>
         </Suspense>

@@ -23,35 +23,52 @@ interface ChapterItem {
 interface Chapter { id: string; title: string; description: string | null; items: ChapterItem[]; sub_chapters: Chapter[] }
 interface PortfolioProject {
   id: string; title: string; description: string | null; cover_image_url: string | null
-  location: string | null; updated_at: string | null; photos: PortfolioPhoto[]; chapters: Chapter[]; extra_photos: PortfolioPhoto[]
+  location: string | null; updated_at: string | null; slug: string | null
+  photos: PortfolioPhoto[]; chapters: Chapter[]; extra_photos: PortfolioPhoto[]
 }
 
 export default function MobilePublicPortfolio() {
-  const { username } = useParams()
+  const { username, slug } = useParams<{ username: string; slug?: string }>()
   const { t } = useTranslation()
   const navigate = useNavigate()
   const location = useLocation()
   const { isAuthenticated } = useAuth()
 
-  const [selectedProject, setSelectedProject] = useState<PortfolioProject | null>(null)
+  const [localSelectedProject, setLocalSelectedProject] = useState<PortfolioProject | null>(null)
   const [darkMode, setDarkMode] = useState(false)
 
   const enabled = !!username && username !== '@setup'
-  const { data: portfolioData, isError: notFound } = useQuery({
+  const { data: portfolioData, isError: listError } = useQuery({
     queryKey: ['portfolio', username],
     queryFn: async () => (await axios.get(`${API}/portfolio/${username}`)).data,
-    enabled,
+    enabled: enabled && !slug,
+    staleTime: 1000 * 60 * 5,
+    retry: (_count, err) => !axios.isAxiosError(err) || err.response?.status !== 404,
+  })
+  const { data: slugData, isError: slugError } = useQuery({
+    queryKey: ['portfolioSlug', username, slug],
+    queryFn: async () => (await axios.get(`${API}/portfolio/${username}/${slug}`)).data,
+    enabled: enabled && !!slug,
     staleTime: 1000 * 60 * 5,
     retry: (_count, err) => !axios.isAxiosError(err) || err.response?.status !== 404,
   })
   const projects = useMemo<PortfolioProject[]>(() => portfolioData?.projects ?? [], [portfolioData])
+  const selectedProject: PortfolioProject | null = slug
+    ? ((slugData?.project ?? null) as PortfolioProject | null)
+    : localSelectedProject
+  const notFound = listError || slugError
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null)
   const [lightboxItems, setLightboxItems] = useState<{ photo: PortfolioPhoto; title: string }[]>([])
   const [copied, setCopied] = useState(false)
 
   const canNativeShare = typeof navigator !== 'undefined' && 'share' in navigator
 
-  const getShareUrl = useCallback(() => window.location.href, [])
+  const getShareUrl = useCallback(() => {
+    if (selectedProject?.slug) {
+      return `${window.location.origin}/${username}/${selectedProject.slug}`
+    }
+    return window.location.href
+  }, [selectedProject, username])
 
   const handleCopyLink = useCallback(() => {
     navigator.clipboard.writeText(getShareUrl()).then(() => {
@@ -72,18 +89,25 @@ export default function MobilePublicPortfolio() {
   const activeChapterId = useActiveChapter(chapterIds)
 
   useEffect(() => {
-    if ((location.state as { resetToList?: boolean } | null)?.resetToList) setSelectedProject(null)
+    if ((location.state as { resetToList?: boolean } | null)?.resetToList) setLocalSelectedProject(null)
   }, [location.state])
 
   useEffect(() => {
     if (!isAuthenticated && username === '@setup') navigate('/', { replace: true })
   }, [isAuthenticated, username, navigate])
 
-  useEffect(() => {
-    if (!portfolioData?.theme) return
+  const applyTheme = useCallback((apiTheme: string) => {
     const saved = localStorage.getItem(`portfolio_theme_${username}`)
-    setDarkMode(saved !== null ? saved === 'dark' : portfolioData.theme === 'dark')
-  }, [portfolioData, username])
+    setDarkMode(saved !== null ? saved === 'dark' : apiTheme === 'dark')
+  }, [username])
+
+  useEffect(() => {
+    if (portfolioData?.theme) applyTheme(portfolioData.theme)
+  }, [portfolioData, applyTheme])
+
+  useEffect(() => {
+    if (slugData?.theme) applyTheme(slugData.theme)
+  }, [slugData, applyTheme])
 
   const handleToggleDark = () => {
     setDarkMode(prev => {
@@ -91,6 +115,24 @@ export default function MobilePublicPortfolio() {
       if (username) localStorage.setItem(`portfolio_theme_${username}`, next ? 'dark' : 'light')
       return next
     })
+  }
+
+  const openProject = (project: PortfolioProject) => {
+    if (project.slug) {
+      navigate(`/${username}/${project.slug}`)
+    } else {
+      setLocalSelectedProject(project)
+      window.scrollTo(0, 0)
+    }
+  }
+
+  const goBackToList = () => {
+    if (slug) {
+      navigate(`/${username}`)
+    } else {
+      setLocalSelectedProject(null)
+      window.scrollTo(0, 0)
+    }
   }
 
   // scroll progress + dot-rail scroll 감지
@@ -175,7 +217,7 @@ export default function MobilePublicPortfolio() {
       {/* floating back button (상세 화면) */}
       {selectedProject && (
         <button
-          onClick={() => { setSelectedProject(null); window.scrollTo(0, 0) }}
+          onClick={goBackToList}
           className={`fixed left-3 z-20 w-9 h-9 rounded-full border flex items-center justify-center
                       ${darkMode
                         ? 'bg-d-bg/85 border-d-line'
@@ -237,7 +279,7 @@ export default function MobilePublicPortfolio() {
                 <article
                   key={project.id}
                   className="cursor-pointer group"
-                  onClick={() => { setSelectedProject(project); window.scrollTo(0, 0) }}
+                  onClick={() => openProject(project)}
                 >
                   <div className={`aspect-[4/5] overflow-hidden ${darkMode ? 'bg-d-surface' : 'bg-[oklch(0.92_0.012_75)]'}`}>
                     {project.cover_image_url ? (
