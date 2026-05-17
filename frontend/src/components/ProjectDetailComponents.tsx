@@ -458,7 +458,7 @@ export const PhotoCard = memo(function PhotoCard({
     <div className={`rounded-[2px] overflow-hidden transition-[box-shadow] ${
       isSelected ? 'ring-2 ring-edit-ink ring-offset-2 ring-offset-edit-paper' : ''
     }`}>
-      <div className="relative group">
+      <div className="relative group bg-[#F2EFE6]">
 
         {/* 이미지 */}
         <img
@@ -513,8 +513,8 @@ export const PhotoCard = memo(function PhotoCard({
         )}
       </div>
 
-      {/* 하단 메타 — 항상 표시 */}
-      <div className={`px-3 py-2 transition-opacity ${
+      {/* 하단 메타 — 항상 표시 (paper-2 배경) */}
+      <div className={`px-3 py-2 bg-[#F2EFE6] transition-opacity ${
         selectionMode ? 'opacity-40 pointer-events-none' : ''
       }`}>
         <div className="flex items-center justify-between gap-2">
