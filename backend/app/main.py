@@ -18,7 +18,7 @@ logger = logging.getLogger(__name__)
 models.Base.metadata.create_all(bind=engine)
 
 # 스키마 마이그레이션 — 버전이 올라간 경우에만 실행
-SCHEMA_VERSION = 8
+SCHEMA_VERSION = 9
 
 def _run_schema_migrations():
     with engine.connect() as conn:
@@ -114,6 +114,15 @@ def _run_schema_migrations():
 
         # v8 — 댓글 알림 기능 제거: guest_email 컬럼 삭제
         conn.execute(text("ALTER TABLE comments DROP COLUMN IF EXISTS guest_email"))
+
+        # v9 — 프로젝트 공개 시점(published_at) 추가 + 기존 공개 프로젝트 백필
+        conn.execute(text(
+            "ALTER TABLE projects ADD COLUMN IF NOT EXISTS published_at TIMESTAMP"
+        ))
+        conn.execute(text(
+            "UPDATE projects SET published_at = created_at "
+            "WHERE is_public = TRUE AND published_at IS NULL"
+        ))
 
         conn.execute(text("DELETE FROM _schema_version"))
         conn.execute(text(f"INSERT INTO _schema_version (version) VALUES ({SCHEMA_VERSION})"))

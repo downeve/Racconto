@@ -48,6 +48,7 @@ class Project(Base):
     location = Column(String)
     shot_date = Column(DateTime)
     is_public = Column(Boolean, default=False, nullable=False, server_default='false')
+    published_at = Column(DateTime, nullable=True)  # 마지막 포트폴리오 공개 시점 — 비공개 → 공개 전환 시마다 갱신
     view_count = Column(Integer, nullable=False, default=0, server_default='0')
     photos = relationship("Photo", back_populates="project", cascade="all, delete-orphan")
     pitches = relationship("Pitch", back_populates="project", cascade="all, delete-orphan")

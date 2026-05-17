@@ -309,7 +309,10 @@ def get_portfolio(response: Response, db: Session = Depends(get_db)):
     projects = db.query(models.Project).filter(
         models.Project.is_public == True,
         models.Project.deleted_at == None
-    ).order_by(models.Project.order_num.asc(), models.Project.created_at.desc()).all()
+    ).order_by(
+        models.Project.published_at.desc().nulls_last(),
+        models.Project.created_at.desc(),
+    ).all()
 
     chapters_by_project, items_by_chapter, photos_by_project = _preload_all_projects(
         [p.id for p in projects], db
@@ -342,7 +345,10 @@ def get_public_portfolio(username: str, response: Response, db: Session = Depend
         models.Project.user_id == user.id,
         models.Project.is_public == True,
         models.Project.deleted_at == None
-    ).order_by(models.Project.order_num.asc(), models.Project.created_at.desc()).all()
+    ).order_by(
+        models.Project.published_at.desc().nulls_last(),
+        models.Project.created_at.desc(),
+    ).all()
 
     chapters_by_project, items_by_chapter, photos_by_project = _preload_all_projects(
         [p.id for p in projects], db
