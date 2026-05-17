@@ -15,16 +15,22 @@ _ALLOWED_SETTING_KEYS: set[str] = {
     "delivery_tag_color",    # 컬러 레이블 키
     "default_grid_cols",     # '1' | '2' | '3'
     "default_show_exif",     # 'true' | 'false'
+    "default_show_filename", # 'true' | 'false'
     "default_sort_by",       # 정렬 기준
     "default_sort_order",    # 'asc' | 'desc'
+    "color_label_red",       # 컬러 레이블 표시명
+    "color_label_yellow",
+    "color_label_green",
+    "color_label_blue",
+    "color_label_purple",
 }
 
 
 def _validate_setting(key: str, value: str):
     if key not in _ALLOWED_SETTING_KEYS:
-        raise HTTPException(status_code=400, detail="SETTING_KEY_NOT_ALLOWED")
+        raise HTTPException(status_code=400, detail=f"SETTING_KEY_NOT_ALLOWED: {key}")
     if len(value) > SETTING_VALUE_MAX_LEN:
-        raise HTTPException(status_code=400, detail="SETTING_VALUE_TOO_LONG")
+        raise HTTPException(status_code=400, detail=f"SETTING_VALUE_TOO_LONG: {key}")
 
 router = APIRouter(prefix="/settings", tags=["settings"])
 

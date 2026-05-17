@@ -266,12 +266,12 @@ export default function MobilePublicPortfolio() {
         {!selectedProject ? (
           // ── 프로젝트 목록 ──────────────────────────────────
           <>
-            <div style={{ paddingTop: 'calc(env(safe-area-inset-top) + 56px)' }} className="pb-6">
+            <div style={{ paddingTop: 'calc(env(safe-area-inset-top) + 72px)' }} className="pb-6">
               <p className={`t-eyebrow mb-3 ${microcopy}`}>
                 Portfolio
                 {projects.length > 0 && <span className="ml-2 opacity-70">· {projects.length} {projects.length === 1 ? 'project' : 'projects'}</span>}
               </p>
-              <h1 className="font-serif font-normal leading-[1.05] tracking-[-0.02em]" style={{ fontSize: 'clamp(24px, 6vw, 32px)' }}>
+              <h1 className="font-serif font-normal leading-[1.05] tracking-[-0.02em]" style={{ fontSize: 'clamp(20px, 5vw, 26px)' }}>
                 @{username}
               </h1>
             </div>
@@ -293,7 +293,7 @@ export default function MobilePublicPortfolio() {
                       <CoverFallback title={project.title} dark={darkMode} />
                     )}
                   </div>
-                  <h3 className="mt-3 font-serif text-[18px] tracking-tight font-normal [word-break:keep-all]">
+                  <h3 className="mt-3 font-serif text-[16px] tracking-tight font-normal [word-break:keep-all]">
                     {project.title}
                   </h3>
                   {project.location && (
@@ -329,11 +329,11 @@ export default function MobilePublicPortfolio() {
                   </>
                 )}
               </div>
-              <h1 className="font-serif text-[38px] font-normal leading-[1.05] tracking-[-0.02em] [word-break:keep-all]">
+              <h1 className="font-serif text-[32px] font-normal leading-[1.05] tracking-[-0.02em] [word-break:keep-all]">
                 {selectedProject.title}
               </h1>
               {selectedProject.description && (
-                <p className={`font-serif text-[17px] leading-[1.75] mt-7 [word-break:keep-all] whitespace-pre-wrap ${subText}`}>
+                <p className={`font-serif text-[15px] leading-[1.75] mt-7 [word-break:keep-all] whitespace-pre-wrap ${subText}`}>
                   {selectedProject.description}
                 </p>
               )}
@@ -353,12 +353,12 @@ export default function MobilePublicPortfolio() {
                       {/* 챕터 헤더 — oversized number + hairline + serif title */}
                       <header className="mb-8">
                         <div className="flex items-baseline gap-3.5 mb-3.5">
-                          <span className={`font-serif text-[52px] font-light tracking-[-0.04em] leading-none ${darkMode ? 'text-d-soft' : 'text-accent'}`}>
+                          <span className={`font-serif text-[44px] font-light tracking-[-0.04em] leading-none ${darkMode ? 'text-d-soft' : 'text-accent'}`}>
                             {String(idx + 1).padStart(2, '0')}
                           </span>
                           <div className={`flex-1 h-px ${darkMode ? 'bg-d-line' : 'bg-hair'}`} />
                         </div>
-                        <h2 className="font-serif text-[28px] leading-[1.12] tracking-[-0.015em] font-normal [word-break:keep-all]">
+                        <h2 className="font-serif text-[24px] leading-[1.12] tracking-[-0.015em] font-normal [word-break:keep-all]">
                           {chapter.title}
                         </h2>
                         {chapter.description && (
@@ -381,7 +381,7 @@ export default function MobilePublicPortfolio() {
                         <div key={sub.id} className="mt-14">
                           <div className="mb-5">
                             <p className={`t-eyebrow mb-2 ${microcopy}`}>Section</p>
-                            <h3 className="font-serif text-[20px] tracking-tight font-normal [word-break:keep-all]">{sub.title}</h3>
+                            <h3 className="font-serif text-[18px] tracking-tight font-normal [word-break:keep-all]">{sub.title}</h3>
                             {sub.description && (
                               <p className={`text-sm font-serif mt-1.5 [word-break:keep-all] whitespace-pre-wrap leading-relaxed ${subText}`}>
                                 {sub.description}

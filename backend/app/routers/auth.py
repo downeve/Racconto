@@ -346,14 +346,16 @@ def verify_email(token: str, background_tasks: BackgroundTasks, lang: str = 'ko'
     return {"message": "EMAIL_VERIFIED"}
 
 
-_USERNAME_RE = re.compile(r"^[a-zA-Z0-9_]{3,20}$")
+_USERNAME_RE = re.compile(r"^[a-zA-Z0-9][a-zA-Z0-9_.-]*[a-zA-Z0-9]$")
 
 
 @router.get("/check-username/{username}")
 def check_username(username: str, db: Session = Depends(get_db)):
     # 형식이 잘못된 username은 DB 조회 전에 거부 (H3 enumeration 표면 축소).
-    # 정상 가입 폼에서는 클라이언트가 동일 정규식으로 미리 검증함.
-    if not _USERNAME_RE.match(username):
+    # PUT /username 의 유효성 검사 규칙과 동일하게 유지.
+    if len(username) < 3 or len(username) > 30:
+        return {"available": False}
+    if not _USERNAME_RE.match(username) or ".." in username:
         return {"available": False}
     exists = db.query(models.User.id).filter(models.User.username == username).first()
     return {"available": exists is None}
