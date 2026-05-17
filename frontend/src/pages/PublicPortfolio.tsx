@@ -9,6 +9,7 @@ import { useAuth } from '../context/AuthContext'
 import PortfolioChapterItems, { type PortfolioPhoto } from '../components/PortfolioChapterItems'
 import PublicNavbar from '../components/PublicNavbar'
 import EmptyState from '../components/EmptyState'
+import PortfolioComments from '../components/PortfolioComments'
 import { Sun, Moon, MapPin, ChevronLeft, ChevronRight, X, Link2, Check, ArrowUp } from 'lucide-react'
 import CoverFallback from '../components/CoverFallback'
 import { cfUrl } from '../utils/cfImage'
@@ -122,7 +123,7 @@ export default function PublicPortfolio() {
   const { t } = useTranslation()
   const navigate = useNavigate()
   const location = useLocation()
-  const { isAuthenticated } = useAuth()
+  const { isAuthenticated, user } = useAuth()
 
   useEffect(() => {
     if ((location.state as { resetToList?: boolean } | null)?.resetToList) {
@@ -632,6 +633,17 @@ export default function PublicPortfolio() {
                 </>
               </div>
             </div>
+
+            {/* 댓글 섹션 — 슬러그 기반 상세 페이지에서만 표시 */}
+            {selectedProject && (slug || localSelectedProject) && (
+              <PortfolioComments
+                projectId={selectedProject.id}
+                darkMode={darkMode}
+                isAuthenticated={isAuthenticated}
+                currentUsername={user?.username}
+                portfolioOwnerUsername={username ?? ''}
+              />
+            )}
           </div>
         )}
       </div>

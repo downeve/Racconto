@@ -162,7 +162,9 @@ def create_project(
         status=models.ProjectStatus(project.status),
         location=project.location,
         shot_date=project.shot_date,
-        is_public=project.is_public
+        is_public=project.is_public,
+        # 생성 시점부터 공개면 그 시점을 published_at 으로 기록
+        published_at=datetime.utcnow() if project.is_public else None,
     )
     db.add(db_project)
     db.commit()
@@ -200,11 +202,15 @@ def update_project(
     ).first()
     if not db_project:
         raise HTTPException(status_code=404, detail="PROJECT_NOT_FOUND")
+    was_public = bool(db_project.is_public)
     for key, value in project.dict(exclude_unset=True).items():
         if key == "status":
             setattr(db_project, key, models.ProjectStatus(value))
         else:
             setattr(db_project, key, value)
+    # is_public 가 False/None → True 로 전환되면 published_at 갱신 (재공개 포함)
+    if not was_public and bool(db_project.is_public):
+        db_project.published_at = datetime.utcnow()
     db.commit()
     db.refresh(db_project)
     return db_project
