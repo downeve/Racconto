@@ -1,5 +1,5 @@
 import { useEffect, useState, useRef } from 'react'
-import { useQuery, useMutation } from '@tanstack/react-query'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import axios from 'axios'
 import { useTranslation } from 'react-i18next'
 import FolderProjectMapper from '../components/FolderProjectMapper'
@@ -34,6 +34,7 @@ const RESERVED_WORDS = [
 
 export default function Settings() {
   const { user } = useAuth()
+  const queryClient = useQueryClient()
   const [email, setEmail] = useState(user?.email || '')
 
   const [settings, setSettings] = useState<Record<string, string>>({})
@@ -157,26 +158,33 @@ export default function Settings() {
   }
 
   // ── 설정 저장 ─────────────────────────────────────────────────
+  const buildPayload = () => {
+    // 알려진 키만 명시적으로 보냄 (레거시/미허용 키 spread 방지)
+    const payload: Record<string, string> = {
+      portfolio_theme: portfolioTheme,
+      delivery_tag_color: deliveryTagColor,
+      default_grid_cols: defaultGridCols,
+      default_show_exif: defaultShowExif,
+      default_show_filename: defaultShowFilename,
+      default_sort_by: defaultSortBy,
+      default_sort_order: defaultSortOrder,
+    }
+    for (const { key } of COLOR_KEYS) {
+      const v = settings[key]
+      if (v !== undefined) payload[key] = v
+    }
+    return payload
+  }
+
   const saveMutation = useMutation({
-    mutationFn: () => {
-      // 알려진 키만 명시적으로 보냄 (레거시/미허용 키 spread 방지)
-      const payload: Record<string, string> = {
-        portfolio_theme: portfolioTheme,
-        delivery_tag_color: deliveryTagColor,
-        default_grid_cols: defaultGridCols,
-        default_show_exif: defaultShowExif,
-        default_show_filename: defaultShowFilename,
-        default_sort_by: defaultSortBy,
-        default_sort_order: defaultSortOrder,
-      }
-      for (const { key } of COLOR_KEYS) {
-        const v = settings[key]
-        if (v !== undefined) payload[key] = v
-      }
-      return axios.put(`${API}/settings/batch/update`, payload)
-    },
+    mutationFn: () => axios.put(`${API}/settings/batch/update`, buildPayload()),
     onSuccess: () => {
       setSaveError('')
+      // 1) 즉시 캐시를 새 값으로 갱신 — 30초 staleTime 안에서도 다른 컴포넌트에 즉시 반영
+      const next = { ...(settings ?? {}), ...buildPayload() }
+      queryClient.setQueryData(['settings'], next)
+      // 2) stale 표시 → 다음 마운트/포커스에서 서버 재검증
+      queryClient.invalidateQueries({ queryKey: ['settings'] })
       setSaved(true)
       setTimeout(() => setSaved(false), 2000)
     },
