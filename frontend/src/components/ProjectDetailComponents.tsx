@@ -514,7 +514,7 @@ export const PhotoCard = memo(function PhotoCard({
       </div>
 
       {/* 하단 메타 — 항상 표시 (paper-2 배경) */}
-      <div className={`px-3 py-2 bg-[#F2EFE6] transition-opacity ${
+      <div className={`px-3 py-2 bg-edit-paper-2 transition-opacity ${
         selectionMode ? 'opacity-40 pointer-events-none' : ''
       }`}>
         <div className="flex items-center justify-between gap-2">
