@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next'
 import { useAuth } from '../context/AuthContext' // AuthContext가 구현되어 있다고 가정
 import ProjectCard from '../components/ProjectCard'
 import CoverFallback from '../components/CoverFallback'
+import { cfUrl } from '../utils/cfImage'
 
 const API = import.meta.env.VITE_API_URL
 const isElectron = typeof window !== 'undefined' && !!window.racconto
@@ -137,7 +138,7 @@ export default function Dashboard() {
                     return (
                       <Link to={to} className="col-span-2 row-span-2 overflow-hidden bg-hair/50 block">
                         {p.cover_image_url
-                          ? <img src={p.cover_image_url} alt={p.title} className="w-full h-full object-cover hover:opacity-90 transition-opacity" />
+                          ? <img src={cfUrl(p.cover_image_url, 'cover')} alt={p.title} className="w-full h-full object-cover hover:opacity-90 transition-opacity" />
                           : <CoverFallback title={p.title} />
                         }
                       </Link>
@@ -148,7 +149,7 @@ export default function Dashboard() {
                     return (
                       <Link key={p.id} to={to} className="overflow-hidden bg-hair/50 block">
                         {p.cover_image_url
-                          ? <img src={p.cover_image_url} alt={p.title} className="w-full h-full object-cover hover:opacity-90 transition-opacity" />
+                          ? <img src={cfUrl(p.cover_image_url, 'grid')} alt={p.title} className="w-full h-full object-cover hover:opacity-90 transition-opacity" />
                           : <CoverFallback title={p.title} />
                         }
                       </Link>
