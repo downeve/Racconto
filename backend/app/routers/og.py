@@ -34,13 +34,16 @@ def _inject_og(html: str, title: str, description: str, image: str | None, url: 
         f'    <meta property="og:description" content="{esc(description)}" />\n'
         f'    <meta property="og:url" content="{esc(url)}" />\n'
         f'    <meta property="og:type" content="website" />\n'
+        f'    <meta name="twitter:card" content="summary_large_image" />\n'
     )
     if image:
         tags += f'    <meta property="og:image" content="{esc(image)}" />\n'
-    return html.replace("</head>", tags + "  </head>", 1)
+        tags += f'    <meta name="twitter:image" content="{esc(image)}" />\n'
+    # <head> 시작 직후에 주입 — Facebook/Twitter 크롤러는 head 앞쪽만 파싱함
+    return html.replace("<head>", "<head>\n" + tags, 1)
 
 
-@router.get("/{username}", response_class=HTMLResponse)
+@router.api_route("/{username}", methods=["GET", "HEAD"], response_class=HTMLResponse)
 def og_portfolio(username: str, db: Session = Depends(get_db)):
     user = db.query(models.User).filter(models.User.username == username).first()
     if not user:
@@ -65,7 +68,7 @@ def og_portfolio(username: str, db: Session = Depends(get_db)):
     return HTMLResponse(content=_inject_og(_read_index(), title, description, image, url))
 
 
-@router.get("/{username}/{slug}", response_class=HTMLResponse)
+@router.api_route("/{username}/{slug}", methods=["GET", "HEAD"], response_class=HTMLResponse)
 def og_project(username: str, slug: str, db: Session = Depends(get_db)):
     user = db.query(models.User).filter(models.User.username == username).first()
     if not user:
