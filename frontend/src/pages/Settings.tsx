@@ -38,6 +38,7 @@ export default function Settings() {
 
   const [settings, setSettings] = useState<Record<string, string>>({})
   const [saved, setSaved] = useState(false)
+  const [saveError, setSaveError] = useState('')
   const [currentPassword, setCurrentPassword] = useState('')
   const [newPassword, setNewPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
@@ -48,6 +49,7 @@ export default function Settings() {
   const [deliveryTagColor, setDeliveryTagColor] = useState('purple')
   const [defaultGridCols, setDefaultGridCols] = useState('3')
   const [defaultShowExif, setDefaultShowExif] = useState('true')
+  const [defaultShowFilename, setDefaultShowFilename] = useState('false')
   const [defaultSortBy, setDefaultSortBy] = useState('default')
   const [defaultSortOrder, setDefaultSortOrder] = useState('asc')
 
@@ -133,6 +135,7 @@ export default function Settings() {
     setDeliveryTagColor(settingsData['delivery_tag_color'] || 'purple')
     setDefaultGridCols(settingsData['default_grid_cols'] || '3')
     setDefaultShowExif(settingsData['default_show_exif'] || 'true')
+    setDefaultShowFilename(settingsData['default_show_filename'] || 'false')
     setDefaultSortBy(settingsData['default_sort_by'] || 'default')
     setDefaultSortOrder(settingsData['default_sort_order'] || 'asc')
   }, [settingsData])
@@ -155,23 +158,35 @@ export default function Settings() {
 
   // ── 설정 저장 ─────────────────────────────────────────────────
   const saveMutation = useMutation({
-    mutationFn: () =>
-      axios.put(`${API}/settings/batch/update`, {
-        ...settings,
+    mutationFn: () => {
+      // 알려진 키만 명시적으로 보냄 (레거시/미허용 키 spread 방지)
+      const payload: Record<string, string> = {
         portfolio_theme: portfolioTheme,
         delivery_tag_color: deliveryTagColor,
         default_grid_cols: defaultGridCols,
         default_show_exif: defaultShowExif,
+        default_show_filename: defaultShowFilename,
         default_sort_by: defaultSortBy,
         default_sort_order: defaultSortOrder,
-      }),
+      }
+      for (const { key } of COLOR_KEYS) {
+        const v = settings[key]
+        if (v !== undefined) payload[key] = v
+      }
+      return axios.put(`${API}/settings/batch/update`, payload)
+    },
     onSuccess: () => {
+      setSaveError('')
       setSaved(true)
       setTimeout(() => setSaved(false), 2000)
     },
+    onError: (err: any) => {
+      const detail = err?.response?.data?.detail
+      setSaveError(typeof detail === 'string' ? detail : t('settings.saveFailed'))
+    },
   })
 
-  const handleSave = () => saveMutation.mutate()
+  const handleSave = () => { setSaveError(''); saveMutation.mutate() }
 
   const handleUsernameCheck = async (value: string) => {
     setUsername(value)
@@ -325,83 +340,98 @@ export default function Settings() {
           <Columns3 className="w-4 h-4" strokeWidth={1.5} />
           {t('settings.defaultView')}
         </h3>
-        <div className="space-y-4">
-          <div className="grid grid-cols-[max-content_1fr] items-center gap-x-4 gap-y-6">
-            {/* 그리드 & EXIF 한 줄 배치 */}
-            <div className="col-span-2 flex items-center gap-12">
-              {/* 1. 그리드 컬럼 */}
-              <div className="flex items-center gap-4">
-                <span className="text-sm text-muted">{t('settings.defaultGridCols')}</span>
-                <div className="flex gap-2">
-                  {['2', '3', '4', '5'].map((cols) => (
-                    <button
-                      key={cols}
-                      onClick={() => setDefaultGridCols(cols)}
-                      className={`w-8 h-8 text-xs font-medium transition-colors ${defaultGridCols === cols ? 'bg-ink text-canvas' : 'bg-hair hover:bg-canvas-2 text-muted hover:text-ink'}`}
-                    >
-                      {cols}
-                    </button>
-                  ))}
-                </div>
-              </div>
+        <div className="space-y-6">
+          {/* 1. 그리드 컬럼 */}
+          <div className="flex items-center gap-4">
+            <span className="text-sm text-muted">{t('settings.defaultGridCols')}</span>
+            <div className="flex gap-2">
+              {['2', '3', '4', '5'].map((cols) => (
+                <button
+                  key={cols}
+                  onClick={() => setDefaultGridCols(cols)}
+                  className={`w-8 h-8 text-xs font-medium transition-colors ${defaultGridCols === cols ? 'bg-ink text-canvas' : 'bg-hair hover:bg-canvas-2 text-muted hover:text-ink'}`}
+                >
+                  {cols}
+                </button>
+              ))}
+            </div>
+          </div>
 
-              {/* 2. EXIF 기본값 */}
-              <div className="flex items-center gap-4">
-                <span className="text-sm text-muted">{t('settings.defaultExif')}</span>
-                <div className="flex gap-2">
-                  <button
-                    onClick={() => setDefaultShowExif('true')}
-                    className={`px-3 py-1.5 text-xs font-medium transition-colors ${defaultShowExif === 'true' ? 'bg-ink text-canvas' : 'bg-hair hover:bg-canvas-2 text-muted hover:text-ink'}`}
-                  >
-                    ON
-                  </button>
-                  <button
-                    onClick={() => setDefaultShowExif('false')}
-                    className={`px-3 py-1.5 text-xs font-medium transition-colors ${defaultShowExif === 'false' ? 'bg-ink text-canvas' : 'bg-hair hover:bg-canvas-2 text-muted hover:text-ink'}`}
-                  >
-                    OFF
-                  </button>
-                </div>
+          {/* 2. 파일명 표시 + EXIF 정보 표시 */}
+          <div className="flex items-center gap-12">
+            <div className="flex items-center gap-4">
+              <span className="text-sm text-muted">{t('settings.defaultShowFilename')}</span>
+              <div className="flex gap-2">
+                <button
+                  onClick={() => setDefaultShowFilename('true')}
+                  className={`px-3 py-1.5 text-xs font-medium transition-colors ${defaultShowFilename === 'true' ? 'bg-ink text-canvas' : 'bg-hair hover:bg-canvas-2 text-muted hover:text-ink'}`}
+                >
+                  ON
+                </button>
+                <button
+                  onClick={() => setDefaultShowFilename('false')}
+                  className={`px-3 py-1.5 text-xs font-medium transition-colors ${defaultShowFilename === 'false' ? 'bg-ink text-canvas' : 'bg-hair hover:bg-canvas-2 text-muted hover:text-ink'}`}
+                >
+                  OFF
+                </button>
               </div>
             </div>
 
-            <span className="text-sm text-muted">{t('photo.listOrder')}</span>
             <div className="flex items-center gap-4">
-              {/* 정렬 기준 */}
-              <div className="flex gap-2">
-                {[
-                  { value: 'default', label: t('photo.orderUpload') },
-                  { value: 'taken_at', label: t('photo.orderTaken') },
-                  { value: 'name', label: t('photo.orderName') }
-                ].map(opt => (
-                  <button
-                    key={opt.value}
-                    onClick={() => setDefaultSortBy(opt.value)}
-                    className={`px-3 py-1.5 text-xs font-medium transition-colors ${defaultSortBy === opt.value ? 'bg-ink text-canvas' : 'bg-hair hover:bg-canvas-2 text-muted hover:text-ink'}`}
-                  >
-                    {opt.label}
-                  </button>
-                ))}
-              </div>
-
-              {/* 구분선 */}
-              <div className="w-px h-4 bg-hair" />
-
-              {/* 오름/내림차순 */}
+              <span className="text-sm text-muted">{t('settings.defaultExif')}</span>
               <div className="flex gap-2">
                 <button
-                  onClick={() => setDefaultSortOrder('asc')}
-                  className={`px-3 py-1.5 text-xs font-medium transition-colors ${defaultSortOrder === 'asc' ? 'bg-ink text-canvas' : 'bg-hair hover:bg-canvas-2 text-muted hover:text-ink'}`}
+                  onClick={() => setDefaultShowExif('true')}
+                  className={`px-3 py-1.5 text-xs font-medium transition-colors ${defaultShowExif === 'true' ? 'bg-ink text-canvas' : 'bg-hair hover:bg-canvas-2 text-muted hover:text-ink'}`}
                 >
-                  {t('photo.orderAsc')}
+                  ON
                 </button>
                 <button
-                  onClick={() => setDefaultSortOrder('desc')}
-                  className={`px-3 py-1.5 text-xs font-medium transition-colors ${defaultSortOrder === 'desc' ? 'bg-ink text-canvas' : 'bg-hair hover:bg-canvas-2 text-muted hover:text-ink'}`}
+                  onClick={() => setDefaultShowExif('false')}
+                  className={`px-3 py-1.5 text-xs font-medium transition-colors ${defaultShowExif === 'false' ? 'bg-ink text-canvas' : 'bg-hair hover:bg-canvas-2 text-muted hover:text-ink'}`}
                 >
-                  {t('photo.orderDesc')}
+                  OFF
                 </button>
               </div>
+            </div>
+          </div>
+
+          {/* 3. 정렬 기준 */}
+          <div className="flex items-center gap-4">
+            <span className="text-sm text-muted">{t('photo.listOrder')}</span>
+            <div className="flex gap-2">
+              {[
+                { value: 'default', label: t('photo.orderUpload') },
+                { value: 'taken_at', label: t('photo.orderTaken') },
+                { value: 'name', label: t('photo.orderName') }
+              ].map(opt => (
+                <button
+                  key={opt.value}
+                  onClick={() => setDefaultSortBy(opt.value)}
+                  className={`px-3 py-1.5 text-xs font-medium transition-colors ${defaultSortBy === opt.value ? 'bg-ink text-canvas' : 'bg-hair hover:bg-canvas-2 text-muted hover:text-ink'}`}
+                >
+                  {opt.label}
+                </button>
+              ))}
+            </div>
+
+            {/* 구분선 */}
+            <div className="w-px h-4 bg-hair" />
+
+            {/* 오름/내림차순 */}
+            <div className="flex gap-2">
+              <button
+                onClick={() => setDefaultSortOrder('asc')}
+                className={`px-3 py-1.5 text-xs font-medium transition-colors ${defaultSortOrder === 'asc' ? 'bg-ink text-canvas' : 'bg-hair hover:bg-canvas-2 text-muted hover:text-ink'}`}
+              >
+                {t('photo.orderAsc')}
+              </button>
+              <button
+                onClick={() => setDefaultSortOrder('desc')}
+                className={`px-3 py-1.5 text-xs font-medium transition-colors ${defaultSortOrder === 'desc' ? 'bg-ink text-canvas' : 'bg-hair hover:bg-canvas-2 text-muted hover:text-ink'}`}
+              >
+                {t('photo.orderDesc')}
+              </button>
             </div>
           </div>
         </div>
@@ -576,7 +606,8 @@ export default function Settings() {
           <div className="flex justify-start pt-2">
             <button
               onClick={handlePasswordChange}
-              className="bg-ink text-canvas px-4 py-2 text-sm hover:bg-ink-2 transition-colors"
+              disabled={!currentPassword || !newPassword || !confirmPassword}
+              className="bg-ink text-canvas px-4 py-2 text-sm hover:bg-ink-2 transition-colors disabled:bg-hair disabled:text-faint disabled:cursor-not-allowed disabled:hover:bg-hair"
             >
               {t('settings.changePassword')}
             </button>
@@ -585,7 +616,8 @@ export default function Settings() {
       </div>
 
       {/* 저장 버튼 */}
-      <div className="flex justify-end pt-8">
+      <div className="flex justify-end items-center gap-4 pt-8">
+        {saveError && <p className="text-xs text-red-500">{saveError}</p>}
         <button
           onClick={handleSave}
           className={`flex items-center gap-2 px-8 py-2.5 text-sm font-medium tracking-[0.02em] rounded-none transition-colors ${

@@ -303,6 +303,7 @@ export default function ProjectDetail({
   const [filterColor, setFilterColor] = useState<string | null>(null)
   const [filterFolder, setFilterFolder] = useState<string | null>(null)
   const [showExif, setShowExif] = useState(true)
+  const [showFilename, setShowFilename] = useState(false)
   const [lightboxPhoto, setLightboxPhoto] = useState<Photo | null>(null)
   const [chapterMenuPhoto, setChapterMenuPhoto] = useState<string | null>(null)
   const [sortBy, setSortBy] = useState<'default' | 'taken_at' | 'name'>('default')
@@ -382,7 +383,7 @@ export default function ProjectDetail({
   }, [])
 
   const [gridCols, setGridCols] = useState(3)
-  const [openDropdown, setOpenDropdown] = useState<'view' | 'sort' | 'exif' | null>(null)
+  const [openDropdown, setOpenDropdown] = useState<'view' | 'sort' | 'filename' | 'exif' | null>(null)
   const dropdownRef = useRef<HTMLDivElement>(null)
 
   const labelSettings = useMemo(() => ({
@@ -407,6 +408,7 @@ export default function ProjectDetail({
     if (!settingsData) return
     setGridCols(parseInt(settingsData['default_grid_cols'] || '3'))
     setShowExif(settingsData['default_show_exif'] !== 'false')
+    setShowFilename(settingsData['default_show_filename'] === 'true')
     if (settingsData['default_sort_by']) setSortBy(settingsData['default_sort_by'])
     if (settingsData['default_sort_order']) setSortOrder(settingsData['default_sort_order'] as 'asc' | 'desc')
   }, [settingsData])
@@ -1139,6 +1141,26 @@ export default function ProjectDetail({
                       </div>
                     )}
 
+                    {/* 파일명 */}
+                    <button
+                      onClick={() => setOpenDropdown(openDropdown === 'filename' ? null : 'filename')}
+                      className={toolbarBtn(openDropdown === 'filename')}
+                      title={t('filter.filenameOnOff')}
+                    >
+                      <FileText size={14} strokeWidth={1.5} />
+                      <span>Name</span>
+                    </button>
+                    {openDropdown === 'filename' && (
+                      <div className={`${dropdownPanel} left-[5.5rem] p-1.5 flex gap-1`}>
+                        {[true, false].map(val => (
+                          <button key={String(val)} onClick={() => { setShowFilename(val); setOpenDropdown(null) }}
+                            className={`px-3 py-1 t-caption rounded-[1px] transition-colors ${showFilename === val ? 'bg-edit-ink text-edit-paper' : 'text-edit-muted hover:bg-edit-paper-2'}`}>
+                            {val ? 'On' : 'Off'}
+                          </button>
+                        ))}
+                      </div>
+                    )}
+
                     {/* EXIF */}
                     <button
                       onClick={() => setOpenDropdown(openDropdown === 'exif' ? null : 'exif')}
@@ -1149,7 +1171,7 @@ export default function ProjectDetail({
                       <span>EXIF</span>
                     </button>
                     {openDropdown === 'exif' && (
-                      <div className={`${dropdownPanel} left-[5.5rem] p-1.5 flex gap-1`}>
+                      <div className={`${dropdownPanel} left-[10rem] p-1.5 flex gap-1`}>
                         {[true, false].map(val => (
                           <button key={String(val)} onClick={() => { setShowExif(val); setOpenDropdown(null) }}
                             className={`px-3 py-1 t-caption rounded-[1px] transition-colors ${showExif === val ? 'bg-edit-ink text-edit-paper' : 'text-edit-muted hover:bg-edit-paper-2'}`}>
@@ -1195,7 +1217,7 @@ export default function ProjectDetail({
                       onSetCover={handleSetCover}
                       onSetRating={handleSetRating} onSetColorLabel={handleSetColorLabel}
                       onOpenLightbox={setLightboxPhoto}
-                      showExif={showExif} gridCols={gridCols}
+                      showExif={showExif} showFilename={showFilename} gridCols={gridCols}
                       colorLabels={colorLabels} chapterPhotoIds={chapterPhotoIds}
                       selectionMode={selectionMode}
                       isSelected={selectedPhotoIds.has(photo.id)}

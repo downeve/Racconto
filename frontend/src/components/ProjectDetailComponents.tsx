@@ -402,6 +402,7 @@ interface PhotoCardProps {
   onSetColorLabel: (photo: Photo, label: string) => void
   onOpenLightbox: (photo: Photo) => void
   showExif: boolean
+  showFilename: boolean
   gridCols: number
   colorLabels: ColorLabel[]
   chapterPhotoIds: Set<string>
@@ -413,7 +414,7 @@ interface PhotoCardProps {
 
 export const PhotoCard = memo(function PhotoCard({
   photo, project, onSetCover, onSetRating, onSetColorLabel,
-  onOpenLightbox, showExif, colorLabels, chapterPhotoIds,
+  onOpenLightbox, showExif, showFilename, colorLabels, chapterPhotoIds,
   selectionMode, isSelected, anySelected, onToggleSelect
 }: PhotoCardProps) {
   const { t, i18n } = useTranslation()
@@ -528,6 +529,12 @@ export const PhotoCard = memo(function PhotoCard({
             })}
           </div>
         </div>
+        {/* 파일명 */}
+        {showFilename && photo.original_filename && (
+          <p className="t-caption text-edit-faint truncate mt-1.5 select-none" title={photo.original_filename}>
+            {photo.original_filename}
+          </p>
+        )}
         {/* EXIF */}
         {showExif && (photo.camera || photo.taken_at) && (
           <div className="mt-1.5 space-y-0.5">
