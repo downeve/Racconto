@@ -201,6 +201,7 @@ export default function MobilePublicPortfolio() {
           username={username}
           darkMode={darkMode}
           portfolio
+          compactLogo
           onToggleDark={handleToggleDark}
         />
       )}

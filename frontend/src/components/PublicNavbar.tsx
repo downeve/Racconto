@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next'
 import { Sun, Moon } from 'lucide-react'
 import { Wordmark } from './Wordmark'
 
-export default function PublicNavbar({ username, darkMode, compact, portfolio, onToggleDark, showUsername }: { username?: string; darkMode?: boolean; compact?: boolean; portfolio?: boolean; onToggleDark?: () => void; showUsername?: boolean } = {}) {
+export default function PublicNavbar({ username, darkMode, compact, portfolio, onToggleDark, showUsername, compactLogo }: { username?: string; darkMode?: boolean; compact?: boolean; portfolio?: boolean; onToggleDark?: () => void; showUsername?: boolean; compactLogo?: boolean } = {}) {
   const { t, i18n } = useTranslation()
 
   const [isLangOpen, setIsLangOpen] = useState(false)
@@ -40,7 +40,7 @@ export default function PublicNavbar({ username, darkMode, compact, portfolio, o
     return (
       <nav className={`fixed top-0 left-0 right-0 z-50 backdrop-blur-sm border-b transition-[background,color,border] duration-150 ease-out ${dm ? 'bg-ink/90 border-hair/20' : 'bg-canvas/90 border-edit-line'}`}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 h-14 flex items-center justify-between">
-          <Wordmark size="md" tone={dm ? 'on-ink' : 'on-paper'} />
+          <Wordmark size={compactLogo ? 'md' : 'lg'} tone={dm ? 'on-ink' : 'on-paper'} />
           <div className="flex items-center gap-3 sm:gap-6">
             {username && (
               <Link

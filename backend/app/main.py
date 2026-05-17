@@ -5,7 +5,7 @@ from fastapi.staticfiles import StaticFiles
 from app.database import engine, SessionLocal
 from sqlalchemy import text
 import app.models as models
-from app.routers import projects, photos, portfolio, notes, auth, chapters, settings, delivery, admin, folder_links, og
+from app.routers import projects, photos, portfolio, notes, auth, chapters, settings, delivery, admin, folder_links, og, comments
 from apscheduler.schedulers.background import BackgroundScheduler
 from datetime import datetime, timedelta
 import os
@@ -18,7 +18,7 @@ logger = logging.getLogger(__name__)
 models.Base.metadata.create_all(bind=engine)
 
 # 스키마 마이그레이션 — 버전이 올라간 경우에만 실행
-SCHEMA_VERSION = 5
+SCHEMA_VERSION = 8
 
 def _run_schema_migrations():
     with engine.connect() as conn:
@@ -79,6 +79,42 @@ def _run_schema_migrations():
         # v5 — 프로젝트 조회수 컬럼
         conn.execute(text("ALTER TABLE projects ADD COLUMN IF NOT EXISTS view_count INTEGER NOT NULL DEFAULT 0"))
 
+        # v6 — 댓글 테이블
+        conn.execute(text("""
+            CREATE TABLE IF NOT EXISTS comments (
+                id           VARCHAR PRIMARY KEY,
+                project_id   VARCHAR NOT NULL REFERENCES projects(id) ON DELETE CASCADE,
+                user_id      VARCHAR REFERENCES users(id) ON DELETE SET NULL,
+                guest_name   VARCHAR(50),
+                guest_email  VARCHAR(255),
+                delete_token VARCHAR(64),
+                ip_hash      VARCHAR(64) NOT NULL,
+                body         TEXT NOT NULL,
+                is_deleted   BOOLEAN NOT NULL DEFAULT FALSE,
+                created_at   TIMESTAMP NOT NULL DEFAULT NOW()
+            )
+        """))
+        conn.execute(text("CREATE INDEX IF NOT EXISTS ix_comments_project_id ON comments(project_id)"))
+
+        # v7 — 대댓글 지원 (parent_id 컬럼 + FK + 인덱스)
+        conn.execute(text(
+            "ALTER TABLE comments ADD COLUMN IF NOT EXISTS parent_id VARCHAR"
+        ))
+        # FK 추가는 IF NOT EXISTS 미지원 — information_schema 로 존재 여부 확인 후 추가
+        fk_exists = conn.execute(text(
+            "SELECT 1 FROM information_schema.table_constraints "
+            "WHERE table_name='comments' AND constraint_name='comments_parent_id_fkey'"
+        )).scalar()
+        if not fk_exists:
+            conn.execute(text(
+                "ALTER TABLE comments ADD CONSTRAINT comments_parent_id_fkey "
+                "FOREIGN KEY (parent_id) REFERENCES comments(id) ON DELETE CASCADE"
+            ))
+        conn.execute(text("CREATE INDEX IF NOT EXISTS ix_comments_parent_id ON comments(parent_id)"))
+
+        # v8 — 댓글 알림 기능 제거: guest_email 컬럼 삭제
+        conn.execute(text("ALTER TABLE comments DROP COLUMN IF EXISTS guest_email"))
+
         conn.execute(text("DELETE FROM _schema_version"))
         conn.execute(text(f"INSERT INTO _schema_version (version) VALUES ({SCHEMA_VERSION})"))
         conn.commit()
@@ -125,6 +161,7 @@ app.include_router(delivery.router)
 app.include_router(admin.router)
 app.include_router(folder_links.router)
 app.include_router(og.router)
+app.include_router(comments.router)
 
 os.makedirs("app/uploads", exist_ok=True)
 app.mount("/uploads", StaticFiles(directory="app/uploads"), name="uploads")

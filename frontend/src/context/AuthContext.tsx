@@ -103,6 +103,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const res = await axios.post(`${API}/auth/login`, formData)
       const token = res.data.access_token
       localStorage.setItem('token', token)
+      localStorage.setItem('sidebar_projects_open', 'false')
       axios.defaults.headers.common['Authorization'] = `Bearer ${token}`
       if (window.racconto) {
         window.racconto.setAuthToken(token)
@@ -126,6 +127,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const loginWithToken = async (token: string): Promise<boolean> => {
     try {
       localStorage.setItem('token', token)
+      localStorage.setItem('sidebar_projects_open', 'false')
       axios.defaults.headers.common['Authorization'] = `Bearer ${token}`
       if (window.racconto) {
         window.racconto.setAuthToken(token)
