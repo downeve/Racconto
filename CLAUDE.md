@@ -91,6 +91,21 @@ API 베이스: dev는 `http://localhost:8000`, 패키징 후는 `https://raccont
 - **User 한도**: `photo_limit`(기본 1000), `project_limit`(기본 3) — 라우터에서 초과 검사
 - **환경변수**: 백엔드는 `backend/.env`의 `DATABASE_URL` 필수
 
+## 스키마 마이그레이션 절차 (`backend/app/main.py`)
+
+`_run_schema_migrations()` 는 `current >= SCHEMA_VERSION` 일 때 조기 return 하므로, **SQL 과 SCHEMA_VERSION 을 분리해서 저장하면 race condition 으로 SQL 이 누락**된다. (uvicorn --reload 가 두 번 트리거되어 한 번은 version 만 올리고 다음 번엔 게이트로 막힘.)
+
+**반드시 다음 순서로 한 번에 작업**:
+
+1. v{N+1} 마이그레이션 SQL 블록을 `_run_schema_migrations()` 안의 마지막 v{N} 블록 뒤에 추가
+2. `models.py` 에 새 컬럼/테이블 정의 추가
+3. **마지막에** `SCHEMA_VERSION` 을 N+1 로 bump
+4. 한 번에 저장 → uvicorn --reload 가 SQL 과 버전 업데이트를 같은 사이클에서 실행
+
+**금지**: SCHEMA_VERSION 만 먼저 bump 한 뒤 SQL 을 나중에 추가. (이미 v7 parent_id, v9 published_at 두 번 사고.)
+
+**복구**: 만약 같은 사고가 재발하면 `docker exec racconto_db psql -U racconto_user -d racconto_db -c "<누락된 ALTER>"` 로 수동 적용. `_schema_version` 은 이미 올바른 값으로 올라가 있으므로 추가 조작 불필요.
+
 ## 개발 일지 업데이트
 
 작업 완료 시 아래 Obsidian 파일을 직접 업데이트할 것 (iCloud 동기화 중).

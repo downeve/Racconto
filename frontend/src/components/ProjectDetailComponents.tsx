@@ -5,6 +5,36 @@ import { BookOpen, FileText, AlertTriangle, Check, Star, RotateCcw, RotateCw } f
 import { cfUrl } from '../utils/cfImage'
 import { useChromeAutoHide } from '../hooks/useChromeAutoHide'
 
+// ── EXIF 표기 헬퍼 ─────────────────────────────────────────
+// 카메라: EXIF 의 "Make Model" 형식에서 제조사 prefix 제거 → 기종(Model) 만 남김
+const CAMERA_BRAND_PREFIXES = [
+  'OLYMPUS IMAGING CORP.', 'OLYMPUS CORPORATION', 'NIKON CORPORATION',
+  'PENTAX CORPORATION', 'EASTMAN KODAK COMPANY', 'PANASONIC CORPORATION',
+  'LEICA CAMERA AG', 'CASIO COMPUTER CO.,LTD.', 'HASSELBLAD H6D', 'HASSELBLAD',
+  'OLYMPUS', 'NIKON', 'SONY', 'CANON', 'FUJIFILM', 'PANASONIC',
+  'LEICA', 'PENTAX', 'RICOH', 'APPLE', 'SAMSUNG', 'HUAWEI',
+  'GOOGLE', 'XIAOMI', 'OPPO', 'ONEPLUS', 'GOPRO', 'DJI',
+]
+
+function stripCameraBrand(camera: string | null | undefined): string {
+  if (!camera) return ''
+  const upper = camera.toUpperCase()
+  for (const brand of CAMERA_BRAND_PREFIXES) {
+    if (upper.startsWith(brand)) {
+      return camera.slice(brand.length).replace(/^[\s\-.]+/, '').trim()
+    }
+  }
+  return camera
+}
+
+// 렌즈: 첫 번째 "Nmm" / "N-Mmm" 패턴까지만 남김 (조리개·버전 정보 제거).
+// 숫자와 mm 사이, 범위 dash 주변 공백 모두 허용 — "24 MM F/--" 같은 비정상 EXIF 도 처리.
+function trimLensAtMm(lens: string | null | undefined): string {
+  if (!lens) return ''
+  const match = lens.match(/^(.*?\d+(?:\.\d+)?(?:\s*-\s*\d+(?:\.\d+)?)?\s*mm)/i)
+  return match ? match[1].trim() : lens
+}
+
 // ── 공통 타입 ──────────────────────────────────────────────
 
 export interface Project {
@@ -321,14 +351,17 @@ export function Lightbox({
       >
         <div className="max-w-[calc(100%-8rem)] mx-auto">
           <div className="flex items-center justify-center gap-4 flex-wrap">
-            {showExif && (photo.camera || photo.focal_length || photo.taken_at) && (
+            {showExif && (photo.camera || photo.taken_at || photo.aperture || photo.shutter_speed || photo.iso) && (
               <span className="text-small text-edit-paper/40">
                 {[
+                  // 1) 날짜
                   photo.taken_at
                     ? new Date(photo.taken_at).toLocaleDateString(i18n.language === 'ko' ? 'ko-KR' : 'en-US')
                     : null,
-                  photo.camera, photo.lens, photo.focal_length,
-                  photo.aperture, photo.shutter_speed, photo.iso,
+                  // 2) 기종 및 렌즈 — 제조사 prefix 제거, 렌즈는 mm 까지만
+                  [stripCameraBrand(photo.camera), trimLensAtMm(photo.lens)].filter(Boolean).join(' + '),
+                  // 3) ISO · 셔터스피드 · 조리개 (각 값에 이미 prefix/suffix 포함)
+                  [photo.iso, photo.shutter_speed, photo.aperture].filter(Boolean).join(' '),
                 ].filter(Boolean).join(' · ')}
               </span>
             )}
@@ -536,15 +569,17 @@ export const PhotoCard = memo(function PhotoCard({
           </p>
         )}
         {/* EXIF */}
-        {showExif && (photo.camera || photo.taken_at) && (
+        {showExif && (photo.camera || photo.taken_at || photo.aperture || photo.shutter_speed || photo.iso) && (
           <div className="mt-1.5 space-y-0.5">
             {[
+              // 1) 날짜
               photo.taken_at
                 ? new Date(photo.taken_at).toLocaleDateString(i18n.language === 'ko' ? 'ko-KR' : 'en-US')
                 : null,
-              photo.camera,
-              photo.lens,
-              [photo.focal_length, photo.aperture, photo.shutter_speed, photo.iso].filter(Boolean).join(' '),
+              // 2) 기종 및 렌즈 — 제조사 prefix 제거, 렌즈는 mm 까지만
+              [stripCameraBrand(photo.camera), trimLensAtMm(photo.lens)].filter(Boolean).join(' + '),
+              // 3) ISO · 셔터스피드 · 조리개 (각 값에 이미 prefix/suffix 포함)
+              [photo.iso, photo.shutter_speed, photo.aperture].filter(Boolean).join(' '),
             ].filter(Boolean).map((line, i) => (
               <p key={i} className="t-caption text-edit-faint font-mono leading-snug">{line}</p>
             ))}
