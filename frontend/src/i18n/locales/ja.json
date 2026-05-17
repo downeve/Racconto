@@ -397,6 +397,7 @@
     "pin": "固定"
   },
   "portfolio": {
+    "views": "ビュー",
     "noChapters": "チャプターがありません",
     "createChapterFirst": "ストーリータブでチャプターを作成すると、写真を公開できます。",
     "noPublicProjects": "公開されたプロジェクトがありません",

@@ -397,6 +397,7 @@
     "pin": "고정"
   },
   "portfolio": {
+    "views": "조회",
     "noChapters": "아직 챕터가 없어요",
     "createChapterFirst": "스토리 탭에서 챕터를 만들어 사진을 공개해보세요.",
     "noPublicProjects": "공개한 프로젝트가 없어요",

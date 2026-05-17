@@ -1,7 +1,9 @@
+from typing import Optional
 from fastapi import APIRouter, Depends, HTTPException, Response
 from sqlalchemy.orm import Session
 from app.database import get_db
 from app import models
+from app.auth import get_optional_current_user
 
 router = APIRouter(prefix="/portfolio", tags=["portfolio"])
 
@@ -257,7 +259,13 @@ def _build_project_result_from_cache(
 
 
 @router.get("/{username}/{slug}")
-def get_public_project_by_slug(username: str, slug: str, response: Response, db: Session = Depends(get_db)):
+def get_public_project_by_slug(
+    username: str,
+    slug: str,
+    response: Response,
+    db: Session = Depends(get_db),
+    current_user: Optional[models.User] = Depends(get_optional_current_user),
+):
     response.headers["Cache-Control"] = _PORTFOLIO_CACHE_CONTROL
     user = db.query(models.User).filter(models.User.username == username).first()
     if not user:
@@ -278,10 +286,20 @@ def get_public_project_by_slug(username: str, slug: str, response: Response, db:
     if not project:
         raise HTTPException(status_code=404, detail="PROJECT_NOT_FOUND")
 
+    is_owner = current_user is not None and current_user.id == user.id
+    if not is_owner:
+        project.view_count = (project.view_count or 0) + 1
+        db.commit()
+        db.refresh(project)
+
+    result = _build_project_result(project, db)
+    if is_owner:
+        result["view_count"] = project.view_count
+
     return {
         "username": username,
         "theme": theme,
-        "project": _build_project_result(project, db)
+        "project": result,
     }
 
 

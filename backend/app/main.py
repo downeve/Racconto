@@ -18,7 +18,7 @@ logger = logging.getLogger(__name__)
 models.Base.metadata.create_all(bind=engine)
 
 # 스키마 마이그레이션 — 버전이 올라간 경우에만 실행
-SCHEMA_VERSION = 4
+SCHEMA_VERSION = 5
 
 def _run_schema_migrations():
     with engine.connect() as conn:
@@ -75,6 +75,9 @@ def _run_schema_migrations():
             conn.execute(text(
                 "ALTER TABLE projects ALTER COLUMN is_public SET NOT NULL"
             ))
+
+        # v5 — 프로젝트 조회수 컬럼
+        conn.execute(text("ALTER TABLE projects ADD COLUMN IF NOT EXISTS view_count INTEGER NOT NULL DEFAULT 0"))
 
         conn.execute(text("DELETE FROM _schema_version"))
         conn.execute(text(f"INSERT INTO _schema_version (version) VALUES ({SCHEMA_VERSION})"))

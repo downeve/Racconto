@@ -24,6 +24,7 @@ interface Chapter { id: string; title: string; description: string | null; items
 interface PortfolioProject {
   id: string; title: string; description: string | null; cover_image_url: string | null
   location: string | null; updated_at: string | null; slug: string | null
+  view_count?: number
   photos: PortfolioPhoto[]; chapters: Chapter[]; extra_photos: PortfolioPhoto[]
 }
 
@@ -321,6 +322,12 @@ export default function MobilePublicPortfolio() {
                 )}
                 {selectedProject.location && <span className="w-[3px] h-[3px] rounded-full bg-faint dark:bg-d-faint" />}
                 <span>{selectedProject.chapters.length} chapters</span>
+                {typeof selectedProject.view_count === 'number' && (
+                  <>
+                    <span className="w-[3px] h-[3px] rounded-full bg-faint dark:bg-d-faint" />
+                    <span>{selectedProject.view_count.toLocaleString()} {t('portfolio.views')}</span>
+                  </>
+                )}
               </div>
               <h1 className="font-serif text-[38px] font-normal leading-[1.05] tracking-[-0.02em] [word-break:keep-all]">
                 {selectedProject.title}

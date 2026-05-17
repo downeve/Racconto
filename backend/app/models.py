@@ -48,6 +48,7 @@ class Project(Base):
     location = Column(String)
     shot_date = Column(DateTime)
     is_public = Column(Boolean, default=False, nullable=False, server_default='false')
+    view_count = Column(Integer, nullable=False, default=0, server_default='0')
     photos = relationship("Photo", back_populates="project", cascade="all, delete-orphan")
     pitches = relationship("Pitch", back_populates="project", cascade="all, delete-orphan")
     notes = relationship("Note", back_populates="project", cascade="all, delete-orphan")

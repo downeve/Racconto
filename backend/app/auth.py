@@ -103,6 +103,31 @@ def get_current_user(
     return user
 
 
+def get_optional_current_user(
+    token: Optional[str] = Depends(OAuth2PasswordBearer(tokenUrl="/auth/login", auto_error=False)),
+    db: Session = Depends(get_db),
+) -> Optional[models.User]:
+    """인증 헤더가 없거나 잘못되어도 401을 던지지 않고 None 반환."""
+    if not token:
+        return None
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        user_id: str = payload.get("sub")
+        token_iat: Optional[int] = payload.get("iat")
+        if user_id is None or token_iat is None:
+            return None
+    except jwt.InvalidTokenError:
+        return None
+
+    user = db.query(models.User).filter(models.User.id == user_id).first()
+    if user is None:
+        return None
+    if user.token_invalidated_at:
+        if datetime.utcfromtimestamp(token_iat) < user.token_invalidated_at:
+            return None
+    return user
+
+
 def get_current_user_id(
     token: str = Depends(oauth2_scheme),
     db: Session = Depends(get_db),

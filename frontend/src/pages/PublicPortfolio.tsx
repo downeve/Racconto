@@ -43,6 +43,7 @@ interface PortfolioProject {
   cover_image_url: string | null
   location: string | null
   updated_at: string | null
+  view_count?: number
   photos: PortfolioPhoto[]
   chapters: Chapter[]
   extra_photos: PortfolioPhoto[]
@@ -487,6 +488,12 @@ export default function PublicPortfolio() {
                   <>
                     <span className="w-[3px] h-[3px] rounded-full bg-faint dark:bg-d-faint" />
                     <span>{new Date(selectedProject.updated_at).toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' })}</span>
+                  </>
+                )}
+                {typeof selectedProject.view_count === 'number' && (
+                  <>
+                    <span className="w-[3px] h-[3px] rounded-full bg-faint dark:bg-d-faint" />
+                    <span>{selectedProject.view_count.toLocaleString()} {t('portfolio.views')}</span>
                   </>
                 )}
               </div>
