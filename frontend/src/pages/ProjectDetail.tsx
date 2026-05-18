@@ -180,7 +180,7 @@ function PhotosSidebarContent({
           </button>
           {photos.some(p => p.folder) && (
             <div className="flex flex-col gap-0.5">
-              {[...new Set(photos.filter(p => p.folder).map(p => p.folder))].map(folder => (
+              {[...new Set(photos.filter(p => p.folder).map(p => p.folder))].sort((a, b) => getFolderDisplayName(a!).localeCompare(getFolderDisplayName(b!))).map(folder => (
                 <div key={folder} className="group/folder">
                   <button onClick={() => {
                     setFilterFolder(filterFolder === folder ? null : folder!)
