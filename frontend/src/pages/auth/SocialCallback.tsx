@@ -1,11 +1,13 @@
 import { useEffect } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
+import { useAuth } from '../../context/AuthContext'
 
 export default function SocialCallback() {
   const [searchParams] = useSearchParams()
   const navigate = useNavigate()
   const { t } = useTranslation()
+  const { loginWithToken } = useAuth()
 
   useEffect(() => {
     const token = searchParams.get('token')
@@ -17,8 +19,9 @@ export default function SocialCallback() {
     }
 
     if (token) {
-      localStorage.setItem('token', token)
-      navigate('/', { replace: true })
+      loginWithToken(token).then(() => {
+        navigate('/', { replace: true })
+      })
     } else {
       navigate('/login?error=no_token')
     }
