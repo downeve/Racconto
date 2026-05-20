@@ -4,7 +4,7 @@ import { useQuery } from '@tanstack/react-query'
 import axios from 'axios'
 import { useTranslation } from 'react-i18next'
 import { useAuth } from '../../context/AuthContext'
-import { MapPin, X, ChevronLeft, Link2, Check, Share2 } from 'lucide-react'
+import { MapPin, X, ChevronLeft, Link2, Check } from 'lucide-react'
 import CoverFallback from '../../components/CoverFallback'
 import EmptyState from '../../components/EmptyState'
 import PublicNavbar from '../../components/PublicNavbar'
@@ -61,8 +61,6 @@ export default function MobilePublicPortfolio() {
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null)
   const [lightboxItems, setLightboxItems] = useState<{ photo: PortfolioPhoto; title: string }[]>([])
   const [copied, setCopied] = useState(false)
-
-  const canNativeShare = typeof navigator !== 'undefined' && 'share' in navigator
 
   const getShareUrl = useCallback(() => {
     if (selectedProject?.slug) {
@@ -405,73 +403,50 @@ export default function MobilePublicPortfolio() {
               <EmptyState heading={t('portfolio.noChapters')} darkMode={darkMode} />
             )}
 
-            {/* 공유 */}
+            {/* 공유 버튼 */}
             <div className={`mt-20 pt-8 border-t ${darkMode ? 'border-d-line' : 'border-hair'}`}
               style={{ paddingBottom: 'calc(env(safe-area-inset-bottom) + 48px)' }}
             >
-              <p className={`t-eyebrow mb-4 ${microcopy}`}>{t('portfolio.share')}</p>
+              <p className={`t-eyebrow mb-5 ${microcopy}`}>{t('portfolio.share')}</p>
               <div className="flex flex-wrap gap-2">
-                {canNativeShare ? (
-                  <>
-                    <button
-                      onClick={() => navigator.share({ title: selectedProject.title, url: getShareUrl() }).catch(() => {})}
-                      className={`inline-flex items-center gap-2 px-4 py-2.5 rounded-[2px] border t-caption ${
-                        darkMode
-                          ? 'border-d-line text-d-faint active:text-d-hair'
-                          : 'border-hair text-faint active:text-ink-2'
-                      }`}
-                    >
-                      <Share2 size={13} strokeWidth={1.5} />
-                      {t('portfolio.share')}
-                    </button>
-                    <button
-                      onClick={handleCopyLink}
-                      className={`inline-flex items-center gap-2 px-4 py-2.5 rounded-[2px] border t-caption ${
-                        copied
-                          ? darkMode ? 'border-d-soft text-d-hair' : 'border-faint text-ink-2'
-                          : darkMode ? 'border-d-line text-d-faint active:text-d-hair' : 'border-hair text-faint active:text-ink-2'
-                      }`}
-                    >
-                      {copied ? <Check size={13} strokeWidth={2} /> : <Link2 size={13} strokeWidth={1.5} />}
-                      {copied ? t('portfolio.copied') : t('portfolio.copyLink')}
-                    </button>
-                  </>
-                ) : (
-                  <>
-                    <button
-                      title="Facebook"
-                      onClick={() => openShareUrl(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(getShareUrl())}`)}
-                      className={`inline-flex items-center gap-2 px-3 py-2.5 rounded-[2px] border t-caption ${
-                        darkMode ? 'border-d-line text-d-faint' : 'border-hair text-faint'
-                      }`}
-                    >
-                      <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-                        <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
-                      </svg>
-                    </button>
-                    <button
-                      title="X"
-                      onClick={() => openShareUrl(`https://twitter.com/intent/tweet?url=${encodeURIComponent(getShareUrl())}&text=${encodeURIComponent(selectedProject.title)}`)}
-                      className={`inline-flex items-center gap-2 px-3 py-2.5 rounded-[2px] border t-caption ${
-                        darkMode ? 'border-d-line text-d-faint' : 'border-hair text-faint'
-                      }`}
-                    >
-                      <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-                        <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.744l7.737-8.835L1.254 2.25H8.08l4.259 5.632 5.905-5.632zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
-                      </svg>
-                    </button>
-                    <button
-                      onClick={handleCopyLink}
-                      className={`inline-flex items-center gap-2 px-3 py-2.5 rounded-[2px] border t-caption ${
-                        copied
-                          ? darkMode ? 'border-d-soft text-d-hair' : 'border-faint text-ink-2'
-                          : darkMode ? 'border-d-line text-d-faint' : 'border-hair text-faint'
-                      }`}
-                    >
-                      {copied ? <Check size={13} strokeWidth={2} /> : <Link2 size={13} strokeWidth={1.5} />}
-                    </button>
-                  </>
-                )}
+                <>
+                  <button
+                    title="Facebook"
+                    onClick={() => openShareUrl(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(getShareUrl())}`)}
+                    className={`inline-flex items-center gap-2 px-3 py-2 rounded-[2px] border t-caption transition-colors duration-150 ${
+                      darkMode
+                        ? 'border-d-line text-d-faint hover:text-d-hair hover:border-d-soft'
+                        : 'border-hair text-faint hover:text-ink-2 hover:border-faint'
+                    }`}
+                  >
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                      <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
+                    </svg>
+                  </button>
+                  <button
+                    title="X"
+                    onClick={() => openShareUrl(`https://twitter.com/intent/tweet?url=${encodeURIComponent(getShareUrl())}&text=${encodeURIComponent(selectedProject.title)}`)}
+                    className={`inline-flex items-center gap-2 px-3 py-2 rounded-[2px] border t-caption transition-colors duration-150 ${
+                      darkMode
+                        ? 'border-d-line text-d-faint hover:text-d-hair hover:border-d-soft'
+                        : 'border-hair text-faint hover:text-ink-2 hover:border-faint'
+                    }`}
+                  >
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                      <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.744l7.737-8.835L1.254 2.25H8.08l4.259 5.632 5.905-5.632zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
+                    </svg>
+                  </button>
+                  <button
+                    onClick={handleCopyLink}
+                    className={`inline-flex items-center gap-2 px-3 py-2 rounded-[2px] border t-caption transition-colors duration-150 ${
+                      copied
+                        ? darkMode ? 'border-d-soft text-d-hair' : 'border-faint text-ink-2'
+                        : darkMode ? 'border-d-line text-d-faint hover:text-d-hair hover:border-d-soft' : 'border-hair text-faint hover:text-ink-2 hover:border-faint'
+                    }`}
+                  >
+                    {copied ? <Check size={12} strokeWidth={2} /> : <Link2 size={12} strokeWidth={1.5} />}
+                  </button>
+                </>
               </div>
             </div>
           </div>

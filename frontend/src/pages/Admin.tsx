@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import axios from 'axios'
 import {
   Search, Trash2, X, Pencil, Megaphone, Mail,
-  CheckCircle2, XCircle, LogOut, ChevronDown, Plus, Check,
+  CheckCircle2, XCircle, LogOut, ChevronDown, Plus, Check, Copy,
 } from 'lucide-react'
 import { Wordmark } from '../components/Wordmark'
 import { Spinner } from '../components/Spinner'
@@ -723,6 +723,125 @@ const OrphanSection = () => {
   )
 }
 
+// ─── ProjectDuplicateSection ──────────────────────────────────────────────────
+// Admin 전용: 프로젝트를 그대로 복제 (사진은 image_url 재사용, 챕터/노트 포함).
+const ProjectDuplicateSection = () => {
+  const [open, setOpen] = useState(false)
+  const [sourceId, setSourceId] = useState('')
+  const [targetUserId, setTargetUserId] = useState('')
+  const [submitting, setSubmitting] = useState(false)
+  const [result, setResult] = useState<{ ok: boolean; message: string } | null>(null)
+
+  const submit = async () => {
+    if (!sourceId.trim()) return
+    setSubmitting(true)
+    setResult(null)
+    try {
+      const res = await adminAxios.post(
+        `${API}/racconto-admin/projects/${sourceId.trim()}/duplicate`,
+        { target_user_id: targetUserId.trim() || null },
+      )
+      const d = res.data
+      setResult({
+        ok: true,
+        message: `복제 완료 — new id: ${d.id} / slug: ${d.slug} / photos: ${d.photos_copied}, chapters: ${d.chapters_copied}, notes: ${d.notes_copied}`,
+      })
+      setSourceId('')
+      setTargetUserId('')
+    } catch (e: any) {
+      const detail = e?.response?.data?.detail
+      setResult({ ok: false, message: typeof detail === 'string' ? detail : '복제 실패' })
+    } finally {
+      setSubmitting(false)
+    }
+  }
+
+  return (
+    <div className="mb-8">
+      {!open ? (
+        <button
+          onClick={() => setOpen(true)}
+          className="inline-flex items-center gap-2 t-caption px-4 py-2
+                     border border-edit-line rounded-[1px] hover:bg-edit-paper transition-colors"
+        >
+          <Copy size={12} strokeWidth={1.5} />
+          프로젝트 복제
+        </button>
+      ) : (
+        <div className="border border-edit-line rounded-[1px] p-5 max-w-xl">
+          <div className="flex items-center justify-between mb-5">
+            <div className="flex items-center gap-2">
+              <Copy size={14} strokeWidth={1.5} className="text-edit-muted" />
+              <p className="font-serif text-h3 font-normal tracking-tight text-edit-ink">
+                프로젝트 복제
+              </p>
+            </div>
+            <button
+              onClick={() => { setOpen(false); setResult(null) }}
+              className="text-edit-muted hover:text-edit-ink transition-colors"
+            >
+              <X size={14} strokeWidth={1.5} />
+            </button>
+          </div>
+
+          <div className="space-y-4">
+            <div>
+              <p className="t-eyebrow text-edit-muted mb-1">원본 프로젝트 ID</p>
+              <input
+                type="text"
+                placeholder="UUID 형식"
+                value={sourceId}
+                onChange={e => setSourceId(e.target.value)}
+                className="w-full font-mono text-sm bg-transparent border-0 border-b
+                           border-edit-line focus:border-edit-ink focus:outline-none py-2
+                           placeholder:text-edit-faint transition-colors"
+              />
+            </div>
+            <div>
+              <p className="t-eyebrow text-edit-muted mb-1">대상 유저 ID (비우면 원본 소유자)</p>
+              <input
+                type="text"
+                placeholder="UUID 형식 (선택)"
+                value={targetUserId}
+                onChange={e => setTargetUserId(e.target.value)}
+                className="w-full font-mono text-sm bg-transparent border-0 border-b
+                           border-edit-line focus:border-edit-ink focus:outline-none py-2
+                           placeholder:text-edit-faint transition-colors"
+              />
+            </div>
+            <p className="t-caption text-edit-faint">
+              사진은 image_url을 그대로 재사용합니다 (Cloudflare 재업로드 없음). 챕터·노트 포함, 댓글·납품링크 제외. 복제본은 비공개로 시작.
+            </p>
+          </div>
+
+          {result && (
+            <p className={`t-caption mt-4 ${result.ok ? 'text-edit-ink' : 'text-edit-muted'}`}>
+              {result.message}
+            </p>
+          )}
+
+          <div className="mt-5 flex items-center justify-end gap-2">
+            <button
+              onClick={() => { setOpen(false); setResult(null) }}
+              className="t-caption px-4 py-2 border border-edit-line rounded-[1px] hover:bg-edit-paper transition-colors"
+            >
+              취소
+            </button>
+            <button
+              onClick={submit}
+              disabled={!sourceId.trim() || submitting}
+              className="t-caption px-4 py-2 bg-edit-ink text-edit-paper rounded-[1px]
+                         hover:bg-edit-ink/85 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+            >
+              {submitting ? '복제 중…' : '복제 실행'}
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
+
 // ─── ExternalStatsSection ─────────────────────────────────────────────────────
 const ExternalStatsSection = () => {
   const [data, setData] = useState<ExternalStatsData | null>(null)
@@ -1212,6 +1331,8 @@ export default function Admin() {
         <EmailTemplatesSection />
 
         <InfraCostsSection />
+
+        <ProjectDuplicateSection />
 
         {/* Send Notice */}
         <div className="mb-8">
