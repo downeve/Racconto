@@ -199,6 +199,31 @@ async def delete_cf_files_parallel(urls: list[str], concurrency: int = 20):
         await asyncio.gather(*[_bounded(client, url) for url in urls])
 
 
+def filter_cf_urls_safe_to_delete(
+    image_urls: list[str], db: Session, excluding_photo_ids: Optional[list[str]] = None
+) -> list[str]:
+    """다른 Photo row가 같은 image_url을 참조하지 않는 URL만 반환.
+
+    어드민 프로젝트 복제 기능으로 두 Photo row가 동일한 image_url을 공유할 수 있으므로,
+    영구 삭제 직전에 이 헬퍼로 거른 URL만 CF에서 실제 삭제한다.
+    excluding_photo_ids: 지금 삭제 중인 Photo 자신들의 id (이미 db.delete된 row가 아직 commit 전이거나,
+    카운트 쿼리에 본인이 잡히면 안 되는 경우 제외 목록으로 사용).
+    """
+    if not image_urls:
+        return []
+    unique_urls = list({u for u in image_urls if u})
+    excluding_ids = set(excluding_photo_ids or [])
+
+    safe: list[str] = []
+    for url in unique_urls:
+        q = db.query(models.Photo.id).filter(models.Photo.image_url == url)
+        if excluding_ids:
+            q = q.filter(~models.Photo.id.in_(excluding_ids))
+        if q.first() is None:
+            safe.append(url)
+    return safe
+
+
 def clear_cover_if_deleted(project_id: str, image_url: str, db: Session):
     """삭제된 사진이 커버이면 커버 초기화"""
     project = db.query(models.Project).filter(
@@ -594,8 +619,11 @@ def bulk_permanent_delete_photos(
     ).delete(synchronize_session=False)
     db.commit()
 
+    # CF 삭제 전, 다른 Photo row(어드민 복제본 등)가 같은 URL을 참조하지 않는 것만 거름
     if cf_urls:
-        background_tasks.add_task(delete_cf_files_parallel, cf_urls)
+        safe_cf_urls = filter_cf_urls_safe_to_delete(cf_urls, db)
+        if safe_cf_urls:
+            background_tasks.add_task(delete_cf_files_parallel, safe_cf_urls)
 
     return {"deleted": len(photo_ids)}
 
@@ -841,10 +869,14 @@ def permanent_delete_photo(
     clear_cover_if_deleted(photo.project_id, photo.image_url, db)
 
     # 2. CF 또는 로컬 파일 삭제 (백그라운드)
-    if photo.image_url and "imagedelivery.net" in photo.image_url:
-        background_tasks.add_task(delete_from_cloudflare, photo.image_url)
-    elif photo.image_url:
-        safe_path = _safe_local_upload_path(photo.image_url)
+    # 다른 Photo row가 같은 image_url을 참조하면 CF 파일은 보존 (어드민 복제로 공유 가능)
+    image_url = photo.image_url
+    if image_url and "imagedelivery.net" in image_url:
+        safe_urls = filter_cf_urls_safe_to_delete([image_url], db, excluding_photo_ids=[photo_id])
+        if safe_urls:
+            background_tasks.add_task(delete_from_cloudflare, image_url)
+    elif image_url:
+        safe_path = _safe_local_upload_path(image_url)
         if safe_path and os.path.exists(safe_path):
             try:
                 os.remove(safe_path)
@@ -919,9 +951,11 @@ def rotate_photo(
         db.commit()
         db.refresh(photo)
 
-        # 이전 회전 이미지 삭제 (원본과 다를 경우에만)
+        # 이전 회전 이미지 삭제 (원본과 다를 경우에만, 다른 Photo가 참조하지 않을 때)
         if prev_url != original_url and prev_url and "imagedelivery.net" in prev_url:
-            background_tasks.add_task(delete_from_cloudflare, prev_url)
+            safe_urls = filter_cf_urls_safe_to_delete([prev_url], db, excluding_photo_ids=[photo_id])
+            if safe_urls:
+                background_tasks.add_task(delete_from_cloudflare, prev_url)
 
         return photo
 

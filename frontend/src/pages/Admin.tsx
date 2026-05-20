@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
+import { useQueryClient } from '@tanstack/react-query'
 import { useNavigate } from 'react-router-dom'
 import axios from 'axios'
 import {
@@ -733,6 +734,7 @@ interface AdminOwnProject {
 }
 
 const ProjectDuplicateSection = () => {
+  const queryClient = useQueryClient()
   const [open, setOpen] = useState(false)
   const [projects, setProjects] = useState<AdminOwnProject[]>([])
   const [projectsLoading, setProjectsLoading] = useState(false)
@@ -766,6 +768,8 @@ const ProjectDuplicateSection = () => {
         `${API}/racconto-admin/projects/${sourceId}/duplicate`,
       )
       const d = res.data
+      // /projects 페이지의 stale 캐시 → 새 리스트 교체 중 레이아웃 시프트로 클릭이 빠지는 현상 방지
+      await queryClient.refetchQueries({ queryKey: ['projects'] })
       setResult({
         ok: true,
         message: `복제 완료 — new id: ${d.id} / slug: ${d.slug} / photos: ${d.photos_copied}, chapters: ${d.chapters_copied}, notes: ${d.notes_copied}`,

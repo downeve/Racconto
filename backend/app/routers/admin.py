@@ -10,7 +10,7 @@ from app import models
 from app.auth import get_current_user
 from pydantic import BaseModel
 from typing import Optional, Dict, Any, List
-from app.routers.photos import delete_from_cloudflare, delete_cf_files_parallel
+from app.routers.photos import delete_from_cloudflare, delete_cf_files_parallel, filter_cf_urls_safe_to_delete
 from app.routers.projects import generate_unique_slug
 from app.email import send_notice_email
 from datetime import datetime, timedelta
@@ -307,26 +307,28 @@ def delete_user(
     if not user:
         raise HTTPException(status_code=404, detail="USER_NOT_FOUND")
 
-    # CF 이미지 URL 수집
-    photo_urls = [
-        p.image_url for p in db.query(models.Photo).filter(
-            models.Photo.project_id.in_(
-                db.query(models.Project.id).filter(
-                    models.Project.user_id == user_id
-                )
-            ),
-            models.Photo.image_url.isnot(None),
-            models.Photo.image_url.contains("imagedelivery.net")
-        ).all()
-    ]
-
-    # CF 이미지 백그라운드 삭제
-    if photo_urls:
-        background_tasks.add_task(delete_cf_files_parallel, photo_urls)
+    # CF 이미지 URL 수집 + 삭제 예정 Photo id 수집 (CASCADE 전이라 id로 자신 제외 가능)
+    user_photos = db.query(models.Photo.id, models.Photo.image_url).filter(
+        models.Photo.project_id.in_(
+            db.query(models.Project.id).filter(
+                models.Project.user_id == user_id
+            )
+        ),
+        models.Photo.image_url.isnot(None),
+        models.Photo.image_url.contains("imagedelivery.net")
+    ).all()
+    deleted_photo_ids = [row.id for row in user_photos]
+    photo_urls = [row.image_url for row in user_photos]
 
     # CASCADE로 모든 관련 데이터 자동 삭제
     db.delete(user)
     db.commit()
+
+    # CF 이미지 백그라운드 삭제 (다른 유저의 Photo row가 같은 URL을 참조하면 보존)
+    if photo_urls:
+        safe_urls = filter_cf_urls_safe_to_delete(photo_urls, db, excluding_photo_ids=deleted_photo_ids)
+        if safe_urls:
+            background_tasks.add_task(delete_cf_files_parallel, safe_urls)
 
     return {"message": "DELETED"}
 
@@ -630,8 +632,8 @@ def duplicate_project(
         id=str(uuid.uuid4()),
         user_id=target_user_id,
         slug=new_slug,
-        title=src.title,
-        title_en=src.title_en,
+        title=f"{src.title} (copy)",
+        title_en=f"{src.title_en} (copy)" if src.title_en else None,
         description=src.description,
         description_en=src.description_en,
         status=src.status,
