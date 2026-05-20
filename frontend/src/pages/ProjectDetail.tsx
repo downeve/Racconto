@@ -12,6 +12,7 @@ import ProjectNotes from './ProjectNotes'
 import { useElectronSidebar } from '../context/ElectronSidebarContext'
 import ConfirmModal from '../components/ConfirmModal'
 import ToastNotification from '../components/ToastNotification'
+import { cfUrl } from '../utils/cfImage'
 import { Lightbox, PhotoCard } from '../components/ProjectDetailComponents'
 import type { Photo, Project, ChapterPhotoResponse, NoteResponse } from '../components/ProjectDetailComponents'
 
@@ -577,25 +578,35 @@ export default function ProjectDetail({
     // 1. project 데이터와 numericId(UUID)가 모두 있을 때만 실행
     if (!project || !numericId) return
 
-    const statusValue = typeof project.status === 'object' 
-      ? (project.status as { value: string }).value 
+    const statusValue = typeof project.status === 'object'
+      ? (project.status as { value: string }).value
       : project.status
 
     try {
       // 2. 수정 API 호출 시 id(슬러그) 대신 numericId(UUID) 사용
       await axios.put(`${API}/projects/${numericId}`, {
-        title: project.title, 
+        title: project.title,
         title_en: project.title_en,
-        description: project.description, 
+        description: project.description,
         description_en: project.description_en,
-        location: project.location, 
+        location: project.location,
         is_public: project.is_public,
-        status: statusValue, 
+        status: statusValue,
         cover_image_url: photo.image_url
       })
 
-      // 3. 캐시 무효화
+      // 3. 사이드바가 사용하는 thumb variant를 미리 브라우저 캐시에 prefetch
+      //    triggerRefresh로 사이드바가 리렌더링될 때 즉시 표시되게 함
+      await new Promise<void>(resolve => {
+        const preImg = new Image()
+        preImg.onload = () => resolve()
+        preImg.onerror = () => resolve()
+        preImg.src = cfUrl(photo.image_url, 'thumb')
+      })
+
+      // 4. 캐시 무효화
       queryClient.invalidateQueries({ queryKey: ['project', id] })
+      queryClient.invalidateQueries({ queryKey: ['projects'] })
       triggerRefresh()
     } catch (error) {
       console.error('Failed to set cover image:', error)
