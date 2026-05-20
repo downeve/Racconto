@@ -724,22 +724,46 @@ const OrphanSection = () => {
 }
 
 // ─── ProjectDuplicateSection ──────────────────────────────────────────────────
-// Admin 전용: 프로젝트를 그대로 복제 (사진은 image_url 재사용, 챕터/노트 포함).
+// Admin 전용: admin 본인 프로젝트를 그대로 복제 → admin 본인에게 새 프로젝트 생성.
+// 사진은 image_url 재사용, 챕터·노트 포함. 다른 유저의 프로젝트는 복제 불가.
+interface AdminOwnProject {
+  id: string
+  title: string
+  slug: string | null
+}
+
 const ProjectDuplicateSection = () => {
   const [open, setOpen] = useState(false)
+  const [projects, setProjects] = useState<AdminOwnProject[]>([])
+  const [projectsLoading, setProjectsLoading] = useState(false)
   const [sourceId, setSourceId] = useState('')
-  const [targetUserId, setTargetUserId] = useState('')
   const [submitting, setSubmitting] = useState(false)
   const [result, setResult] = useState<{ ok: boolean; message: string } | null>(null)
 
+  useEffect(() => {
+    if (!open) return
+    let cancelled = false
+    setProjectsLoading(true)
+    adminAxios.get(`${API}/projects/`)
+      .then(res => {
+        if (cancelled) return
+        const list: AdminOwnProject[] = res.data.map((p: any) => ({
+          id: p.id, title: p.title, slug: p.slug,
+        }))
+        setProjects(list)
+      })
+      .catch(() => { if (!cancelled) setProjects([]) })
+      .finally(() => { if (!cancelled) setProjectsLoading(false) })
+    return () => { cancelled = true }
+  }, [open])
+
   const submit = async () => {
-    if (!sourceId.trim()) return
+    if (!sourceId) return
     setSubmitting(true)
     setResult(null)
     try {
       const res = await adminAxios.post(
-        `${API}/racconto-admin/projects/${sourceId.trim()}/duplicate`,
-        { target_user_id: targetUserId.trim() || null },
+        `${API}/racconto-admin/projects/${sourceId}/duplicate`,
       )
       const d = res.data
       setResult({
@@ -747,7 +771,6 @@ const ProjectDuplicateSection = () => {
         message: `복제 완료 — new id: ${d.id} / slug: ${d.slug} / photos: ${d.photos_copied}, chapters: ${d.chapters_copied}, notes: ${d.notes_copied}`,
       })
       setSourceId('')
-      setTargetUserId('')
     } catch (e: any) {
       const detail = e?.response?.data?.detail
       setResult({ ok: false, message: typeof detail === 'string' ? detail : '복제 실패' })
@@ -777,7 +800,7 @@ const ProjectDuplicateSection = () => {
               </p>
             </div>
             <button
-              onClick={() => { setOpen(false); setResult(null) }}
+              onClick={() => { setOpen(false); setResult(null); setSourceId('') }}
               className="text-edit-muted hover:text-edit-ink transition-colors"
             >
               <X size={14} strokeWidth={1.5} />
@@ -786,31 +809,27 @@ const ProjectDuplicateSection = () => {
 
           <div className="space-y-4">
             <div>
-              <p className="t-eyebrow text-edit-muted mb-1">원본 프로젝트 ID</p>
-              <input
-                type="text"
-                placeholder="UUID 형식"
+              <p className="t-eyebrow text-edit-muted mb-1">원본 프로젝트 (admin 본인)</p>
+              <select
                 value={sourceId}
                 onChange={e => setSourceId(e.target.value)}
-                className="w-full font-mono text-sm bg-transparent border-0 border-b
+                disabled={projectsLoading}
+                className="w-full font-serif text-body bg-transparent border-0 border-b
                            border-edit-line focus:border-edit-ink focus:outline-none py-2
-                           placeholder:text-edit-faint transition-colors"
-              />
-            </div>
-            <div>
-              <p className="t-eyebrow text-edit-muted mb-1">대상 유저 ID (비우면 원본 소유자)</p>
-              <input
-                type="text"
-                placeholder="UUID 형식 (선택)"
-                value={targetUserId}
-                onChange={e => setTargetUserId(e.target.value)}
-                className="w-full font-mono text-sm bg-transparent border-0 border-b
-                           border-edit-line focus:border-edit-ink focus:outline-none py-2
-                           placeholder:text-edit-faint transition-colors"
-              />
+                           transition-colors disabled:opacity-40"
+              >
+                <option value="">
+                  {projectsLoading
+                    ? '불러오는 중…'
+                    : projects.length === 0 ? '프로젝트 없음' : '— 선택 —'}
+                </option>
+                {projects.map(p => (
+                  <option key={p.id} value={p.id}>{p.title}</option>
+                ))}
+              </select>
             </div>
             <p className="t-caption text-edit-faint">
-              사진은 image_url을 그대로 재사용합니다 (Cloudflare 재업로드 없음). 챕터·노트 포함, 댓글·납품링크 제외. 복제본은 비공개로 시작.
+              admin 본인 계정에 새 프로젝트로 복제됩니다. 사진은 image_url을 그대로 재사용 (Cloudflare 재업로드 없음). 챕터·노트 포함, 댓글·납품링크 제외. 복제본은 비공개로 시작.
             </p>
           </div>
 
@@ -822,14 +841,14 @@ const ProjectDuplicateSection = () => {
 
           <div className="mt-5 flex items-center justify-end gap-2">
             <button
-              onClick={() => { setOpen(false); setResult(null) }}
+              onClick={() => { setOpen(false); setResult(null); setSourceId('') }}
               className="t-caption px-4 py-2 border border-edit-line rounded-[1px] hover:bg-edit-paper transition-colors"
             >
               취소
             </button>
             <button
               onClick={submit}
-              disabled={!sourceId.trim() || submitting}
+              disabled={!sourceId || submitting}
               className="t-caption px-4 py-2 bg-edit-ink text-edit-paper rounded-[1px]
                          hover:bg-edit-ink/85 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
             >
@@ -951,56 +970,11 @@ interface UserEditPanelProps {
   panelRef: React.RefObject<HTMLDivElement | null>
 }
 
-interface UserProjectRow {
-  id: string
-  title: string
-  slug: string | null
-  is_public: boolean
-}
-
 function UserEditPanel({
   user, values, onChange, saving,
   onSave, onDelete, onClose, panelRef,
 }: UserEditPanelProps) {
   const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false)
-  const [projects, setProjects] = useState<UserProjectRow[]>([])
-  const [projectsLoading, setProjectsLoading] = useState(false)
-  const [duplicatingId, setDuplicatingId] = useState<string | null>(null)
-  const [dupResult, setDupResult] = useState<{ ok: boolean; message: string } | null>(null)
-
-  useEffect(() => {
-    setProjects([])
-    setDupResult(null)
-    if (!user) return
-    let cancelled = false
-    setProjectsLoading(true)
-    adminAxios.get(`${API}/racconto-admin/users/${user.id}/projects`)
-      .then(res => { if (!cancelled) setProjects(res.data) })
-      .catch(() => { if (!cancelled) setProjects([]) })
-      .finally(() => { if (!cancelled) setProjectsLoading(false) })
-    return () => { cancelled = true }
-  }, [user?.id])
-
-  const duplicateProject = async (projectId: string) => {
-    setDuplicatingId(projectId)
-    setDupResult(null)
-    try {
-      const res = await adminAxios.post(
-        `${API}/racconto-admin/projects/${projectId}/duplicate`,
-        {},   // target_user_id 미지정 → admin 본인에게 복제
-      )
-      const d = res.data
-      setDupResult({
-        ok: true,
-        message: `복제 완료 — photos: ${d.photos_copied}, chapters: ${d.chapters_copied}, notes: ${d.notes_copied}`,
-      })
-    } catch (e: any) {
-      const detail = e?.response?.data?.detail
-      setDupResult({ ok: false, message: typeof detail === 'string' ? detail : '복제 실패' })
-    } finally {
-      setDuplicatingId(null)
-    }
-  }
 
   const activePreset = PRESETS.find(
     p => p.photo_limit === values.photo_limit && p.project_limit === values.project_limit
@@ -1128,47 +1102,6 @@ function UserEditPanel({
             {saving && <Spinner size={11} />}
             {saving ? 'Saving...' : 'Save Changes'}
           </button>
-
-          <div className="border-t border-edit-line" />
-
-          {/* Projects — duplicate */}
-          <div>
-            <p className="t-eyebrow text-edit-muted mb-2">프로젝트 (admin에게 복제)</p>
-            {projectsLoading ? (
-              <p className="t-caption text-edit-faint">불러오는 중…</p>
-            ) : projects.length === 0 ? (
-              <p className="t-caption text-edit-faint">프로젝트 없음</p>
-            ) : (
-              <ul className="space-y-1.5">
-                {projects.map(p => (
-                  <li key={p.id} className="flex items-center gap-2">
-                    <span className="flex-1 t-caption text-edit-ink truncate" title={p.title}>
-                      {p.title}
-                    </span>
-                    <button
-                      onClick={() => duplicateProject(p.id)}
-                      disabled={duplicatingId !== null}
-                      title="admin에게 복제"
-                      className="shrink-0 inline-flex items-center gap-1 px-2 py-1 t-caption
-                                 border border-edit-line rounded-[1px]
-                                 hover:bg-edit-paper transition-colors
-                                 disabled:opacity-40 disabled:cursor-not-allowed"
-                    >
-                      {duplicatingId === p.id
-                        ? <Spinner size={10} />
-                        : <Copy size={10} strokeWidth={1.5} />}
-                      복제
-                    </button>
-                  </li>
-                ))}
-              </ul>
-            )}
-            {dupResult && (
-              <p className={`t-caption mt-2 ${dupResult.ok ? 'text-edit-ink' : 'text-edit-muted'}`}>
-                {dupResult.message}
-              </p>
-            )}
-          </div>
 
           <div className="border-t border-edit-line" />
 
