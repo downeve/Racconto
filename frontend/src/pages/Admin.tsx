@@ -1,9 +1,10 @@
 import { useEffect, useRef, useState } from 'react'
+import { useQueryClient } from '@tanstack/react-query'
 import { useNavigate } from 'react-router-dom'
 import axios from 'axios'
 import {
   Search, Trash2, X, Pencil, Megaphone, Mail,
-  CheckCircle2, XCircle, LogOut, ChevronDown, Plus, Check,
+  CheckCircle2, XCircle, LogOut, ChevronDown, Plus, Check, Copy,
 } from 'lucide-react'
 import { Wordmark } from '../components/Wordmark'
 import { Spinner } from '../components/Spinner'
@@ -723,6 +724,147 @@ const OrphanSection = () => {
   )
 }
 
+// ─── ProjectDuplicateSection ──────────────────────────────────────────────────
+// Admin 전용: admin 본인 프로젝트를 그대로 복제 → admin 본인에게 새 프로젝트 생성.
+// 사진은 image_url 재사용, 챕터·노트 포함. 다른 유저의 프로젝트는 복제 불가.
+interface AdminOwnProject {
+  id: string
+  title: string
+  slug: string | null
+}
+
+const ProjectDuplicateSection = () => {
+  const queryClient = useQueryClient()
+  const [open, setOpen] = useState(false)
+  const [projects, setProjects] = useState<AdminOwnProject[]>([])
+  const [projectsLoading, setProjectsLoading] = useState(false)
+  const [sourceId, setSourceId] = useState('')
+  const [submitting, setSubmitting] = useState(false)
+  const [result, setResult] = useState<{ ok: boolean; message: string } | null>(null)
+
+  useEffect(() => {
+    if (!open) return
+    let cancelled = false
+    setProjectsLoading(true)
+    adminAxios.get(`${API}/projects/`)
+      .then(res => {
+        if (cancelled) return
+        const list: AdminOwnProject[] = res.data.map((p: any) => ({
+          id: p.id, title: p.title, slug: p.slug,
+        }))
+        setProjects(list)
+      })
+      .catch(() => { if (!cancelled) setProjects([]) })
+      .finally(() => { if (!cancelled) setProjectsLoading(false) })
+    return () => { cancelled = true }
+  }, [open])
+
+  const submit = async () => {
+    if (!sourceId) return
+    setSubmitting(true)
+    setResult(null)
+    try {
+      const res = await adminAxios.post(
+        `${API}/racconto-admin/projects/${sourceId}/duplicate`,
+      )
+      const d = res.data
+      // /projects 페이지의 stale 캐시 → 새 리스트 교체 중 레이아웃 시프트로 클릭이 빠지는 현상 방지
+      await queryClient.refetchQueries({ queryKey: ['projects'] })
+      setResult({
+        ok: true,
+        message: `복제 완료 — new id: ${d.id} / slug: ${d.slug} / photos: ${d.photos_copied}, chapters: ${d.chapters_copied}, notes: ${d.notes_copied}`,
+      })
+      setSourceId('')
+    } catch (e: any) {
+      const detail = e?.response?.data?.detail
+      setResult({ ok: false, message: typeof detail === 'string' ? detail : '복제 실패' })
+    } finally {
+      setSubmitting(false)
+    }
+  }
+
+  return (
+    <div className="mb-8">
+      {!open ? (
+        <button
+          onClick={() => setOpen(true)}
+          className="inline-flex items-center gap-2 t-caption px-4 py-2
+                     border border-edit-line rounded-[1px] hover:bg-edit-paper transition-colors"
+        >
+          <Copy size={12} strokeWidth={1.5} />
+          프로젝트 복제
+        </button>
+      ) : (
+        <div className="border border-edit-line rounded-[1px] p-5 max-w-xl">
+          <div className="flex items-center justify-between mb-5">
+            <div className="flex items-center gap-2">
+              <Copy size={14} strokeWidth={1.5} className="text-edit-muted" />
+              <p className="font-serif text-h3 font-normal tracking-tight text-edit-ink">
+                프로젝트 복제
+              </p>
+            </div>
+            <button
+              onClick={() => { setOpen(false); setResult(null); setSourceId('') }}
+              className="text-edit-muted hover:text-edit-ink transition-colors"
+            >
+              <X size={14} strokeWidth={1.5} />
+            </button>
+          </div>
+
+          <div className="space-y-4">
+            <div>
+              <p className="t-eyebrow text-edit-muted mb-1">원본 프로젝트 (admin 본인)</p>
+              <select
+                value={sourceId}
+                onChange={e => setSourceId(e.target.value)}
+                disabled={projectsLoading}
+                className="w-full font-serif text-body bg-transparent border-0 border-b
+                           border-edit-line focus:border-edit-ink focus:outline-none py-2
+                           transition-colors disabled:opacity-40"
+              >
+                <option value="">
+                  {projectsLoading
+                    ? '불러오는 중…'
+                    : projects.length === 0 ? '프로젝트 없음' : '— 선택 —'}
+                </option>
+                {projects.map(p => (
+                  <option key={p.id} value={p.id}>{p.title}</option>
+                ))}
+              </select>
+            </div>
+            <p className="t-caption text-edit-faint">
+              admin 본인 계정에 새 프로젝트로 복제됩니다. 사진은 image_url을 그대로 재사용 (Cloudflare 재업로드 없음). 챕터·노트 포함, 댓글·납품링크 제외. 복제본은 비공개로 시작.
+            </p>
+          </div>
+
+          {result && (
+            <p className={`t-caption mt-4 ${result.ok ? 'text-edit-ink' : 'text-edit-muted'}`}>
+              {result.message}
+            </p>
+          )}
+
+          <div className="mt-5 flex items-center justify-end gap-2">
+            <button
+              onClick={() => { setOpen(false); setResult(null); setSourceId('') }}
+              className="t-caption px-4 py-2 border border-edit-line rounded-[1px] hover:bg-edit-paper transition-colors"
+            >
+              취소
+            </button>
+            <button
+              onClick={submit}
+              disabled={!sourceId || submitting}
+              className="t-caption px-4 py-2 bg-edit-ink text-edit-paper rounded-[1px]
+                         hover:bg-edit-ink/85 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+            >
+              {submitting ? '복제 중…' : '복제 실행'}
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
+
 // ─── ExternalStatsSection ─────────────────────────────────────────────────────
 const ExternalStatsSection = () => {
   const [data, setData] = useState<ExternalStatsData | null>(null)
@@ -1212,6 +1354,8 @@ export default function Admin() {
         <EmailTemplatesSection />
 
         <InfraCostsSection />
+
+        <ProjectDuplicateSection />
 
         {/* Send Notice */}
         <div className="mb-8">

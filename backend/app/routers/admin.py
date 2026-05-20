@@ -10,10 +10,12 @@ from app import models
 from app.auth import get_current_user
 from pydantic import BaseModel
 from typing import Optional, Dict, Any, List
-from app.routers.photos import delete_from_cloudflare, delete_cf_files_parallel
+from app.routers.photos import delete_from_cloudflare, delete_cf_files_parallel, filter_cf_urls_safe_to_delete
+from app.routers.projects import generate_unique_slug
 from app.email import send_notice_email
 from datetime import datetime, timedelta
 import os
+import uuid
 
 logger = logging.getLogger(__name__)
 security_logger = logging.getLogger("racconto.security")
@@ -305,26 +307,28 @@ def delete_user(
     if not user:
         raise HTTPException(status_code=404, detail="USER_NOT_FOUND")
 
-    # CF 이미지 URL 수집
-    photo_urls = [
-        p.image_url for p in db.query(models.Photo).filter(
-            models.Photo.project_id.in_(
-                db.query(models.Project.id).filter(
-                    models.Project.user_id == user_id
-                )
-            ),
-            models.Photo.image_url.isnot(None),
-            models.Photo.image_url.contains("imagedelivery.net")
-        ).all()
-    ]
-
-    # CF 이미지 백그라운드 삭제
-    if photo_urls:
-        background_tasks.add_task(delete_cf_files_parallel, photo_urls)
+    # CF 이미지 URL 수집 + 삭제 예정 Photo id 수집 (CASCADE 전이라 id로 자신 제외 가능)
+    user_photos = db.query(models.Photo.id, models.Photo.image_url).filter(
+        models.Photo.project_id.in_(
+            db.query(models.Project.id).filter(
+                models.Project.user_id == user_id
+            )
+        ),
+        models.Photo.image_url.isnot(None),
+        models.Photo.image_url.contains("imagedelivery.net")
+    ).all()
+    deleted_photo_ids = [row.id for row in user_photos]
+    photo_urls = [row.image_url for row in user_photos]
 
     # CASCADE로 모든 관련 데이터 자동 삭제
     db.delete(user)
     db.commit()
+
+    # CF 이미지 백그라운드 삭제 (다른 유저의 Photo row가 같은 URL을 참조하면 보존)
+    if photo_urls:
+        safe_urls = filter_cf_urls_safe_to_delete(photo_urls, db, excluding_photo_ids=deleted_photo_ids)
+        if safe_urls:
+            background_tasks.add_task(delete_cf_files_parallel, safe_urls)
 
     return {"message": "DELETED"}
 
@@ -598,6 +602,187 @@ def delete_infra_cost(
     db.delete(row)
     db.commit()
     return {"ok": True}
+
+
+# ─── Project Duplicate (Admin only) ──────────────────────────────────────────
+# admin 본인 프로젝트만 복제 가능. 결과는 admin 본인에게 생성.
+# 사진은 image_url(CF URL)을 그대로 재사용, 챕터/챕터 아이템/노트 모두 복사.
+# 제외: pitches, delivery_links, comments, folder_links, view_count, soft-deleted rows.
+
+@router.post("/projects/{project_id}/duplicate")
+def duplicate_project(
+    project_id: str,
+    db: Session = Depends(get_db),
+    admin: models.User = Depends(require_admin),
+):
+    src = db.query(models.Project).filter(models.Project.id == project_id).first()
+    if not src:
+        raise HTTPException(status_code=404, detail="PROJECT_NOT_FOUND")
+    # admin 본인 프로젝트만 복제 허용
+    if src.user_id != admin.id:
+        raise HTTPException(status_code=403, detail="FORBIDDEN_NOT_OWNER")
+
+    target_user_id = admin.id
+
+    # 새 슬러그 (원본 슬러그 또는 title 기반 + 충돌 회피)
+    slug_base = (src.slug or src.title_en or src.title or "project") + "-copy"
+    new_slug = generate_unique_slug(db, slug_base)
+
+    new_project = models.Project(
+        id=str(uuid.uuid4()),
+        user_id=target_user_id,
+        slug=new_slug,
+        title=f"{src.title} (copy)",
+        title_en=f"{src.title_en} (copy)" if src.title_en else None,
+        description=src.description,
+        description_en=src.description_en,
+        status=src.status,
+        cover_image_url=src.cover_image_url,
+        location=src.location,
+        shot_date=src.shot_date,
+        is_public=False,           # 복제본은 항상 비공개로 시작
+        published_at=None,
+        view_count=0,
+        order_num=src.order_num,
+    )
+    db.add(new_project)
+    db.flush()
+
+    # 1) 사진 복제 — image_url(CF URL)은 그대로 재사용
+    photo_id_map: Dict[str, str] = {}
+    src_photos = db.query(models.Photo).filter(
+        models.Photo.project_id == src.id,
+        models.Photo.deleted_at == None,
+    ).all()
+    for p in src_photos:
+        new_id = str(uuid.uuid4())
+        photo_id_map[p.id] = new_id
+        db.add(models.Photo(
+            id=new_id,
+            project_id=new_project.id,
+            image_url=p.image_url,
+            caption=p.caption,
+            caption_en=p.caption_en,
+            order=p.order,
+            taken_at=p.taken_at,
+            camera=p.camera,
+            lens=p.lens,
+            iso=p.iso,
+            shutter_speed=p.shutter_speed,
+            aperture=p.aperture,
+            focal_length=p.focal_length,
+            gps_lat=p.gps_lat,
+            gps_lng=p.gps_lng,
+            rating=p.rating,
+            color_label=p.color_label,
+            folder=p.folder,
+            original_filename=p.original_filename,
+            local_missing=p.local_missing,
+            source=p.source,
+            rotation=p.rotation,
+            original_image_url=p.original_image_url,
+            is_rotating=False,
+        ))
+    db.flush()
+
+    # 2) 챕터 복제 — parent_id 자기참조 처리 위해 위상 순서로 처리
+    src_chapters = db.query(models.Chapter).filter(
+        models.Chapter.project_id == src.id,
+    ).all()
+    chapter_id_map: Dict[str, str] = {}
+    # 부모 먼저 처리: parent_id 없는 것부터, 그다음 이미 매핑된 부모를 참조하는 것
+    remaining = list(src_chapters)
+    safety = 0
+    while remaining and safety < len(src_chapters) + 5:
+        progressed = False
+        next_remaining = []
+        for c in remaining:
+            if c.parent_id is None or c.parent_id in chapter_id_map:
+                new_cid = str(uuid.uuid4())
+                chapter_id_map[c.id] = new_cid
+                db.add(models.Chapter(
+                    id=new_cid,
+                    project_id=new_project.id,
+                    parent_id=chapter_id_map[c.parent_id] if c.parent_id else None,
+                    title=c.title,
+                    description=c.description,
+                    order_num=c.order_num,
+                ))
+                progressed = True
+            else:
+                next_remaining.append(c)
+        remaining = next_remaining
+        if not progressed:
+            # 데이터 이상(고아 parent_id) — 부모를 None 으로 강등
+            for c in remaining:
+                new_cid = str(uuid.uuid4())
+                chapter_id_map[c.id] = new_cid
+                db.add(models.Chapter(
+                    id=new_cid,
+                    project_id=new_project.id,
+                    parent_id=None,
+                    title=c.title,
+                    description=c.description,
+                    order_num=c.order_num,
+                ))
+            break
+        safety += 1
+    db.flush()
+
+    # 3) 챕터 아이템 복제 — PHOTO는 photo_id 매핑, TEXT는 text_content 그대로
+    if chapter_id_map:
+        src_items = db.query(models.ChapterItem).filter(
+            models.ChapterItem.chapter_id.in_(list(chapter_id_map.keys())),
+        ).all()
+        for it in src_items:
+            new_photo_id = None
+            if it.item_type == 'PHOTO' and it.photo_id:
+                new_photo_id = photo_id_map.get(it.photo_id)
+                if not new_photo_id:
+                    # 원본 사진이 삭제되었거나 매핑 실패 — 스킵
+                    continue
+            db.add(models.ChapterItem(
+                id=str(uuid.uuid4()),
+                chapter_id=chapter_id_map[it.chapter_id],
+                order_num=it.order_num,
+                item_type=it.item_type,
+                photo_id=new_photo_id,
+                text_content=it.text_content,
+                block_type=it.block_type,
+                block_id=it.block_id,
+                order_in_block=it.order_in_block,
+                block_layout=it.block_layout,
+            ))
+
+    # 4) 노트 복제 — photo_id FK는 매핑 (nullable)
+    src_notes = db.query(models.Note).filter(
+        models.Note.project_id == src.id,
+        models.Note.deleted_at == None,
+    ).all()
+    for n in src_notes:
+        new_pid = None
+        if n.photo_id:
+            new_pid = photo_id_map.get(n.photo_id)  # 매핑 실패 시 None
+        db.add(models.Note(
+            id=str(uuid.uuid4()),
+            project_id=new_project.id,
+            content=n.content,
+            note_type=n.note_type,
+            is_pinned=n.is_pinned,
+            photo_id=new_pid,
+        ))
+
+    db.commit()
+    db.refresh(new_project)
+    return {
+        "id": new_project.id,
+        "slug": new_project.slug,
+        "title": new_project.title,
+        "user_id": new_project.user_id,
+        "photos_copied": len(photo_id_map),
+        "chapters_copied": len(chapter_id_map),
+        "notes_copied": len(src_notes),
+    }
 
 
 @router.put("/email-templates/{key}/{lang}")

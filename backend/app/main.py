@@ -11,7 +11,7 @@ from datetime import datetime, timedelta
 import os
 import asyncio
 import logging
-from app.routers.photos import delete_cf_files_parallel, _safe_local_upload_path
+from app.routers.photos import delete_cf_files_parallel, _safe_local_upload_path, filter_cf_urls_safe_to_delete
 
 logger = logging.getLogger(__name__)
 
@@ -211,10 +211,7 @@ def auto_delete_trash():
             for p in photos
             if p.image_url and "imagedelivery.net" not in p.image_url
         ]
-
-        # CF 병렬 삭제 (APScheduler 스레드에서 실행되므로 asyncio.run 사용)
-        if cf_urls:
-            asyncio.run(delete_cf_files_parallel(cf_urls))
+        deleted_photo_ids = [p.id for p in photos]
 
         # 로컬 파일 삭제 (path traversal 방어된 경로만)
         for path in local_paths:
@@ -229,6 +226,12 @@ def auto_delete_trash():
         for project in old_projects:
             db.delete(project)
         db.commit()
+
+        # CF 병렬 삭제 — 다른 Photo row(어드민 복제본 등)가 같은 URL을 참조하면 보존
+        if cf_urls:
+            safe_cf_urls = filter_cf_urls_safe_to_delete(cf_urls, db, excluding_photo_ids=deleted_photo_ids)
+            if safe_cf_urls:
+                asyncio.run(delete_cf_files_parallel(safe_cf_urls))
         logger.info("자동 삭제: %d개 프로젝트 영구 삭제됨", len(old_projects))
     finally:
         db.close()
