@@ -602,25 +602,45 @@ def delete_infra_cost(
     return {"ok": True}
 
 
+# ─── User Projects (Admin only) ──────────────────────────────────────────────
+@router.get("/users/{user_id}/projects")
+def list_user_projects(
+    user_id: str,
+    db: Session = Depends(get_db),
+    _: models.User = Depends(require_admin),
+):
+    user = db.query(models.User).filter(models.User.id == user_id).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="USER_NOT_FOUND")
+    rows = db.query(models.Project).filter(
+        models.Project.user_id == user_id,
+        models.Project.deleted_at == None,
+    ).order_by(models.Project.order_num.asc(), models.Project.created_at.desc()).all()
+    return [
+        {"id": p.id, "title": p.title, "slug": p.slug, "is_public": p.is_public}
+        for p in rows
+    ]
+
+
 # ─── Project Duplicate (Admin only) ──────────────────────────────────────────
 # 프로젝트 통째 복제: 사진은 image_url(CF URL)을 그대로 재사용, 챕터/챕터 아이템/노트 모두 복사.
 # 제외: pitches, delivery_links, comments, folder_links, view_count, soft-deleted rows.
 
 class ProjectDuplicateRequest(BaseModel):
-    target_user_id: Optional[str] = None  # 미지정 시 원본 소유자에게 복사
+    target_user_id: Optional[str] = None  # 미지정 시 admin 본인에게 복사
 
 @router.post("/projects/{project_id}/duplicate")
 def duplicate_project(
     project_id: str,
     body: ProjectDuplicateRequest,
     db: Session = Depends(get_db),
-    _: models.User = Depends(require_admin),
+    admin: models.User = Depends(require_admin),
 ):
     src = db.query(models.Project).filter(models.Project.id == project_id).first()
     if not src:
         raise HTTPException(status_code=404, detail="PROJECT_NOT_FOUND")
 
-    target_user_id = body.target_user_id or src.user_id
+    target_user_id = body.target_user_id or admin.id
     target_user = db.query(models.User).filter(models.User.id == target_user_id).first()
     if not target_user:
         raise HTTPException(status_code=404, detail="TARGET_USER_NOT_FOUND")

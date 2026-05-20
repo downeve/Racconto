@@ -951,11 +951,56 @@ interface UserEditPanelProps {
   panelRef: React.RefObject<HTMLDivElement | null>
 }
 
+interface UserProjectRow {
+  id: string
+  title: string
+  slug: string | null
+  is_public: boolean
+}
+
 function UserEditPanel({
   user, values, onChange, saving,
   onSave, onDelete, onClose, panelRef,
 }: UserEditPanelProps) {
   const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false)
+  const [projects, setProjects] = useState<UserProjectRow[]>([])
+  const [projectsLoading, setProjectsLoading] = useState(false)
+  const [duplicatingId, setDuplicatingId] = useState<string | null>(null)
+  const [dupResult, setDupResult] = useState<{ ok: boolean; message: string } | null>(null)
+
+  useEffect(() => {
+    setProjects([])
+    setDupResult(null)
+    if (!user) return
+    let cancelled = false
+    setProjectsLoading(true)
+    adminAxios.get(`${API}/racconto-admin/users/${user.id}/projects`)
+      .then(res => { if (!cancelled) setProjects(res.data) })
+      .catch(() => { if (!cancelled) setProjects([]) })
+      .finally(() => { if (!cancelled) setProjectsLoading(false) })
+    return () => { cancelled = true }
+  }, [user?.id])
+
+  const duplicateProject = async (projectId: string) => {
+    setDuplicatingId(projectId)
+    setDupResult(null)
+    try {
+      const res = await adminAxios.post(
+        `${API}/racconto-admin/projects/${projectId}/duplicate`,
+        {},   // target_user_id 미지정 → admin 본인에게 복제
+      )
+      const d = res.data
+      setDupResult({
+        ok: true,
+        message: `복제 완료 — photos: ${d.photos_copied}, chapters: ${d.chapters_copied}, notes: ${d.notes_copied}`,
+      })
+    } catch (e: any) {
+      const detail = e?.response?.data?.detail
+      setDupResult({ ok: false, message: typeof detail === 'string' ? detail : '복제 실패' })
+    } finally {
+      setDuplicatingId(null)
+    }
+  }
 
   const activePreset = PRESETS.find(
     p => p.photo_limit === values.photo_limit && p.project_limit === values.project_limit
@@ -1083,6 +1128,47 @@ function UserEditPanel({
             {saving && <Spinner size={11} />}
             {saving ? 'Saving...' : 'Save Changes'}
           </button>
+
+          <div className="border-t border-edit-line" />
+
+          {/* Projects — duplicate */}
+          <div>
+            <p className="t-eyebrow text-edit-muted mb-2">프로젝트 (admin에게 복제)</p>
+            {projectsLoading ? (
+              <p className="t-caption text-edit-faint">불러오는 중…</p>
+            ) : projects.length === 0 ? (
+              <p className="t-caption text-edit-faint">프로젝트 없음</p>
+            ) : (
+              <ul className="space-y-1.5">
+                {projects.map(p => (
+                  <li key={p.id} className="flex items-center gap-2">
+                    <span className="flex-1 t-caption text-edit-ink truncate" title={p.title}>
+                      {p.title}
+                    </span>
+                    <button
+                      onClick={() => duplicateProject(p.id)}
+                      disabled={duplicatingId !== null}
+                      title="admin에게 복제"
+                      className="shrink-0 inline-flex items-center gap-1 px-2 py-1 t-caption
+                                 border border-edit-line rounded-[1px]
+                                 hover:bg-edit-paper transition-colors
+                                 disabled:opacity-40 disabled:cursor-not-allowed"
+                    >
+                      {duplicatingId === p.id
+                        ? <Spinner size={10} />
+                        : <Copy size={10} strokeWidth={1.5} />}
+                      복제
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            )}
+            {dupResult && (
+              <p className={`t-caption mt-2 ${dupResult.ok ? 'text-edit-ink' : 'text-edit-muted'}`}>
+                {dupResult.message}
+              </p>
+            )}
+          </div>
 
           <div className="border-t border-edit-line" />
 
