@@ -39,12 +39,16 @@ export default function MobileLandingPage() {
       title: t('landing.feature3Title'),
       desc: t('landing.feature3Desc'),
       image: ss('screenshot-notes'),
+      imageWidth: 1280,
+      imageHeight: 800,
     },
     {
       key: 'curation',
       title: t('landing.feature4Title'),
       desc: t('landing.feature4Desc'),
       image: ss('screenshot-photos'),
+      imageWidth: 1280,
+      imageHeight: 801,
     },
     {
       key: 'portfolio',
@@ -74,7 +78,8 @@ export default function MobileLandingPage() {
                        leading-[1.1] mb-6 ${breakKeep} text-center`}>
           {t('landing.heroTitle')}<br />{t('landing.heroTitle2')}
         </h1>
-        <p className={`relative font-serif text-h2 text-edit-ink/75 leading-[1.65] mb-10 text-center ${breakKeep}`}>
+        <p className={`relative font-serif text-h2 text-edit-ink/75 leading-[1.65] mb-10 text-center ${breakKeep}`}
+           style={{ minHeight: '4rem' }}>
           {t('landing.heroSubtitle')}
         </p>
         <Link
@@ -105,7 +110,10 @@ export default function MobileLandingPage() {
         <img
           src={ss('screenshot-main-mobile')}
           alt="Racconto app"
-          className="w-full block border border-edit-line"
+          width={1080}
+          height={817}
+          fetchPriority="high"
+          className="w-full h-auto block border border-edit-line"
         />
       </section>
 
@@ -134,7 +142,10 @@ export default function MobileLandingPage() {
                   <source src={`${f.video}.mp4`} type="video/mp4" />
                 </video>
               ) : f.image ? (
-                <img src={f.image} alt={f.title} className="w-full mt-6 block border border-edit-line" />
+                <img src={f.image} alt={f.title}
+                     width={f.imageWidth} height={f.imageHeight}
+                     loading="lazy"
+                     className="w-full h-auto mt-6 block border border-edit-line" />
               ) : null}
             </div>
           ))}

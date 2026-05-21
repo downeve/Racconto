@@ -43,6 +43,8 @@ export default function LandingPage() {
       desc: t('landing.feature3Desc'),
       image: ss('screenshot-notes'),
       imageAlt: 'Project notes',
+      imageWidth: 1280,
+      imageHeight: 800,
     },
     {
       key: 'curation',
@@ -50,6 +52,8 @@ export default function LandingPage() {
       desc: t('landing.feature4Desc'),
       image: ss('screenshot-photos'),
       imageAlt: 'Photo curation',
+      imageWidth: 1280,
+      imageHeight: 801,
     },
     {
       key: 'portfolio',
@@ -93,7 +97,8 @@ export default function LandingPage() {
             {t('landing.heroTitle')}<br />{t('landing.heroTitle2')}
           </h1>
           <p className={`font-serif text-h3 md:text-h2 text-edit-muted
-                        leading-[1.65] mb-12 max-w-xl mx-auto ${breakKeep}`}>
+                        leading-[1.65] mb-12 max-w-xl mx-auto ${breakKeep}`}
+             style={{ minHeight: '4rem' }}>
             {t('landing.heroSubtitle')}
           </p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4 sm:gap-8">
@@ -186,7 +191,9 @@ export default function LandingPage() {
                       <source src={`${f.video}.mp4`} type="video/mp4" />
                     </video>
                   ) : (
-                    <img src={f.image} alt={f.imageAlt} className="w-full block border border-edit-line" />
+                    <img src={f.image} alt={f.imageAlt}
+                         width={f.imageWidth} height={f.imageHeight}
+                         className="w-full h-auto block border border-edit-line" />
                   )}
                 </div>
                 {/* 텍스트 — 35% */}
