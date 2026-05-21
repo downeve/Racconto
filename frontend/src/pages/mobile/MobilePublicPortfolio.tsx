@@ -8,6 +8,7 @@ import { MapPin, X, ChevronLeft, Link2, Check } from 'lucide-react'
 import CoverFallback from '../../components/CoverFallback'
 import EmptyState from '../../components/EmptyState'
 import PublicNavbar from '../../components/PublicNavbar'
+import PortfolioComments from '../../components/PortfolioComments'
 import MobilePortfolioChapterItems from '../../components/mobile/MobilePortfolioChapterItems'
 import { cfUrl } from '../../utils/cfImage'
 import { useActiveChapter } from '../../hooks/useActiveChapter'
@@ -33,7 +34,7 @@ export default function MobilePublicPortfolio() {
   const { t } = useTranslation()
   const navigate = useNavigate()
   const location = useLocation()
-  const { isAuthenticated } = useAuth()
+  const { isAuthenticated, user } = useAuth()
 
   const [localSelectedProject, setLocalSelectedProject] = useState<PortfolioProject | null>(null)
   const [darkMode, setDarkMode] = useState(false)
@@ -404,9 +405,7 @@ export default function MobilePublicPortfolio() {
             )}
 
             {/* 공유 버튼 */}
-            <div className={`mt-20 pt-8 border-t ${darkMode ? 'border-d-line' : 'border-hair'}`}
-              style={{ paddingBottom: 'calc(env(safe-area-inset-bottom) + 48px)' }}
-            >
+            <div className={`mt-20 pt-8 border-t ${darkMode ? 'border-d-line' : 'border-hair'}`}>
               <p className={`t-eyebrow mb-5 ${microcopy}`}>{t('portfolio.share')}</p>
               <div className="flex flex-wrap gap-2">
                 <>
@@ -449,6 +448,19 @@ export default function MobilePublicPortfolio() {
                 </>
               </div>
             </div>
+
+            {/* 댓글 섹션 — 슬러그 기반 상세 페이지에서만 표시 */}
+            {selectedProject && (slug || localSelectedProject) && (
+              <div style={{ paddingBottom: 'calc(env(safe-area-inset-bottom) + 48px)' }}>
+                <PortfolioComments
+                  projectId={selectedProject.id}
+                  darkMode={darkMode}
+                  isAuthenticated={isAuthenticated}
+                  currentUsername={user?.username}
+                  portfolioOwnerUsername={username ?? ''}
+                />
+              </div>
+            )}
           </div>
         )}
       </div>

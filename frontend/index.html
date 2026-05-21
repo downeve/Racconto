@@ -3,11 +3,44 @@
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <!-- Noto Serif KR 기준, subset으로 용량 최적화 -->
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@400;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />   
+
+    <!-- Pretendard — 동적 서브셋 CDN (실제 사용된 글리프만 다운로드, ~50-150KB) -->
+    <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.css">
+
+    <!-- Noto Serif KR — 비차단 로딩 (한국어 serif 텍스트 폴백 방지) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@400;700&display=swap" onload="this.onload=null;this.rel='stylesheet'">
+    <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@400;700&display=swap"></noscript>
+
+    <!-- LCP hint — 모바일 첫 화면 메인 스크린샷 -->
+    <link rel="preload" as="image" href="/screenshots/screenshot-main-mobile_en.webp" media="(max-width: 768px)">
+
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Racconto</title>
+    <title>Racconto — Photo Storytelling & Portfolio</title>
+
+    <!-- SEO 기본 메타태그 -->
+    <meta name="description" content="Organize your photos into chapters, build a public portfolio, and share your story. Free for photographers — no Lightroom required." />
+    <meta name="keywords" content="photo portfolio, photography, film photography, photo storytelling, portfolio builder" />
+    <meta name="author" content="Dawoon Choi" />
+    <link rel="canonical" href="https://racconto.app" />
+
+    <!-- Open Graph (포트폴리오 페이지는 backend /og 라우터가 동적 주입) -->
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://racconto.app" />
+    <meta property="og:title" content="Racconto — Photo Storytelling & Portfolio" />
+    <meta property="og:description" content="Organize your photos into chapters, build a public portfolio, and share your story. Free for photographers." />
+    <meta property="og:image" content="https://racconto.app/screenshots/screenshot-main-mobile_en.webp" />
+    <meta property="og:locale" content="en_US" />
+    <meta property="og:locale:alternate" content="ko_KR" />
+    <meta property="og:locale:alternate" content="ja_JP" />
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Racconto — Photo Storytelling & Portfolio" />
+    <meta name="twitter:description" content="Organize your photos into chapters, build a public portfolio, and share your story." />
+    <meta name="twitter:image" content="https://racconto.app/screenshots/screenshot-main-mobile_en.webp" />
   </head>
   <body>
     <!-- 텍스트 크기 설정을 렌더 전에 적용 (flash 방지) -->

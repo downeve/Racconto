@@ -2,6 +2,8 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Pretendard 는 index.html 의 dynamic subset CDN 에서 로드 (PretendardVariable family) */
+
 /* 1. 기본 태그(html, body) 설정 */
 @layer base {
   html { 

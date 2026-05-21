@@ -421,18 +421,17 @@ def add_photo_to_chapter(
     order = body.order_num if body.order_num is not None else get_next_order_num(chapter_id, db)
 
     new_id = str(uuid.uuid4())
-    # block_id 미지정 시 자신의 id를 block_id로 사용 (단독 블록)
-    block_id = body.block_id if body.block_id else new_id
-
+    # 단건 추가는 항상 단독 블록으로 생성 (한 블록 내 order_num/order_in_block 충돌 방지).
+    # 기존 블록에 합류시키려면 move_item_to_block 엔드포인트를 사용해야 함.
     db_item = models.ChapterItem(
         id=new_id,
         chapter_id=chapter_id,
         item_type="PHOTO",
         photo_id=body.photo_id,
         order_num=order,
-        block_id=block_id,
-        order_in_block=body.order_in_block or 0,
-        block_layout='grid'  # 단건 추가 기본값
+        block_id=new_id,
+        order_in_block=0,
+        block_layout='grid'
     )
     db.add(db_item)
     db.commit()
@@ -577,9 +576,12 @@ def set_side_by_side(
     if not photo_items:
         raise HTTPException(status_code=404, detail="PHOTO_BLOCK_NOT_FOUND")
 
-    # 텍스트 아이템에 block_id와 block_type 설정
+    # 텍스트 아이템에 block_id, block_type, order_num 동기화
+    # order_num을 photo block과 일치시켜야 groupIntoBlocks의 Math.min 효과로
+    # 다른 블록 위치가 위로 끌려가는 부작용을 방지함
     text_item.block_id = body.photo_block_id
     text_item.block_type = body.position  # 'side-left' | 'side-right'
+    text_item.order_num = photo_items[0].order_num
 
     # 사진 아이템들도 block_type 동기화
     for photo_item in photo_items:
@@ -714,6 +716,7 @@ def bulk_add_photos_to_chapter(
 class ChapterItemMoveToBlock(BaseModel):
     item_id: str
     target_block_id: str
+    source_order_num: Optional[int] = None  # 다중 호출 시 anchor (frontend가 첫 itemId의 원본 order_num 전달)
 
 @router.put("/{chapter_id}/items/move-to-block")
 def move_item_to_block(
@@ -751,13 +754,16 @@ def move_item_to_block(
         item.order_num = target_items[0].order_num
     else:
         # 새 블록: source 바로 뒤(order_num + 1)에 자리를 만들기 위해 후속 아이템들을 +1 시프트.
-        # 기존엔 빈 order_num을 찾을 때까지 +1 반복했는데, 후속 블록 order_num이 빽빽하면
-        # 새 블록이 챕터 맨 끝으로 밀려나는 비결정적 동작이 있어 시프트 방식으로 변경.
-        target_order_num = item.order_num + 1
+        # 다중 호출(handleBulkMove) 시 누적 시프트를 막기 위해:
+        #   1) source_order_num이 명시되면 그것 + 1 을 anchor로 사용 (모든 호출이 같은 target)
+        #   2) 이미 target_block_id 로 합류한 형제 아이템은 시프트에서 제외
+        anchor = body.source_order_num if body.source_order_num is not None else item.order_num
+        target_order_num = anchor + 1
         db.query(models.ChapterItem).filter(
             models.ChapterItem.chapter_id == chapter_id,
             models.ChapterItem.order_num >= target_order_num,
             models.ChapterItem.id != item.id,
+            models.ChapterItem.block_id != body.target_block_id,
         ).update(
             {models.ChapterItem.order_num: models.ChapterItem.order_num + 1},
             synchronize_session=False,

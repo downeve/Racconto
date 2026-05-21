@@ -125,11 +125,11 @@ export default {
         'modal':          '60',
       },
       fontFamily: {
-        // 콘텐츠/에디토리얼 — 포트폴리오 본문, 제목
-        serif: ['"Noto Serif KR"', 'Georgia', 'serif'],
-        
-        // UI — 메뉴, 버튼, 폼
-        sans: ['Pretendard', '-apple-system', 'BlinkMacSystemFont', 
+        // 콘텐츠/에디토리얼 — Noto Serif KR(비차단 로딩) + 시스템 serif fallback
+        serif: ['"Noto Serif KR"', 'Georgia', '"Times New Roman"', 'serif'],
+
+        // UI — Pretendard Variable(dynamic subset CDN) 우선, 시스템 폰트 fallback
+        sans: ['"Pretendard Variable"', 'Pretendard', '-apple-system', 'BlinkMacSystemFont',
               '"Segoe UI"', 'Roboto', 'sans-serif'],
       },
     },

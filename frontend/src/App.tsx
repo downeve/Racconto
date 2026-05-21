@@ -12,7 +12,7 @@ import FeedbackWidget from './components/FeedbackWidget'
 import { getDeviceType } from './utils/deviceDetect'
 import { ElectronSidebarProvider } from './context/ElectronSidebarContext'
 
-// ── 즉시 로드 (인증 흐름 핵심 경로) ──────────────────────────
+// ── 즉시 로드 (인증 흐름 핵심 경로 + 첫 화면 LCP) ────────────
 import Login from './pages/Login'
 import Dashboard from './pages/Dashboard'
 import Projects from './pages/Projects'
@@ -20,6 +20,10 @@ import Register from './pages/Register'
 import VerifyEmail from './pages/VerifyEmail'
 import ForgotPassword from './pages/ForgotPassword'
 import ResetPassword from './pages/ResetPassword'
+// 비로그인 첫 화면(/)은 LCP 측정 대상 — lazy 시 추가 chunk 라운드트립으로 LCP 지연
+import LandingPage from './pages/LandingPage'
+import MobileLandingPage from './pages/MobileLandingPage'
+import ElectronLandingPage from './pages/ElectronLandingPage'
 
 // ── 지연 로드 (무거운 페이지 / 비빈번 접근) ──────────────────
 const ProjectDetail      = lazy(() => import('./pages/ProjectDetail'))
@@ -29,10 +33,7 @@ const Settings           = lazy(() => import('./pages/Settings'))
 const DeliveryPage       = lazy(() => import('./pages/DeliveryPage'))
 const Admin              = lazy(() => import('./pages/Admin'))
 const PublicPortfolio    = lazy(() => import('./pages/PublicPortfolio'))
-const LandingPage        = lazy(() => import('./pages/LandingPage'))
-const ElectronLandingPage = lazy(() => import('./pages/ElectronLandingPage'))
 const FeaturesPage       = lazy(() => import('./pages/FeaturesPage'))
-const MobileLandingPage  = lazy(() => import('./pages/MobileLandingPage'))
 const MobileFeaturesPage = lazy(() => import('./pages/MobileFeaturesPage'))
 const AppDownload        = lazy(() => import('./pages/AppDownload'))
 const SocialCallback     = lazy(() => import('./pages/auth/SocialCallback'))

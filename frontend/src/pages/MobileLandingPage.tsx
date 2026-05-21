@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next'
 import { useRef } from 'react'
 import { Monitor, ArrowDown } from 'lucide-react'
 import PublicNavbar from '../components/PublicNavbar'
+import LazyAutoplayVideo from '../components/LazyAutoplayVideo'
 
 export default function MobileLandingPage() {
   const { t, i18n } = useTranslation()
@@ -39,12 +40,18 @@ export default function MobileLandingPage() {
       title: t('landing.feature3Title'),
       desc: t('landing.feature3Desc'),
       image: ss('screenshot-notes'),
+      imageSrcSet: `./screenshots/screenshot-notes_${lang}_640.webp 640w, ${ss('screenshot-notes')} 1280w`,
+      imageWidth: 1280,
+      imageHeight: 800,
     },
     {
       key: 'curation',
       title: t('landing.feature4Title'),
       desc: t('landing.feature4Desc'),
       image: ss('screenshot-photos'),
+      imageSrcSet: `./screenshots/screenshot-photos_${lang}_640.webp 640w, ${ss('screenshot-photos')} 1280w`,
+      imageWidth: 1280,
+      imageHeight: 801,
     },
     {
       key: 'portfolio',
@@ -74,7 +81,8 @@ export default function MobileLandingPage() {
                        leading-[1.1] mb-6 ${breakKeep} text-center`}>
           {t('landing.heroTitle')}<br />{t('landing.heroTitle2')}
         </h1>
-        <p className={`relative font-serif text-h2 text-edit-ink/75 leading-[1.65] mb-10 text-center ${breakKeep}`}>
+        <p className={`relative font-serif text-h2 text-edit-ink/75 leading-[1.65] mb-10 text-center ${breakKeep}`}
+           style={{ minHeight: '4rem' }}>
           {t('landing.heroSubtitle')}
         </p>
         <Link
@@ -104,8 +112,13 @@ export default function MobileLandingPage() {
         </h2>
         <img
           src={ss('screenshot-main-mobile')}
+          srcSet={`./screenshots/screenshot-main-mobile_${lang}_640.webp 640w, ${ss('screenshot-main-mobile')} 1080w`}
+          sizes="(max-width: 768px) 640px, 1080px"
           alt="Racconto app"
-          className="w-full block border border-edit-line"
+          width={1080}
+          height={817}
+          fetchPriority="high"
+          className="w-full h-auto block border border-edit-line"
         />
       </section>
 
@@ -129,12 +142,18 @@ export default function MobileLandingPage() {
                 {f.desc}
               </p>
               {f.video ? (
-                <video autoPlay muted loop playsInline className="w-full mt-6 block border border-edit-line">
-                  <source src={`${f.video}.webm`} type="video/webm" />
-                  <source src={`${f.video}.mp4`} type="video/mp4" />
-                </video>
+                <LazyAutoplayVideo
+                  src={f.video}
+                  poster={`${f.video}_poster.webp`}
+                  className="w-full mt-6 block border border-edit-line"
+                />
               ) : f.image ? (
-                <img src={f.image} alt={f.title} className="w-full mt-6 block border border-edit-line" />
+                <img src={f.image} alt={f.title}
+                     srcSet={f.imageSrcSet}
+                     sizes="(max-width: 768px) 640px, 1280px"
+                     width={f.imageWidth} height={f.imageHeight}
+                     loading="lazy"
+                     className="w-full h-auto mt-6 block border border-edit-line" />
               ) : null}
             </div>
           ))}

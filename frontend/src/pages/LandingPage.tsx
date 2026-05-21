@@ -4,6 +4,7 @@ import { useRef } from 'react'
 import { ArrowDown, Monitor, ArrowUpRight } from 'lucide-react'
 import PublicNavbar from '../components/PublicNavbar'
 import { Wordmark } from '../components/Wordmark'
+import LazyAutoplayVideo from '../components/LazyAutoplayVideo'
 
 export default function LandingPage() {
   const { t, i18n } = useTranslation()
@@ -42,14 +43,20 @@ export default function LandingPage() {
       title: t('landing.feature3Title'),
       desc: t('landing.feature3Desc'),
       image: ss('screenshot-notes'),
+      imageSrcSet: `./screenshots/screenshot-notes_${lang}_640.webp 640w, ${ss('screenshot-notes')} 1280w`,
       imageAlt: 'Project notes',
+      imageWidth: 1280,
+      imageHeight: 800,
     },
     {
       key: 'curation',
       title: t('landing.feature4Title'),
       desc: t('landing.feature4Desc'),
       image: ss('screenshot-photos'),
+      imageSrcSet: `./screenshots/screenshot-photos_${lang}_640.webp 640w, ${ss('screenshot-photos')} 1280w`,
       imageAlt: 'Photo curation',
+      imageWidth: 1280,
+      imageHeight: 801,
     },
     {
       key: 'portfolio',
@@ -93,7 +100,8 @@ export default function LandingPage() {
             {t('landing.heroTitle')}<br />{t('landing.heroTitle2')}
           </h1>
           <p className={`font-serif text-h3 md:text-h2 text-edit-muted
-                        leading-[1.65] mb-12 max-w-xl mx-auto ${breakKeep}`}>
+                        leading-[1.65] mb-12 max-w-xl mx-auto ${breakKeep}`}
+             style={{ minHeight: '4rem' }}>
             {t('landing.heroSubtitle')}
           </p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4 sm:gap-8">
@@ -181,12 +189,18 @@ export default function LandingPage() {
                 {/* 이미지 — 65% */}
                 <div className="md:col-span-8">
                   {f.video ? (
-                    <video autoPlay muted loop playsInline className="w-full block border border-edit-line">
-                      <source src={`${f.video}.webm`} type="video/webm" />
-                      <source src={`${f.video}.mp4`} type="video/mp4" />
-                    </video>
+                    <LazyAutoplayVideo
+                      src={f.video}
+                      poster={`${f.video}_poster.webp`}
+                      className="w-full block border border-edit-line"
+                    />
                   ) : (
-                    <img src={f.image} alt={f.imageAlt} className="w-full block border border-edit-line" />
+                    <img src={f.image} alt={f.imageAlt}
+                         srcSet={f.imageSrcSet}
+                         sizes="(max-width: 768px) 640px, 1280px"
+                         width={f.imageWidth} height={f.imageHeight}
+                         loading="lazy"
+                         className="w-full h-auto block border border-edit-line" />
                   )}
                 </div>
                 {/* 텍스트 — 35% */}
