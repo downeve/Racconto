@@ -125,8 +125,8 @@ export default {
         'modal':          '60',
       },
       fontFamily: {
-        // 콘텐츠/에디토리얼 — Noto Serif KR 제거, 시스템 serif fallback 사용
-        serif: ['Georgia', '"Times New Roman"', 'serif'],
+        // 콘텐츠/에디토리얼 — Noto Serif KR(비차단 로딩) + 시스템 serif fallback
+        serif: ['"Noto Serif KR"', 'Georgia', '"Times New Roman"', 'serif'],
 
         // UI — Pretendard Variable(dynamic subset CDN) 우선, 시스템 폰트 fallback
         sans: ['"Pretendard Variable"', 'Pretendard', '-apple-system', 'BlinkMacSystemFont',
