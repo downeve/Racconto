@@ -29,17 +29,22 @@ def _cf_public(url: str | None) -> str | None:
 
 def _inject_og(html: str, title: str, description: str, image: str | None, url: str) -> str:
     esc = html_lib.escape
+    # 일반 SEO 메타 (description/canonical) + OG/Twitter — head 앞쪽에 모두 주입
     tags = (
+        f'    <meta name="description" content="{esc(description)}" />\n'
+        f'    <link rel="canonical" href="{esc(url)}" />\n'
         f'    <meta property="og:title" content="{esc(title)}" />\n'
         f'    <meta property="og:description" content="{esc(description)}" />\n'
         f'    <meta property="og:url" content="{esc(url)}" />\n'
         f'    <meta property="og:type" content="website" />\n'
         f'    <meta name="twitter:card" content="summary_large_image" />\n'
+        f'    <meta name="twitter:title" content="{esc(title)}" />\n'
+        f'    <meta name="twitter:description" content="{esc(description)}" />\n'
     )
     if image:
         tags += f'    <meta property="og:image" content="{esc(image)}" />\n'
         tags += f'    <meta name="twitter:image" content="{esc(image)}" />\n'
-    # <head> 시작 직후에 주입 — Facebook/Twitter 크롤러는 head 앞쪽만 파싱함
+    # <head> 시작 직후에 주입 — 크롤러는 head 앞쪽만 파싱
     return html.replace("<head>", "<head>\n" + tags, 1)
 
 

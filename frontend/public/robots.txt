@@ -1,0 +1,20 @@
+User-agent: *
+Allow: /
+
+# 앱 내부 페이지 — 크롤링 차단
+Disallow: /dashboard
+Disallow: /dashboard/
+Disallow: /settings
+Disallow: /settings/
+Disallow: /trash
+Disallow: /trash/
+Disallow: /projects
+Disallow: /projects/
+Disallow: /api/
+Disallow: /admin/
+Disallow: /racconto-admin
+Disallow: /auth/
+Disallow: /delivery/
+
+# Sitemap
+Sitemap: https://racconto.app/sitemap.xml
