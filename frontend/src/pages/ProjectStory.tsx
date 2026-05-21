@@ -572,8 +572,27 @@ function ProjectStory({
     setChapterPhotos(prev => {
       const all = prev[chapterId] || []
       const prevTargetItems = all.filter(i => i.block_id === targetBlockId && i.item_type === 'PHOTO')
-      const prevTargetLayout = prevTargetItems[0]?.block_layout || 'grid'
-      const prevTargetOrderNum = prevTargetItems[0]?.order_num ?? (all[all.length - 1]?.order_num ?? 0)
+      // target 블록에 PHOTO가 하나도 없는 비정상 케이스 — 새 블록 분기와 동일하게 source 바로 뒤로 처리
+      if (prevTargetItems.length === 0) {
+        const sourceOrderNum = all.find(i => i.id === itemId)?.order_num ?? 0
+        const targetOrderNum = sourceOrderNum + 1
+        const sourceRemaining = all.filter(i =>
+          i.block_id === sourceBlockId && i.item_type === 'PHOTO' && i.id !== itemId
+        )
+        const updated = all.map(i => {
+          if (i.id === itemId) return { ...i, block_id: targetBlockId, order_in_block: 0, order_num: targetOrderNum, block_layout: 'grid' as const }
+          const shifted = i.order_num >= targetOrderNum ? { ...i, order_num: i.order_num + 1 } : i
+          const srcIdx = sourceRemaining.findIndex(s => s.id === shifted.id)
+          if (srcIdx !== -1) return { ...shifted, order_in_block: srcIdx }
+          return shifted
+        })
+        if (sourceRemaining.length === 0) {
+          return { ...prev, [chapterId]: updated.map(i => i.block_id === sourceBlockId && i.item_type === 'TEXT' ? { ...i, block_id: crypto.randomUUID(), block_type: 'default' } : i) }
+        }
+        return { ...prev, [chapterId]: updated }
+      }
+      const prevTargetLayout = prevTargetItems[0].block_layout || 'grid'
+      const prevTargetOrderNum = prevTargetItems[0].order_num
       const prevSourceRemaining = all.filter(i => i.block_id === sourceBlockId && i.item_type === 'PHOTO' && i.id !== itemId)
       const updated = all.map(i => {
         if (i.id === itemId) return { ...i, block_id: targetBlockId, order_in_block: prevTargetItems.length, order_num: prevTargetOrderNum, block_layout: prevTargetLayout }
@@ -795,10 +814,59 @@ function ProjectStory({
     targetBlockId: string
   ) => {
     const resolvedTargetId = targetBlockId === 'new' ? crypto.randomUUID() : targetBlockId
+    // 다중 호출 anchor — 첫 itemId의 원본 order_num. backend가 누적 시프트 방지에 사용.
+    let sourceOrderNum: number | undefined
 
     // 낙관적 업데이트
     setChapterPhotos(prev => {
       const all = prev[chapterId] || []
+      const firstSource = all.find(i => i.id === itemIds[0])
+      if (!firstSource) return prev
+      sourceOrderNum = firstSource.order_num
+
+      if (targetBlockId === 'new') {
+        // 새 블록: source 바로 뒤(order_num + 1)에 자리 → 후속 아이템 +1 시프트
+        const targetOrderNum = sourceOrderNum + 1
+        const movingIds = new Set(itemIds)
+        // 각 itemId의 원래 block_id별 남은 PHOTO 그룹 (order_in_block 재정렬용)
+        const sourceBlockIds = new Set(
+          itemIds
+            .map(id => all.find(i => i.id === id)?.block_id)
+            .filter((bid): bid is string => !!bid)
+        )
+        const sourceRemainingByBlock = new Map<string, ChapterItem[]>()
+        sourceBlockIds.forEach(bid => {
+          sourceRemainingByBlock.set(
+            bid,
+            all.filter(i => i.block_id === bid && i.item_type === 'PHOTO' && !movingIds.has(i.id))
+          )
+        })
+
+        const updated = all.map(i => {
+          if (movingIds.has(i.id)) {
+            const idx = itemIds.indexOf(i.id)
+            return { ...i, block_id: resolvedTargetId, order_in_block: idx, order_num: targetOrderNum, block_layout: 'grid' as const }
+          }
+          const shifted = i.order_num >= targetOrderNum ? { ...i, order_num: i.order_num + 1 } : i
+          for (const [, remaining] of sourceRemainingByBlock) {
+            const srcIdx = remaining.findIndex(s => s.id === shifted.id)
+            if (srcIdx !== -1) return { ...shifted, order_in_block: srcIdx }
+          }
+          return shifted
+        })
+
+        // 비게 된 source 블록의 side-by-side 텍스트 자동 해제
+        let finalItems = updated
+        sourceRemainingByBlock.forEach((remaining, bid) => {
+          if (remaining.length === 0) {
+            finalItems = finalItems.map(i => i.block_id === bid && i.item_type === 'TEXT'
+              ? { ...i, block_id: crypto.randomUUID(), block_type: 'default' } : i)
+          }
+        })
+        return { ...prev, [chapterId]: finalItems }
+      }
+
+      // 기존 블록 분기 — target_items[0]의 order_num 공유 (분산 없음)
       const prevTargetItems = all.filter(i => i.block_id === resolvedTargetId && i.item_type === 'PHOTO')
       const prevTargetLayout = prevTargetItems[0]?.block_layout || 'grid'
       const prevTargetOrderNum = prevTargetItems[0]?.order_num ?? (all[all.length - 1]?.order_num ?? 0)
@@ -822,6 +890,7 @@ function ProjectStory({
         axios.put(`${API}/chapters/${chapterId}/items/move-to-block`, {
           item_id: itemId,
           target_block_id: resolvedTargetId,
+          source_order_num: sourceOrderNum,
         })
       ))
     } catch (err) {
