@@ -1,5 +1,5 @@
 import type { CSSProperties } from 'react'
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import MarkdownRenderer from './MarkdownRenderer'
 import { cfUrl } from '../utils/cfImage'
 import PhotoReveal from './PhotoReveal'
@@ -50,13 +50,25 @@ export default function PortfolioChapterItems({
   const effectiveWidth = containerWidth ?? PORTFOLIO_WIDTH - 48
   const [imageRatios, setImageRatios] = useState<Record<string, number>>({})
 
+  // LCP 후보: 페이지의 첫 PHOTO
+  const lcpPhotoId = items.find(i => i.item_type === 'PHOTO' && i.image_url)?.id
+
+  // 다중 onLoad가 동시 발생할 때 setState 폭주를 막기 위해 rAF 한 프레임으로 묶음
+  // (강제 리플로우 누적 ~163ms 완화)
+  const pendingRatios = useRef<Record<string, number>>({})
+  const rafRef = useRef<number | null>(null)
+
   const handleImageLoad = (url: string, e: React.SyntheticEvent<HTMLImageElement>) => {
     const img = e.currentTarget
     if (!img.naturalWidth || !img.naturalHeight) return
-    const ratio = img.naturalWidth / img.naturalHeight
-    setImageRatios(prev => {
-      if (prev[url] !== undefined) return prev
-      return { ...prev, [url]: ratio }
+    if (imageRatios[url] !== undefined || pendingRatios.current[url] !== undefined) return
+    pendingRatios.current[url] = img.naturalWidth / img.naturalHeight
+    if (rafRef.current !== null) return
+    rafRef.current = requestAnimationFrame(() => {
+      const batched = pendingRatios.current
+      pendingRatios.current = {}
+      rafRef.current = null
+      setImageRatios(prev => ({ ...prev, ...batched }))
     })
   }
 
@@ -84,7 +96,8 @@ export default function PortfolioChapterItems({
             <img
               src={cfUrl(photo.image_url, 'public')}
               alt={photo.caption || ''}
-              loading="lazy"
+              loading={photo.id === lcpPhotoId ? 'eager' : 'lazy'}
+              fetchPriority={photo.id === lcpPhotoId ? 'high' : 'auto'}
               className="w-full h-full rounded-photo object-cover hover:opacity-90 transition-opacity block"
               onLoad={(e) => handleImageLoad(photo.image_url || '', e)}
             />
@@ -190,7 +203,8 @@ export default function PortfolioChapterItems({
                 <img
                   src={cfUrl(photo.image_url, 'public')}
                   alt={photo.caption || ''}
-                  loading="lazy"
+                  loading={photo.id === lcpPhotoId ? 'eager' : 'lazy'}
+                  fetchPriority={photo.id === lcpPhotoId ? 'high' : 'auto'}
                   className={
                     isPortraitCapped
                       ? 'rounded-photo cursor-pointer hover:opacity-90 transition-opacity'
@@ -245,7 +259,8 @@ export default function PortfolioChapterItems({
               <img
                 src={cfUrl(photo.image_url, 'public')}
                 alt={photo.caption || ''}
-                loading="lazy"
+                loading={photo.id === lcpPhotoId ? 'eager' : 'lazy'}
+                fetchPriority={photo.id === lcpPhotoId ? 'high' : 'auto'}
                 className="w-full rounded-photo cursor-pointer hover:opacity-90 transition-opacity"
                 onClick={() => onLightbox?.(photo as PortfolioPhoto, allLightboxItems)}
               />
