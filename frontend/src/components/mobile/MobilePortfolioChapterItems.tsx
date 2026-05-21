@@ -16,9 +16,6 @@ export default function MobilePortfolioChapterItems({
   items, allLightboxItems = [], darkMode, onLightbox
 }: Props) {
 
-  // 페이지의 첫 PHOTO — LCP 후보. eager + fetchPriority="high" 적용.
-  const lcpPhotoId = items.find(i => i.item_type === 'PHOTO' && i.image_url)?.id
-
   const renderedBlocks = new Set<string>()
   const blockMap = new Map<string, {
     layout: 'grid' | 'wide' | 'single'
@@ -82,8 +79,7 @@ export default function MobilePortfolioChapterItems({
                 srcSet={`${cfUrl(photo.image_url, 'mobile')} 480w, ${cfUrl(photo.image_url, 'grid')} 800w`}
                 sizes="(max-width: 768px) 100vw, 800px"
                 alt={photo.caption || ''}
-                loading={photo.id === lcpPhotoId ? 'eager' : 'lazy'}
-                fetchPriority={photo.id === lcpPhotoId ? 'high' : 'auto'}
+                loading="lazy"
                 className="w-full block rounded-photo"
               />
               {photo.caption && <p className={`t-caption mt-2 ${darkMode ? 'text-d-faint' : 'text-faint'}`}>{photo.caption}</p>}
@@ -123,8 +119,7 @@ export default function MobilePortfolioChapterItems({
               srcSet={`${cfUrl(photo.image_url, 'mobile')} 480w, ${cfUrl(photo.image_url, 'grid')} 800w`}
               sizes="(max-width: 768px) 100vw, 800px"
               alt={photo.caption || ''}
-              loading={photo.id === lcpPhotoId ? 'eager' : 'lazy'}
-              fetchPriority={photo.id === lcpPhotoId ? 'high' : 'auto'}
+              loading="lazy"
               className="w-full object-cover hover:opacity-90 transition-opacity block"
             />
             {photo.caption && (
