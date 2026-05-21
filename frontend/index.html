@@ -4,17 +4,11 @@
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
 
-    <!-- Pretendard — 로컬 woff2 (작업 1-2). @font-face는 index.css 에 선언 -->
-    <link rel="preload" href="/fonts/Pretendard-Regular.woff2" as="font" type="font/woff2" crossorigin>
-    <link rel="preload" href="/fonts/Pretendard-Medium.woff2" as="font" type="font/woff2" crossorigin>
+    <!-- Pretendard — 동적 서브셋 CDN (실제 사용된 글리프만 다운로드, ~50-150KB) -->
+    <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.css">
 
-    <!-- Noto Serif KR — 비차단 로딩 (작업 1-1) -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@400;700&display=swap" onload="this.onload=null;this.rel='stylesheet'">
-    <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@400;700&display=swap"></noscript>
-
-    <!-- LCP hint — 모바일 첫 화면 메인 스크린샷 (작업 6) -->
+    <!-- LCP hint — 모바일 첫 화면 메인 스크린샷 -->
     <link rel="preload" as="image" href="/screenshots/screenshot-main-mobile_en.webp" media="(max-width: 768px)">
 
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />

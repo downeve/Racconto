@@ -2,35 +2,7 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Pretendard — 로컬 woff2 (작업 1-2). 사용 weight만 선언 (400/500/600/700). */
-@font-face {
-  font-family: 'Pretendard';
-  font-weight: 400;
-  font-display: swap;
-  src: local('Pretendard Regular'),
-       url('/fonts/Pretendard-Regular.woff2') format('woff2');
-}
-@font-face {
-  font-family: 'Pretendard';
-  font-weight: 500;
-  font-display: swap;
-  src: local('Pretendard Medium'),
-       url('/fonts/Pretendard-Medium.woff2') format('woff2');
-}
-@font-face {
-  font-family: 'Pretendard';
-  font-weight: 600;
-  font-display: swap;
-  src: local('Pretendard SemiBold'),
-       url('/fonts/Pretendard-SemiBold.woff2') format('woff2');
-}
-@font-face {
-  font-family: 'Pretendard';
-  font-weight: 700;
-  font-display: swap;
-  src: local('Pretendard Bold'),
-       url('/fonts/Pretendard-Bold.woff2') format('woff2');
-}
+/* Pretendard 는 index.html 의 dynamic subset CDN 에서 로드 (PretendardVariable family) */
 
 /* 1. 기본 태그(html, body) 설정 */
 @layer base {

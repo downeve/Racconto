@@ -7,6 +7,14 @@ export default defineConfig({
   base: process.env.ELECTRON_BUILD ? './' : '/',
   build: {
     chunkSizeWarningLimit: 1100,
+    minify: 'terser',
+    terserOptions: {
+      compress: {
+        drop_console: true,
+        drop_debugger: true,
+        pure_funcs: ['console.log', 'console.info', 'console.debug'],
+      },
+    },
     rollupOptions: {
       output: {
         manualChunks(id: string) {
