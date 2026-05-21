@@ -94,7 +94,9 @@ export default function PortfolioChapterItems({
             onClick={() => onLightbox?.(photo as PortfolioPhoto, allLightboxItems)}
           >
             <img
-              src={cfUrl(photo.image_url, 'public')}
+              src={cfUrl(photo.image_url, 'grid')}
+              srcSet={`${cfUrl(photo.image_url, 'grid')} 800w, ${cfUrl(photo.image_url, 'public')} 3200w`}
+              sizes="(max-width: 896px) 100vw, 848px"
               alt={photo.caption || ''}
               loading={photo.id === lcpPhotoId ? 'eager' : 'lazy'}
               fetchPriority={photo.id === lcpPhotoId ? 'high' : 'auto'}
@@ -201,7 +203,9 @@ export default function PortfolioChapterItems({
             return (
               <div key={photo.id} className="break-inside-avoid rounded-photo">
                 <img
-                  src={cfUrl(photo.image_url, 'public')}
+                  src={cfUrl(photo.image_url, 'grid')}
+                  srcSet={`${cfUrl(photo.image_url, 'grid')} 800w, ${cfUrl(photo.image_url, 'public')} 3200w`}
+                  sizes="(max-width: 896px) 100vw, 848px"
                   alt={photo.caption || ''}
                   loading={photo.id === lcpPhotoId ? 'eager' : 'lazy'}
                   fetchPriority={photo.id === lcpPhotoId ? 'high' : 'auto'}
@@ -257,7 +261,9 @@ export default function PortfolioChapterItems({
           {photos.map((photo, pi) => (
             <PhotoReveal key={photo.id} className="break-inside-avoid" delay={pi * 60}>
               <img
-                src={cfUrl(photo.image_url, 'public')}
+                src={cfUrl(photo.image_url, 'grid')}
+                srcSet={`${cfUrl(photo.image_url, 'grid')} 800w, ${cfUrl(photo.image_url, 'public')} 3200w`}
+                sizes="(max-width: 896px) 100vw, 848px"
                 alt={photo.caption || ''}
                 loading={photo.id === lcpPhotoId ? 'eager' : 'lazy'}
                 fetchPriority={photo.id === lcpPhotoId ? 'high' : 'auto'}
