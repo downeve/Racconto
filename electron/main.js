@@ -749,29 +749,6 @@ function buildAppMenu() {
       ],
     },
     {
-      label: t('account'),
-      submenu: [
-        {
-          label: t('settings'),
-          click: () => mainWindow?.webContents.send('menu:navigate', '/settings'),
-        },
-        {
-          label: t('trash'),
-          click: () => mainWindow?.webContents.send('menu:navigate', '/trash'),
-        },
-        { type: 'separator' },
-        {
-          label: t('toggleLanguage'),
-          click: () => mainWindow?.webContents.send('menu:action', 'toggleLanguage'),
-        },
-        { type: 'separator' },
-        {
-          label: t('signOut'),
-          click: () => mainWindow?.webContents.send('menu:action', 'logout'),
-        },
-      ],
-    },
-    {
       label: t('window'),
       submenu: [
         { role: 'minimize' },
@@ -915,6 +892,13 @@ ipcMain.handle('update:openExternal', (_event, url) => {
 app.whenReady().then(() => {
   initQueue()
   process.env.APP_VERSION = app.getVersion()
+  // macOS About 패널: 기본은 "Version X (Y)" 형태로 CFBundleShortVersionString + CFBundleVersion을 같이 보여줘
+  // 두 값이 같으면 "0.2.32 (0.2.32)"로 중복 표시됨. version(괄호 빌드번호)을 빈 문자열로 덮어 한 번만 보이게 함.
+  app.setAboutPanelOptions({
+    applicationName: 'Racconto',
+    applicationVersion: app.getVersion(),
+    version: '',
+  })
   oauthServer.listen(OAUTH_PORT, '127.0.0.1', () => {
     console.log(`OAuth callback server listening on port ${OAUTH_PORT}`)
   })
