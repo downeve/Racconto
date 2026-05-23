@@ -735,5 +735,12 @@
       "step4Title": "Launch and Log in",
       "step4Desc": "Log in with your racconto.app account. Linking a folder starts auto-upload."
     }
+  },
+  "update": {
+    "eyebrow": "New version",
+    "available": "Racconto v{{version}} is available",
+    "currentVersion": "Current: v{{version}}",
+    "download": "Download",
+    "later": "Later"
   }
 }

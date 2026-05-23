@@ -9,6 +9,7 @@ import ScrollToTop from './components/ScrollToTop';
 import UploadToast from './components/UploadToast'
 import ElectronSidebar from './components/ElectronSidebar'
 import FeedbackWidget from './components/FeedbackWidget'
+import UpdateNotificationBanner from './components/UpdateNotificationBanner'
 import { getDeviceType } from './utils/deviceDetect'
 import { ElectronSidebarProvider } from './context/ElectronSidebarContext'
 
@@ -187,6 +188,7 @@ function AppRoutes() {
         </Suspense>
       </div>
       <UploadToast />
+      {isElectron && <UpdateNotificationBanner />}
     </div>
   )
 }

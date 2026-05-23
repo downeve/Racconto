@@ -678,6 +678,31 @@ def get_photo(
     return photo
 
 
+@router.get("/{photo_id}/chapters", response_model=list[str])
+def get_photo_chapters(
+    photo_id: str,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user)
+):
+    """
+    특정 사진이 속한 챕터 id 목록 반환.
+    iOS ChapterPickerSheet에서 사진별 챕터 소속 확인용 — 기존 N+1 패턴
+    (`/chapters/{id}/items` × 챕터수) 대체.
+    """
+    # 소유권 검증 — 휴지통 사진도 조회 허용
+    photo = db.query(models.Photo).join(models.Project).filter(
+        models.Photo.id == photo_id,
+        models.Project.user_id == current_user.id,
+    ).first()
+    if not photo:
+        raise HTTPException(status_code=404, detail="PHOTO_NOT_FOUND")
+
+    rows = db.query(models.ChapterItem.chapter_id).filter(
+        models.ChapterItem.photo_id == photo_id
+    ).all()
+    return [row[0] for row in rows]
+
+
 @router.post("/", response_model=PhotoResponse)
 def create_photo(
     photo: PhotoCreate,
