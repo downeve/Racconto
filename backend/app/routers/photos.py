@@ -279,6 +279,9 @@ class PhotoCreate(BaseModel):
     focal_length: Optional[str] = None
     gps_lat: Optional[str] = None
     gps_lng: Optional[str] = None
+    # P-7: 이미지 원본 차원 — 업로드 직후 클라이언트가 PIL 등으로 측정해 전달.
+    width: Optional[int] = None
+    height: Optional[int] = None
 
 class PhotoResponse(BaseModel):
     id: str
@@ -306,6 +309,9 @@ class PhotoResponse(BaseModel):
     deleted_at: Optional[datetime] = None
     rotation: int = 0
     original_image_url: Optional[str] = None
+    # P-7: 이미지 원본 차원 — Portfolio 그리드 레이아웃 점프 제거용.
+    width: Optional[int] = None
+    height: Optional[int] = None
 
     class Config:
         from_attributes = True
@@ -745,6 +751,8 @@ def create_photo(
         focal_length=photo.focal_length,
         gps_lat=photo.gps_lat,
         gps_lng=photo.gps_lng,
+        width=photo.width,
+        height=photo.height,
     )
     db.add(db_photo)
     db.commit()

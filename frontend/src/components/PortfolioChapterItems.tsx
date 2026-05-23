@@ -16,6 +16,8 @@ export interface PortfolioPhoto {
   id?: string
   image_url?: string
   caption?: string | null
+  width?: number | null
+  height?: number | null
 }
 
 export interface PortfolioChapterItem {
@@ -28,6 +30,8 @@ export interface PortfolioChapterItem {
   block_id?: string | null
   block_type?: string
   order_in_block?: number
+  width?: number | null
+  height?: number | null
 }
 
 // ── PortfolioChapterItems 컴포넌트 ─────────────────────────
@@ -48,9 +52,23 @@ export default function PortfolioChapterItems({
   onLightbox,
 }: Props) {
   const effectiveWidth = containerWidth ?? PORTFOLIO_WIDTH - 48
-  const [imageRatios, setImageRatios] = useState<Record<string, number>>({})
+
+  // 서버 width/height 가 있는 사진은 초기 ratio 를 그것으로 채워 첫 페인트부터
+  // 정확한 카드 높이를 그려 layout 점프(CLS) 제거. 백필되지 않은 구버전 사진은
+  // 기존대로 onLoad 폴백.
+  const [imageRatios, setImageRatios] = useState<Record<string, number>>(() => {
+    const initial: Record<string, number> = {}
+    items.forEach(it => {
+      if (it.item_type !== 'PHOTO' || !it.image_url) return
+      if (it.width && it.height && it.height > 0) {
+        initial[it.image_url] = it.width / it.height
+      }
+    })
+    return initial
+  })
 
   const handleImageLoad = (url: string, e: React.SyntheticEvent<HTMLImageElement>) => {
+    if (imageRatios[url] !== undefined) return  // 서버값 또는 이전 onLoad 결과 우선
     const img = e.currentTarget
     if (!img.naturalWidth || !img.naturalHeight) return
     const ratio = img.naturalWidth / img.naturalHeight
@@ -83,6 +101,8 @@ export default function PortfolioChapterItems({
           >
             <img
               src={cfUrl(photo.image_url, 'public')}
+              width={photo.width || undefined}
+              height={photo.height || undefined}
               alt={photo.caption || ''}
               loading="lazy"
               className="w-full h-full rounded-photo object-cover hover:opacity-90 transition-opacity block"
@@ -189,6 +209,8 @@ export default function PortfolioChapterItems({
               <div key={photo.id} className="break-inside-avoid rounded-photo">
                 <img
                   src={cfUrl(photo.image_url, 'public')}
+                  width={photo.width || undefined}
+                  height={photo.height || undefined}
                   alt={photo.caption || ''}
                   loading="lazy"
                   className={
@@ -244,8 +266,11 @@ export default function PortfolioChapterItems({
             <PhotoReveal key={photo.id} className="break-inside-avoid" delay={pi * 60}>
               <img
                 src={cfUrl(photo.image_url, 'public')}
+                width={photo.width || undefined}
+                height={photo.height || undefined}
                 alt={photo.caption || ''}
                 loading="lazy"
+                onLoad={(e) => handleImageLoad(photo.image_url || '', e)}
                 className="w-full rounded-photo cursor-pointer hover:opacity-90 transition-opacity"
                 onClick={() => onLightbox?.(photo as PortfolioPhoto, allLightboxItems)}
               />

@@ -103,6 +103,9 @@ class Photo(Base):
     rotation = Column(Integer, default=0, nullable=False, server_default='0')
     original_image_url = Column(String, nullable=True)
     is_rotating = Column(Boolean, default=False, nullable=False, server_default='false')
+    # P-7: 이미지 원본 차원 — Portfolio 레이아웃 점프 제거용.
+    width = Column(Integer, nullable=True)
+    height = Column(Integer, nullable=True)
 
 class Pitch(Base):
     __tablename__ = "pitches"

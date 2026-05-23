@@ -10,6 +10,7 @@ from app.email import send_verification_email, send_password_reset_email, send_f
 from datetime import datetime, timedelta
 from typing import Optional
 from app.routers.photos import delete_cf_files_parallel
+from app.oauth_code_store import issue_code, consume_code
 import logging
 import re
 import secrets
@@ -493,10 +494,14 @@ def google_callback(request: Request, background_tasks: BackgroundTasks, state: 
 
     access_token = create_access_token(data={"sub": user.id, "is_admin": user.is_admin})
     platform = request.session.get("oauth_platform", "web")
+    # S-2: 네이티브 클라이언트(ios/electron)는 토큰을 URL에 노출하지 않고 1회용 code 교환 방식 사용.
+    # 웹은 redirect 체인이 서버→브라우저로 직접 끝나므로 기존 토큰 쿼리스트링 유지 (백엔드 로그에만 남음).
     if platform == "ios":
-        return RedirectResponse(f"racconto://auth/callback?token={access_token}")
+        code = issue_code(access_token)
+        return RedirectResponse(f"racconto://auth/callback?code={code}")
     if platform == "electron":
-        return RedirectResponse(f"http://localhost:9876/callback?token={access_token}")
+        code = issue_code(access_token)
+        return RedirectResponse(f"http://localhost:9876/callback?code={code}")
     return RedirectResponse(f"{FRONTEND_URL}/auth/social-callback?token={access_token}")
 
 
@@ -659,10 +664,16 @@ def apple_callback(
 
     access_token = create_access_token(data={"sub": user.id, "is_admin": user.is_admin})
     apple_platform = request.cookies.get("apple_oauth_platform", "web")
+    # S-2: ios/electron은 1회용 code 교환.
+    # 단, iOS Apple Sign In은 native identity token POST(/auth/apple/ios) 경로를 사용하므로
+    # 이 분기에 도달하지 않음. apple_platform=="ios"는 웹/Electron의 Apple 로그인을
+    # iOS 브랜드 토큰으로 잘못 표기할 때만 발생 가능 — 안전성을 위해 동일 처리.
     if apple_platform == "ios":
-        response = RedirectResponse(f"racconto://auth/callback?token={access_token}", status_code=303)
+        code = issue_code(access_token)
+        response = RedirectResponse(f"racconto://auth/callback?code={code}", status_code=303)
     elif apple_platform == "electron":
-        response = RedirectResponse(f"http://localhost:9876/callback?token={access_token}", status_code=303)
+        code = issue_code(access_token)
+        response = RedirectResponse(f"http://localhost:9876/callback?code={code}", status_code=303)
     else:
         response = RedirectResponse(f"{FRONTEND_URL}/auth/social-callback?token={access_token}", status_code=303)
     response.delete_cookie("apple_oauth_state", secure=True, samesite="none")
@@ -782,8 +793,10 @@ def naver_callback(
 
     access_token_jwt = create_access_token(data={"sub": user.id, "is_admin": user.is_admin})
     platform = request.session.get("oauth_platform", "web")
+    # S-2: ios/electron은 1회용 code, 웹은 토큰 직접 전달.
     if platform in ("ios", "electron"):
-        return RedirectResponse(f"racconto://auth/callback?token={access_token_jwt}")
+        code = issue_code(access_token_jwt)
+        return RedirectResponse(f"racconto://auth/callback?code={code}")
     return RedirectResponse(f"{FRONTEND_URL}/auth/social-callback?token={access_token_jwt}")
 
 
@@ -895,9 +908,27 @@ def line_callback(
 
     access_token_jwt = create_access_token(data={"sub": user.id, "is_admin": user.is_admin})
     platform = request.session.get("oauth_platform", "web")
+    # S-2: ios/electron은 1회용 code, 웹은 토큰 직접 전달.
     if platform in ("ios", "electron"):
-        return RedirectResponse(f"racconto://auth/callback?token={access_token_jwt}")
+        code = issue_code(access_token_jwt)
+        return RedirectResponse(f"racconto://auth/callback?code={code}")
     return RedirectResponse(f"{FRONTEND_URL}/auth/social-callback?token={access_token_jwt}")
+
+
+class OAuthExchangeRequest(BaseModel):
+    code: str
+
+
+@router.post("/exchange")
+def oauth_exchange(body: OAuthExchangeRequest):
+    """S-2: OAuth 콜백에서 받은 1회용 code를 access_token으로 교환.
+
+    네이티브 클라이언트(iOS/Electron) 전용. 60초 TTL, 1회 소비 후 폐기.
+    """
+    token = consume_code(body.code)
+    if not token:
+        raise HTTPException(status_code=400, detail="INVALID_OR_EXPIRED_CODE")
+    return {"access_token": token, "token_type": "bearer"}
 
 
 class AppleIOSLogin(BaseModel):

@@ -17,6 +17,7 @@ import ToastNotification from '../../components/ToastNotification'
 import ProjectNotes from '../ProjectNotes'
 import type { Photo, Project, ChapterPhotoResponse, NoteResponse, ColorLabel } from '../../components/ProjectDetailComponents'
 import { resizeImageInWorker } from '../../utils/resizeImageWorker'
+import { getImageDimensions } from '../../utils/getImageDimensions'
 
 const API = import.meta.env.VITE_API_URL
 
@@ -177,6 +178,9 @@ export default function MobileProjectDetail() {
               if (parsed.GPSLongitude) exifData.gps_lng = String(parsed.GPSLongitude)
             }
           } catch {}
+          // 원본 차원 측정 (CLS 제거용 — P-7)
+          const dims = await getImageDimensions(file)
+
           const resizedBlob = await resizeImageInWorker(file)
           const { data: urlData } = await axios.get(`${API}/photos/cf-upload-url`)
           const formData = new FormData()
@@ -184,7 +188,14 @@ export default function MobileProjectDetail() {
           const cfRes = await fetch(urlData.uploadURL, { method: 'POST', body: formData })
           const cfData = await cfRes.json()
           if (!cfData.success) throw new Error('CF upload failed')
-          await axios.post(`${API}/photos/`, { project_id: numericId, image_url: cfData.result.variants[0], original_filename: file.name, source: 'web', ...exifData })
+          await axios.post(`${API}/photos/`, {
+            project_id: numericId,
+            image_url: cfData.result.variants[0],
+            original_filename: file.name,
+            source: 'web',
+            ...(dims && { width: dims.width, height: dims.height }),
+            ...exifData,
+          })
         }
         successCount++
       } catch (error: any) {

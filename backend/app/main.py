@@ -18,7 +18,7 @@ logger = logging.getLogger(__name__)
 models.Base.metadata.create_all(bind=engine)
 
 # 스키마 마이그레이션 — 버전이 올라간 경우에만 실행
-SCHEMA_VERSION = 9
+SCHEMA_VERSION = 11
 
 def _run_schema_migrations():
     with engine.connect() as conn:
@@ -123,6 +123,21 @@ def _run_schema_migrations():
             "UPDATE projects SET published_at = created_at "
             "WHERE is_public = TRUE AND published_at IS NULL"
         ))
+
+        # v10 — U-6: 기존 텍스트 블록의 ZWSP(U+200B) 잔존 문자 일괄 제거.
+        # iOS가 빈 텍스트 우회용으로 삽입한 0폭 공백이 DB에 남아 있음.
+        # ZWNJ(U+200C)는 클라이언트 마크다운 전처리 단계에서만 사용되어 DB에 저장되지 않음.
+        # Postgres E-string 이스케이프로 ZWSP 명시.
+        conn.execute(text(
+            "UPDATE chapter_items SET text_content = REPLACE(text_content, E'\\u200B', '') "
+            "WHERE item_type = 'TEXT' AND text_content LIKE '%' || E'\\u200B' || '%'"
+        ))
+
+        # v11 — P-7: 사진 차원(width/height) 컬럼 추가.
+        # Portfolio 그리드/justified 레이아웃 점프 제거용. 신규 업로드는 즉시 채워지고,
+        # 기존 사진은 별도 백필 스크립트에서 Cloudflare 메타데이터로 채움.
+        conn.execute(text("ALTER TABLE photos ADD COLUMN IF NOT EXISTS width INTEGER"))
+        conn.execute(text("ALTER TABLE photos ADD COLUMN IF NOT EXISTS height INTEGER"))
 
         conn.execute(text("DELETE FROM _schema_version"))
         conn.execute(text(f"INSERT INTO _schema_version (version) VALUES ({SCHEMA_VERSION})"))

@@ -66,7 +66,10 @@ def _build_chapter_photos(
                 "caption": photo.caption,
                 "block_id": cp.block_id,
                 "block_type": cp.block_type,
-                "block_layout": cp.block_layout
+                "block_layout": cp.block_layout,
+                # P-7: 차원 정보 — 클라이언트 레이아웃 점프 제거.
+                "width": photo.width,
+                "height": photo.height,
             })
             chapter_photo_ids.add(photo.id)
     return result
@@ -125,7 +128,8 @@ def _build_project_result(project, db: Session) -> dict:
 
     all_photos = list(photos_map.values()) if chapter_list else []
     extra_photos = [
-        {"id": p.id, "image_url": p.image_url, "caption": p.caption}
+        {"id": p.id, "image_url": p.image_url, "caption": p.caption,
+         "width": p.width, "height": p.height}
         for p in all_photos if p.id not in chapter_photo_ids
     ]
 
@@ -137,7 +141,8 @@ def _build_project_result(project, db: Session) -> dict:
         "cover_image_url": project.cover_image_url,
         "location": project.location,
         "updated_at": project.updated_at.isoformat() if project.updated_at else None,
-        "photos": [{"id": p.id, "image_url": p.image_url, "caption": p.caption} for p in all_photos],
+        "photos": [{"id": p.id, "image_url": p.image_url, "caption": p.caption,
+                    "width": p.width, "height": p.height} for p in all_photos],
         "chapters": chapter_list,
         "extra_photos": extra_photos
     }
@@ -240,7 +245,8 @@ def _build_project_result_from_cache(
 
     all_photos = list(photos_map.values()) if chapter_list else []
     extra_photos = [
-        {"id": p.id, "image_url": p.image_url, "caption": p.caption}
+        {"id": p.id, "image_url": p.image_url, "caption": p.caption,
+         "width": p.width, "height": p.height}
         for p in all_photos if p.id not in chapter_photo_ids
     ]
 
@@ -252,7 +258,8 @@ def _build_project_result_from_cache(
         "cover_image_url": project.cover_image_url,
         "location": project.location,
         "updated_at": project.updated_at.isoformat() if project.updated_at else None,
-        "photos": [{"id": p.id, "image_url": p.image_url, "caption": p.caption} for p in all_photos],
+        "photos": [{"id": p.id, "image_url": p.image_url, "caption": p.caption,
+                    "width": p.width, "height": p.height} for p in all_photos],
         "chapters": chapter_list,
         "extra_photos": extra_photos
     }
