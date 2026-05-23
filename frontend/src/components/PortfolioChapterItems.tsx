@@ -101,8 +101,6 @@ export default function PortfolioChapterItems({
           >
             <img
               src={cfUrl(photo.image_url, 'public')}
-              width={photo.width || undefined}
-              height={photo.height || undefined}
               alt={photo.caption || ''}
               loading="lazy"
               className="w-full h-full rounded-photo object-cover hover:opacity-90 transition-opacity block"
