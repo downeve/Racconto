@@ -830,6 +830,84 @@ ipcMain.on('window:dragEnd', () => {
   _dragStartPos = null
 })
 
+// ── 업데이트 체크 ────────────────────────────────────
+// GitHub Releases 의 latest tag 와 현재 app.getVersion() 비교.
+// 새 버전 있으면 OS/아키텍처에 맞는 download URL 과 함께 renderer 에 통보.
+
+const GITHUB_RELEASES_URL = 'https://api.github.com/repos/downeve/Racconto/releases/latest'
+const UPDATE_CHECK_INTERVAL_MS = 24 * 60 * 60 * 1000  // 24시간
+
+// "v0.2.2" 또는 "0.2.2" → [0,2,2] 로 정규화. 잘못된 입력은 null.
+function parseVersion(v) {
+  if (!v) return null
+  const cleaned = String(v).trim().replace(/^v/i, '')
+  const parts = cleaned.split('.').map(n => parseInt(n, 10))
+  if (parts.length < 2 || parts.some(isNaN)) return null
+  while (parts.length < 3) parts.push(0)
+  return parts.slice(0, 3)
+}
+
+function isNewer(latest, current) {
+  const a = parseVersion(latest)
+  const b = parseVersion(current)
+  if (!a || !b) return false
+  for (let i = 0; i < 3; i++) {
+    if (a[i] > b[i]) return true
+    if (a[i] < b[i]) return false
+  }
+  return false
+}
+
+// OS/아키텍처에 맞는 다운로드 asset URL 선택.
+function pickDownloadUrl(assets) {
+  if (!Array.isArray(assets)) return null
+  if (process.platform === 'darwin') {
+    const target = process.arch === 'arm64' ? 'arm64.dmg' : 'x64.dmg'
+    const a = assets.find(x => x.name && x.name.includes(target))
+    return a ? a.browser_download_url : null
+  }
+  if (process.platform === 'win32') {
+    const a = assets.find(x => x.name && x.name.endsWith('.exe'))
+    return a ? a.browser_download_url : null
+  }
+  return null
+}
+
+let cachedUpdateInfo = null  // { hasUpdate, latest, current, downloadUrl, releaseNotes, htmlUrl }
+
+async function checkForUpdate() {
+  try {
+    const res = await fetch(GITHUB_RELEASES_URL, {
+      headers: { 'Accept': 'application/vnd.github+json' },
+    })
+    if (!res.ok) return null
+    const data = await res.json()
+    const current = app.getVersion()
+    const hasUpdate = isNewer(data.tag_name, current)
+    cachedUpdateInfo = {
+      hasUpdate,
+      latest: String(data.tag_name || '').replace(/^v/i, ''),
+      current,
+      downloadUrl: hasUpdate ? pickDownloadUrl(data.assets) : null,
+      releaseNotes: data.body || '',
+      htmlUrl: data.html_url || 'https://racconto.app/download',
+    }
+    if (hasUpdate && mainWindow && !mainWindow.isDestroyed()) {
+      mainWindow.webContents.send('update:available', cachedUpdateInfo)
+    }
+    return cachedUpdateInfo
+  } catch (e) {
+    console.error('update check failed:', e.message)
+    return null
+  }
+}
+
+ipcMain.handle('update:check', () => checkForUpdate())
+ipcMain.handle('update:getCached', () => cachedUpdateInfo)
+ipcMain.handle('update:openExternal', (_event, url) => {
+  if (typeof url === 'string' && /^https?:\/\//.test(url)) shell.openExternal(url)
+})
+
 // ── 앱 시작 ──────────────────────────────────────────
 app.whenReady().then(() => {
   initQueue()
@@ -839,6 +917,10 @@ app.whenReady().then(() => {
   })
   createWindow()
   buildAppMenu()
+
+  // 업데이트 체크 — 시작 10초 후 1회 + 24시간 주기
+  setTimeout(checkForUpdate, 10_000)
+  setInterval(checkForUpdate, UPDATE_CHECK_INTERVAL_MS)
 
   // 토큰이 있을 때만 감시 시작 — auth:setToken에서 처리
   // 기존 매핑 폴더 감시는 로그인 후에만 시작

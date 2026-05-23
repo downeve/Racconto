@@ -735,5 +735,12 @@
       "step4Title": "실행 및 로그인",
       "step4Desc": "racconto.app 계정으로 로그인합니다. 프로젝트와 폴더를 연결하면 자동 업로드가 시작됩니다."
     }
+  },
+  "update": {
+    "eyebrow": "새 버전",
+    "available": "Racconto v{{version}} 사용 가능",
+    "currentVersion": "현재: v{{version}}",
+    "download": "다운로드",
+    "later": "나중에"
   }
 }

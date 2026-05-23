@@ -33,5 +33,18 @@ interface Window {
     dragStart: (data: { mouseX: number; mouseY: number }) => void
     dragMove: (data: { mouseX: number; mouseY: number }) => void
     dragEnd: () => void
+    checkUpdate: () => Promise<UpdateInfo | null>
+    getCachedUpdate: () => Promise<UpdateInfo | null>
+    onUpdateAvailable: (callback: (info: UpdateInfo) => void) => void
+    openExternal: (url: string) => Promise<void>
   }
+}
+
+interface UpdateInfo {
+  hasUpdate: boolean
+  latest: string
+  current: string
+  downloadUrl: string | null
+  releaseNotes: string
+  htmlUrl: string
 }

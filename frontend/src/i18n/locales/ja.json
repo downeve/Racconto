@@ -736,5 +736,12 @@
       "step4Title": "実行とログイン",
       "step4Desc": "racconto.appのアカウントでログインしてください。フォルダ連携で自動アップロードが始まります。"
     }
+  },
+  "update": {
+    "eyebrow": "新バージョン",
+    "available": "Racconto v{{version}} が利用可能",
+    "currentVersion": "現在: v{{version}}",
+    "download": "ダウンロード",
+    "later": "あとで"
   }
 }

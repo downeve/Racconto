@@ -32,4 +32,10 @@ contextBridge.exposeInMainWorld('racconto', {
   dragMove: (data) => ipcRenderer.send('window:dragMove', data),
   dragEnd: () => ipcRenderer.send('window:dragEnd'),
   onOAuthToken: (callback) => ipcRenderer.on('auth:oauthToken', (_, token) => callback(token)),
+
+  // 업데이트 체크
+  checkUpdate: () => ipcRenderer.invoke('update:check'),
+  getCachedUpdate: () => ipcRenderer.invoke('update:getCached'),
+  onUpdateAvailable: (callback) => ipcRenderer.on('update:available', (_, info) => callback(info)),
+  openExternal: (url) => ipcRenderer.invoke('update:openExternal', url),
 })
