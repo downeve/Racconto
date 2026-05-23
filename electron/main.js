@@ -258,7 +258,10 @@ async function uploadFile(item) {
       image_url: imageUrl,
       folder: path.dirname(item.filePath),
       original_filename: path.basename(item.filePath),
-      source: 'electron', 
+      source: 'electron',
+      // P-7: nativeImage.getSize() 로 측정한 원본 차원 — portfolio CLS 제거용
+      width,
+      height,
       ...exifData,
     }),
   })

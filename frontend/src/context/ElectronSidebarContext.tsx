@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next'
 import axios from 'axios'
 import exifr from 'exifr'
 import { resizeImageInWorker } from '../utils/resizeImageWorker'
+import { getImageDimensions } from '../utils/getImageDimensions'
 import ToastNotification from '../components/ToastNotification'
 
 const API = import.meta.env.VITE_API_URL
@@ -102,6 +103,9 @@ export function ElectronSidebarProvider({ children }: { children: ReactNode }) {
             // EXIF 추출 실패 무시
           }
 
+          // 원본 차원 측정 (CLS 제거용 — P-7). resize 전 측정해야 원본 비율 확보.
+          const dims = await getImageDimensions(file)
+
           const resizedBlob = await resizeImageInWorker(file)
           const { data: urlData } = await axios.get(`${API}/photos/cf-upload-url`)
           const { uploadURL } = urlData
@@ -119,6 +123,7 @@ export function ElectronSidebarProvider({ children }: { children: ReactNode }) {
             folder,
             original_filename: file.name,
             source: 'web',
+            ...(dims && { width: dims.width, height: dims.height }),
             ...exifData,
           })
         }
