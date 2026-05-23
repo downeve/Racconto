@@ -449,16 +449,15 @@ def add_text_to_chapter(
 ):
     db_chapter = get_owned_chapter_or_404(chapter_id, current_user_id, db)
 
-    if not body.text_content.strip():
-        raise HTTPException(status_code=400, detail="TEXT_CONTENT_EMPTY")
-
+    # U-6: 빈 텍스트 블록 명시적 허용 (사용자가 placeholder로 빈 블록 만드는 케이스).
+    # 클라이언트의 ZWSP(U+200B) 우회 코드를 제거할 수 있게 됨.
     order = body.order_num if body.order_num is not None else get_next_order_num(chapter_id, db)
 
     db_item = models.ChapterItem(
         id=str(uuid.uuid4()),
         chapter_id=chapter_id,
         item_type="TEXT",
-        text_content=body.text_content,
+        text_content=body.text_content or "",
         order_num=order
     )
     db.add(db_item)
@@ -486,10 +485,8 @@ def update_text_item(
     if not item:
         raise HTTPException(status_code=404, detail="TEXT_ITEM_NOT_FOUND")
 
-    if not body.text_content.strip():
-        raise HTTPException(status_code=400, detail="TEXT_CONTENT_EMPTY")
-
-    item.text_content = body.text_content
+    # U-6: 빈 텍스트 블록 명시적 허용.
+    item.text_content = body.text_content or ""
     db.commit()
     return build_item_response(item)
 
