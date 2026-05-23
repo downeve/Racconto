@@ -2,7 +2,14 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Pretendard 는 index.html 의 dynamic subset CDN 에서 로드 (PretendardVariable family) */
+/* Pretendard — 셀프호스팅 (KS X 1001 Std + 라틴, 단일 woff2 ~285KB) */
+@font-face {
+  font-family: 'Pretendard Variable';
+  font-style: normal;
+  font-weight: 45 920;
+  font-display: swap;
+  src: url('/fonts/PretendardVariable.woff2') format('woff2-variations');
+}
 
 /* 1. 기본 태그(html, body) 설정 */
 @layer base {

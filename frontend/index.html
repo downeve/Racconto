@@ -4,15 +4,17 @@
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
 
-    <!-- Pretendard — 동적 서브셋 CDN (실제 사용된 글리프만 다운로드, ~50-150KB) -->
-    <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.css">
+    <!-- Pretendard — 셀프호스팅 (KS X 1001 Std). preload 로 LCP 단축 -->
+    <link rel="preload" href="/fonts/PretendardVariable.woff2" as="font" type="font/woff2" crossorigin>
 
     <!-- Noto Serif KR — 비차단 로딩 (한국어 serif 텍스트 폴백 방지) -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@400;700&display=swap" onload="this.onload=null;this.rel='stylesheet'">
     <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@400;700&display=swap"></noscript>
+
+    <!-- Cloudflare Images preconnect — LCP 단축 (포트폴리오 페이지 등) -->
+    <link rel="preconnect" href="https://imagedelivery.net" crossorigin>
 
     <!-- LCP hint — 모바일 첫 화면 메인 스크린샷 -->
     <link rel="preload" as="image" href="/screenshots/screenshot-main-mobile_en.webp" media="(max-width: 768px)">

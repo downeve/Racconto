@@ -74,7 +74,14 @@ export default function MobilePortfolioChapterItems({
         <div className="space-y-2">
           {group.photos.map(photo => (
             <div key={photo.id} className="rounded-photo overflow-hidden cursor-pointer" onClick={() => onLightbox?.(photo as PortfolioPhoto, allLightboxItems)}>
-              <img src={cfUrl(photo.image_url, 'grid')} alt={photo.caption || ''} loading="lazy" className="w-full block rounded-photo" />
+              <img
+                src={cfUrl(photo.image_url, 'grid')}
+                srcSet={`${cfUrl(photo.image_url, 'mobile')} 480w, ${cfUrl(photo.image_url, 'grid')} 800w, ${cfUrl(photo.image_url, 'public')} 3200w`}
+                sizes="(max-width: 768px) 100vw, 800px"
+                alt={photo.caption || ''}
+                loading="lazy"
+                className="w-full block rounded-photo"
+              />
               {photo.caption && <p className={`t-caption mt-2 ${darkMode ? 'text-d-faint' : 'text-faint'}`}>{photo.caption}</p>}
             </div>
           ))}
@@ -109,6 +116,8 @@ export default function MobilePortfolioChapterItems({
           >
             <img
               src={cfUrl(photo.image_url, 'grid')}
+              srcSet={`${cfUrl(photo.image_url, 'mobile')} 480w, ${cfUrl(photo.image_url, 'grid')} 800w, ${cfUrl(photo.image_url, 'public')} 3200w`}
+              sizes="(max-width: 768px) 100vw, 800px"
               alt={photo.caption || ''}
               loading="lazy"
               className="w-full object-cover hover:opacity-90 transition-opacity block"
