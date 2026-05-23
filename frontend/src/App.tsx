@@ -59,8 +59,9 @@ function AppRoutes() {
   const location = useLocation()
   const navigate = useNavigate()
 
-  // 납품 링크 페이지 Navbar 숨김
+  // 납품 링크·앱 다운로드 페이지 Navbar/사이드바 숨김 (각 페이지가 자체 PublicNavbar 사용)
   const hideNavbar = location.pathname.startsWith('/delivery/')
+    || location.pathname === '/download'
 
   const isElectron = typeof window !== 'undefined' && !!window.racconto
   const isMac = isElectron && window.racconto?.platform === 'darwin'
