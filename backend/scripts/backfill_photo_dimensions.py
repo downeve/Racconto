@@ -29,7 +29,7 @@ import sys
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 import httpx
-from PIL import Image
+from PIL import Image, ImageOps
 from sqlalchemy.orm import Session
 
 from app.database import SessionLocal
@@ -53,17 +53,50 @@ def _cf_image_id_from_url(image_url: str) -> str | None:
     return None
 
 
+def _normalize_to_public(image_url: str) -> str:
+    """imagedelivery.net URL 의 variant 부분을 강제로 'public' 으로 교체.
+
+    DB 에 저장된 image_url 이 일관되지 않게 'thumb' 등 작은 variant 로 들어 있는 경우가 있어,
+    그대로 fetch 하면 작은 dims 가 측정되어 프론트의 셀 비율 계산이 부정확해진다.
+    프론트는 어차피 cfUrl(url, 'public') 로 항상 public 으로 바꿔 렌더링하므로,
+    측정 기준도 public 으로 통일해야 일관성 확보.
+    """
+    if "imagedelivery.net" not in image_url:
+        return image_url
+    # 마지막 path 세그먼트(variant 명)를 'public' 으로 교체
+    parts = image_url.rstrip("/").split("/")
+    if len(parts) >= 6:
+        parts[-1] = "public"
+        return "/".join(parts)
+    return image_url
+
+
+def _measure_dims(img: Image.Image) -> tuple[int, int]:
+    """EXIF orientation 을 적용해 브라우저가 실제로 표시하는 dims 와 일치시킴.
+
+    PIL 은 기본적으로 EXIF Orientation 태그를 무시하고 raw 픽셀 dims 를 반환하지만,
+    브라우저는 orientation 을 자동 적용. 둘을 맞춰야 프론트 ratio 계산이 정확해짐.
+    """
+    transposed = ImageOps.exif_transpose(img)
+    return transposed.size if transposed else img.size
+
+
 def _fetch_dimensions_from_url(image_url: str) -> tuple[int, int] | None:
-    """이미지 URL을 GET해서 PIL로 차원 측정. 마지막 폴백."""
+    """이미지 URL을 GET해서 PIL로 차원 측정. 마지막 폴백.
+
+    imagedelivery.net 의 경우 항상 public variant 로 fetch (DB image_url 이 thumb 등
+    다른 variant 를 가리켜도 측정 기준을 통일).
+    """
+    fetch_url = _normalize_to_public(image_url)
     try:
         with httpx.Client(timeout=15.0) as client:
-            resp = client.get(image_url)
+            resp = client.get(fetch_url)
             if resp.status_code != 200:
                 return None
             img = Image.open(io.BytesIO(resp.content))
-            return img.size  # (w, h)
+            return _measure_dims(img)
     except Exception as e:
-        logger.warning("fetch_dimensions 실패: %s — %s", image_url[:60], e)
+        logger.warning("fetch_dimensions 실패: %s — %s", fetch_url[:60], e)
         return None
 
 
@@ -78,16 +111,18 @@ def _fetch_dimensions_local(image_url: str) -> tuple[int, int] | None:
         return None
     try:
         img = Image.open(path)
-        return img.size
+        return _measure_dims(img)
     except Exception as e:
         logger.warning("local PIL 실패: %s — %s", path, e)
         return None
 
 
-def backfill(db: Session, dry_run: bool, limit: int | None, project_id: str | None) -> None:
-    q = db.query(models.Photo).filter(
-        (models.Photo.width.is_(None)) | (models.Photo.height.is_(None))
-    )
+def backfill(db: Session, dry_run: bool, limit: int | None, project_id: str | None, force: bool) -> None:
+    q = db.query(models.Photo).filter(models.Photo.deleted_at.is_(None))
+    if not force:
+        q = q.filter(
+            (models.Photo.width.is_(None)) | (models.Photo.height.is_(None))
+        )
     if project_id:
         q = q.filter(models.Photo.project_id == project_id)
     if limit:
@@ -135,11 +170,12 @@ def main() -> None:
     parser.add_argument("--dry-run", action="store_true")
     parser.add_argument("--limit", type=int, default=None)
     parser.add_argument("--project", type=str, default=None, help="특정 project_id만 처리")
+    parser.add_argument("--force", action="store_true", help="이미 width/height 가 있는 사진도 다시 측정 (잘못 저장된 값 교정용)")
     args = parser.parse_args()
 
     db = SessionLocal()
     try:
-        backfill(db, dry_run=args.dry_run, limit=args.limit, project_id=args.project)
+        backfill(db, dry_run=args.dry_run, limit=args.limit, project_id=args.project, force=args.force)
     finally:
         db.close()
 
