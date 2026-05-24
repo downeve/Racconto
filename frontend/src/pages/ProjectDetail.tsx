@@ -192,21 +192,21 @@ function PhotosSidebarContent({
             return (
               <>
                 <button onClick={handleResetAll} className={si(isAllActive)}>
-                  <span>{t('photo.allPhotos')}</span>
-                  <span className="flex items-center gap-1 shrink-0">
+                  <span className="flex items-center gap-1 min-w-0">
+                    <span className="truncate">{t('photo.allPhotos')}</span>
                     {hasFolders && (
                       <button
                         onClick={e => { e.stopPropagation(); toggleFoldersOpen() }}
                         title={foldersOpen ? t('common.collapse') : t('common.expand')}
-                        className="p-0.5 -m-0.5 text-edit-faint hover:text-edit-ink transition-colors"
+                        className="p-0.5 -m-0.5 text-edit-faint hover:text-edit-ink transition-colors shrink-0"
                       >
                         {foldersOpen
                           ? <ChevronDown size={11} strokeWidth={1.5} />
                           : <ChevronRight size={11} strokeWidth={1.5} />}
                       </button>
                     )}
-                    <span>{photos.filter(p => !p.deleted_at).length}</span>
                   </span>
+                  <span>{photos.filter(p => !p.deleted_at).length}</span>
                 </button>
                 {hasFolders && foldersOpen && folders.map(folder => (
                   <div key={folder} className="group/folder">
