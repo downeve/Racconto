@@ -183,29 +183,32 @@ function PhotosSidebarContent({
       <div className="mb-3">
         <p className="t-caption text-edit-faint mb-1.5">{t('photo.library')}</p>
         <div className="flex flex-col gap-0.5">
-          <button onClick={handleResetAll} className={si(isAllActive)}>
-            <span>{t('photo.allPhotos')}</span>
-            <span>{photos.filter(p => !p.deleted_at).length}</span>
-          </button>
-          {photos.some(p => p.folder) && (() => {
-            const folders = [...new Set(photos.filter(p => p.folder).map(p => p.folder))]
-              .sort((a, b) => getFolderDisplayName(a!).localeCompare(getFolderDisplayName(b!)))
+          {(() => {
+            const hasFolders = photos.some(p => p.folder)
+            const folders = hasFolders
+              ? [...new Set(photos.filter(p => p.folder).map(p => p.folder))]
+                  .sort((a, b) => getFolderDisplayName(a!).localeCompare(getFolderDisplayName(b!)))
+              : []
             return (
-              <div className="flex flex-col gap-0.5">
-                <button
-                  onClick={toggleFoldersOpen}
-                  className={si(false)}
-                  title={foldersOpen ? t('common.collapse') : t('common.expand')}
-                >
-                  <span className="flex items-center gap-1.5 min-w-0">
-                    {foldersOpen
-                      ? <ChevronDown size={11} strokeWidth={1.5} className="shrink-0" />
-                      : <ChevronRight size={11} strokeWidth={1.5} className="shrink-0" />}
-                    <span className="truncate">{t('filter.folder')}</span>
+              <>
+                <button onClick={handleResetAll} className={si(isAllActive)}>
+                  <span>{t('photo.allPhotos')}</span>
+                  <span className="flex items-center gap-1 shrink-0">
+                    {hasFolders && (
+                      <button
+                        onClick={e => { e.stopPropagation(); toggleFoldersOpen() }}
+                        title={foldersOpen ? t('common.collapse') : t('common.expand')}
+                        className="p-0.5 -m-0.5 text-edit-faint hover:text-edit-ink transition-colors"
+                      >
+                        {foldersOpen
+                          ? <ChevronDown size={11} strokeWidth={1.5} />
+                          : <ChevronRight size={11} strokeWidth={1.5} />}
+                      </button>
+                    )}
+                    <span>{photos.filter(p => !p.deleted_at).length}</span>
                   </span>
-                  <span className="shrink-0">{folders.length}</span>
                 </button>
-                {foldersOpen && folders.map(folder => (
+                {hasFolders && foldersOpen && folders.map(folder => (
                   <div key={folder} className="group/folder">
                     <button onClick={() => {
                       setFilterFolder(filterFolder === folder ? null : folder!)
@@ -227,7 +230,7 @@ function PhotosSidebarContent({
                     </button>
                   </div>
                 ))}
-              </div>
+              </>
             )
           })()}
           <button onClick={() => { handleResetAll(); setPhotoSubTab('trash'); fetchTrash() }}
