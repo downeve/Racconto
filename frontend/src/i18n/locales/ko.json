@@ -1,6 +1,8 @@
 {
   "common": {
     "loading": "로딩 중...",
+    "collapse": "접기",
+    "expand": "펼치기",
     "save": "저장",
     "cancel": "취소",
     "delete": "삭제",
