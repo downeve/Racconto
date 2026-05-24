@@ -115,7 +115,10 @@ export function ElectronSidebarProvider({ children }: { children: ReactNode }) {
           const cfRes = await fetch(uploadURL, { method: 'POST', body: formData })
           const cfData = await cfRes.json()
           if (!cfData.success) throw new Error('CF upload failed')
-          const imageUrl = cfData.result.variants[0]
+          // CF variants[] 순서는 대시보드 설정에 따라 달라질 수 있어 [0] 사용은 불안정.
+          // /public variant 를 명시적으로 선택 — 백엔드 portfolio 측정 기준과 통일.
+          const variants: string[] = cfData.result.variants
+          const imageUrl = variants.find((v: string) => v.endsWith('/public')) || variants[0]
 
           await axios.post(`${API}/photos/`, {
             project_id: projectId,
