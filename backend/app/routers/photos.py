@@ -44,6 +44,22 @@ def _validate_image_url(image_url: str) -> None:
     raise HTTPException(status_code=400, detail="INVALID_IMAGE_URL")
 
 
+def _normalize_cf_image_url(image_url: str) -> str:
+    """imagedelivery.net URL 의 variant 부분을 /public 으로 정규화.
+
+    클라이언트(웹/Electron/모바일/iOS)가 어떤 variant 로 보내든 DB 에는 /public 으로 통일 저장.
+    프론트는 cfUrl(url, variant) 헬퍼로 필요한 variant 로 재변환하므로 /public 기준이 일관성·portfolio
+    측정 정확성 모두에 안전. 안전망 (클라이언트 변경 외 추가 방어).
+    """
+    if not image_url or "imagedelivery.net" not in image_url:
+        return image_url
+    parts = image_url.rstrip("/").split("/")
+    if len(parts) >= 6:
+        parts[-1] = "public"
+        return "/".join(parts)
+    return image_url
+
+
 _UPLOAD_DIR = os.path.realpath("app/uploads")
 
 
@@ -716,6 +732,8 @@ def create_photo(
     current_user: models.User = Depends(get_current_user)
 ):
     _validate_image_url(photo.image_url)
+    # CF variants[] 순서 변동에 대비한 안전망 — 클라이언트가 어떤 variant 로 보내든 /public 으로 통일
+    photo.image_url = _normalize_cf_image_url(photo.image_url)
 
     project = db.query(models.Project).filter(
         models.Project.id == photo.project_id,

@@ -224,7 +224,9 @@ async function uploadFile(item) {
   const cfData = await cfRes.json()
   if (!cfData.success) throw new Error('CF 업로드 실패')
 
-  const imageUrl = cfData.result.variants[0]
+  // CF variants[] 는 대시보드 설정 순서에 의존 — /public 을 명시적으로 선택
+  const variants = cfData.result.variants
+  const imageUrl = variants.find(v => v.endsWith('/public')) || variants[0]
 
 // 3. FastAPI에 메타데이터 저장
   let exifData = {}

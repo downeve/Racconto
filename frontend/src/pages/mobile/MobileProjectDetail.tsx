@@ -188,9 +188,12 @@ export default function MobileProjectDetail() {
           const cfRes = await fetch(urlData.uploadURL, { method: 'POST', body: formData })
           const cfData = await cfRes.json()
           if (!cfData.success) throw new Error('CF upload failed')
+          // CF variants[] 는 대시보드 순서에 의존 — /public 을 명시적으로 선택
+          const variants: string[] = cfData.result.variants
+          const publicUrl = variants.find((v: string) => v.endsWith('/public')) || variants[0]
           await axios.post(`${API}/photos/`, {
             project_id: numericId,
-            image_url: cfData.result.variants[0],
+            image_url: publicUrl,
             original_filename: file.name,
             source: 'web',
             ...(dims && { width: dims.width, height: dims.height }),
