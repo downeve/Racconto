@@ -767,18 +767,41 @@ function buildAppMenu() {
 
 const OAUTH_PORT = 9876
 
-const oauthServer = http.createServer((req, res) => {
+const oauthServer = http.createServer(async (req, res) => {
   const parsed = new URL(req.url, `http://127.0.0.1:${OAUTH_PORT}`)
   const token = parsed.searchParams.get('token')
+  const code = parsed.searchParams.get('code')
 
-  // 브라우저에 완료 페이지 응답
+  // 브라우저에 완료 페이지 응답 (먼저 응답 보내서 탭 닫게 함)
   res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' })
   res.end(`<!DOCTYPE html><html><head><meta charset="utf-8">
 <style>body{font-family:sans-serif;display:flex;align-items:center;justify-content:center;height:100vh;margin:0;background:#F7F4F0;color:#333}</style>
 </head><body><p>로그인이 완료되었습니다. 이 탭을 닫고 앱으로 돌아가세요.<br><br>Login complete. You can close this tab.</p></body></html>`)
 
-  if (token && mainWindow) {
-    mainWindow.webContents.send('auth:oauthToken', token)
+  if (!mainWindow) return
+
+  // S-2: 백엔드가 Electron 플랫폼에 대해 1회용 code를 발급 → /auth/exchange 로 access_token 교환
+  let finalToken = token
+  if (!finalToken && code) {
+    try {
+      const ex = await fetch(`${API_BASE}/auth/exchange`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ code }),
+      })
+      if (ex.ok) {
+        const data = await ex.json()
+        finalToken = data.access_token
+      } else {
+        console.error('OAuth code exchange failed:', ex.status, await ex.text())
+      }
+    } catch (e) {
+      console.error('OAuth code exchange error:', e?.message || e)
+    }
+  }
+
+  if (finalToken) {
+    mainWindow.webContents.send('auth:oauthToken', finalToken)
     mainWindow.focus()
   }
 })
