@@ -355,7 +355,7 @@ export const SortableTextBlock = memo(function SortableTextBlock({
             </div>
           </div>
         ) : (
-          <MarkdownRenderer content={text_content} className="pl-4" />
+          <MarkdownRenderer content={text_content} className="pl-4 font-serif" />
         )}
       </div>
 
@@ -788,7 +788,7 @@ export const SortableSideBySideBlock = memo(function SortableSideBySideBlock({
       ) : (
         /* 👇 일반 모드: 기존 텍스트 표시 */
         <>
-          <MarkdownRenderer content={textItem.text_content || ''} />
+          <MarkdownRenderer content={textItem.text_content || ''} className="font-serif" />
           <div className="absolute top-4 right-2 flex gap-1 opacity-0 group-hover/text:opacity-100 transition-opacity">
             <button
               onClick={() => onEdit(textItem.id, textItem.text_content || '')}
