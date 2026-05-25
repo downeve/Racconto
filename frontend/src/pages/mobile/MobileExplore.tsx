@@ -4,6 +4,8 @@ import { useTranslation } from 'react-i18next'
 import { Search, X } from 'lucide-react'
 import axios from 'axios'
 import PublicNavbar from '../../components/PublicNavbar'
+import PortfolioListCard from '../../components/PortfolioListCard'
+import PortfolioListBanner from '../../components/PortfolioListBanner'
 import { useAuth } from '../../context/AuthContext'
 import { useDebounce } from '../../hooks/useDebounce'
 import { CAMERA_TYPES, type CameraType } from '../../constants/tags'
@@ -52,7 +54,6 @@ export default function MobileExplore() {
   const [cameraFilter, setCameraFilter] = useState<CameraType | ''>('')
   const sentinelRef = useRef<HTMLDivElement>(null)
 
-  // 검색 (Phase 3)
   const [searchInput, setSearchInput] = useState('')
   const searchQuery = useDebounce(searchInput.trim(), 300)
   const [searchResults, setSearchResults] = useState<SearchResponse | null>(null)
@@ -97,7 +98,6 @@ export default function MobileExplore() {
     return () => obs.disconnect()
   }, [cursor, hasMore, loading, cameraFilter, fetchPage, isSearching])
 
-  // 검색 — debounce 300ms
   useEffect(() => {
     if (!isSearching) {
       setSearchResults(null)
@@ -115,92 +115,92 @@ export default function MobileExplore() {
   const cameraLabel = (ct: typeof CAMERA_TYPES[number]) =>
     lang === 'ko' ? ct.labelKo : lang === 'ja' ? ct.labelJa : ct.label
 
+  const cardHref = (item: ExploreItem) =>
+    item.author.username && item.slug
+      ? `/${item.author.username}/${item.slug}`
+      : `/${item.author.username ?? ''}`
+
   return (
-    <div className="min-h-screen bg-edit-canvas text-edit-ink">
-      {/* 인증된 사용자에게는 App.tsx 의 Navbar 가 이미 렌더되므로 겹침 방지 */}
+    <div className="min-h-screen bg-canvas text-ink">
       {!isAuthenticated && <PublicNavbar compactLogo />}
       <main className={`px-5 pb-16 ${isAuthenticated ? 'pt-6' : 'pt-20'}`}>
-        <header className="mb-8 text-center">
-          <p className="t-eyebrow text-edit-muted mb-2">{t('explore.eyebrow', 'Discover')}</p>
-          <h1 className="font-serif text-h1 text-edit-ink font-normal tracking-tight">
-            {t('explore.title', 'Explore portfolios')}
-          </h1>
-          <p className="font-serif text-body text-edit-muted mt-3 leading-[1.65]">
-            {t('explore.subtitle', 'Photographers sharing their stories — one portfolio per artist, in chronological order.')}
-          </p>
-        </header>
+        <PortfolioListBanner
+          eyebrow={t('explore.eyebrow', 'Discover')}
+          title={t('explore.title', 'Photographers')}
+          subtitle={t('explore.subtitle', 'Each artist, one portfolio — in chronological order.')}
+        />
 
         {/* 검색바 */}
         <div className="mb-6 relative">
-          <Search size={14} strokeWidth={1.5} className="absolute left-3 top-1/2 -translate-y-1/2 text-edit-faint pointer-events-none" />
+          <Search size={14} strokeWidth={1.5} className="absolute left-3 top-1/2 -translate-y-1/2 text-faint pointer-events-none" />
           <input
             type="text"
             value={searchInput}
             onChange={e => setSearchInput(e.target.value)}
             placeholder={t('explore.searchPlaceholder', 'Search photographers or portfolios…')}
-            className="w-full pl-9 pr-9 py-2.5 text-[0.9375rem] bg-edit-paper border border-edit-line rounded-[2px] focus:border-edit-ink focus:outline-none transition-colors placeholder:text-edit-faint"
+            className="w-full pl-9 pr-9 py-2.5 text-[0.9375rem] bg-canvas border border-hair rounded-[2px] focus:border-ink focus:outline-none transition-colors placeholder:text-faint"
           />
           {searchInput && (
             <button
               type="button"
               onClick={() => setSearchInput('')}
               aria-label={t('common.close')}
-              className="absolute right-2.5 top-1/2 -translate-y-1/2 text-edit-faint hover:text-edit-ink p-1"
+              className="absolute right-2.5 top-1/2 -translate-y-1/2 text-faint hover:text-ink p-1"
             >
               <X size={14} strokeWidth={1.5} />
             </button>
           )}
         </div>
 
-        {/* 칩 필터 — 가로 스크롤. 검색 중일 때는 숨김 */}
+        {/* 칩 필터 — 가로 스크롤 */}
         {!isSearching && (
-        <div className="mb-8 -mx-5 px-5 flex items-center gap-2 overflow-x-auto pb-2 [&::-webkit-scrollbar]:hidden" style={{ scrollbarWidth: 'none' }}>
-          <button
-            type="button"
-            onClick={() => setCameraFilter('')}
-            className={`shrink-0 px-3 py-1.5 t-caption rounded-[2px] border transition-colors ${
-              cameraFilter === ''
-                ? 'bg-edit-ink text-edit-paper border-edit-ink'
-                : 'border-edit-line text-edit-muted'
-            }`}
-          >
-            {t('common.all')}
-          </button>
-          {CAMERA_TYPES.map(ct => (
+          <div className="mb-8 -mx-5 px-5 flex items-center gap-2 overflow-x-auto pb-2 [&::-webkit-scrollbar]:hidden" style={{ scrollbarWidth: 'none' }}>
             <button
-              key={ct.value}
               type="button"
-              onClick={() => setCameraFilter(ct.value)}
+              onClick={() => setCameraFilter('')}
               className={`shrink-0 px-3 py-1.5 t-caption rounded-[2px] border transition-colors ${
-                cameraFilter === ct.value
-                  ? 'bg-edit-ink text-edit-paper border-edit-ink'
-                  : 'border-edit-line text-edit-muted'
+                cameraFilter === ''
+                  ? 'bg-ink text-canvas border-ink'
+                  : 'border-hair text-muted'
               }`}
             >
-              {cameraLabel(ct)}
+              {t('common.all')}
             </button>
-          ))}
-        </div>
+            {CAMERA_TYPES.map(ct => (
+              <button
+                key={ct.value}
+                type="button"
+                onClick={() => setCameraFilter(ct.value)}
+                className={`shrink-0 px-3 py-1.5 t-caption rounded-[2px] border transition-colors ${
+                  cameraFilter === ct.value
+                    ? 'bg-ink text-canvas border-ink'
+                    : 'border-hair text-muted'
+                }`}
+              >
+                {cameraLabel(ct)}
+              </button>
+            ))}
+          </div>
         )}
 
         {/* 검색 결과 */}
         {isSearching && searchResults && (
           <div className="space-y-10">
             {searchLoading && (
-              <p className="text-center t-caption text-edit-faint">{t('common.loading')}</p>
+              <p className="t-caption text-faint">{t('common.loading')}</p>
             )}
             {!searchLoading && searchResults.users.length === 0 && searchResults.portfolios.length === 0 && (
-              <p className="text-center font-serif text-h3 text-edit-muted py-10">
+              <p className="font-serif text-h3 text-muted py-10">
                 {t('explore.searchEmpty', 'No results found')}
               </p>
             )}
             {searchResults.users.length > 0 && (
               <section>
-                <p className="t-eyebrow text-edit-faint mb-3">{t('explore.searchUsers', 'Photographers')}</p>
+                <p className="t-eyebrow text-faint mb-3">{t('explore.searchUsers', 'Photographers')}</p>
                 <div className="grid grid-cols-3 gap-x-3 gap-y-6">
                   {searchResults.users.map(u => (
                     <Link key={u.username} to={`/${u.username}`} className="block">
-                      <div className="aspect-square overflow-hidden bg-edit-paper-2">
+                      <div className="aspect-square overflow-hidden bg-[oklch(0.92_0.012_75)]">
                         {u.cover_image_url && (
                           <img
                             src={cfUrl(u.cover_image_url, 'grid')}
@@ -212,7 +212,7 @@ export default function MobileExplore() {
                           />
                         )}
                       </div>
-                      <p className="t-caption mt-2 text-edit-ink truncate">@{u.username}</p>
+                      <p className="t-caption mt-2 text-ink truncate">@{u.username}</p>
                     </Link>
                   ))}
                 </div>
@@ -220,34 +220,19 @@ export default function MobileExplore() {
             )}
             {searchResults.portfolios.length > 0 && (
               <section>
-                <p className="t-eyebrow text-edit-faint mb-3">{t('explore.searchPortfolios', 'Portfolios')}</p>
-                <div className="space-y-8">
+                <p className="t-eyebrow text-faint mb-3">{t('explore.searchPortfolios', 'Portfolios')}</p>
+                <div className="space-y-12">
                   {searchResults.portfolios.map(item => (
-                    <Link
+                    <PortfolioListCard
                       key={item.id}
-                      to={item.author.username && item.slug
-                        ? `/${item.author.username}/${item.slug}`
-                        : `/${item.author.username ?? ''}`
-                      }
-                      className="block"
-                    >
-                      <div className="aspect-[3/2] overflow-hidden bg-edit-paper-2">
-                        {item.cover_image_url && (
-                          <img
-                            src={cfUrl(item.cover_image_url, 'grid')}
-                            srcSet={`${cfUrl(item.cover_image_url, 'mobile')} 480w, ${cfUrl(item.cover_image_url, 'grid')} 800w`}
-                            sizes="100vw"
-                            alt={item.title}
-                            loading="lazy"
-                            className="w-full h-full object-cover"
-                          />
-                        )}
-                      </div>
-                      <div className="mt-3">
-                        <p className="t-caption text-edit-muted">@{item.author.username ?? ''}</p>
-                        <h3 className="font-serif text-h3 text-edit-ink mt-1">{item.title}</h3>
-                      </div>
-                    </Link>
+                      mode="explore"
+                      href={cardHref(item)}
+                      coverImageUrl={item.cover_image_url}
+                      title={item.title}
+                      author={item.author.username ?? undefined}
+                      cameraType={item.camera_type}
+                      tags={item.tags}
+                    />
                   ))}
                 </div>
               </section>
@@ -256,62 +241,37 @@ export default function MobileExplore() {
         )}
 
         {!isSearching && items.length === 0 && !loading && (
-          <div className="text-center py-20">
-            <p className="font-serif text-h3 text-edit-muted">
+          <div className="py-20">
+            <p className="font-serif text-h3 text-muted">
               {t('explore.empty', 'No portfolios yet. Be the first to share your story.')}
             </p>
           </div>
         )}
 
         {!isSearching && items.length > 0 && (
-          <div className="space-y-10">
+          <div className="space-y-12">
             {items.map(item => (
-              <Link
+              <PortfolioListCard
                 key={item.id}
-                to={item.author.username && item.slug
-                  ? `/${item.author.username}/${item.slug}`
-                  : `/${item.author.username ?? ''}`
-                }
-                className="block"
-              >
-                <div className="aspect-[3/2] overflow-hidden bg-edit-paper-2">
-                  {item.cover_image_url && (
-                    <img
-                      src={cfUrl(item.cover_image_url, 'grid')}
-                      srcSet={`${cfUrl(item.cover_image_url, 'mobile')} 480w, ${cfUrl(item.cover_image_url, 'grid')} 800w`}
-                      sizes="100vw"
-                      alt={item.title}
-                      loading="lazy"
-                      className="w-full h-full object-cover"
-                    />
-                  )}
-                </div>
-                <div className="mt-3">
-                  <p className="t-caption text-edit-muted">@{item.author.username ?? ''}</p>
-                  <h3 className="font-serif text-h3 text-edit-ink mt-1">{item.title}</h3>
-                  <div className="flex flex-wrap items-center gap-2 mt-2">
-                    {item.camera_type && (
-                      <span className="t-caption text-edit-faint uppercase tracking-wider">
-                        {item.camera_type}
-                      </span>
-                    )}
-                    {item.tags.slice(0, 3).map(tag => (
-                      <span key={tag} className="t-caption text-edit-faint">#{tag}</span>
-                    ))}
-                  </div>
-                </div>
-              </Link>
+                mode="explore"
+                href={cardHref(item)}
+                coverImageUrl={item.cover_image_url}
+                title={item.title}
+                author={item.author.username ?? undefined}
+                cameraType={item.camera_type}
+                tags={item.tags}
+              />
             ))}
           </div>
         )}
 
         {!isSearching && loading && (
-          <div className="space-y-10 mt-10">
+          <div className="space-y-12 mt-10">
             {Array.from({ length: 3 }).map((_, i) => (
               <div key={i}>
-                <div className="aspect-[3/2] bg-edit-paper-2 animate-pulse" />
-                <div className="mt-3 h-3 w-20 bg-edit-paper-2 animate-pulse" />
-                <div className="mt-2 h-4 w-3/4 bg-edit-paper-2 animate-pulse" />
+                <div className="aspect-[3/2] bg-[oklch(0.92_0.012_75)] animate-pulse" />
+                <div className="mt-3 h-3 w-20 bg-[oklch(0.92_0.012_75)] animate-pulse" />
+                <div className="mt-2 h-4 w-3/4 bg-[oklch(0.92_0.012_75)] animate-pulse" />
               </div>
             ))}
           </div>
