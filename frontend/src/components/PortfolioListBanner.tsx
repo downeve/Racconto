@@ -1,0 +1,36 @@
+interface PortfolioListBannerProps {
+  /** "Discover" | "Portfolio · 6 projects" */
+  eyebrow: string
+  /** "Photographers" | "@mira" */
+  title: string
+  /** 옵셔널 부제 — Explore 는 일반, Portfolio 는 italic */
+  subtitle?: string
+  subtitleItalic?: boolean
+  darkMode?: boolean
+}
+
+/**
+ * 좌정렬 배너 — Explore × Portfolio 목록 화면이 공유하는 헤더.
+ * eyebrow → 38px serif h1 → 옵셔널 부제(max-w-540px).
+ */
+export default function PortfolioListBanner({
+  eyebrow, title, subtitle, subtitleItalic = false, darkMode = false,
+}: PortfolioListBannerProps) {
+  const subText = darkMode ? 'text-d-soft' : 'text-muted'
+  return (
+    <header className="mb-12 md:mb-14">
+      <p className={`t-eyebrow mb-2 ${subText}`}>{eyebrow}</p>
+      <h1 className="font-serif font-normal leading-[1.05] tracking-[-0.02em]"
+          style={{ fontSize: 'clamp(24px, 5vw, 38px)' }}>
+        {title}
+      </h1>
+      {subtitle && (
+        <p className={`font-serif text-[14px] md:text-[16px] leading-[1.65] mt-3 max-w-[540px]
+                       [word-break:keep-all] ${subText}
+                       ${subtitleItalic ? 'italic' : ''}`}>
+          {subtitle}
+        </p>
+      )}
+    </header>
+  )
+}
