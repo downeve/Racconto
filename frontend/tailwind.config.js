@@ -99,6 +99,7 @@ export default {
         'space-md': '3rem',    // 48px
         'space-lg': '6rem',    // 96px
         'space-xl': '9rem',    // 144px
+        15: '3.75rem',         // 60px — Explore × Portfolio 카드 그리드 gap-y
       },
       boxShadow: {
         // 1. 기본 shadow (shadow 클래스 하나로 통일)

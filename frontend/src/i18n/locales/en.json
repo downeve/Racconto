@@ -759,8 +759,8 @@
   "explore": {
     "menu": "Explore",
     "eyebrow": "Discover",
-    "title": "Explore portfolios",
-    "subtitle": "Photographers sharing their stories — in chronological order.",
+    "title": "Photographers",
+    "subtitle": "Each artist, one portfolio — in chronological order.",
     "empty": "No portfolios yet. Be the first to share your story.",
     "searchPlaceholder": "Search photographers or portfolios…",
     "searchEmpty": "No results found",
