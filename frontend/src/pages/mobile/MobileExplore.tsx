@@ -1,9 +1,11 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
+import { Search, X } from 'lucide-react'
 import axios from 'axios'
 import PublicNavbar from '../../components/PublicNavbar'
 import { useAuth } from '../../context/AuthContext'
+import { useDebounce } from '../../hooks/useDebounce'
 import { CAMERA_TYPES, type CameraType } from '../../constants/tags'
 import { cfUrl } from '../../utils/cfImage'
 
@@ -28,6 +30,11 @@ interface FeedResponse {
   has_more: boolean
 }
 
+interface SearchResponse {
+  users: { username: string }[]
+  portfolios: ExploreItem[]
+}
+
 export default function MobileExplore() {
   const { t, i18n } = useTranslation()
   const { isAuthenticated } = useAuth()
@@ -38,6 +45,13 @@ export default function MobileExplore() {
   const [loading, setLoading] = useState(false)
   const [cameraFilter, setCameraFilter] = useState<CameraType | ''>('')
   const sentinelRef = useRef<HTMLDivElement>(null)
+
+  // 검색 (Phase 3)
+  const [searchInput, setSearchInput] = useState('')
+  const searchQuery = useDebounce(searchInput.trim(), 300)
+  const [searchResults, setSearchResults] = useState<SearchResponse | null>(null)
+  const [searchLoading, setSearchLoading] = useState(false)
+  const isSearching = searchQuery.length >= 2
 
   useEffect(() => {
     setItems([])
@@ -67,7 +81,7 @@ export default function MobileExplore() {
 
   useEffect(() => {
     const sentinel = sentinelRef.current
-    if (!sentinel || !hasMore) return
+    if (!sentinel || !hasMore || isSearching) return
     const obs = new IntersectionObserver(entries => {
       if (entries[0].isIntersecting && !loading && hasMore && cursor) {
         fetchPage(cursor, cameraFilter)
@@ -75,7 +89,22 @@ export default function MobileExplore() {
     }, { rootMargin: '400px' })
     obs.observe(sentinel)
     return () => obs.disconnect()
-  }, [cursor, hasMore, loading, cameraFilter, fetchPage])
+  }, [cursor, hasMore, loading, cameraFilter, fetchPage, isSearching])
+
+  // 검색 — debounce 300ms
+  useEffect(() => {
+    if (!isSearching) {
+      setSearchResults(null)
+      return
+    }
+    let cancelled = false
+    setSearchLoading(true)
+    axios.get<SearchResponse>(`${API}/explore/search`, { params: { q: searchQuery } })
+      .then(({ data }) => { if (!cancelled) setSearchResults(data) })
+      .catch(() => { if (!cancelled) setSearchResults({ users: [], portfolios: [] }) })
+      .finally(() => { if (!cancelled) setSearchLoading(false) })
+    return () => { cancelled = true }
+  }, [searchQuery, isSearching])
 
   const cameraLabel = (ct: typeof CAMERA_TYPES[number]) =>
     lang === 'ko' ? ct.labelKo : lang === 'ja' ? ct.labelJa : ct.label
@@ -95,7 +124,30 @@ export default function MobileExplore() {
           </p>
         </header>
 
-        {/* 칩 필터 — 가로 스크롤 */}
+        {/* 검색바 */}
+        <div className="mb-6 relative">
+          <Search size={14} strokeWidth={1.5} className="absolute left-3 top-1/2 -translate-y-1/2 text-edit-faint pointer-events-none" />
+          <input
+            type="text"
+            value={searchInput}
+            onChange={e => setSearchInput(e.target.value)}
+            placeholder={t('explore.searchPlaceholder', 'Search photographers or portfolios…')}
+            className="w-full pl-9 pr-9 py-2.5 text-[0.9375rem] bg-edit-paper border border-edit-line rounded-[2px] focus:border-edit-ink focus:outline-none transition-colors placeholder:text-edit-faint"
+          />
+          {searchInput && (
+            <button
+              type="button"
+              onClick={() => setSearchInput('')}
+              aria-label={t('common.close')}
+              className="absolute right-2.5 top-1/2 -translate-y-1/2 text-edit-faint hover:text-edit-ink p-1"
+            >
+              <X size={14} strokeWidth={1.5} />
+            </button>
+          )}
+        </div>
+
+        {/* 칩 필터 — 가로 스크롤. 검색 중일 때는 숨김 */}
+        {!isSearching && (
         <div className="mb-8 -mx-5 px-5 flex items-center gap-2 overflow-x-auto pb-2 [&::-webkit-scrollbar]:hidden" style={{ scrollbarWidth: 'none' }}>
           <button
             type="button"
@@ -123,8 +175,73 @@ export default function MobileExplore() {
             </button>
           ))}
         </div>
+        )}
 
-        {items.length === 0 && !loading && (
+        {/* 검색 결과 */}
+        {isSearching && searchResults && (
+          <div className="space-y-10">
+            {searchLoading && (
+              <p className="text-center t-caption text-edit-faint">{t('common.loading')}</p>
+            )}
+            {!searchLoading && searchResults.users.length === 0 && searchResults.portfolios.length === 0 && (
+              <p className="text-center font-serif text-h3 text-edit-muted py-10">
+                {t('explore.searchEmpty', 'No results found')}
+              </p>
+            )}
+            {searchResults.users.length > 0 && (
+              <section>
+                <p className="t-eyebrow text-edit-faint mb-3">{t('explore.searchUsers', 'Photographers')}</p>
+                <div className="flex flex-wrap gap-2">
+                  {searchResults.users.map(u => (
+                    <Link
+                      key={u.username}
+                      to={`/${u.username}`}
+                      className="px-3 py-1.5 t-caption border border-edit-line rounded-[2px] text-edit-ink"
+                    >
+                      @{u.username}
+                    </Link>
+                  ))}
+                </div>
+              </section>
+            )}
+            {searchResults.portfolios.length > 0 && (
+              <section>
+                <p className="t-eyebrow text-edit-faint mb-3">{t('explore.searchPortfolios', 'Portfolios')}</p>
+                <div className="space-y-8">
+                  {searchResults.portfolios.map(item => (
+                    <Link
+                      key={item.id}
+                      to={item.author.username && item.slug
+                        ? `/${item.author.username}/${item.slug}`
+                        : `/${item.author.username ?? ''}`
+                      }
+                      className="block"
+                    >
+                      <div className="aspect-[3/2] overflow-hidden bg-edit-paper-2">
+                        {item.cover_image_url && (
+                          <img
+                            src={cfUrl(item.cover_image_url, 'grid')}
+                            srcSet={`${cfUrl(item.cover_image_url, 'mobile')} 480w, ${cfUrl(item.cover_image_url, 'grid')} 800w`}
+                            sizes="100vw"
+                            alt={item.title}
+                            loading="lazy"
+                            className="w-full h-full object-cover"
+                          />
+                        )}
+                      </div>
+                      <div className="mt-3">
+                        <p className="t-caption text-edit-muted">@{item.author.username ?? ''}</p>
+                        <h3 className="font-serif text-h3 text-edit-ink mt-1">{item.title}</h3>
+                      </div>
+                    </Link>
+                  ))}
+                </div>
+              </section>
+            )}
+          </div>
+        )}
+
+        {!isSearching && items.length === 0 && !loading && (
           <div className="text-center py-20">
             <p className="font-serif text-h3 text-edit-muted">
               {t('explore.empty', 'No portfolios yet. Be the first to share your story.')}
@@ -132,7 +249,7 @@ export default function MobileExplore() {
           </div>
         )}
 
-        {items.length > 0 && (
+        {!isSearching && items.length > 0 && (
           <div className="space-y-10">
             {items.map(item => (
               <Link
@@ -174,7 +291,7 @@ export default function MobileExplore() {
           </div>
         )}
 
-        {loading && (
+        {!isSearching && loading && (
           <div className="space-y-10 mt-10">
             {Array.from({ length: 3 }).map((_, i) => (
               <div key={i}>
