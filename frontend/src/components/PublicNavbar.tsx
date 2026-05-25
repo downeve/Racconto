@@ -146,6 +146,12 @@ export default function PublicNavbar({ username, darkMode, compact, portfolio, o
           </div>
 
           <Link
+            to="/explore"
+            className={`hidden sm:inline-flex text-body md:text-h3 tracking-wider hover:font-bold transition-[background,color,border] duration-150 ease-out ${dm ? 'text-faint hover:text-hair' : 'text-ink-2 hover:text-ink'}`}
+          >
+            {t('explore.menu', 'Explore')}
+          </Link>
+          <Link
             to="/download"
             className={`hidden sm:inline-flex text-body md:text-h3 tracking-wider hover:font-bold transition-[background,color,border] duration-150 ease-out ${dm ? 'text-faint hover:text-hair' : 'text-ink-2 hover:text-ink'}`}
           >

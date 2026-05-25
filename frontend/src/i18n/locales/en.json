@@ -744,5 +744,12 @@
     "currentVersion": "Current: v{{version}}",
     "download": "Download",
     "later": "Later"
+  },
+  "explore": {
+    "menu": "Explore",
+    "eyebrow": "Discover",
+    "title": "Explore portfolios",
+    "subtitle": "Photographers sharing their stories — one portfolio per artist, in chronological order.",
+    "empty": "No portfolios yet. Be the first to share your story."
   }
 }

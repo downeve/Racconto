@@ -1,4 +1,5 @@
 from sqlalchemy import Column, String, Text, DateTime, Date, Enum, ForeignKey, Integer, Boolean, UniqueConstraint
+from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import relationship
 from app.database import Base
 from datetime import datetime
@@ -59,6 +60,10 @@ class Project(Base):
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     deleted_at = Column(DateTime, nullable=True, default=None, index=True)
+    # Phase 1 — 커뮤니티 태그 시스템
+    camera_type = Column(String, nullable=True)  # 'film' | 'digital' | 'mobile' | 'mixed'
+    tags = Column(JSONB, nullable=False, default=list, server_default='[]')
+    show_in_explore = Column(Boolean, nullable=False, default=False, server_default='false')
     folder_links = relationship("FolderLink", back_populates="project", cascade="all, delete-orphan", lazy="selectin")
 
     @property
