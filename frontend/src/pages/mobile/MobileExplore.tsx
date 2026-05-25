@@ -44,9 +44,8 @@ interface SearchResponse {
 }
 
 export default function MobileExplore() {
-  const { t, i18n } = useTranslation()
+  const { t } = useTranslation()
   const { isAuthenticated } = useAuth()
-  const lang = i18n.language.startsWith('ko') ? 'ko' : i18n.language.startsWith('ja') ? 'ja' : 'en'
   const [items, setItems] = useState<ExploreItem[]>([])
   const [cursor, setCursor] = useState<string | null>(null)
   const [hasMore, setHasMore] = useState(true)
@@ -112,8 +111,8 @@ export default function MobileExplore() {
     return () => { cancelled = true }
   }, [searchQuery, isSearching])
 
-  const cameraLabel = (ct: typeof CAMERA_TYPES[number]) =>
-    lang === 'ko' ? ct.labelKo : lang === 'ja' ? ct.labelJa : ct.label
+  // 카메라 칩 라벨은 모든 언어에서 동일 영문 대문자 — FILM / DIGITAL / MOBILE / MIXED
+  const cameraLabel = (ct: typeof CAMERA_TYPES[number]) => ct.value.toUpperCase()
 
   const cardHref = (item: ExploreItem) =>
     item.author.username && item.slug

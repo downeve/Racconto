@@ -201,7 +201,26 @@ export default function ProjectEdit() {
             </div>
           </div>
 
-          {/* 커뮤니티 태그 시스템 — Phase 1 */}
+          {/* 커뮤니티 태그 시스템 — Phase 1. 노출 동의가 가장 먼저, 그 다음 카메라/태그 */}
+          <div className="py-5 border-t border-edit-line">
+            <label className="flex items-start gap-3 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={showInExplore}
+                onChange={e => setShowInExplore(e.target.checked)}
+                className="mt-1 shrink-0 accent-edit-ink"
+              />
+              <div>
+                <div className="text-[0.9375rem] text-edit-ink font-medium">
+                  {t('project.showInExplore', 'Show in Explore feed')}
+                </div>
+                <p className="t-caption text-edit-muted mt-1 leading-[1.5]">
+                  {t('project.showInExploreDesc', 'Make this portfolio discoverable in the public Explore feed at racconto.app/explore. Other photographers and visitors can find your work through browsing and search. You can turn this off anytime.')}
+                </p>
+              </div>
+            </label>
+          </div>
+
           <div className="py-5 border-t border-edit-line">
             <p className="t-eyebrow text-edit-muted mb-2">{t('project.cameraType', 'Camera Type')}</p>
             <div className="flex flex-wrap gap-1.5">
@@ -233,25 +252,6 @@ export default function ProjectEdit() {
               suggestions={SUGGESTED_GENRE_TAGS}
               placeholder={t('project.genreTagsPlaceholder', 'wedding, travel, street...')}
             />
-          </div>
-
-          <div className="py-5 border-t border-edit-line">
-            <label className="flex items-start gap-3 cursor-pointer">
-              <input
-                type="checkbox"
-                checked={showInExplore}
-                onChange={e => setShowInExplore(e.target.checked)}
-                className="mt-1 shrink-0 accent-edit-ink"
-              />
-              <div>
-                <div className="text-[0.9375rem] text-edit-ink font-medium">
-                  {t('project.showInExplore', 'Show in Explore feed')}
-                </div>
-                <p className="t-caption text-edit-muted mt-1 leading-[1.5]">
-                  {t('project.showInExploreDesc', 'Make this portfolio discoverable in the public Explore feed at racconto.app/explore. Other photographers and visitors can find your work through browsing and search. You can turn this off anytime.')}
-                </p>
-              </div>
-            </label>
           </div>
         </div>
 
