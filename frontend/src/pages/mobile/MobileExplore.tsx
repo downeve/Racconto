@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import axios from 'axios'
 import PublicNavbar from '../../components/PublicNavbar'
+import { useAuth } from '../../context/AuthContext'
 import { CAMERA_TYPES, type CameraType } from '../../constants/tags'
 import { cfUrl } from '../../utils/cfImage'
 
@@ -29,6 +30,7 @@ interface FeedResponse {
 
 export default function MobileExplore() {
   const { t, i18n } = useTranslation()
+  const { isAuthenticated } = useAuth()
   const lang = i18n.language.startsWith('ko') ? 'ko' : i18n.language.startsWith('ja') ? 'ja' : 'en'
   const [items, setItems] = useState<ExploreItem[]>([])
   const [cursor, setCursor] = useState<string | null>(null)
@@ -80,8 +82,9 @@ export default function MobileExplore() {
 
   return (
     <div className="min-h-screen bg-edit-canvas text-edit-ink">
-      <PublicNavbar compactLogo />
-      <main className="px-5 pt-20 pb-16">
+      {/* 인증된 사용자에게는 App.tsx 의 Navbar 가 이미 렌더되므로 겹침 방지 */}
+      {!isAuthenticated && <PublicNavbar compactLogo />}
+      <main className={`px-5 pb-16 ${isAuthenticated ? 'pt-6' : 'pt-20'}`}>
         <header className="mb-8 text-center">
           <p className="t-eyebrow text-edit-muted mb-2">{t('explore.eyebrow', 'Discover')}</p>
           <h1 className="font-serif text-h1 text-edit-ink font-normal tracking-tight">
