@@ -137,7 +137,7 @@ export default function MobileExplore() {
             value={searchInput}
             onChange={e => setSearchInput(e.target.value)}
             placeholder={t('explore.searchPlaceholder', 'Search photographers or portfolios…')}
-            className="w-full pl-9 pr-9 py-2.5 text-[0.9375rem] bg-canvas border border-hair rounded-[2px] focus:border-ink focus:outline-none transition-colors placeholder:text-faint"
+            className="w-full pl-9 pr-9 py-2.5 text-[0.9375rem] bg-canvas-2 border border-hair rounded-[2px] focus:border-ink focus:outline-none transition-colors placeholder:text-faint"
           />
           {searchInput && (
             <button
