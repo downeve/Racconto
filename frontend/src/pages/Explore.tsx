@@ -131,7 +131,6 @@ export default function Explore() {
         <PortfolioListBanner
           eyebrow={t('explore.eyebrow', 'Discover')}
           title={t('explore.title', 'Photographers')}
-          subtitle={t('explore.subtitle', 'Each artist, one portfolio — in chronological order.')}
         />
 
         {/* 검색바 — 좌정렬 */}

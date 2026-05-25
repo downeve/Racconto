@@ -24,8 +24,8 @@ interface Project {
   updated_at: string
 }
 
-// 본인 팔로워 수 표시 — 본인만 볼 수 있음. 안내 문구 포함.
-function FollowerCount() {
+// 본인 팔로워 수 인라인 표시 — Portfolio 텍스트 옆에 한 줄로. 안내 문구는 title 툴팁.
+function FollowerCountInline() {
   const { t } = useTranslation()
   const { data } = useQuery({
     queryKey: ['my-follower-count'],
@@ -34,13 +34,13 @@ function FollowerCount() {
   })
   if (!data) return null
   return (
-    <div className="mt-3 pt-3 border-t border-hair text-small">
+    <p
+      className="text-small text-muted"
+      title={t('follow.followersHint', "Only visible to you. Followers won't see this number.")}
+    >
       <span className="font-semibold text-ink">{data.follower_count}</span>
-      <span className="text-muted ml-1">{t('follow.followersLabel', 'followers')}</span>
-      <p className="t-caption text-faint mt-1">
-        {t('follow.followersHint', "Only visible to you. Followers won't see this number.")}
-      </p>
-    </div>
+      <span className="ml-1">{t('follow.followersLabel', 'followers')}</span>
+    </p>
   )
 }
 
@@ -143,7 +143,10 @@ export default function Dashboard() {
 
           {/* 포트폴리오 바로가기 */}
           <div className="border-y border-hair py-8 flex flex-col gap-2">
-            <p className="text-body text-muted">Portfolio</p>
+            <div className="flex items-baseline justify-between gap-3">
+              <p className="text-body text-muted">Portfolio</p>
+              <FollowerCountInline />
+            </div>
             <div className="relative flex-1 min-h-0">
               {publicProjects.length === 0 ? (
                 <div className="absolute inset-0 flex flex-col items-center justify-center text-center gap-1">
@@ -181,7 +184,6 @@ export default function Dashboard() {
             <Link to={`/${user?.username}`} className="text-ink-2 text-body mt-2 font-semibold hover:underline underline-offset-4">
               {t('dashboard.goToPortfolio')}
             </Link>
-            <FollowerCount />
           </div>
         </div>
 
