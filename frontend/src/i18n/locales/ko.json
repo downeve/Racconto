@@ -199,6 +199,11 @@
     "labelLocation": "장소",
     "labelStatus": "프로젝트 상태",
     "labelVisibility": "공개 여부",
+    "cameraType": "카메라 종류",
+    "genreTags": "장르 태그 (최대 5개)",
+    "genreTagsPlaceholder": "웨딩, 여행, 스트리트…",
+    "showInExplore": "둘러보기 피드에 노출",
+    "showInExploreDesc": "racconto.app/explore 둘러보기 피드에서 이 포트폴리오가 보이게 합니다. 다른 사진가와 방문자들이 둘러보기와 검색으로 작업을 발견할 수 있어요. 언제든 다시 끌 수 있습니다.",
     "noLocalFile": "로컬 파일 없음",
     "noLocalFile2": "로컬 파일 없는 사진"
   },

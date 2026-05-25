@@ -199,6 +199,11 @@
     "labelLocation": "場所",
     "labelStatus": "プロジェクト状態",
     "labelVisibility": "公開設定",
+    "cameraType": "カメラの種類",
+    "genreTags": "ジャンルタグ (最大5個)",
+    "genreTagsPlaceholder": "ウェディング、トラベル、ストリート…",
+    "showInExplore": "Exploreフィードに表示",
+    "showInExploreDesc": "racconto.app/explore のExploreフィードで、このポートフォリオが発見可能になります。他の写真家や訪問者がブラウジングや検索で作品を見つけられます。いつでもオフにできます。",
     "noLocalFile": "ローカルファイルなし",
     "noLocalFile2": "ローカルファイルがない画像"
   },
