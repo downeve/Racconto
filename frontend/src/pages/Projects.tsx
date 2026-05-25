@@ -83,9 +83,9 @@ export default function Projects() {
     setToast({ message, type })
     toastTimer.current = setTimeout(() => setToast(null), 4000)
   }
-  const FORM_INITIAL = { title: '', description: '', location: '', status: 'in_progress', isPublic: 'false' }
+  const FORM_INITIAL = { title: '', description: '', location: '', status: 'in_progress', isPublic: 'false', showInExplore: false }
   const [formData, setFormData] = useState(FORM_INITIAL)
-  const setField = (key: keyof typeof FORM_INITIAL, value: string) =>
+  const setField = (key: keyof typeof FORM_INITIAL, value: string | boolean) =>
     setFormData(prev => ({ ...prev, [key]: value }))
   const { triggerRefresh } = useElectronSidebar()
   const { t, i18n } = useTranslation()
@@ -150,6 +150,7 @@ export default function Projects() {
         location: data.location,
         status: data.status,
         is_public: data.isPublic,
+        show_in_explore: data.showInExplore,
       }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['projects'] })
@@ -263,6 +264,26 @@ export default function Projects() {
                   ))}
                 </div>
               </div>
+            </div>
+
+            {/* 둘러보기 피드 공개 — 진한 구분선으로 위쪽 영역과 시각 분리 */}
+            <div className="pt-6 mt-2 border-t border-edit-line-strong">
+              <label className="flex items-start gap-3 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={formData.showInExplore}
+                  onChange={e => setField('showInExplore', e.target.checked)}
+                  className="mt-1 shrink-0 accent-edit-ink"
+                />
+                <div>
+                  <div className="text-[0.9375rem] text-edit-ink font-medium">
+                    {t('project.showInExplore', 'Show in Explore feed')}
+                  </div>
+                  <p className="t-caption text-edit-muted mt-1 leading-[1.5]">
+                    {t('project.showInExploreDesc', 'Make this portfolio discoverable in the public Explore feed at racconto.app/explore. Other photographers and visitors can find your work through browsing and search. You can turn this off anytime.')}
+                  </p>
+                </div>
+              </label>
             </div>
 
             <div className="mt-6 flex justify-end gap-2">

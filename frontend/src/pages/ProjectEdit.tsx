@@ -173,8 +173,7 @@ export default function ProjectEdit() {
   return (
     <div className="max-w-2xl mx-auto py-12">
       <div className="bg-edit-paper border border-edit-line rounded-btn px-8 py-10">
-        <div className="mb-10 pb-8 border-b border-edit-line">
-          <p className="t-eyebrow text-edit-muted mb-2">{t('project.editing')}</p>
+        <div className="mb-10">
           <h1 className="font-serif text-h2 font-normal tracking-tight">
             {t('project.editProject')}
           </h1>
@@ -202,7 +201,8 @@ export default function ProjectEdit() {
           </div>
 
           {/* 커뮤니티 태그 시스템 — Phase 1. 노출 동의가 가장 먼저, 그 다음 카메라/태그 */}
-          <div className="py-5 border-t border-edit-line">
+          {/* 진한 구분선 — 개인 포트폴리오/상태 영역과 둘러보기 공개 영역 시각 분리 */}
+          <div className="pt-6 mt-2 border-t border-edit-line-strong">
             <label className="flex items-start gap-3 cursor-pointer">
               <input
                 type="checkbox"
