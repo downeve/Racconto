@@ -8,6 +8,7 @@ import { useTranslation } from 'react-i18next'
 import { useAuth } from '../context/AuthContext'
 import PortfolioChapterItems, { type PortfolioPhoto } from '../components/PortfolioChapterItems'
 import PublicNavbar from '../components/PublicNavbar'
+import FollowButton from '../components/FollowButton'
 import EmptyState from '../components/EmptyState'
 import PortfolioComments from '../components/PortfolioComments'
 import { Sun, Moon, MapPin, ChevronLeft, ChevronRight, X, Link2, Check, ArrowUp } from 'lucide-react'
@@ -54,9 +55,10 @@ interface BannerProps {
   username: string
   projects: PortfolioProject[]
   darkMode: boolean
+  showFollow: boolean
 }
 
-function PortfolioBanner({ username, projects, darkMode }: BannerProps) {
+function PortfolioBanner({ username, projects, darkMode, showFollow }: BannerProps) {
   const projectCount = projects.length
   const eyebrowColor = darkMode ? 'text-d-soft' : 'text-muted'
   return (
@@ -65,9 +67,12 @@ function PortfolioBanner({ username, projects, darkMode }: BannerProps) {
         Portfolio
         {projectCount > 0 && <span className="ml-2 opacity-70">· {projectCount} {projectCount === 1 ? 'project' : 'projects'}</span>}
       </p>
-      <h1 className="font-serif font-normal leading-[1.1] tracking-[-0.015em]" style={{ fontSize: 'clamp(28px, 4vw, 38px)' }}>
-        @{username}
-      </h1>
+      <div className="flex items-end justify-between gap-4 flex-wrap">
+        <h1 className="font-serif font-normal leading-[1.1] tracking-[-0.015em]" style={{ fontSize: 'clamp(28px, 4vw, 38px)' }}>
+          @{username}
+        </h1>
+        {showFollow && <FollowButton username={username} darkMode={darkMode} />}
+      </div>
     </div>
   )
 }
@@ -421,6 +426,7 @@ export default function PublicPortfolio() {
                 username={username!}
                 projects={projects}
                 darkMode={darkMode}
+                showFollow={isAuthenticated && !!user?.username && user.username !== username}
               />
             </header>
           )}

@@ -750,6 +750,12 @@
     "download": "다운로드",
     "later": "나중에"
   },
+  "follow": {
+    "follow": "팔로우",
+    "following": "팔로우 중",
+    "followersLabel": "명의 팔로워",
+    "followersHint": "본인에게만 보입니다. 팔로워에게는 이 숫자가 노출되지 않아요."
+  },
   "explore": {
     "menu": "둘러보기",
     "eyebrow": "둘러보기",

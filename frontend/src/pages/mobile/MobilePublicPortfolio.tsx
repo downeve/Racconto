@@ -8,6 +8,7 @@ import { MapPin, X, ChevronLeft, Link2, Check } from 'lucide-react'
 import CoverFallback from '../../components/CoverFallback'
 import EmptyState from '../../components/EmptyState'
 import PublicNavbar from '../../components/PublicNavbar'
+import FollowButton from '../../components/FollowButton'
 import PortfolioComments from '../../components/PortfolioComments'
 import MobilePortfolioChapterItems from '../../components/mobile/MobilePortfolioChapterItems'
 import { cfUrl } from '../../utils/cfImage'
@@ -271,9 +272,14 @@ export default function MobilePublicPortfolio() {
                 Portfolio
                 {projects.length > 0 && <span className="ml-2 opacity-70">· {projects.length} {projects.length === 1 ? 'project' : 'projects'}</span>}
               </p>
-              <h1 className="font-serif font-normal leading-[1.05] tracking-[-0.02em]" style={{ fontSize: 'clamp(20px, 5vw, 26px)' }}>
-                @{username}
-              </h1>
+              <div className="flex items-end justify-between gap-3">
+                <h1 className="font-serif font-normal leading-[1.05] tracking-[-0.02em]" style={{ fontSize: 'clamp(20px, 5vw, 26px)' }}>
+                  @{username}
+                </h1>
+                {isAuthenticated && user?.username && user.username !== username && (
+                  <FollowButton username={username!} darkMode={darkMode} />
+                )}
+              </div>
             </div>
             <div className="flex flex-col gap-12 pb-16">
               {projects.map(project => (

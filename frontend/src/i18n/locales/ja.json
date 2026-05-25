@@ -751,6 +751,12 @@
     "download": "ダウンロード",
     "later": "あとで"
   },
+  "follow": {
+    "follow": "フォロー",
+    "following": "フォロー中",
+    "followersLabel": "フォロワー",
+    "followersHint": "あなただけに表示されます。フォロワーにはこの数字は見えません。"
+  },
   "explore": {
     "menu": "Explore",
     "eyebrow": "発見",
