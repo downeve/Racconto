@@ -109,6 +109,17 @@ export default function MobilePublicPortfolio() {
     if (slugData?.theme) applyTheme(slugData.theme)
   }, [slugData, applyTheme])
 
+  // 브라우저 탭 제목 — 개별 프로젝트면 프로젝트 제목, 작가 페이지면 @username
+  useEffect(() => {
+    const original = document.title
+    if (selectedProject) {
+      document.title = `${selectedProject.title} — Racconto`
+    } else if (username) {
+      document.title = `@${username} — Racconto`
+    }
+    return () => { document.title = original }
+  }, [selectedProject, username])
+
   const handleToggleDark = () => {
     setDarkMode(prev => {
       const next = !prev

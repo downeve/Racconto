@@ -27,9 +27,32 @@ def _cf_public(url: str | None) -> str | None:
     return re.sub(r"/[^/]+$", "/public", url)
 
 
+# index.html 의 기본 OG/Twitter/description/canonical 태그를 제거하기 위한 정규식.
+# 일부 크롤러가 마지막 태그를 우선해서 동적 inject 값이 무시되는 문제를 막기 위해
+# 기존 태그를 모두 지우고 새로 삽입한다.
+_EXISTING_META_RE = re.compile(
+    r'\s*<meta\s+(?:name|property)="(?:description|og:[^"]+|twitter:[^"]+)"[^>]*/?>\s*\n?',
+    re.IGNORECASE,
+)
+_CANONICAL_RE = re.compile(
+    r'\s*<link\s+rel="canonical"[^>]*/?>\s*\n?',
+    re.IGNORECASE,
+)
+# <title> 태그도 동적 갱신 — 브라우저 탭 제목용
+_TITLE_RE = re.compile(r'<title>[^<]*</title>', re.IGNORECASE)
+
+
 def _inject_og(html: str, title: str, description: str, image: str | None, url: str) -> str:
     esc = html_lib.escape
-    # 일반 SEO 메타 (description/canonical) + OG/Twitter — head 앞쪽에 모두 주입
+
+    # 1) 기존 정적 OG/Twitter/description/canonical 태그 제거
+    html = _EXISTING_META_RE.sub('\n', html)
+    html = _CANONICAL_RE.sub('\n', html)
+
+    # 2) <title> 태그를 동적 값으로 교체
+    html = _TITLE_RE.sub(f'<title>{esc(title)}</title>', html, count=1)
+
+    # 3) 새 메타 태그 head 시작 직후에 inject
     tags = (
         f'    <meta name="description" content="{esc(description)}" />\n'
         f'    <link rel="canonical" href="{esc(url)}" />\n'
@@ -44,7 +67,6 @@ def _inject_og(html: str, title: str, description: str, image: str | None, url: 
     if image:
         tags += f'    <meta property="og:image" content="{esc(image)}" />\n'
         tags += f'    <meta name="twitter:image" content="{esc(image)}" />\n'
-    # <head> 시작 직후에 주입 — 크롤러는 head 앞쪽만 파싱
     return html.replace("<head>", "<head>\n" + tags, 1)
 
 
