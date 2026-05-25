@@ -3,8 +3,7 @@
 
 원칙:
 - 좋아요 / 알고리즘 없음 (시간순)
-- 작가당 최근 포폴 1 개씩만 (피드 독점 방지)
-- show_in_explore = True 인 포폴만 (작가 명시적 동의)
+- show_in_explore = True 인 모든 포폴 (작가가 explore 에 공개한 것 전부 노출)
 - 사진 5 장 이상 (최소 품질)
 - 인증 불필요 (공개)
 """
@@ -12,7 +11,7 @@
 from typing import Optional, Literal
 from datetime import datetime
 from fastapi import APIRouter, Depends, Query
-from sqlalchemy import desc, func, and_, or_
+from sqlalchemy import desc, func, or_
 from sqlalchemy.orm import Session, joinedload
 from app.database import get_db
 from app import models
@@ -46,11 +45,11 @@ def get_explore_feed(
     db: Session = Depends(get_db),
 ):
     """
-    작가별 가장 최근 포폴 1개씩만, updated_at 내림차순.
+    show_in_explore = True 인 모든 포폴을 updated_at 내림차순으로 노출.
     필터: camera_type, tag (선택).
     """
 
-    # 1) photo_count subquery (deleted_at IS NULL 만 카운트)
+    # photo_count subquery (deleted_at IS NULL 만 카운트)
     photo_count_sq = (
         db.query(
             models.Photo.project_id.label('project_id'),
@@ -61,38 +60,15 @@ def get_explore_feed(
         .subquery()
     )
 
-    # 2) 작가별 최신 포폴 추출 — show_in_explore 만 대상
-    eligible_sq = (
-        db.query(
-            models.Project.user_id.label('user_id'),
-            func.max(models.Project.updated_at).label('latest_at'),
-        )
-        .join(photo_count_sq, photo_count_sq.c.project_id == models.Project.id)
-        .filter(
-            models.Project.is_public == True,
-            models.Project.show_in_explore == True,
-            models.Project.deleted_at == None,
-            photo_count_sq.c.photo_count >= 5,
-        )
-        .group_by(models.Project.user_id)
-        .subquery()
-    )
-
     query = (
         db.query(models.Project, photo_count_sq.c.photo_count)
-        .join(
-            eligible_sq,
-            and_(
-                models.Project.user_id == eligible_sq.c.user_id,
-                models.Project.updated_at == eligible_sq.c.latest_at,
-            )
-        )
         .join(photo_count_sq, photo_count_sq.c.project_id == models.Project.id)
         .options(joinedload(models.Project.owner))
         .filter(
             models.Project.is_public == True,
             models.Project.show_in_explore == True,
             models.Project.deleted_at == None,
+            photo_count_sq.c.photo_count >= 5,
         )
     )
 
