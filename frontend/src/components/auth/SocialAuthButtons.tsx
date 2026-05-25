@@ -15,7 +15,7 @@ const ORDER_BY_LANG: Record<string, Provider[]> = {
   ja: ['line', 'apple', 'google', 'naver'],
 }
 
-export function SocialAuthButtons({ mode = 'login', className = '' }: Props) {
+export function SocialAuthButtons({ mode: _mode = 'login', className = '' }: Props) {
   const { t, i18n } = useTranslation()
   const lang = i18n.language.startsWith('ko') ? 'ko' : i18n.language.startsWith('ja') ? 'ja' : 'en'
   const order = ORDER_BY_LANG[lang]
@@ -27,7 +27,9 @@ export function SocialAuthButtons({ mode = 'login', className = '' }: Props) {
         {order.map(provider => (
           <SocialButton
             key={provider}
-            href={`${API_BASE}/auth/${provider}/${mode}`}
+            // OAuth 진입은 항상 /login. callback 이 신규 user 자동 생성도 처리하므로
+            // register 페이지에서도 동일 엔드포인트 사용. mode 는 UI 라벨용으로만 유지.
+            href={`${API_BASE}/auth/${provider}/login`}
             variant={provider}
             label={t(`auth.${provider}`)}
           />
