@@ -412,6 +412,8 @@ async def google_login(request: Request, platform: str = "web"):
         f"&redirect_uri={redirect_uri}"
         "&response_type=code"
         "&scope=openid email profile"
+        # 매번 계정 선택 화면 표시 — 다른 Google 계정으로 로그인 가능
+        "&prompt=select_account"
         f"&state={state}"
     )
     return RedirectResponse(google_auth_url)
@@ -692,6 +694,8 @@ async def naver_login(request: Request, platform: str = "web"):
         f"?client_id={NAVER_CLIENT_ID}"
         f"&redirect_uri={redirect_uri}"
         "&response_type=code"
+        # 매번 재인증 강제 — 다른 네이버 계정으로 로그인 가능
+        "&auth_type=reauthenticate"
         f"&state={state}"
     )
     return RedirectResponse(naver_auth_url)
@@ -812,6 +816,8 @@ async def line_login(request: Request, platform: str = "web"):
         f"&redirect_uri={redirect_uri}"
         "&response_type=code"
         "&scope=profile%20openid"
+        # 매번 동의 화면 표시 — 다른 LINE 계정으로 로그인 가능
+        "&prompt=consent"
         f"&state={state}"
     )
     return RedirectResponse(line_auth_url)
