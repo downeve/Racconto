@@ -110,7 +110,6 @@ interface PhotosSidebarContentProps {
   colorLabels: { value: string; color: string; label: string }[]
   isAllActive: boolean
   selectionMode: boolean
-  anySelected: boolean
   handleUpload: (e: React.ChangeEvent<HTMLInputElement>, type: 'photo' | 'folder') => void
   onFolderUploadClick: () => void
   handleResetAll: () => void
@@ -132,7 +131,7 @@ interface PhotosSidebarContentProps {
 function PhotosSidebarContent({
   photos, trashedPhotos, uploading, uploadProgress,
   photoSubTab, filterFolder, filterRating, filterColor, filterHasNote,
-  photoNoteIds, colorLabels, isAllActive, selectionMode, anySelected,
+  photoNoteIds, colorLabels, isAllActive, selectionMode,
   handleUpload, onFolderUploadClick, handleResetAll, handleDeleteFolder,
   setFilterFolder, setPhotoSubTab, fetchTrash,
   setSelectionMode, setSelectedPhotoIds, setShowBulkChapterMenu,
@@ -244,32 +243,18 @@ function PhotosSidebarContent({
 
       <div className="border-t border-edit-line my-3" />
 
-      {/* 챕터 추가 다중 선택 토글 — 체크박스로 선택해도 활성 상태로 보이도록 */}
+      {/* 챕터 추가 다중 선택 토글 */}
       <div className="my-3">
-        {(() => {
-          const isActive = selectionMode || anySelected
-          return (
-            <button
-              onClick={() => {
-                if (isActive) {
-                  // 활성 상태(모드 ON 또는 선택된 사진 있음) → 모두 취소
-                  setSelectionMode(false)
-                  setSelectedPhotoIds(new Set())
-                  setShowBulkChapterMenu(false)
-                } else {
-                  setSelectionMode(true)
-                }
-              }}
-              className={`w-full px-3 py-2 text-left text-[0.8125rem] font-sans font-medium inline-flex items-center justify-between rounded-[1px] transition-colors ${
-                isActive
-                  ? 'bg-edit-ink text-edit-paper'
-                  : 'border border-edit-line text-edit-muted hover:text-edit-ink hover:border-edit-line-strong'
-              }`}>
-              <span>{t('filter.addToChapter')}</span>
-              <span className="t-caption opacity-70">{isActive ? t('common.cancel') : t('common.select')}</span>
-            </button>
-          )
-        })()}
+        <button
+          onClick={() => { setSelectionMode(v => !v); setSelectedPhotoIds(new Set()); setShowBulkChapterMenu(false) }}
+          className={`w-full px-3 py-2 text-left text-[0.8125rem] font-sans font-medium inline-flex items-center justify-between rounded-[1px] transition-colors ${
+            selectionMode
+              ? 'bg-edit-ink text-edit-paper'
+              : 'border border-edit-line text-edit-muted hover:text-edit-ink hover:border-edit-line-strong'
+          }`}>
+          <span>{t('filter.addToChapter')}</span>
+          <span className="t-caption opacity-70">{selectionMode ? t('common.cancel') : t('common.select')}</span>
+        </button>
       </div>
 
       <div className="border-t border-edit-line my-3" />
@@ -525,7 +510,7 @@ export default function ProjectDetail({
   }, [electronTab])
 
   useEffect(() => {
-    if (selectionMode || selectedPhotoIds.size > 0) {
+    if (selectionMode) {
       setSelectionMode(false)
       setSelectedPhotoIds(new Set())
       setShowBulkChapterMenu(false)
@@ -1009,7 +994,6 @@ export default function ProjectDetail({
           colorLabels={colorLabels}
           isAllActive={isAllActive}
           selectionMode={selectionMode}
-          anySelected={selectedPhotoIds.size > 0}
           handleUpload={handleUpload}
           onFolderUploadClick={handleFolderUploadClick}
           handleResetAll={handleResetAll}
@@ -1558,65 +1542,68 @@ export default function ProjectDetail({
           </div>
           
           <div className="flex gap-3 relative">
-            {/* 챕터에 추가 */}
-            <button
-              onClick={() => setShowBulkChapterMenu(v => !v)}
-              disabled={selectedPhotoIds.size === 0}
-              className="inline-flex items-center gap-1.5 px-2 py-1.5 font-bold text-menu btn-secondary-on-card border hover:bg-faint/40 border-muted disabled:text-faint transition-[background,color,border] duration-150 ease-out"
-            >
-              <BookOpen size={13} strokeWidth={1.5} />{t('story.addToChapter')}
-            </button>
+            {selectionMode ? (
+              /* 챕터에 추가 모드 */
+              <>
+                <button
+                  onClick={() => setShowBulkChapterMenu(v => !v)}
+                  disabled={selectedPhotoIds.size === 0}
+                  className="inline-flex items-center gap-1.5 px-2 py-1.5 font-bold text-menu btn-secondary-on-card border hover:bg-faint/40 border-muted disabled:text-faint transition-[background,color,border] duration-150 ease-out"
+                >
+                  <BookOpen size={13} strokeWidth={1.5} />{t('story.addToChapter')}
+                </button>
 
-            {/* 챕터 목록 드롭다운 (위로 열림) */}
-            {showBulkChapterMenu && selectedPhotoIds.size > 0 && (
-              <div className="absolute bottom-full left-0 mb-3 bg-card rounded-card shadow text-ink py-2 max-h-64 overflow-y-auto min-w-max">
-                {chapters.length === 0 ? (
-                  <p className="text-menu text-muted px-3 py-1.5 whitespace-nowrap">{t('story.noChapter')}</p>
-                ) : (
-                  chapters.filter(c => !c.parent_id).map((parent, pIdx) => (
-                    <div key={parent.id}>
-                      <button
-                        onClick={() => handleBulkAddToChapter(parent.id)}
-                        className="block w-full text-left px-3 py-1.5 rounded-card hover:bg-hair text-menu text-ink-2 whitespace-nowrap"
-                      >
-                        Ch. {pIdx + 1}. {parent.title}
-                      </button>
-                      {chapters.filter(c => c.parent_id === parent.id).map((child, cIdx) => (
-                        <button
-                          key={child.id}
-                          onClick={() => handleBulkAddToChapter(child.id)}
-                          className="block w-full text-left px-3 py-1.5 rounded-card hover:bg-hair text-menu text-muted pl-8 whitespace-nowrap"
-                        >
-                          Ch. {pIdx + 1}.{cIdx + 1}. {child.title}
-                        </button>
-                      ))}
-                    </div>
-                  ))
+                {/* 챕터 목록 드롭다운 (위로 열림) */}
+                {showBulkChapterMenu && selectedPhotoIds.size > 0 && (
+                  <div className="absolute bottom-full left-0 mb-3 bg-card rounded-card shadow text-ink py-2 max-h-64 overflow-y-auto min-w-max">
+                    {chapters.length === 0 ? (
+                      <p className="text-menu text-muted px-3 py-1.5 whitespace-nowrap">{t('story.noChapter')}</p>
+                    ) : (
+                      chapters.filter(c => !c.parent_id).map((parent, pIdx) => (
+                        <div key={parent.id}>
+                          <button
+                            onClick={() => handleBulkAddToChapter(parent.id)}
+                            className="block w-full text-left px-3 py-1.5 rounded-card hover:bg-hair text-menu text-ink-2 whitespace-nowrap"
+                          >
+                            Ch. {pIdx + 1}. {parent.title}
+                          </button>
+                          {chapters.filter(c => c.parent_id === parent.id).map((child, cIdx) => (
+                            <button
+                              key={child.id}
+                              onClick={() => handleBulkAddToChapter(child.id)}
+                              className="block w-full text-left px-3 py-1.5 rounded-card hover:bg-hair text-menu text-muted pl-8 whitespace-nowrap"
+                            >
+                              Ch. {pIdx + 1}.{cIdx + 1}. {child.title}
+                            </button>
+                          ))}
+                        </div>
+                      ))
+                    )}
+                  </div>
                 )}
-              </div>
+              </>
+            ) : (
+              /* 일반 다중 선택 모드 — 삭제만 */
+              <button
+                onClick={() => {
+                  if (selectedPhotoIds.size === 0) return
+                  setConfirmModal({
+                    message: t('photo.bulkDeleteConfirm', { count: selectedPhotoIds.size }),
+                    onConfirm: async () => {
+                      setConfirmModal(null)
+                      await axios.delete(`${API}/photos/bulk-delete`, { data: { photo_ids: Array.from(selectedPhotoIds) } })
+                      queryClient.invalidateQueries({ queryKey: ['photos', numericId] })
+                      queryClient.invalidateQueries({ queryKey: ['photosTrash', numericId] })
+                      setSelectedPhotoIds(new Set())
+                    },
+                  })
+                }}
+                disabled={selectedPhotoIds.size === 0}
+                className="inline-flex items-center gap-1.5 px-2 py-1.5 font-bold text-menu bg-red-500 text-white hover:bg-red-600 border border-red-500 disabled:opacity-40 transition-colors ease-out"
+              >
+                <Trash2 size={13} strokeWidth={1.5} />{t('photo.moveToTrash')}
+              </button>
             )}
-
-            {/* 사진 삭제 */}
-            <button
-              onClick={() => {
-                if (selectedPhotoIds.size === 0) return
-                setConfirmModal({
-                  message: t('photo.bulkDeleteConfirm', { count: selectedPhotoIds.size }),
-                  onConfirm: async () => {
-                    setConfirmModal(null)
-                    await axios.delete(`${API}/photos/bulk-delete`, { data: { photo_ids: Array.from(selectedPhotoIds) } })
-                    queryClient.invalidateQueries({ queryKey: ['photos', numericId] })
-                    queryClient.invalidateQueries({ queryKey: ['photosTrash', numericId] })
-                    setSelectedPhotoIds(new Set())
-                    setSelectionMode(false)
-                  },
-                })
-              }}
-              disabled={selectedPhotoIds.size === 0}
-              className="inline-flex items-center gap-1.5 px-2 py-1.5 font-bold text-menu bg-red-500 text-white hover:bg-red-600 border border-red-500 disabled:opacity-40 transition-colors ease-out"
-            >
-              <Trash2 size={13} strokeWidth={1.5} />{t('photo.moveToTrash')}
-            </button>
 
             <button
               onClick={() => {
