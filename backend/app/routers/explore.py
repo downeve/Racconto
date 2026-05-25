@@ -45,7 +45,8 @@ def get_explore_feed(
     db: Session = Depends(get_db),
 ):
     """
-    show_in_explore = True 인 모든 포폴을 updated_at 내림차순으로 노출.
+    show_in_explore = True 인 모든 포폴을 '가장 최근 공개 시점' 내림차순으로 노출.
+    정렬 키: COALESCE(published_at, updated_at). 비공개→공개 전환 시점이 우선.
     필터: camera_type, tag (선택).
     """
 
@@ -59,6 +60,9 @@ def get_explore_feed(
         .group_by(models.Photo.project_id)
         .subquery()
     )
+
+    # 정렬 키 — 공개 시점 우선. published_at 백필되지 않은 잔존 레코드는 updated_at fallback.
+    sort_key = func.coalesce(models.Project.published_at, models.Project.updated_at)
 
     query = (
         db.query(models.Project, photo_count_sq.c.photo_count)
@@ -81,15 +85,20 @@ def get_explore_feed(
     if cursor:
         try:
             cursor_dt = datetime.fromisoformat(cursor)
-            query = query.filter(models.Project.updated_at < cursor_dt)
+            query = query.filter(sort_key < cursor_dt)
         except ValueError:
             pass  # cursor 형식이 잘못되면 무시하고 첫 페이지부터
 
-    rows = query.order_by(desc(models.Project.updated_at)).limit(limit + 1).all()
+    rows = query.order_by(desc(sort_key)).limit(limit + 1).all()
 
     has_more = len(rows) > limit
     rows = rows[:limit]
-    next_cursor = rows[-1][0].updated_at.isoformat() if has_more and rows else None
+    if has_more and rows:
+        last = rows[-1][0]
+        next_cursor_dt = last.published_at or last.updated_at
+        next_cursor = next_cursor_dt.isoformat() if next_cursor_dt else None
+    else:
+        next_cursor = None
 
     return {
         "items": [_serialize_explore_item(p, pc) for p, pc in rows],
