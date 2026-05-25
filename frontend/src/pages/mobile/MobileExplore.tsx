@@ -126,6 +126,7 @@ export default function MobileExplore() {
         <PortfolioListBanner
           eyebrow={t('explore.eyebrow', 'Discover')}
           title={t('explore.title', 'Photographers')}
+          largerEyebrow
         />
 
         {/* 검색바 */}

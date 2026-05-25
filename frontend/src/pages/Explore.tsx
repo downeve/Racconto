@@ -130,6 +130,7 @@ export default function Explore() {
         <PortfolioListBanner
           eyebrow={t('explore.eyebrow', 'Discover')}
           title={t('explore.title', 'Photographers')}
+          largerEyebrow
         />
 
         {/* 검색바 — 좌정렬 */}
