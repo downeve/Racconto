@@ -20,15 +20,18 @@ const COLOR_KEYS = [
   { key: 'color_label_purple', color: 'bg-purple-500', value: 'purple', meaningKey: 'finalSelect' },
 ]
 
+// 백엔드 `auth.py` 의 RESERVED_USERNAMES 와 동기화 유지.
 const RESERVED_WORDS = [
-  // App.tsx에 등록된 경로들
-  'login', 'dashboard', 'register', 'verify-email', 
-  'forgot-password', 'reset-password', 'features', 
-  'projects', 'trash', 'settings', 'racconto-admin', 
-  'download', 'delivery', 
-  
-  // 추가로 막아두면 좋은 범용 예약어 (선택)
-  'admin', 'api', 'support', 'help', 'root', 'user', 'portfolio'
+  // App.tsx SPA 라우트
+  'login', 'dashboard', 'register', 'verify-email',
+  'forgot-password', 'reset-password', 'features',
+  'projects', 'trash', 'settings', 'racconto-admin',
+  'download', 'delivery', 'explore', 'auth',
+  // nginx 내부 경로
+  'api', 'og', 'health', 'uploads', 'assets', 'favicon.svg', 'p',
+  // 일반 시스템/예약어
+  'admin', 'support', 'help', 'root', 'user', 'portfolio',
+  'www', 'mail', 'ftp', 'ssh',
 ];
 
 
@@ -235,7 +238,7 @@ export default function Settings() {
       setTimeout(() => setUsernameSaved(false), 2000)
     } catch (err: any) {
       const code = err.response?.data?.detail
-      if (code === 'USERNAME_ALREADY_TAKEN') setUsernameStatus('taken')
+      if (code === 'USERNAME_ALREADY_TAKEN' || code === 'USERNAME_RESERVED') setUsernameStatus('taken')
       else if (code === 'USERNAME_INVALID_CHARS') setUsernameStatus('invalid')
     }
   }

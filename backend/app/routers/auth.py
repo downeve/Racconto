@@ -349,6 +349,24 @@ def verify_email(token: str, background_tasks: BackgroundTasks, lang: str = 'ko'
 
 _USERNAME_RE = re.compile(r"^[a-zA-Z0-9][a-zA-Z0-9_.-]*[a-zA-Z0-9]$")
 
+# 시스템/SPA 라우트와 충돌하면 안 되는 username 목록.
+# 프론트엔드 Settings.tsx 의 RESERVED_WORDS 와 동기화 유지.
+RESERVED_USERNAMES = {
+    # App.tsx SPA 라우트
+    'login', 'dashboard', 'register', 'verify-email', 'forgot-password',
+    'reset-password', 'features', 'projects', 'trash', 'settings',
+    'racconto-admin', 'download', 'delivery', 'explore', 'auth',
+    # nginx 내부 경로
+    'api', 'og', 'health', 'uploads', 'assets', 'favicon.svg', 'p',
+    # 일반 시스템/예약어
+    'admin', 'support', 'help', 'root', 'user', 'portfolio',
+    'www', 'mail', 'ftp', 'ssh',
+}
+
+
+def _is_reserved_username(username: str) -> bool:
+    return username.lower() in RESERVED_USERNAMES
+
 
 @router.get("/check-username/{username}")
 def check_username(username: str, db: Session = Depends(get_db)):
@@ -357,6 +375,8 @@ def check_username(username: str, db: Session = Depends(get_db)):
     if len(username) < 3 or len(username) > 30:
         return {"available": False}
     if not _USERNAME_RE.match(username) or ".." in username:
+        return {"available": False}
+    if _is_reserved_username(username):
         return {"available": False}
     exists = db.query(models.User.id).filter(models.User.username == username).first()
     return {"available": exists is None}
@@ -385,7 +405,11 @@ def update_username(
         raise HTTPException(status_code=400, detail="USERNAME_INVALID_CHARS")
     if '..' in body.username:
         raise HTTPException(status_code=400, detail="USERNAME_INVALID_CHARS")
-        
+
+    # 시스템/SPA 라우트와 충돌하는 username 차단 — 클라이언트 우회 방지
+    if _is_reserved_username(body.username):
+        raise HTTPException(status_code=400, detail="USERNAME_RESERVED")
+
     existing = db.query(models.User).filter(
         models.User.username == body.username,
         models.User.id != current_user.id

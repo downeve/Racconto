@@ -20,8 +20,14 @@ export const MAX_TAG_LENGTH = 20
 
 /**
  * 클라이언트 측 태그 정규화 — 백엔드의 `_normalize_tags` 와 동일 규칙.
- * 소문자화 + 공백 → '-' + 알파벳/숫자/하이픈 외 제거 + 20자 컷.
+ * 소문자화 + 공백 → '-' + 영숫자/하이픈/한글/히라가나/가타카나/CJK 한자 외 제거 + 20자 컷.
  */
 export function normalizeTag(input: string): string {
-  return input.trim().toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '').slice(0, MAX_TAG_LENGTH)
+  return input
+    .trim()
+    .toLowerCase()
+    .replace(/\s+/g, '-')
+    // 영숫자 / '-' / 한글(가-힣) / 히라가나 / 가타카나 / CJK 통합 한자만 허용
+    .replace(/[^a-z0-9\-가-힣ぁ-ゟ゠-ヿ一-鿿]/g, '')
+    .slice(0, MAX_TAG_LENGTH)
 }

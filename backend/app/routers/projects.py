@@ -40,11 +40,12 @@ class ReorderRequest(BaseModel):
     ids: list[str]
 
 VALID_CAMERA_TYPES = {'film', 'digital', 'mobile', 'mixed'}
-TAG_RE = re.compile(r'[^a-z0-9\-]')
+# 영숫자 / '-' / 한글(가-힣) / 히라가나 / 가타카나 / CJK 통합 한자만 허용.
+TAG_RE = re.compile(r'[^a-z0-9\-가-힣ぁ-ゟ゠-ヿ一-鿿]')
 
 
 def _normalize_tags(raw_tags) -> list[str]:
-    """태그 정규화 — 소문자화, 공백 → '-', 특수문자 제거, 빈/중복 제거, 5개·20자 제한."""
+    """태그 정규화 — 소문자화, 공백 → '-', 특수문자 제거(한·중·일은 허용), 빈/중복 제거, 5개·20자 제한."""
     if not raw_tags:
         return []
     if not isinstance(raw_tags, list):
