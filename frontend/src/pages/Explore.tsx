@@ -1,13 +1,15 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
-import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { Search, X } from 'lucide-react'
 import axios from 'axios'
 import PublicNavbar from '../components/PublicNavbar'
+import PortfolioListCard from '../components/PortfolioListCard'
+import PortfolioListBanner from '../components/PortfolioListBanner'
 import { useAuth } from '../context/AuthContext'
 import { useDebounce } from '../hooks/useDebounce'
-import { CAMERA_TYPES, type CameraType } from '../constants/tags'
 import { cfUrl } from '../utils/cfImage'
+import { Link } from 'react-router-dom'
+import { CAMERA_TYPES, type CameraType } from '../constants/tags'
 
 const API = import.meta.env.VITE_API_URL
 
@@ -59,7 +61,6 @@ export default function Explore() {
   const [searchLoading, setSearchLoading] = useState(false)
   const isSearching = searchQuery.length >= 2
 
-  // 필터 변경 시 처음부터 다시 로드
   useEffect(() => {
     setItems([])
     setCursor(null)
@@ -78,19 +79,17 @@ export default function Explore() {
       setCursor(data.next_cursor)
       setHasMore(data.has_more)
     } catch {
-      // 네트워크 오류 무시 — 다음 IntersectionObserver 트리거에서 재시도 가능
+      // 네트워크 오류 무시
     } finally {
       setLoading(false)
     }
   }, [loading])
 
-  // 필터 변경 + 초기 로드
   useEffect(() => {
     fetchPage(null, cameraFilter)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [cameraFilter])
 
-  // 무한 스크롤 — sentinel 진입 시 다음 페이지 (검색 중이면 비활성)
   useEffect(() => {
     const sentinel = sentinelRef.current
     if (!sentinel || !hasMore || isSearching) return
@@ -103,7 +102,6 @@ export default function Explore() {
     return () => obs.disconnect()
   }, [cursor, hasMore, loading, cameraFilter, fetchPage, isSearching])
 
-  // 검색 — debounce 300ms
   useEffect(() => {
     if (!isSearching) {
       setSearchResults(null)
@@ -121,88 +119,88 @@ export default function Explore() {
   const cameraLabel = (ct: typeof CAMERA_TYPES[number]) =>
     lang === 'ko' ? ct.labelKo : lang === 'ja' ? ct.labelJa : ct.label
 
-  return (
-    <div className="min-h-screen bg-edit-canvas text-edit-ink">
-      {/* 인증된 사용자에게는 App.tsx 에서 ElectronSidebar(데스크톱) 또는 Navbar(모바일) 가 이미 렌더되므로 겹침 방지 */}
-      {!isAuthenticated && <PublicNavbar />}
-      <main className={`max-w-7xl mx-auto px-4 sm:px-6 pb-20 ${isAuthenticated ? 'pt-12' : 'pt-28'}`}>
-        <header className="mb-12 text-center">
-          <p className="t-eyebrow text-edit-muted mb-3">{t('explore.eyebrow', 'Discover')}</p>
-          <h1 className="font-serif text-h1 md:text-display text-edit-ink font-normal tracking-tight">
-            {t('explore.title', 'Explore portfolios')}
-          </h1>
-          <p className="font-serif text-body md:text-h3 text-edit-muted mt-4 max-w-xl mx-auto leading-[1.65]">
-            {t('explore.subtitle', 'Photographers sharing their stories — one portfolio per artist, in chronological order.')}
-          </p>
-        </header>
+  const cardHref = (item: ExploreItem) =>
+    item.author.username && item.slug
+      ? `/${item.author.username}/${item.slug}`
+      : `/${item.author.username ?? ''}`
 
-        {/* 검색바 */}
-        <div className="mb-8 max-w-md mx-auto relative">
-          <Search size={14} strokeWidth={1.5} className="absolute left-3 top-1/2 -translate-y-1/2 text-edit-faint pointer-events-none" />
+  return (
+    <div className="min-h-screen bg-canvas text-ink">
+      {!isAuthenticated && <PublicNavbar />}
+      <main className={`max-w-4xl xl:max-w-6xl mx-auto px-6 pb-20 ${isAuthenticated ? 'pt-12' : 'pt-28'}`}>
+        <PortfolioListBanner
+          eyebrow={t('explore.eyebrow', 'Discover')}
+          title={t('explore.title', 'Photographers')}
+          subtitle={t('explore.subtitle', 'Each artist, one portfolio — in chronological order.')}
+        />
+
+        {/* 검색바 — 좌정렬 */}
+        <div className="mb-6 max-w-sm relative">
+          <Search size={14} strokeWidth={1.5} className="absolute left-3 top-1/2 -translate-y-1/2 text-faint pointer-events-none" />
           <input
             type="text"
             value={searchInput}
             onChange={e => setSearchInput(e.target.value)}
             placeholder={t('explore.searchPlaceholder', 'Search photographers or portfolios…')}
-            className="w-full pl-9 pr-9 py-2.5 text-[0.9375rem] bg-edit-paper border border-edit-line rounded-[2px] focus:border-edit-ink focus:outline-none transition-colors placeholder:text-edit-faint"
+            className="w-full pl-9 pr-9 py-2.5 text-[0.9375rem] bg-canvas border border-hair rounded-[2px] focus:border-ink focus:outline-none transition-colors placeholder:text-faint"
           />
           {searchInput && (
             <button
               type="button"
               onClick={() => setSearchInput('')}
               aria-label={t('common.close')}
-              className="absolute right-2.5 top-1/2 -translate-y-1/2 text-edit-faint hover:text-edit-ink p-1"
+              className="absolute right-2.5 top-1/2 -translate-y-1/2 text-faint hover:text-ink p-1"
             >
               <X size={14} strokeWidth={1.5} />
             </button>
           )}
         </div>
 
-        {/* 카메라 종류 필터 칩 — 검색 중일 때는 숨김 */}
+        {/* 카메라 종류 필터 — 좌정렬 */}
         {!isSearching && (
-        <div className="mb-10 flex flex-wrap items-center justify-center gap-2">
-          <button
-            type="button"
-            onClick={() => setCameraFilter('')}
-            className={`px-3 py-1.5 t-caption rounded-[2px] border transition-colors ${
-              cameraFilter === ''
-                ? 'bg-edit-ink text-edit-paper border-edit-ink'
-                : 'border-edit-line text-edit-muted hover:text-edit-ink hover:border-edit-line-strong'
-            }`}
-          >
-            {t('common.all')}
-          </button>
-          {CAMERA_TYPES.map(ct => (
+          <div className="mb-12 flex flex-wrap items-center gap-2">
             <button
-              key={ct.value}
               type="button"
-              onClick={() => setCameraFilter(ct.value)}
+              onClick={() => setCameraFilter('')}
               className={`px-3 py-1.5 t-caption rounded-[2px] border transition-colors ${
-                cameraFilter === ct.value
-                  ? 'bg-edit-ink text-edit-paper border-edit-ink'
-                  : 'border-edit-line text-edit-muted hover:text-edit-ink hover:border-edit-line-strong'
+                cameraFilter === ''
+                  ? 'bg-ink text-canvas border-ink'
+                  : 'border-hair text-muted hover:text-ink hover:border-faint'
               }`}
             >
-              {cameraLabel(ct)}
+              {t('common.all')}
             </button>
-          ))}
-        </div>
+            {CAMERA_TYPES.map(ct => (
+              <button
+                key={ct.value}
+                type="button"
+                onClick={() => setCameraFilter(ct.value)}
+                className={`px-3 py-1.5 t-caption rounded-[2px] border transition-colors ${
+                  cameraFilter === ct.value
+                    ? 'bg-ink text-canvas border-ink'
+                    : 'border-hair text-muted hover:text-ink hover:border-faint'
+                }`}
+              >
+                {cameraLabel(ct)}
+              </button>
+            ))}
+          </div>
         )}
 
         {/* 검색 결과 */}
         {isSearching && searchResults && (
           <div className="space-y-12">
             {searchLoading && (
-              <p className="text-center t-caption text-edit-faint">{t('common.loading')}</p>
+              <p className="t-caption text-faint">{t('common.loading')}</p>
             )}
             {!searchLoading && searchResults.users.length === 0 && searchResults.portfolios.length === 0 && (
-              <p className="text-center font-serif text-h3 text-edit-muted py-12">
+              <p className="font-serif text-h3 text-muted py-12">
                 {t('explore.searchEmpty', 'No results found')}
               </p>
             )}
             {searchResults.users.length > 0 && (
               <section>
-                <p className="t-eyebrow text-edit-faint mb-4">{t('explore.searchUsers', 'Photographers')}</p>
+                <p className="t-eyebrow text-faint mb-4">{t('explore.searchUsers', 'Photographers')}</p>
                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-x-4 gap-y-8">
                   {searchResults.users.map(u => (
                     <Link
@@ -210,7 +208,7 @@ export default function Explore() {
                       to={`/${u.username}`}
                       className="group block"
                     >
-                      <div className="aspect-square overflow-hidden bg-edit-paper-2">
+                      <div className="aspect-square overflow-hidden bg-[oklch(0.92_0.012_75)]">
                         {u.cover_image_url && (
                           <img
                             src={cfUrl(u.cover_image_url, 'grid')}
@@ -222,7 +220,7 @@ export default function Explore() {
                           />
                         )}
                       </div>
-                      <p className="t-caption mt-2 text-edit-ink group-hover:text-edit-accent transition-colors">
+                      <p className="t-caption mt-2 text-ink group-hover:text-accent transition-colors">
                         @{u.username}
                       </p>
                     </Link>
@@ -232,36 +230,19 @@ export default function Explore() {
             )}
             {searchResults.portfolios.length > 0 && (
               <section>
-                <p className="t-eyebrow text-edit-faint mb-4">{t('explore.searchPortfolios', 'Portfolios')}</p>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-6 gap-y-12">
+                <p className="t-eyebrow text-faint mb-4">{t('explore.searchPortfolios', 'Portfolios')}</p>
+                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-x-7 gap-y-15">
                   {searchResults.portfolios.map(item => (
-                    <Link
+                    <PortfolioListCard
                       key={item.id}
-                      to={item.author.username && item.slug
-                        ? `/${item.author.username}/${item.slug}`
-                        : `/${item.author.username ?? ''}`
-                      }
-                      className="group block"
-                    >
-                      <div className="aspect-[3/2] overflow-hidden bg-edit-paper-2">
-                        {item.cover_image_url && (
-                          <img
-                            src={cfUrl(item.cover_image_url, 'grid')}
-                            srcSet={`${cfUrl(item.cover_image_url, 'mobile')} 480w, ${cfUrl(item.cover_image_url, 'grid')} 800w`}
-                            sizes="(max-width: 768px) 480px, 400px"
-                            alt={item.title}
-                            loading="lazy"
-                            className="w-full h-full object-cover group-hover:scale-[1.02] transition-transform duration-500 ease-out"
-                          />
-                        )}
-                      </div>
-                      <div className="mt-3">
-                        <p className="t-caption text-edit-muted">@{item.author.username ?? ''}</p>
-                        <h3 className="font-serif text-h3 text-edit-ink mt-1 group-hover:text-edit-accent transition-colors">
-                          {item.title}
-                        </h3>
-                      </div>
-                    </Link>
+                      mode="explore"
+                      href={cardHref(item)}
+                      coverImageUrl={item.cover_image_url}
+                      title={item.title}
+                      author={item.author.username ?? undefined}
+                      cameraType={item.camera_type}
+                      tags={item.tags}
+                    />
                   ))}
                 </div>
               </section>
@@ -269,73 +250,45 @@ export default function Explore() {
           </div>
         )}
 
-        {/* 그리드 — 검색 중이 아닐 때만 */}
+        {/* 메인 피드 */}
         {!isSearching && items.length === 0 && !loading && (
-          <div className="text-center py-24">
-            <p className="font-serif text-h2 text-edit-muted">
+          <div className="py-24">
+            <p className="font-serif text-h2 text-muted">
               {t('explore.empty', 'No portfolios yet. Be the first to share your story.')}
             </p>
           </div>
         )}
 
         {!isSearching && items.length > 0 && (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-6 gap-y-12">
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-x-7 gap-y-15">
             {items.map(item => (
-              <Link
+              <PortfolioListCard
                 key={item.id}
-                to={item.author.username && item.slug
-                  ? `/${item.author.username}/${item.slug}`
-                  : `/${item.author.username ?? ''}`
-                }
-                className="group block"
-              >
-                <div className="aspect-[3/2] overflow-hidden bg-edit-paper-2">
-                  {item.cover_image_url && (
-                    <img
-                      src={cfUrl(item.cover_image_url, 'grid')}
-                      srcSet={`${cfUrl(item.cover_image_url, 'mobile')} 480w, ${cfUrl(item.cover_image_url, 'grid')} 800w`}
-                      sizes="(max-width: 768px) 480px, 400px"
-                      alt={item.title}
-                      loading="lazy"
-                      className="w-full h-full object-cover group-hover:scale-[1.02] transition-transform duration-500 ease-out"
-                    />
-                  )}
-                </div>
-                <div className="mt-3">
-                  <p className="t-caption text-edit-muted">@{item.author.username ?? ''}</p>
-                  <h3 className="font-serif text-h3 text-edit-ink mt-1 group-hover:text-edit-accent transition-colors">
-                    {item.title}
-                  </h3>
-                  <div className="flex flex-wrap items-center gap-2 mt-2">
-                    {item.camera_type && (
-                      <span className="t-caption text-edit-faint uppercase tracking-wider">
-                        {item.camera_type}
-                      </span>
-                    )}
-                    {item.tags.slice(0, 3).map(tag => (
-                      <span key={tag} className="t-caption text-edit-faint">#{tag}</span>
-                    ))}
-                  </div>
-                </div>
-              </Link>
+                mode="explore"
+                href={cardHref(item)}
+                coverImageUrl={item.cover_image_url}
+                title={item.title}
+                author={item.author.username ?? undefined}
+                cameraType={item.camera_type}
+                tags={item.tags}
+              />
             ))}
           </div>
         )}
 
-        {/* 로딩 스켈레톤 — 검색 중이 아닐 때만 */}
+        {/* 로딩 스켈레톤 */}
         {!isSearching && loading && (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-6 gap-y-12 mt-12">
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-x-7 gap-y-15 mt-12">
             {Array.from({ length: 6 }).map((_, i) => (
               <div key={i}>
-                <div className="aspect-[3/2] bg-edit-paper-2 animate-pulse" />
-                <div className="mt-3 h-3 w-20 bg-edit-paper-2 animate-pulse" />
-                <div className="mt-2 h-4 w-3/4 bg-edit-paper-2 animate-pulse" />
+                <div className="aspect-[3/2] bg-[oklch(0.92_0.012_75)] animate-pulse" />
+                <div className="mt-3 h-3 w-20 bg-[oklch(0.92_0.012_75)] animate-pulse" />
+                <div className="mt-2 h-4 w-3/4 bg-[oklch(0.92_0.012_75)] animate-pulse" />
               </div>
             ))}
           </div>
         )}
 
-        {/* 무한 스크롤 sentinel */}
         <div ref={sentinelRef} className="h-1" />
       </main>
     </div>
