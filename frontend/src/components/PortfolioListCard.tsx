@@ -77,14 +77,14 @@ export default function PortfolioListCard({
         </p>
       )}
 
-      {/* Camera + tags — Explore */}
+      {/* Camera + tags — Explore. 한 줄에 모두 노출, 폭 초과 시 ellipsis truncate */}
       {mode === 'explore' && (cameraType || (tags && tags.length > 0)) && (
-        <div className={`flex flex-wrap items-center gap-2 mt-2 t-caption ${faintTxt}`}>
+        <div className={`mt-2 t-caption truncate ${faintTxt}`}>
           {cameraType && (
-            <span className="uppercase tracking-wider">{cameraType}</span>
+            <span className="uppercase tracking-wider mr-2">{cameraType}</span>
           )}
-          {tags?.slice(0, 3).map((tag, i) => (
-            <span key={tag} className={i === 2 ? 'hidden md:inline' : ''}>#{tag}</span>
+          {tags?.map((tag, i) => (
+            <span key={tag} className={i === (tags.length - 1) ? '' : 'mr-2'}>#{tag}</span>
           ))}
         </div>
       )}
