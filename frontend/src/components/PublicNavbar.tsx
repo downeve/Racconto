@@ -42,6 +42,12 @@ export default function PublicNavbar({ username, darkMode, compact, portfolio, o
         <div className="max-w-7xl mx-auto px-4 sm:px-6 h-14 flex items-center justify-between">
           <Wordmark size={compactLogo ? 'md' : 'lg'} tone={dm ? 'on-ink' : 'on-paper'} />
           <div className="flex items-center gap-3 sm:gap-6">
+            <Link
+              to="/explore"
+              className={`text-body md:text-h3 transition-[background,color,border] duration-150 ease-out ${dm ? 'text-faint hover:text-hair' : 'text-muted hover:text-ink'} hover:font-bold`}
+            >
+              {t('explore.menu', 'Explore')}
+            </Link>
             {username && (
               <Link
                 to={`/${username}`}
@@ -145,6 +151,13 @@ export default function PublicNavbar({ username, darkMode, compact, portfolio, o
             )}
           </div>
 
+          {/* Explore 는 모바일에서도 노출 — 비로그인 모바일 사용자의 핵심 진입점 */}
+          <Link
+            to="/explore"
+            className={`inline-flex text-body md:text-h3 tracking-wider hover:font-bold transition-[background,color,border] duration-150 ease-out ${dm ? 'text-faint hover:text-hair' : 'text-ink-2 hover:text-ink'}`}
+          >
+            {t('explore.menu', 'Explore')}
+          </Link>
           <Link
             to="/download"
             className={`hidden sm:inline-flex text-body md:text-h3 tracking-wider hover:font-bold transition-[background,color,border] duration-150 ease-out ${dm ? 'text-faint hover:text-hair' : 'text-ink-2 hover:text-ink'}`}

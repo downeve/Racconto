@@ -5,7 +5,7 @@ from fastapi.staticfiles import StaticFiles
 from app.database import engine, SessionLocal
 from sqlalchemy import text
 import app.models as models
-from app.routers import projects, photos, portfolio, notes, auth, chapters, settings, delivery, admin, folder_links, og, comments
+from app.routers import projects, photos, portfolio, notes, auth, chapters, settings, delivery, admin, folder_links, og, comments, explore, follows
 from apscheduler.schedulers.background import BackgroundScheduler
 from datetime import datetime, timedelta
 import os
@@ -18,7 +18,7 @@ logger = logging.getLogger(__name__)
 models.Base.metadata.create_all(bind=engine)
 
 # 스키마 마이그레이션 — 버전이 올라간 경우에만 실행
-SCHEMA_VERSION = 11
+SCHEMA_VERSION = 13
 
 def _run_schema_migrations():
     with engine.connect() as conn:
@@ -139,6 +139,38 @@ def _run_schema_migrations():
         conn.execute(text("ALTER TABLE photos ADD COLUMN IF NOT EXISTS width INTEGER"))
         conn.execute(text("ALTER TABLE photos ADD COLUMN IF NOT EXISTS height INTEGER"))
 
+        # v12 — 커뮤니티 기능 Phase 1: 태그 시스템.
+        # projects 에 camera_type(film/digital/mobile/mixed), tags(JSONB array),
+        # show_in_explore(default FALSE) 추가. /explore 피드 + 검색의 기반.
+        conn.execute(text("ALTER TABLE projects ADD COLUMN IF NOT EXISTS camera_type VARCHAR"))
+        conn.execute(text("ALTER TABLE projects ADD COLUMN IF NOT EXISTS tags JSONB NOT NULL DEFAULT '[]'::jsonb"))
+        conn.execute(text("ALTER TABLE projects ADD COLUMN IF NOT EXISTS show_in_explore BOOLEAN NOT NULL DEFAULT FALSE"))
+        conn.execute(text(
+            "CREATE INDEX IF NOT EXISTS idx_projects_explore ON projects(show_in_explore, updated_at DESC) "
+            "WHERE is_public = TRUE AND show_in_explore = TRUE"
+        ))
+        conn.execute(text(
+            "CREATE INDEX IF NOT EXISTS idx_projects_camera_type ON projects(camera_type) "
+            "WHERE is_public = TRUE"
+        ))
+        conn.execute(text("CREATE INDEX IF NOT EXISTS idx_projects_tags ON projects USING GIN (tags)"))
+
+        # v13 — 커뮤니티 기능 Phase 4: 팔로우 테이블.
+        # follower_id 가 following_id 를 팔로우. 자기 자신 팔로우 금지(CHECK).
+        # (follower_id, following_id) UNIQUE 로 중복 행 방지 + idempotent INSERT.
+        conn.execute(text(
+            "CREATE TABLE IF NOT EXISTS follows ("
+            "id VARCHAR PRIMARY KEY,"
+            "follower_id VARCHAR NOT NULL REFERENCES users(id) ON DELETE CASCADE,"
+            "following_id VARCHAR NOT NULL REFERENCES users(id) ON DELETE CASCADE,"
+            "created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,"
+            "CONSTRAINT uq_follows_pair UNIQUE (follower_id, following_id),"
+            "CONSTRAINT chk_no_self_follow CHECK (follower_id != following_id)"
+            ")"
+        ))
+        conn.execute(text("CREATE INDEX IF NOT EXISTS idx_follows_follower ON follows(follower_id)"))
+        conn.execute(text("CREATE INDEX IF NOT EXISTS idx_follows_following ON follows(following_id)"))
+
         conn.execute(text("DELETE FROM _schema_version"))
         conn.execute(text(f"INSERT INTO _schema_version (version) VALUES ({SCHEMA_VERSION})"))
         conn.commit()
@@ -186,6 +218,8 @@ app.include_router(admin.router)
 app.include_router(folder_links.router)
 app.include_router(og.router)
 app.include_router(comments.router)
+app.include_router(explore.router)
+app.include_router(follows.router)
 
 os.makedirs("app/uploads", exist_ok=True)
 app.mount("/uploads", StaticFiles(directory="app/uploads"), name="uploads")

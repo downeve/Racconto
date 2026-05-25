@@ -4,6 +4,8 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import axios from 'axios'
 import { useTranslation } from 'react-i18next'
 import { useElectronSidebar } from '../context/ElectronSidebarContext'
+import TagInput from '../components/TagInput'
+import { CAMERA_TYPES, SUGGESTED_GENRE_TAGS, type CameraType } from '../constants/tags'
 
 const API = import.meta.env.VITE_API_URL
 
@@ -99,6 +101,10 @@ export default function ProjectEdit() {
   const [location, setLocation] = useState('')
   const [status, setStatus] = useState('in_progress')
   const [isPublic, setIsPublic] = useState('false')
+  // 커뮤니티 태그 시스템 (Phase 1)
+  const [cameraType, setCameraType] = useState<CameraType | ''>('')
+  const [tags, setTags] = useState<string[]>([])
+  const [showInExplore, setShowInExplore] = useState(false)
 
   // ── 프로젝트 조회 ─────────────────────────────────────────────
   const { data: projectData } = useQuery({
@@ -121,6 +127,9 @@ export default function ProjectEdit() {
     setLocation(p.location || '')
     setStatus(p.status?.value || p.status || 'in_progress')
     setIsPublic(p.is_public || 'false')
+    setCameraType((p.camera_type as CameraType) || '')
+    setTags(Array.isArray(p.tags) ? p.tags : [])
+    setShowInExplore(Boolean(p.show_in_explore))
   }, [projectData])
 
   // ── 프로젝트 수정 ─────────────────────────────────────────────
@@ -130,6 +139,9 @@ export default function ProjectEdit() {
         title, title_en: titleEn,
         description, description_en: descriptionEn,
         location, status, is_public: isPublic,
+        camera_type: cameraType || null,
+        tags,
+        show_in_explore: showInExplore,
       }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['project', id] })
@@ -161,8 +173,7 @@ export default function ProjectEdit() {
   return (
     <div className="max-w-2xl mx-auto py-12">
       <div className="bg-edit-paper border border-edit-line rounded-btn px-8 py-10">
-        <div className="mb-10 pb-8 border-b border-edit-line">
-          <p className="t-eyebrow text-edit-muted mb-2">{t('project.editing')}</p>
+        <div className="mb-10">
           <h1 className="font-serif text-h2 font-normal tracking-tight">
             {t('project.editProject')}
           </h1>
@@ -187,6 +198,60 @@ export default function ProjectEdit() {
               <p className="t-eyebrow text-edit-muted mb-2">{t('project.labelVisibility')}</p>
               <SegmentedControl value={isPublic} onChange={setIsPublic} options={VISIBILITY_OPTIONS} />
             </div>
+          </div>
+
+          {/* 커뮤니티 태그 시스템 — Phase 1. 노출 동의가 가장 먼저, 그 다음 카메라/태그 */}
+          {/* 진한 구분선 — 개인 포트폴리오/상태 영역과 둘러보기 공개 영역 시각 분리 */}
+          <div className="pt-6 mt-2 border-t border-edit-line-strong">
+            <label className="flex items-start gap-3 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={showInExplore}
+                onChange={e => setShowInExplore(e.target.checked)}
+                className="mt-1 shrink-0 accent-edit-ink"
+              />
+              <div>
+                <div className="text-[0.9375rem] text-edit-ink font-medium">
+                  {t('project.showInExplore', 'Show in Explore feed')}
+                </div>
+                <p className="t-caption text-edit-muted mt-1 leading-[1.5]">
+                  {t('project.showInExploreDesc', 'Make this portfolio discoverable in the public Explore feed at racconto.app/explore. Other photographers and visitors can find your work through browsing and search. You can turn this off anytime.')}
+                </p>
+              </div>
+            </label>
+          </div>
+
+          <div className="py-5 border-t border-edit-line">
+            <p className="t-eyebrow text-edit-muted mb-2">{t('project.cameraType', 'Camera Type')}</p>
+            <div className="flex flex-wrap gap-1.5">
+              {CAMERA_TYPES.map(ct => {
+                const active = cameraType === ct.value
+                return (
+                  <button
+                    key={ct.value}
+                    type="button"
+                    onClick={() => setCameraType(active ? '' : ct.value)}
+                    className={`px-3 py-1.5 t-caption rounded-[2px] border transition-colors ${
+                      active
+                        ? 'bg-edit-ink text-edit-paper border-edit-ink'
+                        : 'border-edit-line text-edit-muted hover:text-edit-ink hover:border-edit-line-strong'
+                    }`}
+                  >
+                    {ct.label}
+                  </button>
+                )
+              })}
+            </div>
+          </div>
+
+          <div className="py-5 border-t border-edit-line">
+            <p className="t-eyebrow text-edit-muted mb-2">{t('project.genreTags', 'Genre Tags (max 5)')}</p>
+            <TagInput
+              value={tags}
+              onChange={setTags}
+              suggestions={SUGGESTED_GENRE_TAGS}
+              placeholder={t('project.genreTagsPlaceholder', 'wedding, travel, street...')}
+            />
           </div>
         </div>
 

@@ -8,10 +8,11 @@ import { useTranslation } from 'react-i18next'
 import { useAuth } from '../context/AuthContext'
 import PortfolioChapterItems, { type PortfolioPhoto } from '../components/PortfolioChapterItems'
 import PublicNavbar from '../components/PublicNavbar'
+import FollowButton from '../components/FollowButton'
+import PortfolioListCard from '../components/PortfolioListCard'
 import EmptyState from '../components/EmptyState'
 import PortfolioComments from '../components/PortfolioComments'
 import { Sun, Moon, MapPin, ChevronLeft, ChevronRight, X, Link2, Check, ArrowUp } from 'lucide-react'
-import CoverFallback from '../components/CoverFallback'
 import { cfUrl } from '../utils/cfImage'
 
 const API = import.meta.env.VITE_API_URL
@@ -54,9 +55,10 @@ interface BannerProps {
   username: string
   projects: PortfolioProject[]
   darkMode: boolean
+  showFollow: boolean
 }
 
-function PortfolioBanner({ username, projects, darkMode }: BannerProps) {
+function PortfolioBanner({ username, projects, darkMode, showFollow }: BannerProps) {
   const projectCount = projects.length
   const eyebrowColor = darkMode ? 'text-d-soft' : 'text-muted'
   return (
@@ -65,9 +67,12 @@ function PortfolioBanner({ username, projects, darkMode }: BannerProps) {
         Portfolio
         {projectCount > 0 && <span className="ml-2 opacity-70">· {projectCount} {projectCount === 1 ? 'project' : 'projects'}</span>}
       </p>
-      <h1 className="font-serif font-normal leading-[1.1] tracking-[-0.015em]" style={{ fontSize: 'clamp(28px, 4vw, 38px)' }}>
-        @{username}
-      </h1>
+      <div className="flex items-end justify-between gap-4 flex-wrap">
+        <h1 className="font-serif font-normal leading-[1.1] tracking-[-0.015em]" style={{ fontSize: 'clamp(28px, 4vw, 38px)' }}>
+          @{username}
+        </h1>
+        {showFollow && <FollowButton username={username} darkMode={darkMode} />}
+      </div>
     </div>
   )
 }
@@ -432,6 +437,7 @@ export default function PublicPortfolio() {
                 username={username!}
                 projects={projects}
                 darkMode={darkMode}
+                showFollow={isAuthenticated && !!user?.username && user.username !== username}
               />
             </header>
           )}
@@ -439,38 +445,19 @@ export default function PublicPortfolio() {
 
         {/* Project list */}
         {!selectedProject && !slug && (
-          <div className="grid gap-x-8 gap-y-14 grid-cols-1 md:grid-cols-2 xl:grid-cols-3">
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-x-7 gap-y-15">
             {projects.map(project => (
-              <article
+              <PortfolioListCard
                 key={project.id}
-                className="cursor-pointer group"
-                onClick={() => openProject(project)}
-              >
-                <div className={`aspect-[4/5] overflow-hidden ${darkMode ? 'bg-d-surface' : 'bg-[oklch(0.92_0.012_75)]'}`}>
-                  {project.cover_image_url ? (
-                    <img
-                      src={cfUrl(project.cover_image_url, 'cover')}
-                      alt={project.title}
-                      className="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-[1.02]"
-                    />
-                  ) : (
-                    <CoverFallback title={project.title} dark={darkMode} />
-                  )}
-                </div>
-                <h3 className="mt-4 font-serif text-[22px] tracking-tight font-normal truncate">
-                  {project.title}
-                </h3>
-                {project.location && (
-                  <p className={`t-loc mt-2 ${subText}`}>
-                    <MapPin size={10} strokeWidth={1.5} />{project.location}
-                  </p>
-                )}
-                {project.description && (
-                  <p className={`mt-3 font-serif text-[14px] leading-[1.55] line-clamp-2 [word-break:keep-all] ${subText}`}>
-                    {project.description}
-                  </p>
-                )}
-              </article>
+                mode="portfolio"
+                href={project.slug ? `/${username}/${project.slug}` : '#'}
+                onClick={project.slug ? undefined : () => openProject(project)}
+                coverImageUrl={project.cover_image_url}
+                title={project.title}
+                location={project.location}
+                description={project.description}
+                darkMode={darkMode}
+              />
             ))}
             {projects.length === 0 && (
               <div className="col-span-1 md:col-span-2 xl:col-span-3">

@@ -39,6 +39,32 @@ router = APIRouter(prefix="/projects", tags=["projects"])
 class ReorderRequest(BaseModel):
     ids: list[str]
 
+VALID_CAMERA_TYPES = {'film', 'digital', 'mobile', 'mixed'}
+# 영숫자 / '-' / 한글(가-힣) / 히라가나 / 가타카나 / CJK 통합 한자만 허용.
+TAG_RE = re.compile(r'[^a-z0-9\-가-힣ぁ-ゟ゠-ヿ一-鿿]')
+
+
+def _normalize_tags(raw_tags) -> list[str]:
+    """태그 정규화 — 소문자화, 공백 → '-', 특수문자 제거(한·중·일은 허용), 빈/중복 제거, 5개·20자 제한."""
+    if not raw_tags:
+        return []
+    if not isinstance(raw_tags, list):
+        return []
+    seen = set()
+    out = []
+    for t in raw_tags:
+        if not isinstance(t, str):
+            continue
+        norm = TAG_RE.sub('', t.strip().lower().replace(' ', '-'))[:20]
+        if not norm or norm in seen:
+            continue
+        seen.add(norm)
+        out.append(norm)
+        if len(out) >= 5:
+            break
+    return out
+
+
 class ProjectCreate(BaseModel):
     title: str
     title_en: Optional[str] = None
@@ -49,6 +75,10 @@ class ProjectCreate(BaseModel):
     shot_date: Optional[datetime] = None
     is_public: bool = False
     cover_image_url: Optional[str] = None
+    # 커뮤니티 태그 시스템 (Phase 1)
+    camera_type: Optional[str] = None  # film | digital | mobile | mixed
+    tags: Optional[list[str]] = None
+    show_in_explore: Optional[bool] = None
 
     # 프론트엔드 호환 — "true"/"false" 문자열도 허용
     @field_validator('is_public', mode='before')
@@ -57,6 +87,29 @@ class ProjectCreate(BaseModel):
         if isinstance(v, str):
             return v.lower() in ('true', 't', '1', 'yes')
         return bool(v) if v is not None else False
+
+    @field_validator('camera_type', mode='before')
+    @classmethod
+    def _validate_camera_type(cls, v):
+        if v in (None, '', 'null'):
+            return None
+        if isinstance(v, str) and v.lower() in VALID_CAMERA_TYPES:
+            return v.lower()
+        return None
+
+    @field_validator('tags', mode='before')
+    @classmethod
+    def _normalize_tags_field(cls, v):
+        return _normalize_tags(v) if v is not None else None
+
+    @field_validator('show_in_explore', mode='before')
+    @classmethod
+    def _coerce_show_in_explore(cls, v):
+        if v is None:
+            return None
+        if isinstance(v, str):
+            return v.lower() in ('true', 't', '1', 'yes')
+        return bool(v)
 
 class ProjectResponse(BaseModel):
     id: str
@@ -74,6 +127,10 @@ class ProjectResponse(BaseModel):
     updated_at: datetime
     deleted_at: Optional[datetime] = None
     linked_folders: list[str] = []
+    # 커뮤니티 태그 시스템 (Phase 1)
+    camera_type: Optional[str] = None
+    tags: list[str] = []
+    show_in_explore: bool = False
 
     @field_validator('is_public', mode='before')
     @classmethod
@@ -165,6 +222,9 @@ def create_project(
         is_public=project.is_public,
         # 생성 시점부터 공개면 그 시점을 published_at 으로 기록
         published_at=datetime.utcnow() if project.is_public else None,
+        camera_type=project.camera_type,
+        tags=project.tags or [],
+        show_in_explore=bool(project.show_in_explore) if project.show_in_explore is not None else False,
     )
     db.add(db_project)
     db.commit()

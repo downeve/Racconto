@@ -37,6 +37,8 @@ const PublicPortfolio    = lazy(() => import('./pages/PublicPortfolio'))
 const FeaturesPage       = lazy(() => import('./pages/FeaturesPage'))
 const MobileFeaturesPage = lazy(() => import('./pages/MobileFeaturesPage'))
 const AppDownload        = lazy(() => import('./pages/AppDownload'))
+const Explore            = lazy(() => import('./pages/Explore'))
+const MobileExplore      = lazy(() => import('./pages/mobile/MobileExplore'))
 const SocialCallback     = lazy(() => import('./pages/auth/SocialCallback'))
 
 function PrivateRoute({ children }: { children: React.ReactNode }) {
@@ -182,6 +184,7 @@ function AppRoutes() {
           <Route path="/settings" element={<PrivateRoute><Settings /></PrivateRoute>} />
           <Route path="/racconto-admin" element={<AdminRoute><Admin /></AdminRoute>} />
           <Route path="/download" element={<AppDownload />} />
+          <Route path="/explore" element={isMobileDevice ? <MobileExplore /> : <Explore />} />
           <Route path="/delivery/:linkId" element={<DeliveryPage />} />
           <Route path="/:username/:slug" element={<PublicPortfolio />} />
           <Route path="/:username" element={<PublicPortfolio />} />

@@ -1,4 +1,5 @@
-from sqlalchemy import Column, String, Text, DateTime, Date, Enum, ForeignKey, Integer, Boolean, UniqueConstraint
+from sqlalchemy import Column, String, Text, DateTime, Date, Enum, ForeignKey, Integer, Boolean, UniqueConstraint, CheckConstraint, Index
+from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import relationship
 from app.database import Base
 from datetime import datetime
@@ -59,6 +60,10 @@ class Project(Base):
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     deleted_at = Column(DateTime, nullable=True, default=None, index=True)
+    # Phase 1 — 커뮤니티 태그 시스템
+    camera_type = Column(String, nullable=True)  # 'film' | 'digital' | 'mobile' | 'mixed'
+    tags = Column(JSONB, nullable=False, default=list, server_default='[]')
+    show_in_explore = Column(Boolean, nullable=False, default=False, server_default='false')
     folder_links = relationship("FolderLink", back_populates="project", cascade="all, delete-orphan", lazy="selectin")
 
     @property
@@ -268,3 +273,16 @@ class UserActivity(Base):
     ip_address = Column(String, nullable=True)
     ip_country = Column(String(2), nullable=True)  # ISO 국가코드, ip-api.com으로 lazy resolve
     __table_args__ = (UniqueConstraint('user_id', 'date', name='uq_user_activity_user_date'),)
+
+class Follow(Base):
+    """커뮤니티 팔로우 — Phase 4. follower_id 가 following_id 를 팔로우."""
+    __tablename__ = "follows"
+    id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
+    follower_id = Column(String, ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
+    following_id = Column(String, ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
+    created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
+    __table_args__ = (
+        UniqueConstraint("follower_id", "following_id", name="uq_follows_pair"),
+        CheckConstraint("follower_id != following_id", name="chk_no_self_follow"),
+    )
+

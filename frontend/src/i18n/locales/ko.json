@@ -198,7 +198,12 @@
     "labelDescription": "설명",
     "labelLocation": "장소",
     "labelStatus": "프로젝트 상태",
-    "labelVisibility": "공개 여부",
+    "labelVisibility": "개인 포트폴리오",
+    "cameraType": "카메라 종류",
+    "genreTags": "장르 태그 (최대 5개)",
+    "genreTagsPlaceholder": "웨딩, 여행, 스트리트…",
+    "showInExplore": "둘러보기 피드에 공개",
+    "showInExploreDesc": "racconto.app/explore 둘러보기 피드에서 이 포트폴리오가 보이게 합니다. 다른 사진가와 방문자들이 둘러보기와 검색으로 작업을 발견할 수 있어요. 언제든 다시 끌 수 있습니다.",
     "noLocalFile": "로컬 파일 없음",
     "noLocalFile2": "로컬 파일 없는 사진"
   },
@@ -744,5 +749,22 @@
     "currentVersion": "현재: v{{version}}",
     "download": "다운로드",
     "later": "나중에"
+  },
+  "follow": {
+    "follow": "팔로우",
+    "following": "팔로우 중",
+    "followersLabel": "명의 팔로워",
+    "followersHint": "본인에게만 보입니다. 팔로워에게는 이 숫자가 노출되지 않아요."
+  },
+  "explore": {
+    "menu": "둘러보기",
+    "eyebrow": "둘러보기",
+    "title": "다른 사진가들의 이야기를 만나 보세요.",
+    "subtitle": "작가들이 자신의 이야기를 한 권으로 펼친다.",
+    "empty": "아직 공개된 포트폴리오가 없어요. 첫 번째 이야기를 들려주세요.",
+    "searchPlaceholder": "사진가 또는 포트폴리오 검색…",
+    "searchEmpty": "검색 결과가 없어요",
+    "searchUsers": "사진가",
+    "searchPortfolios": "포트폴리오"
   }
 }

@@ -5,7 +5,7 @@ import axios from 'axios'
 import { useTranslation } from 'react-i18next'
 import { useElectronSidebar } from '../context/ElectronSidebarContext'
 import { useAuth } from '../context/AuthContext'
-import { Camera, BookOpen, FileText, LayoutDashboard, Aperture, ChevronDown, ChevronRight, SlidersHorizontal, Trash2, Pencil } from 'lucide-react'
+import { Camera, BookOpen, FileText, LayoutDashboard, Aperture, ChevronDown, ChevronRight, SlidersHorizontal, Trash2, Pencil, Compass } from 'lucide-react'
 import { cfUrl } from '../utils/cfImage'
 import { Wordmark } from './Wordmark'
 import ConfirmModal from './ConfirmModal'
@@ -173,6 +173,13 @@ export default function ElectronSidebar({ activeTab, onTabChange, showTabs, widt
           navigate('/@setup')
         }
       },
+    },
+    {
+      label: t('explore.menu', 'Explore'),
+      Icon: Compass,
+      path: '/explore',
+      active: location.pathname === '/explore',
+      onClick: () => navigate('/explore'),
     },
   ]
 

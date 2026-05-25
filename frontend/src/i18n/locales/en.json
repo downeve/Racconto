@@ -199,6 +199,11 @@
     "labelLocation": "Location",
     "labelStatus": "Status",
     "labelVisibility": "Visibility",
+    "cameraType": "Camera Type",
+    "genreTags": "Genre Tags (max 5)",
+    "genreTagsPlaceholder": "wedding, travel, street…",
+    "showInExplore": "Show in Explore feed",
+    "showInExploreDesc": "Make this portfolio discoverable in the public Explore feed at racconto.app/explore. Other photographers and visitors can find your work through browsing and search. You can turn this off anytime.",
     "noLocalFile": "No local file",
     "noLocalFile2": "Images with no local files"
   },
@@ -744,5 +749,22 @@
     "currentVersion": "Current: v{{version}}",
     "download": "Download",
     "later": "Later"
+  },
+  "follow": {
+    "follow": "Follow",
+    "following": "Following",
+    "followersLabel": "followers",
+    "followersHint": "Only visible to you. Followers won't see this number."
+  },
+  "explore": {
+    "menu": "Explore",
+    "eyebrow": "Discover",
+    "title": "Discover stories from other photographers.",
+    "subtitle": "Each artist, one portfolio — in chronological order.",
+    "empty": "No portfolios yet. Be the first to share your story.",
+    "searchPlaceholder": "Search photographers or portfolios…",
+    "searchEmpty": "No results found",
+    "searchUsers": "Photographers",
+    "searchPortfolios": "Portfolios"
   }
 }

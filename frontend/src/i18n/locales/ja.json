@@ -199,6 +199,11 @@
     "labelLocation": "場所",
     "labelStatus": "プロジェクト状態",
     "labelVisibility": "公開設定",
+    "cameraType": "カメラの種類",
+    "genreTags": "ジャンルタグ (最大5個)",
+    "genreTagsPlaceholder": "ウェディング、トラベル、ストリート…",
+    "showInExplore": "Exploreフィードに表示",
+    "showInExploreDesc": "racconto.app/explore のExploreフィードで、このポートフォリオが発見可能になります。他の写真家や訪問者がブラウジングや検索で作品を見つけられます。いつでもオフにできます。",
     "noLocalFile": "ローカルファイルなし",
     "noLocalFile2": "ローカルファイルがない画像"
   },
@@ -745,5 +750,22 @@
     "currentVersion": "現在: v{{version}}",
     "download": "ダウンロード",
     "later": "あとで"
+  },
+  "follow": {
+    "follow": "フォロー",
+    "following": "フォロー中",
+    "followersLabel": "フォロワー",
+    "followersHint": "あなただけに表示されます。フォロワーにはこの数字は見えません。"
+  },
+  "explore": {
+    "menu": "Explore",
+    "eyebrow": "発見",
+    "title": "他の写真家たちの物語に出会いましょう。",
+    "subtitle": "作家それぞれの一冊を、時系列に。",
+    "empty": "まだ公開されたポートフォリオがありません。最初に物語を共有しましょう。",
+    "searchPlaceholder": "写真家またはポートフォリオを検索…",
+    "searchEmpty": "結果が見つかりません",
+    "searchUsers": "写真家",
+    "searchPortfolios": "ポートフォリオ"
   }
 }
