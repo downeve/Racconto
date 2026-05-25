@@ -5,10 +5,11 @@ import axios from 'axios'
 import { useTranslation } from 'react-i18next'
 import { useAuth } from '../../context/AuthContext'
 import { MapPin, X, ChevronLeft, Link2, Check } from 'lucide-react'
-import CoverFallback from '../../components/CoverFallback'
 import EmptyState from '../../components/EmptyState'
 import PublicNavbar from '../../components/PublicNavbar'
 import FollowButton from '../../components/FollowButton'
+import PortfolioListCard from '../../components/PortfolioListCard'
+import PortfolioListBanner from '../../components/PortfolioListBanner'
 import PortfolioComments from '../../components/PortfolioComments'
 import MobilePortfolioChapterItems from '../../components/mobile/MobilePortfolioChapterItems'
 import { cfUrl } from '../../utils/cfImage'
@@ -268,46 +269,32 @@ export default function MobilePublicPortfolio() {
           // ── 프로젝트 목록 ──────────────────────────────────
           <>
             <div style={{ paddingTop: 'calc(env(safe-area-inset-top) + 72px)' }} className="pb-6">
-              <p className={`t-eyebrow mb-3 ${microcopy}`}>
-                Portfolio
-                {projects.length > 0 && <span className="ml-2 opacity-70">· {projects.length} {projects.length === 1 ? 'project' : 'projects'}</span>}
-              </p>
-              <div className="flex items-end justify-between gap-3">
-                <h1 className="font-serif font-normal leading-[1.05] tracking-[-0.02em]" style={{ fontSize: 'clamp(20px, 5vw, 26px)' }}>
-                  @{username}
-                </h1>
-                {isAuthenticated && user?.username && user.username !== username && (
+              <PortfolioListBanner
+                eyebrow={`Portfolio${projects.length > 0
+                  ? ` · ${projects.length} ${projects.length === 1 ? 'project' : 'projects'}`
+                  : ''}`}
+                title={`@${username}`}
+                darkMode={darkMode}
+              />
+              {isAuthenticated && user?.username && user.username !== username && (
+                <div className="-mt-8 mb-8">
                   <FollowButton username={username!} darkMode={darkMode} />
-                )}
-              </div>
+                </div>
+              )}
             </div>
-            <div className="flex flex-col gap-12 pb-16">
+            <div className="grid grid-cols-1 gap-12 pb-16">
               {projects.map(project => (
-                <article
+                <PortfolioListCard
                   key={project.id}
-                  className="cursor-pointer group"
-                  onClick={() => openProject(project)}
-                >
-                  <div className={`aspect-[4/5] overflow-hidden ${darkMode ? 'bg-d-surface' : 'bg-[oklch(0.92_0.012_75)]'}`}>
-                    {project.cover_image_url ? (
-                      <img
-                        src={cfUrl(project.cover_image_url, 'cover')}
-                        className="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-[1.02]"
-                        alt={project.title}
-                      />
-                    ) : (
-                      <CoverFallback title={project.title} dark={darkMode} />
-                    )}
-                  </div>
-                  <h3 className="mt-3 font-serif text-[16px] tracking-tight font-normal [word-break:keep-all]">
-                    {project.title}
-                  </h3>
-                  {project.location && (
-                    <p className={`t-loc mt-1.5 ${subText}`}>
-                      <MapPin size={10} strokeWidth={1.5} />{project.location}
-                    </p>
-                  )}
-                </article>
+                  mode="portfolio"
+                  href={project.slug ? `/${username}/${project.slug}` : '#'}
+                  onClick={project.slug ? undefined : () => openProject(project)}
+                  coverImageUrl={project.cover_image_url}
+                  title={project.title}
+                  location={project.location}
+                  description={project.description}
+                  darkMode={darkMode}
+                />
               ))}
               {projects.length === 0 && (
                 <EmptyState heading={t('portfolio.noPublicProjects')} darkMode={darkMode} />
