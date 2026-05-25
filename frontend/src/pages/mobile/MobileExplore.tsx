@@ -30,8 +30,14 @@ interface FeedResponse {
   has_more: boolean
 }
 
+interface SearchUser {
+  username: string
+  cover_image_url: string | null
+  latest_slug: string | null
+}
+
 interface SearchResponse {
-  users: { username: string }[]
+  users: SearchUser[]
   portfolios: ExploreItem[]
 }
 
@@ -191,14 +197,22 @@ export default function MobileExplore() {
             {searchResults.users.length > 0 && (
               <section>
                 <p className="t-eyebrow text-edit-faint mb-3">{t('explore.searchUsers', 'Photographers')}</p>
-                <div className="flex flex-wrap gap-2">
+                <div className="grid grid-cols-3 gap-x-3 gap-y-6">
                   {searchResults.users.map(u => (
-                    <Link
-                      key={u.username}
-                      to={`/${u.username}`}
-                      className="px-3 py-1.5 t-caption border border-edit-line rounded-[2px] text-edit-ink"
-                    >
-                      @{u.username}
+                    <Link key={u.username} to={`/${u.username}`} className="block">
+                      <div className="aspect-square overflow-hidden bg-edit-paper-2">
+                        {u.cover_image_url && (
+                          <img
+                            src={cfUrl(u.cover_image_url, 'grid')}
+                            srcSet={`${cfUrl(u.cover_image_url, 'mobile')} 480w, ${cfUrl(u.cover_image_url, 'grid')} 800w`}
+                            sizes="33vw"
+                            alt={u.username}
+                            loading="lazy"
+                            className="w-full h-full object-cover"
+                          />
+                        )}
+                      </div>
+                      <p className="t-caption mt-2 text-edit-ink truncate">@{u.username}</p>
                     </Link>
                   ))}
                 </div>

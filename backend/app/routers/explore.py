@@ -11,7 +11,7 @@
 from typing import Optional, Literal
 from datetime import datetime
 from fastapi import APIRouter, Depends, Query
-from sqlalchemy import desc, func, or_
+from sqlalchemy import desc, func, or_, and_
 from sqlalchemy.orm import Session, joinedload
 from app.database import get_db
 from app import models
@@ -113,18 +113,49 @@ def search(
     results: dict = {"users": [], "portfolios": []}
 
     if type in ('user', 'all'):
-        users = (
-            db.query(models.User)
+        # show_in_explore 포폴이 있는 사진가만 노출. 각 사진가의 최신 explore 포폴 cover 동봉.
+        latest_explore_pf_sq = (
+            db.query(
+                models.Project.user_id.label('user_id'),
+                func.max(models.Project.updated_at).label('latest_at'),
+            )
+            .filter(
+                models.Project.is_public == True,
+                models.Project.show_in_explore == True,
+                models.Project.deleted_at == None,
+            )
+            .group_by(models.Project.user_id)
+            .subquery()
+        )
+
+        user_rows = (
+            db.query(models.User, models.Project)
+            .join(latest_explore_pf_sq, latest_explore_pf_sq.c.user_id == models.User.id)
+            .join(
+                models.Project,
+                and_(
+                    models.Project.user_id == latest_explore_pf_sq.c.user_id,
+                    models.Project.updated_at == latest_explore_pf_sq.c.latest_at,
+                )
+            )
             .filter(
                 models.User.username != None,
                 models.User.username.ilike(f"{q}%"),
+                models.Project.is_public == True,
+                models.Project.show_in_explore == True,
+                models.Project.deleted_at == None,
             )
+            .order_by(desc(models.Project.updated_at))
             .limit(limit)
             .all()
         )
         results["users"] = [
-            {"username": u.username}
-            for u in users
+            {
+                "username": u.username,
+                "cover_image_url": p.cover_image_url,
+                "latest_slug": p.slug,
+            }
+            for u, p in user_rows
             if u.username
         ]
 
