@@ -204,6 +204,7 @@
     "genreTagsPlaceholder": "ウェディング、トラベル、ストリート…",
     "showInExplore": "Exploreフィードに表示",
     "showInExploreDesc": "racconto.app/explore のExploreフィードで、このポートフォリオが発見可能になります。他の写真家や訪問者がブラウジングや検索で作品を見つけられます。いつでもオフにできます。",
+    "showInExploreRequiresPublic": "ポートフォリオを公開に設定するとExploreに表示できます。",
     "noLocalFile": "ローカルファイルなし",
     "noLocalFile2": "ローカルファイルがない画像"
   },

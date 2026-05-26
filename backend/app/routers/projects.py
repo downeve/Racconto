@@ -187,7 +187,11 @@ def create_project(
             status_code=403,
             detail={"code": "PROJECT_LIMIT_EXCEEDED", "limit": current_user.project_limit}
         )
-    
+
+    # 둘러보기는 포트폴리오가 공개 상태일 때만 의미가 있음 — 침묵 실패(silent no-op) 방지.
+    if project.show_in_explore and not project.is_public:
+        raise HTTPException(status_code=400, detail="EXPLORE_REQUIRES_PUBLIC")
+
     slug_base = project.title_en or project.title or str(uuid.uuid4())[:8]
     slug = generate_unique_slug(db, slug_base)
 
@@ -246,7 +250,13 @@ def update_project(
     if not db_project:
         raise HTTPException(status_code=404, detail="PROJECT_NOT_FOUND")
     was_public = bool(db_project.is_public)
-    for key, value in project.dict(exclude_unset=True).items():
+    incoming = project.dict(exclude_unset=True)
+    # 변경 적용 후의 최종 상태 기준으로 검증 (둘 중 하나만 보냈을 때도 정확히 평가)
+    final_is_public = incoming.get('is_public', was_public)
+    final_show_in_explore = incoming.get('show_in_explore', bool(db_project.show_in_explore))
+    if final_show_in_explore and not final_is_public:
+        raise HTTPException(status_code=400, detail="EXPLORE_REQUIRES_PUBLIC")
+    for key, value in incoming.items():
         if key == "status":
             setattr(db_project, key, models.ProjectStatus(value))
         else:

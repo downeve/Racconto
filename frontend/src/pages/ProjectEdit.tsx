@@ -141,7 +141,8 @@ export default function ProjectEdit() {
         location, status, is_public: isPublic,
         camera_type: cameraType || null,
         tags,
-        show_in_explore: showInExplore,
+        // 비공개면 둘러보기 노출도 강제 false (백엔드 검증과 일치)
+        show_in_explore: isPublic === 'true' ? showInExplore : false,
       }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['project', id] })
@@ -202,24 +203,33 @@ export default function ProjectEdit() {
 
           {/* 커뮤니티 태그 시스템 — Phase 1. 노출 동의가 가장 먼저, 그 다음 카메라/태그 */}
           {/* 진한 구분선 — 개인 포트폴리오/상태 영역과 둘러보기 공개 영역 시각 분리 */}
-          <div className="pt-6 mt-2 border-t border-edit-line-strong">
-            <label className="flex items-start gap-3 cursor-pointer">
-              <input
-                type="checkbox"
-                checked={showInExplore}
-                onChange={e => setShowInExplore(e.target.checked)}
-                className="mt-1 shrink-0 accent-edit-ink"
-              />
-              <div>
-                <div className="text-[0.9375rem] text-edit-ink font-medium">
-                  {t('project.showInExplore', 'Show in Explore feed')}
-                </div>
-                <p className="t-caption text-edit-muted mt-1 leading-[1.5]">
-                  {t('project.showInExploreDesc', 'Make this portfolio discoverable in the public Explore feed at racconto.app/explore. Other photographers and visitors can find your work through browsing and search. You can turn this off anytime.')}
-                </p>
+          {(() => {
+            // 비공개 포트폴리오는 둘러보기에 노출될 수 없음 (백엔드도 동일 검증) — 토글 비활성화
+            const exploreDisabled = isPublic !== 'true'
+            return (
+              <div className="pt-6 mt-2 border-t border-edit-line-strong">
+                <label className={`flex items-start gap-3 ${exploreDisabled ? 'cursor-not-allowed' : 'cursor-pointer'}`}>
+                  <input
+                    type="checkbox"
+                    checked={showInExplore && !exploreDisabled}
+                    onChange={e => setShowInExplore(e.target.checked)}
+                    disabled={exploreDisabled}
+                    className="mt-1 shrink-0 accent-edit-ink disabled:opacity-40"
+                  />
+                  <div className={exploreDisabled ? 'opacity-50' : ''}>
+                    <div className="text-[0.9375rem] text-edit-ink font-medium">
+                      {t('project.showInExplore', 'Show in Explore feed')}
+                    </div>
+                    <p className="t-caption text-edit-muted mt-1 leading-[1.5]">
+                      {exploreDisabled
+                        ? t('project.showInExploreRequiresPublic', '포트폴리오를 공개로 설정해야 둘러보기에 노출할 수 있습니다.')
+                        : t('project.showInExploreDesc', 'Make this portfolio discoverable in the public Explore feed at racconto.app/explore. Other photographers and visitors can find your work through browsing and search. You can turn this off anytime.')}
+                    </p>
+                  </div>
+                </label>
               </div>
-            </label>
-          </div>
+            )
+          })()}
 
           <div className="py-5 border-t border-edit-line">
             <p className="t-eyebrow text-edit-muted mb-2">{t('project.cameraType', 'Camera Type')}</p>
