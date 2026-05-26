@@ -765,6 +765,7 @@
     "searchPlaceholder": "사진가 또는 포트폴리오 검색…",
     "searchEmpty": "검색 결과가 없어요",
     "searchUsers": "사진가",
-    "searchPortfolios": "포트폴리오"
+    "searchPortfolios": "포트폴리오",
+    "filteredBy": "태그 필터"
   }
 }

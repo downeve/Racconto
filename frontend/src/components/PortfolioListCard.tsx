@@ -24,6 +24,8 @@ interface PortfolioListCardProps {
   description?: string | null
   /** Portfolio 전용 — 다크 모드 토큰 적용 */
   darkMode?: boolean
+  /** Explore 전용 — 태그 칩 클릭 시 필터 적용 핸들러 */
+  onTagClick?: (tag: string) => void
 }
 
 /** Cover aspect — Explore feed = 3/2 horizontal, Portfolio collection = 4/5 vertical */
@@ -35,7 +37,7 @@ const ASPECT: Record<Mode, string> = {
 export default function PortfolioListCard({
   mode, href, onClick, coverImageUrl, title,
   author, location, cameraType, tags, description,
-  darkMode = false,
+  darkMode = false, onTagClick,
 }: PortfolioListCardProps) {
   const aspect = ASPECT[mode]
   const subText  = darkMode ? 'text-d-soft'  : 'text-muted'
@@ -83,9 +85,23 @@ export default function PortfolioListCard({
           {cameraType && (
             <span className="uppercase tracking-wider mr-2">{cameraType}</span>
           )}
-          {tags?.map((tag, i) => (
-            <span key={tag} className={i === (tags.length - 1) ? '' : 'mr-2'}>#{tag}</span>
-          ))}
+          {tags?.map((tag, i) => {
+            const isLast = i === (tags.length - 1)
+            const spacing = isLast ? '' : 'mr-2'
+            if (onTagClick) {
+              return (
+                <button
+                  key={tag}
+                  type="button"
+                  onClick={e => { e.preventDefault(); e.stopPropagation(); onTagClick(tag) }}
+                  className={`${spacing} hover:text-edit-ink hover:underline underline-offset-2 transition-colors`}
+                >
+                  #{tag}
+                </button>
+              )
+            }
+            return <span key={tag} className={spacing}>#{tag}</span>
+          })}
         </div>
       )}
 

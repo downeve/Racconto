@@ -765,6 +765,7 @@
     "searchPlaceholder": "Search photographers or portfolios…",
     "searchEmpty": "No results found",
     "searchUsers": "Photographers",
-    "searchPortfolios": "Portfolios"
+    "searchPortfolios": "Portfolios",
+    "filteredBy": "Filtered by"
   }
 }

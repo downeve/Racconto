@@ -766,6 +766,7 @@
     "searchPlaceholder": "写真家またはポートフォリオを検索…",
     "searchEmpty": "結果が見つかりません",
     "searchUsers": "写真家",
-    "searchPortfolios": "ポートフォリオ"
+    "searchPortfolios": "ポートフォリオ",
+    "filteredBy": "タグフィルター"
   }
 }
