@@ -51,6 +51,7 @@ export default function Explore() {
   const [hasMore, setHasMore] = useState(true)
   const [loading, setLoading] = useState(false)
   const [cameraFilter, setCameraFilter] = useState<CameraType | ''>('')
+  const [tagFilter, setTagFilter] = useState<string>('')
   const sentinelRef = useRef<HTMLDivElement>(null)
 
   // 검색 상태 (Phase 3)
@@ -64,15 +65,16 @@ export default function Explore() {
     setItems([])
     setCursor(null)
     setHasMore(true)
-  }, [cameraFilter])
+  }, [cameraFilter, tagFilter])
 
-  const fetchPage = useCallback(async (currentCursor: string | null, filter: CameraType | '') => {
+  const fetchPage = useCallback(async (currentCursor: string | null, camera: CameraType | '', tag: string) => {
     if (loading) return
     setLoading(true)
     try {
       const params = new URLSearchParams()
       if (currentCursor) params.set('cursor', currentCursor)
-      if (filter) params.set('camera_type', filter)
+      if (camera) params.set('camera_type', camera)
+      if (tag) params.set('tag', tag)
       const { data } = await axios.get<FeedResponse>(`${API}/explore/feed?${params.toString()}`)
       setItems(prev => currentCursor ? [...prev, ...data.items] : data.items)
       setCursor(data.next_cursor)
@@ -85,21 +87,21 @@ export default function Explore() {
   }, [loading])
 
   useEffect(() => {
-    fetchPage(null, cameraFilter)
+    fetchPage(null, cameraFilter, tagFilter)
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [cameraFilter])
+  }, [cameraFilter, tagFilter])
 
   useEffect(() => {
     const sentinel = sentinelRef.current
     if (!sentinel || !hasMore || isSearching) return
     const obs = new IntersectionObserver(entries => {
       if (entries[0].isIntersecting && !loading && hasMore && cursor) {
-        fetchPage(cursor, cameraFilter)
+        fetchPage(cursor, cameraFilter, tagFilter)
       }
     }, { rootMargin: '600px' })
     obs.observe(sentinel)
     return () => obs.disconnect()
-  }, [cursor, hasMore, loading, cameraFilter, fetchPage, isSearching])
+  }, [cursor, hasMore, loading, cameraFilter, tagFilter, fetchPage, isSearching])
 
   useEffect(() => {
     if (!isSearching) {
@@ -154,6 +156,21 @@ export default function Explore() {
             </button>
           )}
         </div>
+
+        {/* 활성 태그 필터 표시 — 검색 중이 아닐 때만 */}
+        {!isSearching && tagFilter && (
+          <div className="mb-4 flex items-center gap-2">
+            <span className="t-caption text-muted">{t('explore.filteredBy', 'Filtered by')}</span>
+            <button
+              type="button"
+              onClick={() => setTagFilter('')}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 t-caption rounded-[2px] bg-ink text-canvas border border-ink hover:bg-ink/85 transition-colors"
+            >
+              #{tagFilter}
+              <X size={12} strokeWidth={1.5} />
+            </button>
+          </div>
+        )}
 
         {/* 카메라 종류 필터 — 좌정렬 */}
         {!isSearching && (
@@ -241,6 +258,7 @@ export default function Explore() {
                       author={item.author.username ?? undefined}
                       cameraType={item.camera_type}
                       tags={item.tags}
+                      onTagClick={(tag) => { setSearchInput(''); setTagFilter(tag) }}
                     />
                   ))}
                 </div>
@@ -270,6 +288,7 @@ export default function Explore() {
                 author={item.author.username ?? undefined}
                 cameraType={item.camera_type}
                 tags={item.tags}
+                onTagClick={setTagFilter}
               />
             ))}
           </div>

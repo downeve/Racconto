@@ -351,6 +351,27 @@ def get_stats(
         "total_notes": total_notes,
     }
 
+@router.get("/stats/tags")
+def get_tag_stats(
+    limit: int = 50,
+    db: Session = Depends(get_db),
+    _: models.User = Depends(require_admin),
+):
+    """
+    가장 많이 사용된 태그 통계 (관리자 전용).
+    `SUGGESTED_GENRE_TAGS` 주기적 업데이트(3개월 1회 정도) 용도.
+    비공개/삭제 프로젝트 제외.
+    """
+    from sqlalchemy import text as sa_text
+    rows = db.execute(sa_text(
+        "SELECT tag, COUNT(*) AS cnt "
+        "FROM projects, jsonb_array_elements_text(tags) AS tag "
+        "WHERE is_public = TRUE AND deleted_at IS NULL "
+        "GROUP BY tag ORDER BY cnt DESC LIMIT :limit"
+    ), {"limit": limit}).fetchall()
+    return {"tags": [{"tag": r[0], "count": r[1]} for r in rows]}
+
+
 @router.get("/external-stats")
 async def get_external_stats(current_user: models.User = Depends(require_admin)):
     

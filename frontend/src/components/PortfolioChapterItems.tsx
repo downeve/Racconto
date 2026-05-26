@@ -176,6 +176,22 @@ export default function PortfolioChapterItems({
     // - side-right : 사진 왼쪽 / 텍스트 오른쪽  (모바일: 사진 위, 텍스트 아래)
     // Side-by-side 블록
     if (group.type === 'SIDE') {
+      // SIDE 블록의 사진이 모두 휴지통으로 이동(소프트 삭제)된 경우 텍스트만 남음.
+      // 그대로 SIDE 레이아웃을 그리면 빈 photoCol + TEXT 2/5 너비가 어색하게 보이므로
+      // 단독 TEXT 블록처럼 렌더 (ProjectStory.groupIntoBlocks 보정과 정합).
+      if (group.photos.length === 0 && group.text) {
+        result.push(
+          <div key={`text-${bid}`} className="my-space-lg text-left max-w-2xl">
+            <MarkdownRenderer
+              content={group.text.text_content || ''}
+              darkMode={darkMode}
+              className="leading-[2.1] [word-break:keep-all] font-serif"
+            />
+          </div>
+        )
+        return
+      }
+
       const sidePhotos = group.photos
       const isPhotoRight = group.blockType === 'side-right'
 

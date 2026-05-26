@@ -204,6 +204,7 @@
     "genreTagsPlaceholder": "wedding, travel, street…",
     "showInExplore": "Show in Explore feed",
     "showInExploreDesc": "Make this portfolio discoverable in the public Explore feed at racconto.app/explore. Other photographers and visitors can find your work through browsing and search. You can turn this off anytime.",
+    "showInExploreRequiresPublic": "Set the portfolio to public to enable Explore listing.",
     "noLocalFile": "No local file",
     "noLocalFile2": "Images with no local files"
   },
@@ -765,6 +766,7 @@
     "searchPlaceholder": "Search photographers or portfolios…",
     "searchEmpty": "No results found",
     "searchUsers": "Photographers",
-    "searchPortfolios": "Portfolios"
+    "searchPortfolios": "Portfolios",
+    "filteredBy": "Filtered by"
   }
 }

@@ -39,30 +39,8 @@ router = APIRouter(prefix="/projects", tags=["projects"])
 class ReorderRequest(BaseModel):
     ids: list[str]
 
-VALID_CAMERA_TYPES = {'film', 'digital', 'mobile', 'mixed'}
-# 영숫자 / '-' / 한글(가-힣) / 히라가나 / 가타카나 / CJK 통합 한자만 허용.
-TAG_RE = re.compile(r'[^a-z0-9\-가-힣ぁ-ゟ゠-ヿ一-鿿]')
-
-
-def _normalize_tags(raw_tags) -> list[str]:
-    """태그 정규화 — 소문자화, 공백 → '-', 특수문자 제거(한·중·일은 허용), 빈/중복 제거, 5개·20자 제한."""
-    if not raw_tags:
-        return []
-    if not isinstance(raw_tags, list):
-        return []
-    seen = set()
-    out = []
-    for t in raw_tags:
-        if not isinstance(t, str):
-            continue
-        norm = TAG_RE.sub('', t.strip().lower().replace(' ', '-'))[:20]
-        if not norm or norm in seen:
-            continue
-        seen.add(norm)
-        out.append(norm)
-        if len(out) >= 5:
-            break
-    return out
+from app.constants.suggested_tags import VALID_CAMERA_TYPES
+from app.utils.tags import validate_tags
 
 
 class ProjectCreate(BaseModel):
@@ -100,7 +78,12 @@ class ProjectCreate(BaseModel):
     @field_validator('tags', mode='before')
     @classmethod
     def _normalize_tags_field(cls, v):
-        return _normalize_tags(v) if v is not None else None
+        if v is None:
+            return None
+        try:
+            return validate_tags(v)
+        except ValueError as e:
+            raise ValueError(str(e))
 
     @field_validator('show_in_explore', mode='before')
     @classmethod
@@ -204,7 +187,11 @@ def create_project(
             status_code=403,
             detail={"code": "PROJECT_LIMIT_EXCEEDED", "limit": current_user.project_limit}
         )
-    
+
+    # 둘러보기는 포트폴리오가 공개 상태일 때만 의미가 있음 — 침묵 실패(silent no-op) 방지.
+    if project.show_in_explore and not project.is_public:
+        raise HTTPException(status_code=400, detail="EXPLORE_REQUIRES_PUBLIC")
+
     slug_base = project.title_en or project.title or str(uuid.uuid4())[:8]
     slug = generate_unique_slug(db, slug_base)
 
@@ -263,7 +250,13 @@ def update_project(
     if not db_project:
         raise HTTPException(status_code=404, detail="PROJECT_NOT_FOUND")
     was_public = bool(db_project.is_public)
-    for key, value in project.dict(exclude_unset=True).items():
+    incoming = project.dict(exclude_unset=True)
+    # 변경 적용 후의 최종 상태 기준으로 검증 (둘 중 하나만 보냈을 때도 정확히 평가)
+    final_is_public = incoming.get('is_public', was_public)
+    final_show_in_explore = incoming.get('show_in_explore', bool(db_project.show_in_explore))
+    if final_show_in_explore and not final_is_public:
+        raise HTTPException(status_code=400, detail="EXPLORE_REQUIRES_PUBLIC")
+    for key, value in incoming.items():
         if key == "status":
             setattr(db_project, key, models.ProjectStatus(value))
         else:
