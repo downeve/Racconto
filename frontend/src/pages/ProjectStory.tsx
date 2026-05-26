@@ -18,6 +18,7 @@ import {
   sortableKeyboardCoordinates,
 } from '@dnd-kit/sortable';
 import { StoryChapter } from './story/StoryChapter'
+import { blurActiveInput } from '../utils/blurActiveInput'
 import PhotoLibraryPanel from '../components/PhotoLibraryPanel'
 import StoryLightbox from './story/StoryLightbox'
 import StoryPreviewModal from './story/StoryPreviewModal'
@@ -994,9 +995,11 @@ function ProjectStory({
                 className="t-caption px-4 py-2 text-edit-muted hover:text-edit-ink transition-colors"
               >{t('common.cancel')}</button>
               <button
+                onMouseDown={blurActiveInput}
                 onClick={handleAddChapter}
+                disabled={!newTitle.trim()}
                 className="t-caption px-5 py-2 bg-edit-ink text-edit-paper rounded-[1px]
-                           hover:bg-edit-ink/85 transition-colors"
+                           hover:bg-edit-ink/85 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
               >{t('common.add')}</button>
             </div>
           </div>
@@ -1110,9 +1113,11 @@ function ProjectStory({
                           className="t-caption px-4 py-2 text-edit-muted hover:text-edit-ink transition-colors"
                         >{t('common.cancel')}</button>
                         <button
+                          onMouseDown={blurActiveInput}
                           onClick={() => handleUpdateChapter(chapter)}
+                          disabled={!editTitle.trim()}
                           className="t-caption px-5 py-2 bg-edit-ink text-edit-paper rounded-[1px]
-                                     hover:bg-edit-ink/85 transition-colors"
+                                     hover:bg-edit-ink/85 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
                         >{t('common.save')}</button>
                       </div>
                     </div>
@@ -1159,9 +1164,11 @@ function ProjectStory({
                         className="t-caption px-4 py-2 text-edit-muted hover:text-edit-ink transition-colors"
                       >{t('common.cancel')}</button>
                       <button
+                        onMouseDown={blurActiveInput}
                         onClick={handleAddChapter}
+                        disabled={!newTitle.trim()}
                         className="t-caption px-5 py-2 bg-edit-ink text-edit-paper rounded-[1px]
-                                   hover:bg-edit-ink/85 transition-colors"
+                                   hover:bg-edit-ink/85 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
                       >{t('common.add')}</button>
                     </div>
                   </div>
@@ -1277,9 +1284,11 @@ function ProjectStory({
                                   className="t-caption px-4 py-2 text-edit-muted hover:text-edit-ink transition-colors"
                                 >{t('common.cancel')}</button>
                                 <button
+                                  onMouseDown={blurActiveInput}
                                   onClick={() => handleUpdateChapter(subChapter)}
+                                  disabled={!editTitle.trim()}
                                   className="t-caption px-5 py-2 bg-edit-ink text-edit-paper rounded-[1px]
-                                             hover:bg-edit-ink/85 transition-colors"
+                                             hover:bg-edit-ink/85 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
                                 >{t('common.save')}</button>
                               </div>
                             </div>

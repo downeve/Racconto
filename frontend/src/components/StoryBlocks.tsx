@@ -21,6 +21,67 @@ import {
 } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
 
+// ── 텍스트 편집 공통 컴포넌트 ───────────────────────────────
+// 한국어 IME composition 과 React state update 사이의 race condition 으로
+// '한 번 누르면 안 되고 두 번째 눌러야 작동' 증상이 발생했음.
+// 저장 버튼의 onMouseDown 에서 textarea 를 강제 blur 시켜
+// composition 을 즉시 commit 한 뒤 click 이 발화되도록 보장.
+// disabled = !value.trim() 으로 침묵 가드(silent no-op)를 표면화.
+
+interface EditTextAreaProps {
+  value: string
+  onChange: (v: string) => void
+  onCancel: () => void
+  onSave: () => void
+  cancelLabel: string
+  saveLabel: string
+  padding?: string
+}
+
+function EditTextArea({ value, onChange, onCancel, onSave, cancelLabel, saveLabel, padding = 'p-3' }: EditTextAreaProps) {
+  const ref = useRef<HTMLTextAreaElement>(null)
+  const [saving, setSaving] = useState(false)
+  const canSave = value.trim().length > 0 && !saving
+
+  const handleSave = async (e: React.MouseEvent) => {
+    e.stopPropagation()
+    if (!canSave) return
+    setSaving(true)
+    try { await onSave() } finally { setSaving(false) }
+  }
+
+  return (
+    <div className="flex flex-col gap-2">
+      <textarea
+        ref={ref}
+        className={`w-full min-h-32 ${padding} font-serif text-[0.9375rem] leading-[1.6] bg-edit-paper border-0 border-b border-edit-line focus:border-edit-ink focus:outline-none resize-none placeholder:text-edit-faint overflow-x-hidden whitespace-pre-wrap [word-break:keep-all] transition-colors duration-150`}
+        onInput={e => { const t = e.currentTarget; t.style.height = 'auto'; t.style.height = t.scrollHeight + 'px' }}
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        autoFocus
+      />
+      <div className="flex gap-2 justify-end mt-3">
+        <button
+          onClick={(e) => { e.stopPropagation(); onCancel() }}
+          className="px-4 py-1.5 text-[0.75rem] tracking-[0.04em] uppercase text-edit-muted hover:text-edit-ink bg-transparent border border-edit-line rounded-[2px] transition-colors"
+        >
+          {cancelLabel}
+        </button>
+        <button
+          // mousedown 에서 textarea blur → IME composition 즉시 종료 →
+          // compositionend → onChange → setState 반영 후 click 발화
+          onMouseDown={() => ref.current?.blur()}
+          onClick={handleSave}
+          disabled={!canSave}
+          className="px-4 py-1.5 text-[0.75rem] tracking-[0.04em] uppercase bg-edit-ink text-edit-paper hover:bg-edit-ink/85 rounded-[2px] transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+        >
+          {saveLabel}
+        </button>
+      </div>
+    </div>
+  )
+}
+
 // ── 공통 타입 ──────────────────────────────────────────────
 
 export interface ChapterItem {
@@ -331,29 +392,15 @@ export const SortableTextBlock = memo(function SortableTextBlock({
 
       <div className="relative px-5 py-4 min-w-0 [overflow-x:clip] [word-break:keep-all]">
         {isEditing ? (
-          <div className="flex flex-col gap-2">
-            <textarea
-              className="w-full min-h-32 p-3 font-serif text-[0.9375rem] leading-[1.6] bg-edit-paper border-0 border-b border-edit-line focus:border-edit-ink focus:outline-none resize-none placeholder:text-edit-faint overflow-x-hidden whitespace-pre-wrap [word-break:keep-all] transition-colors duration-150"
-              onInput={e => { const t = e.currentTarget; t.style.height = 'auto'; t.style.height = t.scrollHeight + 'px' }}
-              value={textDraft}
-              onChange={(e) => onTextDraftChange?.(e.target.value)}
-              autoFocus
-            />
-            <div className="flex gap-2 justify-end mt-3">
-              <button
-                onClick={(e) => { e.stopPropagation(); onCancelEdit?.(); }}
-                className="px-4 py-1.5 text-[0.75rem] tracking-[0.04em] uppercase text-edit-muted hover:text-edit-ink bg-transparent border border-edit-line rounded-[2px] transition-colors"
-              >
-                {t('common.cancel')}
-              </button>
-              <button
-                onClick={(e) => { e.stopPropagation(); onSaveText?.(); }}
-                className="px-4 py-1.5 text-[0.75rem] tracking-[0.04em] uppercase bg-edit-ink text-edit-paper hover:bg-edit-ink/85 rounded-[2px] transition-colors"
-              >
-                {t('common.save')}
-              </button>
-            </div>
-          </div>
+          <EditTextArea
+            value={textDraft || ''}
+            onChange={(v) => onTextDraftChange?.(v)}
+            onCancel={() => onCancelEdit?.()}
+            onSave={() => onSaveText?.()}
+            cancelLabel={t('common.cancel')}
+            saveLabel={t('common.save')}
+            padding="p-3"
+          />
         ) : (
           <MarkdownRenderer content={text_content} className="pl-4 font-serif" />
         )}
@@ -762,29 +809,15 @@ export const SortableSideBySideBlock = memo(function SortableSideBySideBlock({
     <div className="flex-1 min-w-0 overflow-x-hidden [word-break:keep-all] group/text relative border-l-2 border-transparent hover:border-edit-line-strong hover:bg-edit-paper/50 px-4 py-4 transition-[background-color,border-color] duration-150">
       {editingTextItemId === textItem.id ? (
         /* 👇 편집 모드일 때: 텍스트 영역만 편집창으로 전환 */
-        <div className="flex flex-col gap-2">
-          <textarea
-            className="w-full min-h-32 p-2 font-serif text-[0.9375rem] leading-[1.6] bg-edit-paper border-0 border-b border-edit-line focus:border-edit-ink outline-none resize-none placeholder:text-edit-faint overflow-x-hidden whitespace-pre-wrap [word-break:keep-all] transition-colors duration-150"
-            onInput={e => { const t = e.currentTarget; t.style.height = 'auto'; t.style.height = t.scrollHeight + 'px' }}
-            value={textDraft}
-            onChange={(e) => onTextDraftChange?.(e.target.value)}
-            autoFocus
-          />
-          <div className="flex gap-2 justify-end">
-            <button 
-              onClick={(e) => { e.stopPropagation(); onCancelEdit?.(); }}
-              className="px-4 py-1.5 text-[0.75rem] tracking-[0.04em] uppercase text-edit-muted hover:text-edit-ink bg-transparent border border-edit-line rounded-[2px] transition-colors"
-            >
-              {t('common.cancel')}
-            </button>
-            <button 
-              onClick={(e) => { e.stopPropagation(); onSaveText?.(); }}
-              className="px-4 py-1.5 text-[0.75rem] tracking-[0.04em] uppercase bg-edit-ink text-edit-paper hover:bg-edit-ink/85 rounded-[2px] transition-colors"
-            >
-              {t('common.save')}
-            </button>
-          </div>
-        </div>
+        <EditTextArea
+          value={textDraft || ''}
+          onChange={(v) => onTextDraftChange?.(v)}
+          onCancel={() => onCancelEdit?.()}
+          onSave={() => onSaveText?.()}
+          cancelLabel={t('common.cancel')}
+          saveLabel={t('common.save')}
+          padding="p-2"
+        />
       ) : (
         /* 👇 일반 모드: 기존 텍스트 표시 */
         <>
