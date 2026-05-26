@@ -6,7 +6,9 @@ import { Link, useLocation } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import ConfirmModal from '../components/ConfirmModal'
 import ToastNotification from '../components/ToastNotification'
+import TagInput from '../components/TagInput'
 import { useElectronSidebar } from '../context/ElectronSidebarContext'
+import { CAMERA_TYPES, SUGGESTED_GENRE_TAGS, type CameraType } from '../constants/tags'
 import {
   DndContext, closestCenter, PointerSensor, useSensor, useSensors,
   type DragEndEvent,
@@ -83,9 +85,18 @@ export default function Projects() {
     setToast({ message, type })
     toastTimer.current = setTimeout(() => setToast(null), 4000)
   }
-  const FORM_INITIAL = { title: '', description: '', location: '', status: 'in_progress', isPublic: 'false', showInExplore: false }
+  const FORM_INITIAL: {
+    title: string
+    description: string
+    location: string
+    status: string
+    isPublic: string
+    showInExplore: boolean
+    cameraType: CameraType | ''
+    tags: string[]
+  } = { title: '', description: '', location: '', status: 'in_progress', isPublic: 'false', showInExplore: false, cameraType: '', tags: [] }
   const [formData, setFormData] = useState(FORM_INITIAL)
-  const setField = (key: keyof typeof FORM_INITIAL, value: string | boolean) =>
+  const setField = (key: keyof typeof FORM_INITIAL, value: string | boolean | string[]) =>
     setFormData(prev => ({ ...prev, [key]: value }))
   const { triggerRefresh } = useElectronSidebar()
   const { t, i18n } = useTranslation()
@@ -151,6 +162,8 @@ export default function Projects() {
         status: data.status,
         is_public: data.isPublic,
         show_in_explore: data.showInExplore,
+        camera_type: data.cameraType || null,
+        tags: data.tags,
       }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['projects'] })
@@ -284,6 +297,39 @@ export default function Projects() {
                   </p>
                 </div>
               </label>
+            </div>
+
+            <div className="py-5 border-t border-edit-line">
+              <p className="t-eyebrow text-edit-muted mb-2">{t('project.cameraType', 'Camera Type')}</p>
+              <div className="flex flex-wrap gap-1.5">
+                {CAMERA_TYPES.map(ct => {
+                  const active = formData.cameraType === ct.value
+                  return (
+                    <button
+                      key={ct.value}
+                      type="button"
+                      onClick={() => setField('cameraType', active ? '' : ct.value)}
+                      className={`px-3 py-1.5 t-caption rounded-[2px] border transition-colors ${
+                        active
+                          ? 'bg-edit-ink text-edit-paper border-edit-ink'
+                          : 'border-edit-line text-edit-muted hover:text-edit-ink hover:border-edit-line-strong'
+                      }`}
+                    >
+                      {ct.label}
+                    </button>
+                  )
+                })}
+              </div>
+            </div>
+
+            <div className="py-5 border-t border-edit-line">
+              <p className="t-eyebrow text-edit-muted mb-2">{t('project.genreTags', 'Genre Tags (max 5)')}</p>
+              <TagInput
+                value={formData.tags}
+                onChange={(next) => setField('tags', next)}
+                suggestions={SUGGESTED_GENRE_TAGS}
+                placeholder={t('project.genreTagsPlaceholder', 'wedding, travel, street...')}
+              />
             </div>
 
             <div className="mt-6 flex justify-end gap-2">
