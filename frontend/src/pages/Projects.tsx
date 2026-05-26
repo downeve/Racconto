@@ -161,7 +161,8 @@ export default function Projects() {
         location: data.location,
         status: data.status,
         is_public: data.isPublic,
-        show_in_explore: data.showInExplore,
+        // 비공개면 둘러보기 노출도 강제 false (백엔드 검증과 정합)
+        show_in_explore: data.isPublic === 'true' ? data.showInExplore : false,
         camera_type: data.cameraType || null,
         tags: data.tags,
       }),
@@ -177,6 +178,8 @@ export default function Projects() {
       const limit = typeof detail === 'object' ? detail.limit : undefined
       if (code === 'PROJECT_LIMIT_EXCEEDED') {
         showToast(t('api.error.PROJECT_LIMIT_EXCEEDED', { limit }), 'warning')
+      } else if (detail === 'EXPLORE_REQUIRES_PUBLIC') {
+        showToast(t('project.showInExploreRequiresPublic'), 'warning')
       }
     },
   })
@@ -280,24 +283,33 @@ export default function Projects() {
             </div>
 
             {/* 둘러보기 피드 공개 — 진한 구분선으로 위쪽 영역과 시각 분리 */}
-            <div className="pt-6 mt-2 border-t border-edit-line-strong">
-              <label className="flex items-start gap-3 cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={formData.showInExplore}
-                  onChange={e => setField('showInExplore', e.target.checked)}
-                  className="mt-1 shrink-0 accent-edit-ink"
-                />
-                <div>
-                  <div className="text-[0.9375rem] text-edit-ink font-medium">
-                    {t('project.showInExplore', 'Show in Explore feed')}
-                  </div>
-                  <p className="t-caption text-edit-muted mt-1 leading-[1.5]">
-                    {t('project.showInExploreDesc', 'Make this portfolio discoverable in the public Explore feed at racconto.app/explore. Other photographers and visitors can find your work through browsing and search. You can turn this off anytime.')}
-                  </p>
+            {(() => {
+              // 비공개 포트폴리오는 둘러보기에 노출될 수 없음 (백엔드도 동일 검증) — 토글 비활성화
+              const exploreDisabled = formData.isPublic !== 'true'
+              return (
+                <div className="pt-6 mt-2 border-t border-edit-line-strong">
+                  <label className={`flex items-start gap-3 ${exploreDisabled ? 'cursor-not-allowed' : 'cursor-pointer'}`}>
+                    <input
+                      type="checkbox"
+                      checked={formData.showInExplore && !exploreDisabled}
+                      onChange={e => setField('showInExplore', e.target.checked)}
+                      disabled={exploreDisabled}
+                      className="mt-1 shrink-0 accent-edit-ink disabled:opacity-40"
+                    />
+                    <div className={exploreDisabled ? 'opacity-50' : ''}>
+                      <div className="text-[0.9375rem] text-edit-ink font-medium">
+                        {t('project.showInExplore', 'Show in Explore feed')}
+                      </div>
+                      <p className="t-caption text-edit-muted mt-1 leading-[1.5]">
+                        {exploreDisabled
+                          ? t('project.showInExploreRequiresPublic')
+                          : t('project.showInExploreDesc', 'Make this portfolio discoverable in the public Explore feed at racconto.app/explore. Other photographers and visitors can find your work through browsing and search. You can turn this off anytime.')}
+                      </p>
+                    </div>
+                  </label>
                 </div>
-              </label>
-            </div>
+              )
+            })()}
 
             <div className="py-5 border-t border-edit-line">
               <p className="t-eyebrow text-edit-muted mb-2">{t('project.cameraType', 'Camera Type')}</p>
