@@ -69,6 +69,19 @@ export default function MobilePortfolioChapterItems({
     // side-left: 텍스트 위, 사진 아래
     // side-right: 사진 위, 텍스트 아래
     if (group.type === 'SIDE') {
+      // SIDE 블록의 사진이 모두 휴지통으로 이동(소프트 삭제)된 경우 텍스트만 남음 → 단독 TEXT 블록처럼 렌더
+      if (group.photos.length === 0 && group.text) {
+        result.push(
+          <div key={`text-${bid}`} className="my-8">
+            <MarkdownRenderer
+              content={group.text.text_content || ''}
+              darkMode={darkMode}
+              className="leading-[2] [word-break:keep-all] font-serif text-[15.5px]"
+            />
+          </div>
+        )
+        return
+      }
       const isTextFirst = group.blockType === 'side-left'
       const photoBlock = (
         <div className="space-y-2">
