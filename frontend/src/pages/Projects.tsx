@@ -94,7 +94,7 @@ export default function Projects() {
     showInExplore: boolean
     cameraType: CameraType | ''
     tags: string[]
-  } = { title: '', description: '', location: '', status: 'in_progress', isPublic: 'false', showInExplore: false, cameraType: '', tags: [] }
+  } = { title: '', description: '', location: '', status: 'in_progress', isPublic: 'false', showInExplore: true, cameraType: '', tags: [] }
   const [formData, setFormData] = useState(FORM_INITIAL)
   const setField = (key: keyof typeof FORM_INITIAL, value: string | boolean | string[]) =>
     setFormData(prev => ({ ...prev, [key]: value }))
