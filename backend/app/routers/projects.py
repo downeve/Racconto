@@ -39,30 +39,8 @@ router = APIRouter(prefix="/projects", tags=["projects"])
 class ReorderRequest(BaseModel):
     ids: list[str]
 
-VALID_CAMERA_TYPES = {'film', 'digital', 'mobile', 'mixed'}
-# 영숫자 / '-' / 한글(가-힣) / 히라가나 / 가타카나 / CJK 통합 한자만 허용.
-TAG_RE = re.compile(r'[^a-z0-9\-가-힣ぁ-ゟ゠-ヿ一-鿿]')
-
-
-def _normalize_tags(raw_tags) -> list[str]:
-    """태그 정규화 — 소문자화, 공백 → '-', 특수문자 제거(한·중·일은 허용), 빈/중복 제거, 5개·20자 제한."""
-    if not raw_tags:
-        return []
-    if not isinstance(raw_tags, list):
-        return []
-    seen = set()
-    out = []
-    for t in raw_tags:
-        if not isinstance(t, str):
-            continue
-        norm = TAG_RE.sub('', t.strip().lower().replace(' ', '-'))[:20]
-        if not norm or norm in seen:
-            continue
-        seen.add(norm)
-        out.append(norm)
-        if len(out) >= 5:
-            break
-    return out
+from app.constants.suggested_tags import VALID_CAMERA_TYPES
+from app.utils.tags import validate_tags
 
 
 class ProjectCreate(BaseModel):
@@ -100,7 +78,12 @@ class ProjectCreate(BaseModel):
     @field_validator('tags', mode='before')
     @classmethod
     def _normalize_tags_field(cls, v):
-        return _normalize_tags(v) if v is not None else None
+        if v is None:
+            return None
+        try:
+            return validate_tags(v)
+        except ValueError as e:
+            raise ValueError(str(e))
 
     @field_validator('show_in_explore', mode='before')
     @classmethod
