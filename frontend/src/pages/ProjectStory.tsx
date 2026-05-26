@@ -18,17 +18,7 @@ import {
   sortableKeyboardCoordinates,
 } from '@dnd-kit/sortable';
 import { StoryChapter } from './story/StoryChapter'
-
-// 저장 버튼 onMouseDown 핸들러:
-// 한국어 IME composition 과 React state update race ("한 번 누르면 안 되고 두 번째 눌러야") 방지용.
-// mousedown 시점에 현재 포커스된 input/textarea 를 강제 blur → composition 즉시 종료 →
-// compositionend → onChange → setState 반영 후 click 발화 보장.
-const blurActiveInput = () => {
-  const el = document.activeElement
-  if (el instanceof HTMLElement && (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA')) {
-    el.blur()
-  }
-}
+import { blurActiveInput } from '../utils/blurActiveInput'
 import PhotoLibraryPanel from '../components/PhotoLibraryPanel'
 import StoryLightbox from './story/StoryLightbox'
 import StoryPreviewModal from './story/StoryPreviewModal'
