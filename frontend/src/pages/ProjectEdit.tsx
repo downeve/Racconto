@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState, forwardRef } from 'react'
 import { useParams, useNavigate, useLocation } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import axios from 'axios'
@@ -25,24 +25,27 @@ function FormField({ label, required, children }: {
   )
 }
 
-function FormInput({ value, onChange, placeholder }: {
+// IME race 방지용 ref 전달을 위해 forwardRef
+const FormInput = forwardRef<HTMLInputElement, {
   value: string; onChange: (v: string) => void; placeholder?: string
-}) {
+}>(function FormInput({ value, onChange, placeholder }, ref) {
   return (
     <input
+      ref={ref}
       value={value}
       onChange={e => onChange(e.target.value)}
       placeholder={placeholder}
       className="w-full font-serif text-body bg-transparent border-0 border-b border-edit-line focus:border-edit-ink focus:outline-none py-2 transition-colors duration-150 placeholder:text-edit-faint"
     />
   )
-}
+})
 
-function FormTextarea({ value, onChange, rows, placeholder }: {
+const FormTextarea = forwardRef<HTMLTextAreaElement, {
   value: string; onChange: (v: string) => void; rows?: number; placeholder?: string
-}) {
+}>(function FormTextarea({ value, onChange, rows, placeholder }, ref) {
   return (
     <textarea
+      ref={ref}
       value={value}
       onChange={e => onChange(e.target.value)}
       rows={rows ?? 4}
@@ -50,7 +53,7 @@ function FormTextarea({ value, onChange, rows, placeholder }: {
       className="w-full font-serif text-body bg-transparent border-0 border-b border-edit-line focus:border-edit-ink focus:outline-none py-2 resize-none transition-colors duration-150 placeholder:text-edit-faint"
     />
   )
-}
+})
 
 function SegmentedControl({ value, onChange, options }: {
   value: string; onChange: (v: string) => void
@@ -106,6 +109,10 @@ export default function ProjectEdit() {
   const [cameraType, setCameraType] = useState<CameraType | ''>('')
   const [tags, setTags] = useState<string[]>([])
   const [showInExplore, setShowInExplore] = useState(false)
+  // DOM 직접 읽기용 refs — IME race 방지 (사용자 입력 필드만)
+  const titleRef = useRef<HTMLInputElement>(null)
+  const descRef = useRef<HTMLTextAreaElement>(null)
+  const locationRef = useRef<HTMLInputElement>(null)
 
   // ── 프로젝트 조회 ─────────────────────────────────────────────
   const { data: projectData } = useQuery({
@@ -135,16 +142,21 @@ export default function ProjectEdit() {
 
   // ── 프로젝트 수정 ─────────────────────────────────────────────
   const updateMutation = useMutation({
-    mutationFn: () =>
-      axios.put(`${API}/projects/${numericId}`, {
-        title, title_en: titleEn,
-        description, description_en: descriptionEn,
-        location, status, is_public: isPublic,
+    mutationFn: () => {
+      // textarea/input DOM 우선 읽기 (IME race 방지) — React state 가 아직 commit 안 됐어도 최신 값
+      const titleVal = titleRef.current?.value ?? title
+      const descVal = descRef.current?.value ?? description
+      const locationVal = locationRef.current?.value ?? location
+      return axios.put(`${API}/projects/${numericId}`, {
+        title: titleVal, title_en: titleEn,
+        description: descVal, description_en: descriptionEn,
+        location: locationVal, status, is_public: isPublic,
         camera_type: cameraType || null,
         tags,
         // 비공개면 둘러보기 노출도 강제 false (백엔드 검증과 일치)
         show_in_explore: isPublic === 'true' ? showInExplore : false,
-      }),
+      })
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['project', id] })
       queryClient.invalidateQueries({ queryKey: ['projects'] })
@@ -156,7 +168,8 @@ export default function ProjectEdit() {
   })
 
   const handleSubmit = () => {
-    if (!title || !numericId) return
+    const titleVal = (titleRef.current?.value ?? title).trim()
+    if (!titleVal || !numericId) return
     updateMutation.mutate()
   }
 
@@ -183,13 +196,13 @@ export default function ProjectEdit() {
 
         <div>
           <FormField label={t('project.labelTitle')} required>
-            <FormInput value={title} onChange={setTitle} placeholder={t('project.projectName')} />
+            <FormInput ref={titleRef} value={title} onChange={setTitle} placeholder={t('project.projectName')} />
           </FormField>
           <FormField label={t('project.labelDescription')}>
-            <FormTextarea rows={4} value={description} onChange={setDescription} placeholder={t('project.description')} />
+            <FormTextarea ref={descRef} rows={4} value={description} onChange={setDescription} placeholder={t('project.description')} />
           </FormField>
           <FormField label={t('project.labelLocation')}>
-            <FormInput value={location} onChange={setLocation} placeholder={t('project.location')} />
+            <FormInput ref={locationRef} value={location} onChange={setLocation} placeholder={t('project.location')} />
           </FormField>
           <div className="py-5 grid grid-cols-2 gap-8">
             <div>

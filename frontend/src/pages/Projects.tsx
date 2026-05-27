@@ -99,6 +99,10 @@ export default function Projects() {
   const [formData, setFormData] = useState(FORM_INITIAL)
   const setField = (key: keyof typeof FORM_INITIAL, value: string | boolean | string[]) =>
     setFormData(prev => ({ ...prev, [key]: value }))
+  // DOM 직접 읽기용 refs — IME race 방지 (제목·설명·장소)
+  const titleRef = useRef<HTMLInputElement>(null)
+  const descRef = useRef<HTMLTextAreaElement>(null)
+  const locationRef = useRef<HTMLInputElement>(null)
   const { triggerRefresh } = useElectronSidebar()
   const { t, i18n } = useTranslation()
   const isEn = i18n.language.startsWith('en')
@@ -186,8 +190,12 @@ export default function Projects() {
   })
 
   const handleSubmit = () => {
-    if (!formData.title) return
-    createMutation.mutate(formData)
+    // textarea/input DOM 우선 읽기 (IME race 방지) → formData 갱신 후 mutate
+    const title = (titleRef.current?.value ?? formData.title).trim()
+    const description = descRef.current?.value ?? formData.description
+    const location = locationRef.current?.value ?? formData.location
+    if (!title) return
+    createMutation.mutate({ ...formData, title, description, location })
   }
 
   return (
@@ -222,6 +230,7 @@ export default function Projects() {
             <div className="pb-5">
               <p className="t-eyebrow text-edit-muted mb-2">{t('project.labelTitle')}<span className="text-edit-danger ml-1">*</span></p>
               <input
+                ref={titleRef}
                 value={formData.title} onChange={e => setField('title', e.target.value)}
                 placeholder={t('project.projectName')}
                 className="w-full font-serif text-body bg-transparent border-0 border-b border-edit-line focus:border-edit-ink focus:outline-none py-2 transition-colors duration-150 placeholder:text-edit-faint"
@@ -232,6 +241,7 @@ export default function Projects() {
             <div className="py-5">
               <p className="t-eyebrow text-edit-muted mb-2">{t('project.labelDescription')}</p>
               <textarea
+                ref={descRef}
                 value={formData.description} onChange={e => setField('description', e.target.value)}
                 placeholder={t('project.description')}
                 rows={3}
@@ -243,6 +253,7 @@ export default function Projects() {
             <div className="py-5">
               <p className="t-eyebrow text-edit-muted mb-2">{t('project.labelLocation')}</p>
               <input
+                ref={locationRef}
                 value={formData.location} onChange={e => setField('location', e.target.value)}
                 placeholder={t('project.location')}
                 className="w-full font-serif text-body bg-transparent border-0 border-b border-edit-line focus:border-edit-ink focus:outline-none py-2 transition-colors duration-150 placeholder:text-edit-faint"
