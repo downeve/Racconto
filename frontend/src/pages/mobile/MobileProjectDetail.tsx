@@ -15,7 +15,7 @@ import MobileStoryTab from '../../components/mobile/story/MobileStoryTab'
 import ConfirmModal from '../../components/ConfirmModal'
 import ToastNotification from '../../components/ToastNotification'
 import ProjectNotes from '../ProjectNotes'
-import type { Photo, Project, ChapterPhotoResponse, NoteResponse, ColorLabel } from '../../components/ProjectDetailComponents'
+import type { Photo, Project, NoteResponse, ColorLabel } from '../../components/ProjectDetailComponents'
 import { resizeImageInWorker } from '../../utils/resizeImageWorker'
 import { getImageDimensions } from '../../utils/getImageDimensions'
 
@@ -71,12 +71,21 @@ export default function MobileProjectDetail() {
 
   const fetchChapterPhotoIds = async () => {
     if (!numericId) return
-    const res = await axios.get(`${API}/chapters/all-photo-ids?project_id=${numericId}`)
+    // 데스크톱과 동일하게 storyChapters(/chapters/all-items) 단일 엔드포인트 사용.
+    // items_by_chapter 에서 photo_id ↔ chapter_id 매핑을 derive.
+    const res = await axios.get(`${API}/chapters/all-items?project_id=${numericId}`)
     setChapters(res.data.chapters)
     const ids = new Set<string>()
     const map = new Map<string, string>()
-    res.data.photo_ids.forEach((cp: ChapterPhotoResponse) => {
-      if (cp.photo_id) { ids.add(cp.photo_id); map.set(cp.photo_id, cp.chapter_id) }
+    const itemsByChapter: Record<string, { item_type?: string; photo_id?: string | null }[]> =
+      res.data.items_by_chapter ?? {}
+    Object.entries(itemsByChapter).forEach(([cid, items]) => {
+      items.forEach(item => {
+        if (item.item_type === 'PHOTO' && item.photo_id) {
+          ids.add(item.photo_id)
+          map.set(item.photo_id, cid)
+        }
+      })
     })
     setChapterPhotoIds(ids)
     setPhotoChapterMap(map)
