@@ -26,6 +26,8 @@ interface PortfolioListCardProps {
   darkMode?: boolean
   /** Explore 전용 — 태그 칩 클릭 시 필터 적용 핸들러 */
   onTagClick?: (tag: string) => void
+  /** react-router Link 의 state — 진입 referrer 등 전달용 */
+  linkState?: unknown
 }
 
 /** Cover aspect — Explore feed = 3/2 horizontal, Portfolio collection = 4/5 vertical */
@@ -37,7 +39,7 @@ const ASPECT: Record<Mode, string> = {
 export default function PortfolioListCard({
   mode, href, onClick, coverImageUrl, title,
   author, location, cameraType, tags, description,
-  darkMode = false, onTagClick,
+  darkMode = false, onTagClick, linkState,
 }: PortfolioListCardProps) {
   const aspect = ASPECT[mode]
   const subText  = darkMode ? 'text-d-soft'  : 'text-muted'
@@ -129,7 +131,7 @@ export default function PortfolioListCard({
     )
   }
   return (
-    <Link to={href} className="group block">
+    <Link to={href} state={linkState} className="group block">
       {inner}
     </Link>
   )

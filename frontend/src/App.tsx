@@ -4,16 +4,17 @@ import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
 import { AuthProvider, useAuth } from './context/AuthContext'
 import { useTranslation } from 'react-i18next'
 import { useEffect, useRef, useState, lazy, Suspense } from 'react';
-import Navbar from './components/Navbar'
 import ScrollToTop from './components/ScrollToTop';
 import UploadToast from './components/UploadToast'
 import ElectronSidebar from './components/ElectronSidebar'
 import FeedbackWidget from './components/FeedbackWidget'
 import UpdateNotificationBanner from './components/UpdateNotificationBanner'
-import { getDeviceType } from './utils/deviceDetect'
 import { ElectronSidebarProvider } from './context/ElectronSidebarContext'
 
 // ── 즉시 로드 (인증 흐름 핵심 경로 + 첫 화면 LCP) ────────────
+// AppRouter 가 mobile 디바이스를 MobileInfoApp 으로 분기하므로,
+// App 은 desktop/tablet/Electron 만 처리. 모바일 전용 페이지(MobileLandingPage,
+// MobileFeaturesPage, MobileExplore) 와 모바일 Navbar 분기는 dead code 라 제거.
 import Login from './pages/Login'
 import Dashboard from './pages/Dashboard'
 import Projects from './pages/Projects'
@@ -23,7 +24,6 @@ import ForgotPassword from './pages/ForgotPassword'
 import ResetPassword from './pages/ResetPassword'
 // 비로그인 첫 화면(/)은 LCP 측정 대상 — lazy 시 추가 chunk 라운드트립으로 LCP 지연
 import LandingPage from './pages/LandingPage'
-import MobileLandingPage from './pages/MobileLandingPage'
 import ElectronLandingPage from './pages/ElectronLandingPage'
 
 // ── 지연 로드 (무거운 페이지 / 비빈번 접근) ──────────────────
@@ -35,10 +35,8 @@ const DeliveryPage       = lazy(() => import('./pages/DeliveryPage'))
 const Admin              = lazy(() => import('./pages/Admin'))
 const PublicPortfolio    = lazy(() => import('./pages/PublicPortfolio'))
 const FeaturesPage       = lazy(() => import('./pages/FeaturesPage'))
-const MobileFeaturesPage = lazy(() => import('./pages/MobileFeaturesPage'))
 const AppDownload        = lazy(() => import('./pages/AppDownload'))
 const Explore            = lazy(() => import('./pages/Explore'))
-const MobileExplore      = lazy(() => import('./pages/mobile/MobileExplore'))
 const SocialCallback     = lazy(() => import('./pages/auth/SocialCallback'))
 
 function PrivateRoute({ children }: { children: React.ReactNode }) {
@@ -67,7 +65,6 @@ function AppRoutes() {
 
   const isElectron = typeof window !== 'undefined' && !!window.racconto
   const isMac = isElectron && window.racconto?.platform === 'darwin'
-  const isMobileDevice = getDeviceType() === 'mobile'
   const [electronTab, setElectronTab] = useState<'photos' | 'story' | 'notes'>('photos')
   const [sidebarWidth, setSidebarWidth] = useState(() =>
     parseInt(localStorage.getItem('electron_sidebar_width') ?? '224', 10)
@@ -118,12 +115,10 @@ function AppRoutes() {
   }, [i18n.language, isElectron])
 
   return (
-    <div className={`min-h-screen bg-edit-canvas${isMobileDevice && isAuthenticated && !hideNavbar ? ' pt-14' : ''}`}>
+    <div className="min-h-screen bg-edit-canvas">
 
-      {isMobileDevice && isAuthenticated && !hideNavbar && <Navbar onLogout={logout} />}
-
-      {/* 사이드바 — 인증된 상태, 모바일/납품 페이지 제외 */}
-      {!isMobileDevice && isAuthenticated && !hideNavbar && (
+      {/* 사이드바 — 인증된 상태, 납품/다운로드 페이지 제외 */}
+      {isAuthenticated && !hideNavbar && (
         <ElectronSidebar
           activeTab={electronTab}
           onTabChange={setElectronTab}
@@ -159,7 +154,7 @@ function AppRoutes() {
       )}
 
       {/* 메인 콘텐츠 — 사이드바 너비만큼 밀기 (macOS floating 오프셋 6px 포함) */}
-      <div style={!isMobileDevice && isAuthenticated && !hideNavbar ? { marginLeft: sidebarWidth + (isMac ? 6 : 0) } : {}}>
+      <div style={isAuthenticated && !hideNavbar ? { marginLeft: sidebarWidth + (isMac ? 6 : 0) } : {}}>
         <ScrollToTop />
         <FeedbackWidget />
         <Suspense fallback={<div className="min-h-screen bg-edit-canvas" />}>
@@ -171,8 +166,8 @@ function AppRoutes() {
           <Route path="/verify-email" element={<VerifyEmail />} />
           <Route path="/forgot-password" element={<ForgotPassword />} />
           <Route path="/reset-password" element={<ResetPassword />} />
-          <Route path="/" element={isAuthenticated ? <Navigate to="/dashboard" replace /> : (isElectron ? <ElectronLandingPage /> : isMobileDevice ? <MobileLandingPage /> : <LandingPage />)} />
-          <Route path="/features" element={isMobileDevice ? <MobileFeaturesPage /> : <FeaturesPage />} />
+          <Route path="/" element={isAuthenticated ? <Navigate to="/dashboard" replace /> : (isElectron ? <ElectronLandingPage /> : <LandingPage />)} />
+          <Route path="/features" element={<FeaturesPage />} />
           <Route path="/projects" element={<PrivateRoute><Projects /></PrivateRoute>} />
           <Route path="/projects/:id" element={
             <PrivateRoute>
@@ -184,7 +179,7 @@ function AppRoutes() {
           <Route path="/settings" element={<PrivateRoute><Settings /></PrivateRoute>} />
           <Route path="/racconto-admin" element={<AdminRoute><Admin /></AdminRoute>} />
           <Route path="/download" element={<AppDownload />} />
-          <Route path="/explore" element={isMobileDevice ? <MobileExplore /> : <Explore />} />
+          <Route path="/explore" element={<Explore />} />
           <Route path="/delivery/:linkId" element={<DeliveryPage />} />
           <Route path="/:username/:slug" element={<PublicPortfolio />} />
           <Route path="/:username" element={<PublicPortfolio />} />

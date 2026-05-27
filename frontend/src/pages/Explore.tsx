@@ -222,6 +222,7 @@ export default function Explore() {
                     <Link
                       key={u.username}
                       to={`/${u.username}`}
+                      state={{ from: '/explore' }}
                       className="group block"
                     >
                       <div className="aspect-square overflow-hidden bg-[oklch(0.92_0.012_75)]">
@@ -253,6 +254,7 @@ export default function Explore() {
                       key={item.id}
                       mode="explore"
                       href={cardHref(item)}
+                      linkState={{ from: '/explore' }}
                       coverImageUrl={item.cover_image_url}
                       title={item.title}
                       author={item.author.username ?? undefined}
@@ -283,6 +285,7 @@ export default function Explore() {
                 key={item.id}
                 mode="explore"
                 href={cardHref(item)}
+                linkState={{ from: '/explore' }}
                 coverImageUrl={item.cover_image_url}
                 title={item.title}
                 author={item.author.username ?? undefined}
