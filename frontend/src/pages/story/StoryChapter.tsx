@@ -353,11 +353,15 @@ function StoryChapterComponent({
     }
   }, [fetchChapterPhotos])
 
-  const handleSaveTextBlock = useCallback(async () => {
-    if (!textDraft.trim() || !editingTextItemId) return
+  const handleSaveTextBlock = useCallback(async (overrideValue?: string) => {
+    // overrideValue: EditTextArea 가 textarea DOM 의 value 를 직접 읽어 전달함.
+    // React state(textDraft)는 IME composition commit 후 re-render 가 click 전에 끝난다는
+    // 보장이 없으므로 (긴 한글 텍스트일수록 더 자주 실패), DOM 기반 값을 우선 사용.
+    const content = (overrideValue ?? textDraft).trim()
+    if (!content || !editingTextItemId) return
     try {
       await axios.put(`${API}/chapters/${chapterId}/texts/${editingTextItemId}`, {
-        text_content: textDraft,
+        text_content: content,
       })
       fetchChapterPhotos(chapterId)
       setEditingTextItemId(null)
