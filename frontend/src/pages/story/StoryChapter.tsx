@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback, memo } from 'react'
+import { useState, useRef, useCallback, useEffect, memo } from 'react'
 import axios from 'axios'
 import { useTranslation } from 'react-i18next'
 import {
@@ -19,6 +19,7 @@ import {
   InsertSlot,
   type ChapterItem,
 } from '../../components/StoryBlocks'
+import { setPendingTextEdit, flushPendingTextEdit } from '../../utils/pendingTextEdit'
 
 const API = import.meta.env.VITE_API_URL
 
@@ -159,7 +160,9 @@ function StoryChapterComponent({
     }
   }, [handleSideBySide])
 
-  const handleSlotInsertText = useCallback((cid: string, insertIndex: number) => {
+  const handleSlotInsertText = useCallback(async (cid: string, insertIndex: number) => {
+    // 다른 텍스트 블록 편집이 열려 있으면 먼저 자동 저장
+    await flushPendingTextEdit()
     setInsertSlotActive({ chapterId: cid, insertIndex })
     setInsertTextDraft('')
   }, [])
@@ -315,6 +318,8 @@ function StoryChapterComponent({
     textContent: string
   ) => {
     if (!textContent.trim()) return
+    // 다른 텍스트 블록을 편집 중이라면 먼저 자동 저장
+    await flushPendingTextEdit()
     try {
       const currentBlocks = blocksRef.current
       const res = await axios.post(`${API}/chapters/${cid}/texts`, { text_content: textContent })
@@ -357,11 +362,32 @@ function StoryChapterComponent({
       fetchChapterPhotos(chapterId)
       setEditingTextItemId(null)
       setTextDraft('')
+      setPendingTextEdit(null)
     } catch (err) {
       console.error('텍스트 저장 중 에러:', err)
       alert('저장에 실패했습니다.')
     }
   }, [chapterId, textDraft, editingTextItemId, fetchChapterPhotos])
+
+  // 편집 중인 텍스트 블록의 최신 저장 함수를 모듈 레지스트리에 등록.
+  // 다른 블록 편집·새 챕터/텍스트 추가 등 다른 진입점에서 flushPendingTextEdit 로 자동 저장됨.
+  useEffect(() => {
+    if (editingTextItemId && textDraft.trim()) {
+      setPendingTextEdit(handleSaveTextBlock)
+    } else {
+      setPendingTextEdit(null)
+    }
+    return () => { setPendingTextEdit(null) }
+  }, [editingTextItemId, textDraft, handleSaveTextBlock])
+
+  // 다른 텍스트 블록 편집 진입 시 이전 편집 자동 저장 후 새 편집 시작
+  const handleStartEdit = useCallback(async (itemId: string, text: string) => {
+    if (itemId !== editingTextItemId) {
+      await flushPendingTextEdit()
+    }
+    setEditingTextItemId(itemId)
+    setTextDraft(text)
+  }, [editingTextItemId])
 
 
   // ── 인서트 슬롯 렌더 ─────────────────────────────────────
@@ -584,7 +610,7 @@ function StoryChapterComponent({
                     chapterId={chapterId}
                     items={block.items}
                     onRemoveItem={handleRemoveItem}
-                    onEdit={(itemId, text) => { setEditingTextItemId(itemId); setTextDraft(text) }}
+                    onEdit={handleStartEdit}
                     onPhotoClick={(item) => onOpenLightbox(item)}
                     onLayoutChange={(_, layout) =>
                       handleBlockLayoutChange(chapterId, block.blockId, layout)
@@ -610,7 +636,7 @@ function StoryChapterComponent({
                     hasPhotoAbove={prevBlock?.type === 'PHOTO'}
                     hasPhotoBelow={nextBlock?.type === 'PHOTO'}
                     onRemove={handleRemoveItem}
-                    onEdit={(itemId, text) => { setEditingTextItemId(itemId); setTextDraft(text) }}
+                    onEdit={handleStartEdit}
                     onSideBySide={(itemId, position, direction) =>
                       handleSideBySide(chapterId, itemId, position, direction)
                     }
