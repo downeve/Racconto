@@ -778,6 +778,7 @@ export default function ProjectDetail({
             queryClient.invalidateQueries({ queryKey: ['photos', numericId] }),
             queryClient.invalidateQueries({ queryKey: ['photosTrash', numericId] }),
             queryClient.invalidateQueries({ queryKey: ['chapterPhotos', numericId] }),
+            queryClient.invalidateQueries({ queryKey: ['storyChapters', numericId] }),
             queryClient.invalidateQueries({ queryKey: ['notes', numericId] }),
             queryClient.invalidateQueries({ queryKey: ['project', id] }),
           ])
@@ -856,6 +857,7 @@ export default function ProjectDetail({
           queryClient.invalidateQueries({ queryKey: ['photos', numericId] }),
           queryClient.invalidateQueries({ queryKey: ['photosTrash', numericId] }),
           queryClient.invalidateQueries({ queryKey: ['chapterPhotos', numericId] }),
+          queryClient.invalidateQueries({ queryKey: ['storyChapters', numericId] }),
           queryClient.invalidateQueries({ queryKey: ['notes', numericId] }),
           queryClient.invalidateQueries({ queryKey: ['project', id] }),
         ])
@@ -875,8 +877,10 @@ export default function ProjectDetail({
         }
         await axios.post(`${API}/chapters/${chapterId}/photos`, { photo_id: photoId })
       }
+      // ProjectStory 캐시도 같이 무효화. 이전엔 removeQueries + `id` 인자를 썼는데,
+      // `id` 가 slug 일 수 있어 ProjectStory 의 `['storyChapters', numericId]` 키와 불일치 → 무효.
       await queryClient.invalidateQueries({ queryKey: ['chapterPhotos', numericId] })
-      queryClient.removeQueries({ queryKey: ['storyChapters', id] })
+      queryClient.invalidateQueries({ queryKey: ['storyChapters', numericId] })
     } catch {
       // 오류 무시
     }
@@ -948,7 +952,7 @@ export default function ProjectDetail({
       setSelectedPhotoIds(new Set())
       setShowBulkChapterMenu(false)
       await queryClient.invalidateQueries({ queryKey: ['chapterPhotos', numericId] })
-      queryClient.removeQueries({ queryKey: ['storyChapters', id] })
+      queryClient.invalidateQueries({ queryKey: ['storyChapters', numericId] })
       showToast(t('story.addMultiplePhotoSuccess', { count }), 'success')
     } catch (error) {
       console.error('일괄 추가 실패', error)
@@ -1444,6 +1448,7 @@ export default function ProjectDetail({
                                     try {
                                       await axios.post(`${API}/photos/${photo.id}/restore`)
                                       queryClient.invalidateQueries({ queryKey: ['chapterPhotos', numericId] })
+                                      queryClient.invalidateQueries({ queryKey: ['storyChapters', numericId] })
                                     } catch (err: any) {
                                       queryClient.setQueryData(['photos', numericId], prevPhotos)
                                       queryClient.setQueryData(['photosTrash', numericId], prevTrash)
@@ -1507,7 +1512,10 @@ export default function ProjectDetail({
           activeTab={activeTab}
           allPhotos={photos.filter(p => !p.deleted_at)}
           chapterPhotoCount={chapterPhotoVersion}
-          onChapterChange={() => queryClient.invalidateQueries({ queryKey: ['chapterPhotos', numericId] })}
+          onChapterChange={() => {
+            queryClient.invalidateQueries({ queryKey: ['chapterPhotos', numericId] })
+            queryClient.invalidateQueries({ queryKey: ['storyChapters', numericId] })
+          }}
         />
       </div>
 
