@@ -118,12 +118,14 @@ interface NoteItemProps {
   handleDelete: (id: string) => void
   startEdit: (note: Note) => void
   noteRef: (el: HTMLDivElement | null) => void
+  editContentRef: React.RefObject<HTMLTextAreaElement | null>
 }
 
 const NoteItem = memo(function NoteItem({
   note, photos, editingNote, editContent, editType, editPreviewMode,
   NOTE_TYPES, getNoteType, setEditType, setEditPreviewMode, setEditContent,
   setEditingNote, handleUpdate, handleTogglePin, handleDelete, startEdit, noteRef,
+  editContentRef,
 }: NoteItemProps) {
   const { t, i18n } = useTranslation()
   const typeInfo = getNoteType(note.note_type)
@@ -183,6 +185,7 @@ const NoteItem = memo(function NoteItem({
             </div>
           ) : (
             <textarea
+              ref={editContentRef}
               className="w-full font-serif text-[0.9375rem] leading-[1.7] bg-transparent border-0 border-b border-edit-line focus:border-edit-ink focus:outline-none resize-none py-2 transition-colors duration-150 placeholder:text-edit-faint"
               rows={4}
               value={editContent}
@@ -284,6 +287,9 @@ function ProjectNotes({
   const [filterType, setFilterType] = useState<string | null>(null)
   const [filterPinned, setFilterPinned] = useState(false)
   const noteRefs = useRef<Record<string, HTMLDivElement | null>>({})
+  // textarea DOM 직접 읽기용 — IME composition 후 React state 가 stale 인 race 방지
+  const newContentRef = useRef<HTMLTextAreaElement>(null)
+  const editContentRef = useRef<HTMLTextAreaElement>(null)
 
   const scrollToNote = (noteId: string) => {
     const el = noteRefs.current[noteId]
@@ -364,16 +370,19 @@ function ProjectNotes({
   }
 
   const handleAdd = () => {
-    if (!newContent.trim()) return
-    addMutation.mutate({ content: newContent, note_type: newType })
+    // textarea DOM 우선 읽기 (IME race 방지)
+    const content = (newContentRef.current?.value ?? newContent).trim()
+    if (!content) return
+    addMutation.mutate({ content, note_type: newType })
   }
 
   const handleUpdate = (noteId: string) => {
-    if (!editContent.trim()) return
+    const content = (editContentRef.current?.value ?? editContent).trim()
+    if (!content) return
     const targetNote = notes.find(n => n.id === noteId)
     updateMutation.mutate({
       noteId,
-      content: editContent,
+      content,
       note_type: editType,
       is_pinned: targetNote?.is_pinned ?? false,
       photo_id: targetNote?.photo_id ?? null,
@@ -471,6 +480,7 @@ function ProjectNotes({
             </div>
           ) : (
             <textarea
+              ref={newContentRef}
               className="w-full font-serif text-[0.9375rem] leading-[1.7] bg-transparent border-0 border-b border-edit-line focus:border-edit-ink focus:outline-none resize-none py-2 transition-colors duration-150 placeholder:text-edit-faint"
               placeholder={t('note.editMdDescription')}
               rows={4}
@@ -513,6 +523,7 @@ function ProjectNotes({
               handleDelete={handleDelete}
               startEdit={startEdit}
               noteRef={el => { noteRefs.current[note.id] = el }}
+              editContentRef={editContentRef}
             />
           ))}
 

@@ -222,37 +222,6 @@ def create_chapter(
     db.refresh(db_chapter)
     return db_chapter
 
-@router.get("/all-photo-ids")
-def get_all_chapter_photo_ids(
-    project_id: str,
-    db: Session = Depends(get_db),
-    current_user_id: str = Depends(get_current_user_id)
-):
-    get_owned_project_or_403(project_id, current_user_id, db)
-
-    chapters = db.query(models.Chapter).filter(
-        models.Chapter.project_id == project_id
-    ).order_by(models.Chapter.order_num).all()
-
-    chapter_ids = [c.id for c in chapters]
-
-    items = db.query(models.ChapterItem).filter(
-        models.ChapterItem.chapter_id.in_(chapter_ids),
-        models.ChapterItem.item_type == "PHOTO",
-        models.ChapterItem.photo_id != None
-    ).all() if chapter_ids else []
-
-    return {
-        "chapters": [
-            {"id": c.id, "title": c.title, "parent_id": c.parent_id, "order_num": c.order_num}
-            for c in chapters
-        ],
-        "photo_ids": [
-            {"photo_id": i.photo_id, "chapter_id": i.chapter_id}
-            for i in items
-        ]
-    }
-
 @router.get("/all-items")
 def get_all_chapter_items(
     project_id: str,

@@ -271,7 +271,14 @@ function StoryChapterComponent({
 
   const handleInnerDragEnd = useCallback((event: DragEndEvent, blockId: string) => {
     const { active, over } = event
-    if (!over || active.id === over.id) return
+    if (!over || active.id === over.id) {
+      // silent return 이라도 React 재렌더를 강제해야 useSortable 이 inline transform 을 0 으로
+      // 재계산함. 그렇지 않으면 블록 안에서 자리 비켜주던 다른 사진들의 잔여 transform 이
+      // 남아 자식 element(체크박스/드래그 핸들)의 위치가 시프트된 상태로 인지됨.
+      // (사진이 3행 이상 많을수록 누적 변위가 커서 가시화됨)
+      setChapterPhotos(prev => ({ ...prev }))
+      return
+    }
 
     const activeId = String(active.id)
     const overId = String(over.id)
@@ -353,11 +360,15 @@ function StoryChapterComponent({
     }
   }, [fetchChapterPhotos])
 
-  const handleSaveTextBlock = useCallback(async () => {
-    if (!textDraft.trim() || !editingTextItemId) return
+  const handleSaveTextBlock = useCallback(async (overrideValue?: string) => {
+    // overrideValue: EditTextArea 가 textarea DOM 의 value 를 직접 읽어 전달함.
+    // React state(textDraft)는 IME composition commit 후 re-render 가 click 전에 끝난다는
+    // 보장이 없으므로 (긴 한글 텍스트일수록 더 자주 실패), DOM 기반 값을 우선 사용.
+    const content = (overrideValue ?? textDraft).trim()
+    if (!content || !editingTextItemId) return
     try {
       await axios.put(`${API}/chapters/${chapterId}/texts/${editingTextItemId}`, {
-        text_content: textDraft,
+        text_content: content,
       })
       fetchChapterPhotos(chapterId)
       setEditingTextItemId(null)

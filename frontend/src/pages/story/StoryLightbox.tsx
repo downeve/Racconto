@@ -1,3 +1,4 @@
+import { useEffect } from 'react'
 import { FileText } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { cfUrl } from '../../utils/cfImage'
@@ -29,6 +30,20 @@ export default function StoryLightbox({
 }: StoryLightboxProps) {
   const { t } = useTranslation()
   const photo = photos[selectedIndex]
+
+  // 인접 이미지 preload — 앞 1장 + 뒤 2장 (ProjectDetailComponents / PublicPortfolio 와 동일 패턴)
+  useEffect(() => {
+    if (!photo) return
+    const indices = [selectedIndex - 1, selectedIndex + 1, selectedIndex + 2]
+      .filter(i => i >= 0 && i < photos.length)
+    indices.forEach(i => {
+      const url = photos[i]?.image_url
+      if (!url) return
+      const img = new Image()
+      img.src = cfUrl(url, 'public')
+    })
+  }, [selectedIndex, photos, photo])
+
   if (!photo) return null
 
   return (

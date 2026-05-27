@@ -14,7 +14,7 @@ import ConfirmModal from '../components/ConfirmModal'
 import ToastNotification from '../components/ToastNotification'
 import { cfUrl } from '../utils/cfImage'
 import { Lightbox, PhotoCard } from '../components/ProjectDetailComponents'
-import type { Photo, Project, ChapterPhotoResponse, NoteResponse } from '../components/ProjectDetailComponents'
+import type { Photo, Project, NoteResponse } from '../components/ProjectDetailComponents'
 
 const API = import.meta.env.VITE_API_URL
 const DELIVERY_ENABLED = import.meta.env.VITE_ENABLE_DELIVERY === 'true'
@@ -370,9 +370,13 @@ export default function ProjectDetail({
     enabled: !!numericId,
   })
 
+  // 챕터 ↔ 사진 매핑은 ProjectStory 와 동일한 쿼리(storyChapters) 공유.
+  // 이전엔 별도 ['chapterPhotos', numericId] / `/chapters/all-photo-ids` 로 분리 fetch 했는데,
+  // 두 캐시 동기화 누락이 반복적인 버그(stale chapterPhotoIds) 원인이라 단일 source of truth 로 통합.
+  // Story 탭 진입 전에도 미리 받아 두므로 Detail → Story 이동 시 즉시 표시되는 부수 이득도 있음.
   const { data: chapterData } = useQuery({
-    queryKey: ['chapterPhotos', numericId],
-    queryFn: async () => (await axios.get(`${API}/chapters/all-photo-ids?project_id=${numericId}`)).data,
+    queryKey: ['storyChapters', numericId],
+    queryFn: async () => (await axios.get(`${API}/chapters/all-items?project_id=${numericId}`)).data,
     enabled: !!numericId,
   })
 
@@ -394,8 +398,16 @@ export default function ProjectDetail({
   const { chapterPhotoIds, photoChapterMap } = useMemo(() => {
     const ids = new Set<string>()
     const map = new Map<string, string>()
-    chapterData?.photo_ids?.forEach((cp: ChapterPhotoResponse) => {
-      if (cp.photo_id) { ids.add(cp.photo_id); map.set(cp.photo_id, cp.chapter_id) }
+    // storyChapters 데이터 구조: { chapters, items_by_chapter: Record<chapterId, ChapterItem[]> }
+    const itemsByChapter: Record<string, { item_type?: string; photo_id?: string | null }[]> =
+      chapterData?.items_by_chapter ?? {}
+    Object.entries(itemsByChapter).forEach(([cid, items]) => {
+      items.forEach(item => {
+        if (item.item_type === 'PHOTO' && item.photo_id) {
+          ids.add(item.photo_id)
+          map.set(item.photo_id, cid)
+        }
+      })
     })
     return { chapterPhotoIds: ids, photoChapterMap: map }
   }, [chapterData])
@@ -777,7 +789,7 @@ export default function ProjectDetail({
           await Promise.all([
             queryClient.invalidateQueries({ queryKey: ['photos', numericId] }),
             queryClient.invalidateQueries({ queryKey: ['photosTrash', numericId] }),
-            queryClient.invalidateQueries({ queryKey: ['chapterPhotos', numericId] }),
+            queryClient.invalidateQueries({ queryKey: ['storyChapters', numericId] }),
             queryClient.invalidateQueries({ queryKey: ['notes', numericId] }),
             queryClient.invalidateQueries({ queryKey: ['project', id] }),
           ])
@@ -855,7 +867,7 @@ export default function ProjectDetail({
         await Promise.all([
           queryClient.invalidateQueries({ queryKey: ['photos', numericId] }),
           queryClient.invalidateQueries({ queryKey: ['photosTrash', numericId] }),
-          queryClient.invalidateQueries({ queryKey: ['chapterPhotos', numericId] }),
+          queryClient.invalidateQueries({ queryKey: ['storyChapters', numericId] }),
           queryClient.invalidateQueries({ queryKey: ['notes', numericId] }),
           queryClient.invalidateQueries({ queryKey: ['project', id] }),
         ])
@@ -875,8 +887,8 @@ export default function ProjectDetail({
         }
         await axios.post(`${API}/chapters/${chapterId}/photos`, { photo_id: photoId })
       }
-      await queryClient.invalidateQueries({ queryKey: ['chapterPhotos', numericId] })
-      queryClient.removeQueries({ queryKey: ['storyChapters', id] })
+      // 단일 쿼리(storyChapters)로 통합되어 한 번만 invalidate.
+      await queryClient.invalidateQueries({ queryKey: ['storyChapters', numericId] })
     } catch {
       // 오류 무시
     }
@@ -947,8 +959,7 @@ export default function ProjectDetail({
       setSelectionMode(false)
       setSelectedPhotoIds(new Set())
       setShowBulkChapterMenu(false)
-      await queryClient.invalidateQueries({ queryKey: ['chapterPhotos', numericId] })
-      queryClient.removeQueries({ queryKey: ['storyChapters', id] })
+      await queryClient.invalidateQueries({ queryKey: ['storyChapters', numericId] })
       showToast(t('story.addMultiplePhotoSuccess', { count }), 'success')
     } catch (error) {
       console.error('일괄 추가 실패', error)
@@ -1443,7 +1454,7 @@ export default function ProjectDetail({
                                     )
                                     try {
                                       await axios.post(`${API}/photos/${photo.id}/restore`)
-                                      queryClient.invalidateQueries({ queryKey: ['chapterPhotos', numericId] })
+                                      queryClient.invalidateQueries({ queryKey: ['storyChapters', numericId] })
                                     } catch (err: any) {
                                       queryClient.setQueryData(['photos', numericId], prevPhotos)
                                       queryClient.setQueryData(['photosTrash', numericId], prevTrash)
@@ -1507,7 +1518,7 @@ export default function ProjectDetail({
           activeTab={activeTab}
           allPhotos={photos.filter(p => !p.deleted_at)}
           chapterPhotoCount={chapterPhotoVersion}
-          onChapterChange={() => queryClient.invalidateQueries({ queryKey: ['chapterPhotos', numericId] })}
+          onChapterChange={() => queryClient.invalidateQueries({ queryKey: ['storyChapters', numericId] })}
         />
       </div>
 

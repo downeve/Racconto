@@ -32,7 +32,11 @@ interface EditTextAreaProps {
   value: string
   onChange: (v: string) => void
   onCancel: () => void
-  onSave: () => void
+  /**
+   * 저장 핸들러. overrideValue 는 textarea DOM 값을 직접 읽어 전달함.
+   * React state 가 IME commit 후 아직 re-render 되지 않은 상황에서도 최신 값을 보장.
+   */
+  onSave: (overrideValue?: string) => void | Promise<void>
   cancelLabel: string
   saveLabel: string
   padding?: string
@@ -45,9 +49,15 @@ function EditTextArea({ value, onChange, onCancel, onSave, cancelLabel, saveLabe
 
   const handleSave = async (e: React.MouseEvent) => {
     e.stopPropagation()
-    if (!canSave) return
+    if (saving) return
+    // ⚠️ React state(value)는 IME composition commit 직후 re-render 가 click 전에 끝난다고
+    // 보장할 수 없다 (긴 한글 텍스트일수록 reconciliation 비용 + 마이크로태스크 처리로 밀림).
+    // textarea DOM 의 value 는 onMouseDown 에서 호출된 blur() 의 compositionend cascade 로
+    // 이미 commit 되어 있으므로, DOM 을 직접 읽어 부모에 명시적으로 전달한다.
+    const domValue = (ref.current?.value ?? value).trim()
+    if (!domValue) return
     setSaving(true)
-    try { await onSave() } finally { setSaving(false) }
+    try { await onSave(domValue) } finally { setSaving(false) }
   }
 
   return (
@@ -68,8 +78,7 @@ function EditTextArea({ value, onChange, onCancel, onSave, cancelLabel, saveLabe
           {cancelLabel}
         </button>
         <button
-          // mousedown 에서 textarea blur → IME composition 즉시 종료 →
-          // compositionend → onChange → setState 반영 후 click 발화
+          // mousedown 에서 textarea blur → IME composition 즉시 종료. DOM value 동기화 보장.
           onMouseDown={() => ref.current?.blur()}
           onClick={handleSave}
           disabled={!canSave}
@@ -353,7 +362,7 @@ export interface SortableTextBlockProps {
   editingTextItemId?: string | null;
   textDraft?: string;
   onTextDraftChange?: (val: string) => void;
-  onSaveText?: () => void;
+  onSaveText?: (overrideValue?: string) => void | Promise<void>;
   onCancelEdit?: () => void;
   onSideBySide: (itemId: string, position: 'side-left' | 'side-right', direction: 'above' | 'below') => void
   onMoveBlock?: (direction: 'up' | 'down') => void
@@ -396,7 +405,7 @@ export const SortableTextBlock = memo(function SortableTextBlock({
             value={textDraft || ''}
             onChange={(v) => onTextDraftChange?.(v)}
             onCancel={() => onCancelEdit?.()}
-            onSave={() => onSaveText?.()}
+            onSave={(v) => onSaveText?.(v)}
             cancelLabel={t('common.cancel')}
             saveLabel={t('common.save')}
             padding="p-3"
@@ -745,7 +754,7 @@ export interface SortableSideBySideBlockProps {
   editingTextItemId?: string | null;
   textDraft?: string;
   onTextDraftChange?: (val: string) => void;
-  onSaveText?: () => void;
+  onSaveText?: (overrideValue?: string) => void | Promise<void>;
   onCancelEdit?: () => void;
 
   onEdit: (itemId: string, currentText: string) => void

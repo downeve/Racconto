@@ -50,11 +50,6 @@ export interface Project {
   linked_folders?: string[]
 }
 
-export interface ChapterPhotoResponse {
-  photo_id: string
-  chapter_id: string
-}
-
 export interface NoteResponse {
   id: string
   photo_id: string | null

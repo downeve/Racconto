@@ -313,6 +313,12 @@ function ProjectStory({
   const [editingChapter, setEditingChapter] = useState<string | null>(null)
   const [editTitle, setEditTitle] = useState('')
   const [editDesc, setEditDesc] = useState('')
+  // textarea/input DOM 직접 읽기용 refs — IME composition commit 직후 React state 가 아직
+  // re-render 되지 않은 상태에서도 최신 값을 보장 (StoryBlocks 의 EditTextArea 와 동일 패턴).
+  const newTitleRef = useRef<HTMLInputElement>(null)
+  const newDescRef = useRef<HTMLTextAreaElement>(null)
+  const editTitleRef = useRef<HTMLInputElement>(null)
+  const editDescRef = useRef<HTMLTextAreaElement>(null)
   const [confirmModal, setConfirmModal] = useState<{ message: string; onConfirm: () => void } | null>(null)
 
   const { t } = useTranslation()
@@ -416,6 +422,8 @@ function ProjectStory({
   }, [activeTab, projectId, queryClient])
 
   const invalidateStory = useCallback(() => {
+    // ProjectDetail 도 같은 ['storyChapters', projectId] 캐시를 공유하므로 단일 invalidate 로
+    // 양쪽 페이지 모두 갱신됨 (이전엔 별도 chapterPhotos 캐시도 함께 무효화했지만 통합 후 불필요).
     queryClient.invalidateQueries({ queryKey: ['storyChapters', projectId] })
   }, [queryClient, projectId])
 
@@ -489,13 +497,17 @@ function ProjectStory({
   }, [chapterPreviewOpen])
 
   const handleAddChapter = async () => {
-    if (!newTitle.trim()) return
+    // textarea/input DOM 의 값을 직접 읽어 IME race 에서 React state 가 stale 인 경우에도
+    // 최신 값으로 저장. ref 가 null 이면 state 로 fallback.
+    const title = (newTitleRef.current?.value ?? newTitle).trim()
+    const desc = newDescRef.current?.value ?? newDesc
+    if (!title) return
     // 편집 중인 텍스트 블록이 있다면 먼저 자동 저장
     await flushPendingTextEdit()
     await axios.post(`${API}/chapters/`, {
       project_id: projectId,
-      title: newTitle,
-      description: newDesc,
+      title,
+      description: desc,
       order_num: chapters.length,
       parent_id: addingSubChapterTo,
     })
@@ -507,11 +519,14 @@ function ProjectStory({
   }
 
   const handleUpdateChapter = async (chapter: Chapter) => {
+    const title = (editTitleRef.current?.value ?? editTitle).trim()
+    const desc = editDescRef.current?.value ?? editDesc
+    if (!title) return
     // 편집 중인 텍스트 블록이 있다면 먼저 자동 저장
     await flushPendingTextEdit()
     await axios.put(`${API}/chapters/${chapter.id}`, {
-      title: editTitle,
-      description: editDesc,
+      title,
+      description: desc,
       order_num: chapter.order_num,
       parent_id: chapter.parent_id,
       project_id: chapter.project_id,
@@ -807,11 +822,14 @@ function ProjectStory({
           ids.map(itemId => axios.delete(`${API}/chapters/${cid}/items/${itemId}`))
         )
       )
+      // 낙관적 setChapterPhotos 로 Story 탭 UI 는 즉시 갱신되지만, ProjectDetail 의
+      // chapterPhotoIds 도 같은 storyChapters 캐시에서 derive 하므로 invalidate 로 동기화.
+      queryClient.invalidateQueries({ queryKey: ['storyChapters', projectId] })
     } catch (err) {
       console.error('일괄 삭제 실패:', err)
       Object.keys(byChapter).forEach(cid => fetchChapterPhotos(cid))
     }
-  }, [selectedItemIds, setChapterPhotos, fetchChapterPhotos])
+  }, [selectedItemIds, setChapterPhotos, fetchChapterPhotos, queryClient, projectId])
 
   // 0-4: 일괄 이동
   const handleBulkMove = useCallback(async (
@@ -971,6 +989,7 @@ function ProjectStory({
             <div className="pb-4">
               <p className="t-eyebrow text-edit-muted mb-2">{t('project.labelTitle')}<span className="text-edit-danger ml-1">*</span></p>
               <input
+                ref={newTitleRef}
                 className="w-full font-serif text-body bg-transparent border-0 border-b border-edit-line
                            focus:border-edit-ink focus:outline-none py-2 transition-colors duration-150
                            placeholder:text-edit-faint"
@@ -989,7 +1008,7 @@ function ProjectStory({
                 placeholder={t('story.chapterDescription')}
                 rows={1}
                 value={newDesc}
-                ref={el => { if (el) { el.style.height = 'auto'; el.style.height = `${Math.max(el.scrollHeight, 72)}px` } }}
+                ref={el => { newDescRef.current = el; if (el) { el.style.height = 'auto'; el.style.height = `${Math.max(el.scrollHeight, 72)}px` } }}
                 onInput={e => { const el = e.currentTarget; el.style.height = 'auto'; el.style.height = `${Math.max(el.scrollHeight, 72)}px` }}
                 onChange={e => setNewDesc(e.target.value)}
               />
@@ -1091,6 +1110,7 @@ function ProjectStory({
                       <div className="pb-4">
                         <p className="t-eyebrow text-edit-muted mb-2">{t('project.labelTitle')}<span className="text-edit-danger ml-1">*</span></p>
                         <input
+                          ref={editTitleRef}
                           className="w-full font-serif text-body bg-transparent border-0 border-b border-edit-line
                                      focus:border-edit-ink focus:outline-none py-2 transition-colors duration-150
                                      placeholder:text-edit-faint"
@@ -1107,7 +1127,7 @@ function ProjectStory({
                                      placeholder:text-edit-faint"
                           rows={1}
                           value={editDesc}
-                          ref={el => { if (el) { el.style.height = 'auto'; el.style.height = `${el.scrollHeight}px` } }}
+                          ref={el => { editDescRef.current = el; if (el) { el.style.height = 'auto'; el.style.height = `${el.scrollHeight}px` } }}
                           onInput={e => { const el = e.currentTarget; el.style.height = 'auto'; el.style.height = `${el.scrollHeight}px` }}
                           onChange={e => setEditDesc(e.target.value)}
                         />
@@ -1140,6 +1160,7 @@ function ProjectStory({
                     <div className="pb-4">
                       <p className="t-eyebrow text-edit-muted mb-2">{t('project.labelTitle')}<span className="text-edit-danger ml-1">*</span></p>
                       <input
+                        ref={newTitleRef}
                         className="w-full font-serif text-body bg-transparent border-0 border-b border-edit-line
                                    focus:border-edit-ink focus:outline-none py-2 transition-colors duration-150
                                    placeholder:text-edit-faint"
@@ -1158,7 +1179,7 @@ function ProjectStory({
                         placeholder={t('story.chapterDescription')}
                         rows={1}
                         value={newDesc}
-                        ref={el => { if (el) { el.style.height = 'auto'; el.style.height = `${el.scrollHeight}px` } }}
+                        ref={el => { newDescRef.current = el; if (el) { el.style.height = 'auto'; el.style.height = `${el.scrollHeight}px` } }}
                         onInput={e => { const el = e.currentTarget; el.style.height = 'auto'; el.style.height = `${el.scrollHeight}px` }}
                         onChange={e => setNewDesc(e.target.value)}
                       />
@@ -1264,6 +1285,7 @@ function ProjectStory({
                               <div className="pb-4">
                                 <p className="t-eyebrow text-edit-muted mb-2">{t('project.labelTitle')}<span className="text-edit-danger ml-1">*</span></p>
                                 <input
+                                  ref={editTitleRef}
                                   className="w-full font-serif text-body bg-transparent border-0 border-b border-edit-line
                                              focus:border-edit-ink focus:outline-none py-2 transition-colors duration-150
                                              placeholder:text-edit-faint"
@@ -1275,6 +1297,7 @@ function ProjectStory({
                               <div className="py-4">
                                 <p className="t-eyebrow text-edit-muted mb-2">{t('project.labelDescription')}</p>
                                 <textarea
+                                  ref={editDescRef}
                                   className="w-full font-serif text-body bg-transparent border-0 border-b border-edit-line
                                              focus:border-edit-ink focus:outline-none py-2 resize-none transition-colors duration-150
                                              placeholder:text-edit-faint"

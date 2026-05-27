@@ -81,6 +81,7 @@ export default function PhotoLibraryPanel({
       await axios.post(`${API}/chapters/${selectedChapterId}/photos/bulk`, {
         photo_ids: Array.from(selectedIds),
       })
+      // 단일 쿼리(storyChapters)로 통합되어 한 번만 invalidate 하면 양쪽 페이지 모두 갱신.
       queryClient.invalidateQueries({ queryKey: ['storyChapters', projectId] })
       setSelectedIds(new Set())
     } finally {
