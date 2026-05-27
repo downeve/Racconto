@@ -825,11 +825,16 @@ function ProjectStory({
           ids.map(itemId => axios.delete(`${API}/chapters/${cid}/items/${itemId}`))
         )
       )
+      // 낙관적 setChapterPhotos 로 Story 탭 UI 는 즉시 갱신되지만, ProjectDetail 의
+      // chapterPhotoIds 캐시 (`['chapterPhotos', projectId]`) 는 별도 무효화 필요.
+      // 누락 시 Detail 탭의 '챕터에 사진 추가' 모드에서 방금 삭제된 사진이 stale 한
+      // '회색 처리(이미 포함)' 상태로 노출됨.
+      queryClient.invalidateQueries({ queryKey: ['chapterPhotos', projectId] })
     } catch (err) {
       console.error('일괄 삭제 실패:', err)
       Object.keys(byChapter).forEach(cid => fetchChapterPhotos(cid))
     }
-  }, [selectedItemIds, setChapterPhotos, fetchChapterPhotos])
+  }, [selectedItemIds, setChapterPhotos, fetchChapterPhotos, queryClient, projectId])
 
   // 0-4: 일괄 이동
   const handleBulkMove = useCallback(async (
