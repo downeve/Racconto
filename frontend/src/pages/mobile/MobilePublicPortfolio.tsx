@@ -141,7 +141,9 @@ export default function MobilePublicPortfolio() {
 
   const goBackToList = () => {
     if (slug) {
-      navigate(`/${username}`)
+      // 진입 경로 referrer 가 있으면 그쪽으로 (예: /explore), 없으면 유저 포트폴리오 목록
+      const from = (location.state as { from?: string } | null)?.from
+      navigate(from ?? `/${username}`)
     } else {
       setLocalSelectedProject(null)
       window.scrollTo(0, 0)

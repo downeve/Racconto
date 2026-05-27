@@ -123,8 +123,9 @@ export default function MobileExplore() {
 
   return (
     <div className="min-h-screen bg-canvas text-ink">
-      {!isAuthenticated && <PublicNavbar compactLogo />}
-      <main className={`px-5 pb-16 ${isAuthenticated ? 'pt-6' : 'pt-20'}`}>
+      {/* 모바일은 자체 Navbar 없음 — 인증 여부와 무관하게 PublicNavbar 로 메인 이동 경로 제공 */}
+      <PublicNavbar compactLogo />
+      <main className="px-5 pb-16 pt-20">
         <PortfolioListBanner
           eyebrow={t('explore.eyebrow', 'Discover')}
           title={t('explore.title', 'Photographers')}
@@ -215,7 +216,7 @@ export default function MobileExplore() {
                 <p className="t-eyebrow text-faint mb-3">{t('explore.searchUsers', 'Photographers')}</p>
                 <div className="grid grid-cols-3 gap-x-3 gap-y-6">
                   {searchResults.users.map(u => (
-                    <Link key={u.username} to={`/${u.username}`} className="block">
+                    <Link key={u.username} to={`/${u.username}`} state={{ from: '/explore' }} className="block">
                       <div className="aspect-square overflow-hidden bg-[oklch(0.92_0.012_75)]">
                         {u.cover_image_url && (
                           <img
@@ -243,6 +244,7 @@ export default function MobileExplore() {
                       key={item.id}
                       mode="explore"
                       href={cardHref(item)}
+                      linkState={{ from: '/explore' }}
                       coverImageUrl={item.cover_image_url}
                       title={item.title}
                       author={item.author.username ?? undefined}
@@ -272,6 +274,7 @@ export default function MobileExplore() {
                 key={item.id}
                 mode="explore"
                 href={cardHref(item)}
+                linkState={{ from: '/explore' }}
                 coverImageUrl={item.cover_image_url}
                 title={item.title}
                 author={item.author.username ?? undefined}
