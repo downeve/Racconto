@@ -209,8 +209,9 @@ export default function MobilePublicPortfolio() {
   return (
     <div className={`min-h-screen ${bg}`}>
 
-      {/* Navbar */}
-      {!isAuthenticated && (
+      {/* Navbar — 모바일은 자체 Navbar 없어 인증 여부 무관 PublicNavbar 노출.
+          단 detail 화면에서는 floating back 버튼이 있으므로 기존 동작(비로그인만) 유지. */}
+      {(!selectedProject || !isAuthenticated) && (
         <PublicNavbar
           username={username}
           darkMode={darkMode}
@@ -230,21 +231,27 @@ export default function MobilePublicPortfolio() {
         </div>
       )}
 
-      {/* floating back button (상세 화면) */}
-      {selectedProject && (
-        <button
-          onClick={goBackToList}
-          className={`fixed left-3 z-20 w-9 h-9 rounded-full border flex items-center justify-center
-                      ${darkMode
-                        ? 'bg-d-bg/85 border-d-line'
-                        : 'bg-canvas/85 border-hair/60'}
-                      backdrop-blur-md`}
-          style={{ top: 'calc(env(safe-area-inset-top) + 14px)' }}
-          aria-label="뒤로 가기"
-        >
-          <ChevronLeft size={16} strokeWidth={1.5} />
-        </button>
-      )}
+      {/* floating back button (상세 화면)
+          referrer 가 /explore 면 텍스트 라벨 동봉해 복귀 위치 명시. 그 외엔 기존 원형 아이콘. */}
+      {selectedProject && (() => {
+        const fromExplore = (location.state as { from?: string } | null)?.from === '/explore'
+        const baseTheme = darkMode ? 'bg-d-bg/85 border-d-line' : 'bg-canvas/85 border-hair/60'
+        return (
+          <button
+            onClick={goBackToList}
+            className={
+              fromExplore
+                ? `fixed left-3 z-20 h-9 px-3 inline-flex items-center gap-1 rounded-full border text-small ${baseTheme} backdrop-blur-md`
+                : `fixed left-3 z-20 w-9 h-9 rounded-full border flex items-center justify-center ${baseTheme} backdrop-blur-md`
+            }
+            style={{ top: 'calc(env(safe-area-inset-top) + 14px)' }}
+            aria-label={fromExplore ? t('explore.menu') : '뒤로 가기'}
+          >
+            <ChevronLeft size={16} strokeWidth={1.5} />
+            {fromExplore && <span>{t('explore.menu')}</span>}
+          </button>
+        )
+      })()}
 
       {/* 우측 dot-rail (챕터 점프, 상세 화면) */}
       {selectedProject && selectedProject.chapters.length > 1 && (

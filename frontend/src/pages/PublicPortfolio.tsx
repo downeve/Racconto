@@ -391,17 +391,21 @@ export default function PublicPortfolio() {
         <div className={`mx-auto px-6 h-10 flex items-center justify-between ${
           selectedProject || slug ? 'max-w-4xl' : 'max-w-4xl xl:max-w-6xl'
         }`}>
-          {selectedProject ? (
-            <button
-              onClick={goBackToList}
-              className={`hidden md:flex items-center gap-1 text-small hover:opacity-70 transition-opacity ${subText}`}
-            >
-              <ChevronLeft size={14} strokeWidth={1.5} />
-              <span>@{username}</span>
-              <span className="mx-0.5 opacity-40">/</span>
-              <span className={darkMode ? 'text-hair' : 'text-ink-2'}>{selectedProject.title}</span>
-            </button>
-          ) : (
+          {selectedProject ? (() => {
+            // referrer 가 /explore 면 breadcrumb 첫 세그먼트를 'Explore' 로 표시해 복귀 위치 명시
+            const fromExplore = (location.state as { from?: string } | null)?.from === '/explore'
+            return (
+              <button
+                onClick={goBackToList}
+                className={`hidden md:flex items-center gap-1 text-small hover:opacity-70 transition-opacity ${subText}`}
+              >
+                <ChevronLeft size={14} strokeWidth={1.5} />
+                <span>{fromExplore ? t('explore.menu') : `@${username}`}</span>
+                <span className="mx-0.5 opacity-40">/</span>
+                <span className={darkMode ? 'text-hair' : 'text-ink-2'}>{selectedProject.title}</span>
+              </button>
+            )
+          })() : (
             <div className="hidden md:block" />
           )}
           <div className="md:hidden" />
