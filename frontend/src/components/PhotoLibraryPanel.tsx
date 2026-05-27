@@ -81,11 +81,8 @@ export default function PhotoLibraryPanel({
       await axios.post(`${API}/chapters/${selectedChapterId}/photos/bulk`, {
         photo_ids: Array.from(selectedIds),
       })
-      // Story 페이지 캐시 + ProjectDetail 의 chapterPhotoIds 계산용 캐시 모두 무효화.
-      // 후자 누락 시 ProjectDetail '챕터에 사진 추가' 모드에서 방금 추가된 사진이
-      // '미포함' 상태로 보이는 stale 캐시 문제 발생.
+      // 단일 쿼리(storyChapters)로 통합되어 한 번만 invalidate 하면 양쪽 페이지 모두 갱신.
       queryClient.invalidateQueries({ queryKey: ['storyChapters', projectId] })
-      queryClient.invalidateQueries({ queryKey: ['chapterPhotos', projectId] })
       setSelectedIds(new Set())
     } finally {
       setAdding(false)

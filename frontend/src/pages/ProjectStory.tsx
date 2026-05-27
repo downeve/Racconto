@@ -422,15 +422,12 @@ function ProjectStory({
   }, [activeTab, projectId, queryClient])
 
   const invalidateStory = useCallback(() => {
+    // ProjectDetail 도 같은 ['storyChapters', projectId] 캐시를 공유하므로 단일 invalidate 로
+    // 양쪽 페이지 모두 갱신됨 (이전엔 별도 chapterPhotos 캐시도 함께 무효화했지만 통합 후 불필요).
     queryClient.invalidateQueries({ queryKey: ['storyChapters', projectId] })
-    // ProjectDetail 의 chapterPhotoIds 계산용 캐시 (`/chapters/all-photo-ids`) 도 같이 무효화.
-    // photo↔chapter 매핑이 바뀌는 모든 mutation 에서 ProjectDetail 의 '챕터에 사진 추가' 모드가
-    // stale 한 chapterPhotoIds 로 사진을 '미포함' 처리하던 문제 방지.
-    queryClient.invalidateQueries({ queryKey: ['chapterPhotos', projectId] })
   }, [queryClient, projectId])
 
   const fetchChapterPhotos = useCallback((_chapterId: string): Promise<void> => {
-    queryClient.invalidateQueries({ queryKey: ['chapterPhotos', projectId] })
     return queryClient.invalidateQueries({ queryKey: ['storyChapters', projectId] })
   }, [queryClient, projectId])
 
@@ -826,10 +823,8 @@ function ProjectStory({
         )
       )
       // 낙관적 setChapterPhotos 로 Story 탭 UI 는 즉시 갱신되지만, ProjectDetail 의
-      // chapterPhotoIds 캐시 (`['chapterPhotos', projectId]`) 는 별도 무효화 필요.
-      // 누락 시 Detail 탭의 '챕터에 사진 추가' 모드에서 방금 삭제된 사진이 stale 한
-      // '회색 처리(이미 포함)' 상태로 노출됨.
-      queryClient.invalidateQueries({ queryKey: ['chapterPhotos', projectId] })
+      // chapterPhotoIds 도 같은 storyChapters 캐시에서 derive 하므로 invalidate 로 동기화.
+      queryClient.invalidateQueries({ queryKey: ['storyChapters', projectId] })
     } catch (err) {
       console.error('일괄 삭제 실패:', err)
       Object.keys(byChapter).forEach(cid => fetchChapterPhotos(cid))
