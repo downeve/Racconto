@@ -271,7 +271,14 @@ function StoryChapterComponent({
 
   const handleInnerDragEnd = useCallback((event: DragEndEvent, blockId: string) => {
     const { active, over } = event
-    if (!over || active.id === over.id) return
+    if (!over || active.id === over.id) {
+      // silent return 이라도 React 재렌더를 강제해야 useSortable 이 inline transform 을 0 으로
+      // 재계산함. 그렇지 않으면 블록 안에서 자리 비켜주던 다른 사진들의 잔여 transform 이
+      // 남아 자식 element(체크박스/드래그 핸들)의 위치가 시프트된 상태로 인지됨.
+      // (사진이 3행 이상 많을수록 누적 변위가 커서 가시화됨)
+      setChapterPhotos(prev => ({ ...prev }))
+      return
+    }
 
     const activeId = String(active.id)
     const overId = String(over.id)
