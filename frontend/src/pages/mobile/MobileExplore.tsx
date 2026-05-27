@@ -6,7 +6,6 @@ import axios from 'axios'
 import PublicNavbar from '../../components/PublicNavbar'
 import PortfolioListCard from '../../components/PortfolioListCard'
 import PortfolioListBanner from '../../components/PortfolioListBanner'
-import { useAuth } from '../../context/AuthContext'
 import { useDebounce } from '../../hooks/useDebounce'
 import { CAMERA_TYPES, type CameraType } from '../../constants/tags'
 import { cfUrl } from '../../utils/cfImage'
@@ -45,7 +44,6 @@ interface SearchResponse {
 
 export default function MobileExplore() {
   const { t } = useTranslation()
-  const { isAuthenticated } = useAuth()
   const [items, setItems] = useState<ExploreItem[]>([])
   const [cursor, setCursor] = useState<string | null>(null)
   const [hasMore, setHasMore] = useState(true)
