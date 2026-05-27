@@ -11,6 +11,8 @@ import ResetPassword from './pages/ResetPassword'
 const MobileAppInfo          = lazy(() => import('./pages/MobileAppInfo'))
 const MobileLandingPage      = lazy(() => import('./pages/MobileLandingPage'))
 const MobilePublicPortfolio  = lazy(() => import('./pages/mobile/MobilePublicPortfolio'))
+const MobileExplore          = lazy(() => import('./pages/mobile/MobileExplore'))
+const MobileFeaturesPage     = lazy(() => import('./pages/MobileFeaturesPage'))
 const AppDownload            = lazy(() => import('./pages/AppDownload'))
 
 function MobileSocialCallback() {
@@ -67,6 +69,10 @@ export default function MobileInfoApp() {
           <Route path="/auth/social-callback" element={<MobileSocialCallback />} />
           <Route path="/mobile-app-info" element={<MobileAppInfo />} />
           <Route path="/download" element={<AppDownload />} />
+          {/* /:username 패턴이 단일 segment 를 잡아먹어 /explore, /features 가 portfolio 404 로 흘러가는
+              회귀를 막기 위해 명시적으로 위에 둠. */}
+          <Route path="/explore" element={<MobileExplore />} />
+          <Route path="/features" element={<MobileFeaturesPage />} />
           <Route path="/:username" element={<MobilePublicPortfolio />} />
           <Route path="/:username/:slug" element={<MobilePublicPortfolio />} />
           <Route path="*" element={<MobileLandingPage />} />
