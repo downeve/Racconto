@@ -423,9 +423,14 @@ function ProjectStory({
 
   const invalidateStory = useCallback(() => {
     queryClient.invalidateQueries({ queryKey: ['storyChapters', projectId] })
+    // ProjectDetail 의 chapterPhotoIds 계산용 캐시 (`/chapters/all-photo-ids`) 도 같이 무효화.
+    // photo↔chapter 매핑이 바뀌는 모든 mutation 에서 ProjectDetail 의 '챕터에 사진 추가' 모드가
+    // stale 한 chapterPhotoIds 로 사진을 '미포함' 처리하던 문제 방지.
+    queryClient.invalidateQueries({ queryKey: ['chapterPhotos', projectId] })
   }, [queryClient, projectId])
 
   const fetchChapterPhotos = useCallback((_chapterId: string): Promise<void> => {
+    queryClient.invalidateQueries({ queryKey: ['chapterPhotos', projectId] })
     return queryClient.invalidateQueries({ queryKey: ['storyChapters', projectId] })
   }, [queryClient, projectId])
 
