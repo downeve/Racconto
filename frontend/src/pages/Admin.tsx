@@ -468,6 +468,8 @@ const EmailTemplatesSection = () => {
   const [draft, setDraft] = useState<TemplateFields>({})
   const [saving, setSaving] = useState(false)
   const [toast, setToast] = useState<{ message: string; ok: boolean } | null>(null)
+  // 필드 input/textarea DOM 직접 읽기용 — 한글 IME composition 후 React state 가 stale 인 race 방지
+  const fieldRefs = useRef<Record<string, HTMLInputElement | HTMLTextAreaElement | null>>({})
 
   const showToast = (message: string, ok: boolean) => {
     setToast({ message, ok })
@@ -498,8 +500,14 @@ const EmailTemplatesSection = () => {
 
   const handleSave = async () => {
     setSaving(true)
+    // input/textarea DOM 우선 읽기 (IME race 방지) — React state 가 아직 commit 안 됐어도 최신 값
+    const payload: TemplateFields = { ...draft }
+    for (const k of Object.keys(payload) as (keyof TemplateFields)[]) {
+      const el = fieldRefs.current[k as string]
+      if (el) payload[k] = el.value
+    }
     try {
-      await adminAxios.put(`${API}/racconto-admin/email-templates/${selectedKey}/${selectedLang}`, draft)
+      await adminAxios.put(`${API}/racconto-admin/email-templates/${selectedKey}/${selectedLang}`, payload)
       await fetchTemplates()
       showToast('저장되었습니다.', true)
     } catch {
@@ -562,6 +570,7 @@ const EmailTemplatesSection = () => {
                 <p className="t-eyebrow text-edit-muted mb-1">{FIELD_LABEL[field]}</p>
                 {MULTILINE_FIELDS.has(field) ? (
                   <textarea
+                    ref={el => { fieldRefs.current[field as string] = el }}
                     value={draft[field] ?? ''}
                     onChange={e => setDraft(d => ({ ...d, [field]: e.target.value }))}
                     rows={3}
@@ -572,6 +581,7 @@ const EmailTemplatesSection = () => {
                   />
                 ) : (
                   <input
+                    ref={el => { fieldRefs.current[field as string] = el }}
                     type="text"
                     value={draft[field] ?? ''}
                     onChange={e => setDraft(d => ({ ...d, [field]: e.target.value }))}
@@ -597,6 +607,11 @@ const EmailTemplatesSection = () => {
 
           <div className="mt-5">
             <button
+              onMouseDown={() => {
+                // 한글 IME composition 즉시 commit — 포커스된 input/textarea blur
+                const el = document.activeElement
+                if (el instanceof HTMLElement && (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA')) el.blur()
+              }}
               onClick={handleSave}
               disabled={saving}
               className="inline-flex items-center gap-2 t-caption px-5 py-2.5
