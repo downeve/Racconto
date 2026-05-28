@@ -597,17 +597,18 @@ export default function ProjectDetail({
     setIsDragOver(false)
     if (uploading || activeTab !== 'photos' || !numericId) return
 
+    // webkitGetAsEntry() 는 drop 핸들러의 동기 실행 중에만 유효 — 첫 await 이후
+    // dataTransfer.items 가 비워진다. 따라서 entry 들을 await 이전에 동기적으로 전부 확보한다.
     const items = Array.from(e.dataTransfer.items)
-    const hasFolder = items.some(it => {
-      const entry = (it as any).webkitGetAsEntry?.()
-      return entry?.isDirectory
-    })
+    const entries = items
+      .filter(it => it.kind === 'file')
+      .map(it => (it as any).webkitGetAsEntry?.())
+      .filter(Boolean)
+
+    const hasFolder = entries.some((entry: any) => entry.isDirectory)
 
     const collected: File[] = []
-    for (const item of items) {
-      if (item.kind !== 'file') continue
-      const entry = (item as any).webkitGetAsEntry?.()
-      if (!entry) continue
+    for (const entry of entries) {
       collected.push(...(await collectFilesFromEntry(entry, '')))
     }
     confirmAndUpload(collected, hasFolder ? 'folder' : 'photo')
