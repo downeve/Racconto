@@ -50,7 +50,25 @@ function EditTextArea({ defaultValue, onCancel, onSave, cancelLabel, saveLabel, 
 
   // 🔧 임시 디버그 패널 — 빌드가 console 을 제거하므로 화면에 직접 이벤트 순서를 표시.
   const [dbg, setDbg] = useState<string[]>([])
-  const log = (m: string) => setDbg(d => [...d.slice(-16), `${Date.now() % 100000} ${m}`])
+  const logRef = useRef<(m: string) => void>(() => {})
+  const log = (m: string) => setDbg(d => [...d.slice(-18), `${Date.now() % 100000} ${m}`])
+  logRef.current = log
+  const tag = (el: EventTarget | null) => {
+    const e = el as HTMLElement | null
+    return e ? (e.tagName + (e.id ? '#' + e.id : '') + (e.tagName === 'BUTTON' ? `(${(e as HTMLButtonElement).type})` : '')) : 'null'
+  }
+
+  // document 레벨 캡처로 첫 클릭이 JS 에 도달하는지 관측 (버튼 핸들러가 안 떠도 캡처는 받을 수 있음)
+  useEffect(() => {
+    const onPD = (ev: PointerEvent) => logRef.current('doc pointerdown ' + tag(ev.target))
+    const onMD = (ev: MouseEvent) => logRef.current('doc mousedown ' + tag(ev.target))
+    document.addEventListener('pointerdown', onPD, true)
+    document.addEventListener('mousedown', onMD, true)
+    return () => {
+      document.removeEventListener('pointerdown', onPD, true)
+      document.removeEventListener('mousedown', onMD, true)
+    }
+  }, [])
 
   // 최신 onSave 를 flush/저장 시점에 읽기 위한 ref (closure 고정 방지)
   const onSaveRef = useRef(onSave)
@@ -106,6 +124,7 @@ function EditTextArea({ defaultValue, onCancel, onSave, cancelLabel, saveLabel, 
         onInput={e => { const t = e.currentTarget; t.style.height = 'auto'; t.style.height = t.scrollHeight + 'px' }}
         onCompositionStart={() => { isComposingRef.current = true; log('compositionstart') }}
         onCompositionEnd={(e) => { isComposingRef.current = false; log('compositionend v=' + JSON.stringify(e.currentTarget.value)) }}
+        onBlur={(e) => log('ta blur rt=' + tag(e.relatedTarget) + ' v=' + JSON.stringify(e.currentTarget.value))}
         defaultValue={defaultValue}
         autoFocus
       />
