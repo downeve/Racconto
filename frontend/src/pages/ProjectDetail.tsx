@@ -530,6 +530,12 @@ export default function ProjectDetail({
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeTab, filterFolder, filterRating, filterColor, sortBy])
 
+  // 탭(사진/스토리/노트) 전환 시 화면 최상단부터 시작.
+  // 탭은 display:none 토글이라 언마운트되지 않아 스크롤 위치가 유지되므로 명시적으로 초기화.
+  useEffect(() => {
+    window.scrollTo(0, 0)
+  }, [activeTab])
+
   const handleUpload = (e: React.ChangeEvent<HTMLInputElement>, type: 'photo' | 'folder') => {
     if (!e.target.files || !numericId) return
     const inputEl = e.target
