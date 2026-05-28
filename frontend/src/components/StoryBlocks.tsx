@@ -60,14 +60,16 @@ function EditTextArea({ defaultValue, onCancel, onSave, cancelLabel, saveLabel, 
 
   // document 레벨 캡처로 첫 클릭이 JS 에 도달하는지 관측 (버튼 핸들러가 안 떠도 캡처는 받을 수 있음)
   useEffect(() => {
-    const onPD = (ev: PointerEvent) => logRef.current('doc pointerdown ' + tag(ev.target))
-    const onMD = (ev: MouseEvent) => logRef.current('doc mousedown ' + tag(ev.target))
-    document.addEventListener('pointerdown', onPD, true)
-    document.addEventListener('mousedown', onMD, true)
-    return () => {
-      document.removeEventListener('pointerdown', onPD, true)
-      document.removeEventListener('mousedown', onMD, true)
-    }
+    const mk = (name: string) => (ev: Event) => logRef.current(`doc ${name} ` + tag(ev.target))
+    const handlers: [string, (ev: Event) => void][] = [
+      ['pointerdown', mk('pointerdown')],
+      ['mousedown', mk('mousedown')],
+      ['pointerup', mk('pointerup')],
+      ['mouseup', mk('mouseup')],
+      ['click', mk('click')],
+    ]
+    handlers.forEach(([n, h]) => document.addEventListener(n, h, true))
+    return () => handlers.forEach(([n, h]) => document.removeEventListener(n, h, true))
   }, [])
 
   // 최신 onSave 를 flush/저장 시점에 읽기 위한 ref (closure 고정 방지)
