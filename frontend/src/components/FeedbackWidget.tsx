@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
+import { imeSafeClick } from '../utils/imeSafeClick';
 
 declare const __APP_VERSION__: string;
 
@@ -142,9 +143,8 @@ export default function FeedbackWidget() {
             />
 
             <button
-              onMouseDown={() => feedbackRef.current?.blur()}
-              onClick={handleSubmit}
-              disabled={status === 'loading' || status === 'success' || !feedback.trim()}
+              {...imeSafeClick(handleSubmit)}
+              disabled={status === 'loading' || status === 'success'}
               className="w-full py-2.5 bg-ink text-card text-sm font-semibold rounded-btn hover:bg-ink-2 disabled:bg-faint transition-[background,color,border] duration-150 ease-out"
             >
               {status === 'idle' && t('feedback.send')}

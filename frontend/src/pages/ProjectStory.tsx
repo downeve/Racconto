@@ -18,7 +18,7 @@ import {
   sortableKeyboardCoordinates,
 } from '@dnd-kit/sortable';
 import { StoryChapter } from './story/StoryChapter'
-import { blurActiveInput } from '../utils/blurActiveInput'
+import { imeSafeClick } from '../utils/imeSafeClick'
 import { flushPendingTextEdit } from '../utils/pendingTextEdit'
 import PhotoLibraryPanel from '../components/PhotoLibraryPanel'
 import StoryLightbox from './story/StoryLightbox'
@@ -1019,9 +1019,7 @@ function ProjectStory({
                 className="t-caption px-4 py-2 text-edit-muted hover:text-edit-ink transition-colors"
               >{t('common.cancel')}</button>
               <button
-                onMouseDown={blurActiveInput}
-                onClick={handleAddChapter}
-                disabled={!newTitle.trim()}
+                {...imeSafeClick(handleAddChapter)}
                 className="t-caption px-5 py-2 bg-edit-ink text-edit-paper rounded-[1px]
                            hover:bg-edit-ink/85 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
               >{t('common.add')}</button>
@@ -1138,9 +1136,7 @@ function ProjectStory({
                           className="t-caption px-4 py-2 text-edit-muted hover:text-edit-ink transition-colors"
                         >{t('common.cancel')}</button>
                         <button
-                          onMouseDown={blurActiveInput}
-                          onClick={() => handleUpdateChapter(chapter)}
-                          disabled={!editTitle.trim()}
+                          {...imeSafeClick(() => handleUpdateChapter(chapter))}
                           className="t-caption px-5 py-2 bg-edit-ink text-edit-paper rounded-[1px]
                                      hover:bg-edit-ink/85 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
                         >{t('common.save')}</button>
@@ -1190,9 +1186,7 @@ function ProjectStory({
                         className="t-caption px-4 py-2 text-edit-muted hover:text-edit-ink transition-colors"
                       >{t('common.cancel')}</button>
                       <button
-                        onMouseDown={blurActiveInput}
-                        onClick={handleAddChapter}
-                        disabled={!newTitle.trim()}
+                        {...imeSafeClick(handleAddChapter)}
                         className="t-caption px-5 py-2 bg-edit-ink text-edit-paper rounded-[1px]
                                    hover:bg-edit-ink/85 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
                       >{t('common.add')}</button>
@@ -1312,9 +1306,7 @@ function ProjectStory({
                                   className="t-caption px-4 py-2 text-edit-muted hover:text-edit-ink transition-colors"
                                 >{t('common.cancel')}</button>
                                 <button
-                                  onMouseDown={blurActiveInput}
-                                  onClick={() => handleUpdateChapter(subChapter)}
-                                  disabled={!editTitle.trim()}
+                                  {...imeSafeClick(() => handleUpdateChapter(subChapter))}
                                   className="t-caption px-5 py-2 bg-edit-ink text-edit-paper rounded-[1px]
                                              hover:bg-edit-ink/85 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
                                 >{t('common.save')}</button>

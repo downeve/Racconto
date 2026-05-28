@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
 import { useNavigate } from 'react-router-dom'
+import { imeSafeClick } from '../utils/imeSafeClick'
 import axios from 'axios'
 import {
   Search, Trash2, X, Pencil, Megaphone, Mail,
@@ -607,12 +608,7 @@ const EmailTemplatesSection = () => {
 
           <div className="mt-5">
             <button
-              onMouseDown={() => {
-                // 한글 IME composition 즉시 commit — 포커스된 input/textarea blur
-                const el = document.activeElement
-                if (el instanceof HTMLElement && (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA')) el.blur()
-              }}
-              onClick={handleSave}
+              {...imeSafeClick(handleSave)}
               disabled={saving}
               className="inline-flex items-center gap-2 t-caption px-5 py-2.5
                          bg-edit-ink text-edit-paper rounded-[1px]

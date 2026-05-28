@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import axios from 'axios'
+import { imeSafeClick } from '../utils/imeSafeClick'
 import MarkdownRenderer from './MarkdownRenderer'
 import { useTranslation } from 'react-i18next'
 import { FileText } from 'lucide-react'
@@ -153,8 +154,7 @@ export default function PhotoNotePanel({
                       />
                       <div className="flex gap-2">
                         <button
-                          onMouseDown={() => editContentRef.current?.blur()}
-                          onClick={() => handleUpdate(note.id)}
+                          {...imeSafeClick(() => handleUpdate(note.id))}
                           className="px-3 py-1 text-xs bg-stone-700 text-white rounded hover:bg-stone-800"
                         >
                           {t('common.save')}
@@ -231,9 +231,7 @@ export default function PhotoNotePanel({
           />
           <div className="flex justify-end">
             <button
-              onMouseDown={() => newContentRef.current?.blur()}
-              onClick={handleAdd}
-              disabled={!newContent.trim()}
+              {...imeSafeClick(handleAdd)}
               className="px-4 py-1.5 text-xs bg-stone-700 text-white rounded hover:bg-stone-800 disabled:opacity-40"
             >
               {t('note.addNote')}

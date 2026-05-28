@@ -3,7 +3,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { createPortal } from 'react-dom'
 import axios from 'axios'
 import MarkdownRenderer from '../components/MarkdownRenderer'
-import { blurActiveInput } from '../utils/blurActiveInput'
+import { imeSafeClick } from '../utils/imeSafeClick'
 import { useTranslation } from 'react-i18next'
 import ConfirmModal from '../components/ConfirmModal'
 import { Pencil, Eye, Pin } from 'lucide-react'
@@ -194,9 +194,7 @@ const NoteItem = memo(function NoteItem({
           )}
           <div className="flex gap-2 mt-3">
             <button
-              onMouseDown={blurActiveInput}
-              onClick={() => handleUpdate(note.id)}
-              disabled={!editContent.trim()}
+              {...imeSafeClick(() => handleUpdate(note.id))}
               className="t-caption px-4 py-1.5 bg-edit-ink text-edit-paper rounded-[1px] hover:bg-edit-ink/85 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
             >
               {t('note.saveNote')}
@@ -491,9 +489,7 @@ function ProjectNotes({
 
           <div className="flex justify-end mt-3">
             <button
-              onMouseDown={blurActiveInput}
-              onClick={handleAdd}
-              disabled={!newContent.trim()}
+              {...imeSafeClick(handleAdd)}
               className="t-caption px-4 py-1.5 bg-edit-ink text-edit-paper rounded-[1px] hover:bg-edit-ink/85 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
             >
               {t('note.addNote')}

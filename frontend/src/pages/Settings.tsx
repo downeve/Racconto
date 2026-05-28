@@ -4,6 +4,7 @@ import axios from 'axios'
 import { useTranslation } from 'react-i18next'
 import FolderProjectMapper from '../components/FolderProjectMapper'
 import { useAuth } from '../context/AuthContext'
+import { imeSafeClick } from '../utils/imeSafeClick'
 import {
   Sun, Moon, Check,
   Palette, Columns3, Paintbrush, Tag, Lock, UserCircle,
@@ -634,12 +635,7 @@ export default function Settings() {
       <div className="flex justify-end items-center gap-4 pt-8">
         {saveError && <p className="text-xs text-red-500">{saveError}</p>}
         <button
-          onMouseDown={() => {
-            // 한글 IME composition 즉시 commit — 포커스된 input/textarea blur
-            const el = document.activeElement
-            if (el instanceof HTMLElement && (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA')) el.blur()
-          }}
-          onClick={handleSave}
+          {...imeSafeClick(handleSave)}
           className={`flex items-center gap-2 px-8 py-2.5 text-sm font-medium tracking-[0.02em] rounded-none transition-colors ${
             saved ? 'bg-[oklch(0.55_0.10_150)] text-canvas' : 'bg-ink text-canvas hover:bg-ink-2'
           }`}
