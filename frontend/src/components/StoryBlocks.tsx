@@ -48,30 +48,6 @@ function EditTextArea({ defaultValue, onCancel, onSave, cancelLabel, saveLabel, 
   const savingRef = useRef(false)         // 동기 중복 저장 방지(state 는 async 라 별도 ref)
   const isComposingRef = useRef(false)    // IME 조합 진행 중 여부 (flush 경로에서 사용)
 
-  // 🔧 임시 디버그 패널 — 빌드가 console 을 제거하므로 화면에 직접 이벤트 순서를 표시.
-  const [dbg, setDbg] = useState<string[]>([])
-  const logRef = useRef<(m: string) => void>(() => {})
-  const log = (m: string) => setDbg(d => [...d.slice(-18), `${Date.now() % 100000} ${m}`])
-  logRef.current = log
-  const tag = (el: EventTarget | null) => {
-    const e = el as HTMLElement | null
-    return e ? (e.tagName + (e.id ? '#' + e.id : '') + (e.tagName === 'BUTTON' ? `(${(e as HTMLButtonElement).type})` : '')) : 'null'
-  }
-
-  // document 레벨 캡처로 첫 클릭이 JS 에 도달하는지 관측 (버튼 핸들러가 안 떠도 캡처는 받을 수 있음)
-  useEffect(() => {
-    const mk = (name: string) => (ev: Event) => logRef.current(`doc ${name} ` + tag(ev.target))
-    const handlers: [string, (ev: Event) => void][] = [
-      ['pointerdown', mk('pointerdown')],
-      ['mousedown', mk('mousedown')],
-      ['pointerup', mk('pointerup')],
-      ['mouseup', mk('mouseup')],
-      ['click', mk('click')],
-    ]
-    handlers.forEach(([n, h]) => document.addEventListener(n, h, true))
-    return () => handlers.forEach(([n, h]) => document.removeEventListener(n, h, true))
-  }, [])
-
   // 최신 onSave 를 flush/저장 시점에 읽기 위한 ref (closure 고정 방지)
   const onSaveRef = useRef(onSave)
   onSaveRef.current = onSave
@@ -89,11 +65,12 @@ function EditTextArea({ defaultValue, onCancel, onSave, cancelLabel, saveLabel, 
   const runSaveWithRef = useRef(runSaveWith)
   runSaveWithRef.current = runSaveWith
 
-  // 저장은 네이티브 폼 submit 으로 처리한다. 브라우저의 폼 제출 메커니즘은 제출 직전 IME 조합을
-  // 스스로 확정(commit)시키므로, Safari 의 '조합 중 첫 click 소비' 문제를 우회한다 → 1회로 저장.
-  const handleSubmit = useCallback((e: React.FormEvent) => {
-    e.preventDefault()
-    log('submit v=' + JSON.stringify(ref.current?.value))
+  // ⚠️ 저장 트리거는 onPointerUp 에서 호출한다.
+  // Safari/WebKit 은 IME 조합 중 첫 클릭의 pointerdown/mousedown/click 을 조합 확정에 소비해
+  // DOM 에 전달하지 않지만(실측 확인), pointerup/mouseup 은 정상 발화하며 그 시점엔 이미
+  // compositionend 가 끝나 .value 가 확정돼 있다. 따라서 pointerup 에서 확정값을 읽으면 1회로 저장됨.
+  // 키보드(Enter/Space)는 pointerup 이 없으므로 click(detail===0)에서 처리.
+  const triggerSave = useCallback(() => {
     void runSaveWithRef.current(ref.current?.value ?? '')
   }, [])
 
@@ -119,43 +96,37 @@ function EditTextArea({ defaultValue, onCancel, onSave, cancelLabel, saveLabel, 
   }, [])
 
   return (
-    <form className="flex flex-col gap-2" onSubmit={handleSubmit}>
+    <div className="flex flex-col gap-2">
       <textarea
         ref={ref}
         className={`w-full min-h-32 ${padding} font-serif text-[0.9375rem] leading-[1.6] bg-edit-paper border-0 border-b border-edit-line focus:border-edit-ink focus:outline-none resize-none placeholder:text-edit-faint overflow-x-hidden whitespace-pre-wrap [word-break:keep-all] transition-colors duration-150`}
         onInput={e => { const t = e.currentTarget; t.style.height = 'auto'; t.style.height = t.scrollHeight + 'px' }}
-        onCompositionStart={() => { isComposingRef.current = true; log('compositionstart') }}
-        onCompositionEnd={(e) => { isComposingRef.current = false; log('compositionend v=' + JSON.stringify(e.currentTarget.value)) }}
-        onBlur={(e) => log('ta blur rt=' + tag(e.relatedTarget) + ' v=' + JSON.stringify(e.currentTarget.value))}
+        onCompositionStart={() => { isComposingRef.current = true }}
+        onCompositionEnd={() => { isComposingRef.current = false }}
         defaultValue={defaultValue}
         autoFocus
       />
       <div className="flex gap-2 justify-end mt-3">
         <button
           type="button"
-          onClick={(e) => { e.stopPropagation(); onCancel() }}
+          // 취소도 조합 중 첫 클릭 소비를 피하려면 pointerup 사용(키보드는 click detail===0).
+          onPointerUp={(e) => { e.stopPropagation(); onCancel() }}
+          onClick={(e) => { if (e.detail === 0) { e.stopPropagation(); onCancel() } }}
           className="px-4 py-1.5 text-[0.75rem] tracking-[0.04em] uppercase text-edit-muted hover:text-edit-ink bg-transparent border border-edit-line rounded-[2px] transition-colors"
         >
           {cancelLabel}
         </button>
         <button
-          // 네이티브 폼 submit — 제출 직전 IME 조합을 브라우저가 commit 시켜 Safari 에서도 1회 저장.
-          type="submit"
+          type="button"
           disabled={saving}
-          onPointerDown={() => log('btn pointerdown')}
-          onMouseDown={() => log('btn mousedown')}
-          onClick={() => log('btn click d=' + (window.event as MouseEvent)?.detail)}
+          onPointerUp={(e) => { e.stopPropagation(); triggerSave() }}
+          onClick={(e) => { if (e.detail === 0) { e.stopPropagation(); triggerSave() } }}
           className="px-4 py-1.5 text-[0.75rem] tracking-[0.04em] uppercase bg-edit-ink text-edit-paper hover:bg-edit-ink/85 rounded-[2px] transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
         >
           {saveLabel}
         </button>
       </div>
-
-      {/* 🔧 임시 디버그 패널 */}
-      <div style={{ position: 'fixed', left: 8, bottom: 8, zIndex: 99999, background: 'rgba(0,0,0,0.85)', color: '#0f0', font: '11px/1.4 monospace', padding: 8, maxWidth: 360, maxHeight: 240, overflow: 'auto', whiteSpace: 'pre-wrap', borderRadius: 4 }}>
-        {dbg.length === 0 ? '[debug] 이벤트 대기…' : dbg.map((l, i) => <div key={i}>{l}</div>)}
-      </div>
-    </form>
+    </div>
   )
 }
 
@@ -501,8 +472,9 @@ export const SortableTextBlock = memo(function SortableTextBlock({
           {(!isFirst || !isLast) && <span className="text-eyebrow text-edit-line select-none">|</span>}
           <button
             // 다른 블록 편집 중 이 버튼을 누르면 flush 가 현재 편집을 자동 저장.
-            // onMouseDown 사용 — Safari 는 조합 중 첫 click 을 소비하므로 click 이면 case 3 가 깨짐.
-            onMouseDown={(e) => { e.stopPropagation(); onEdit(itemId, text_content) }}
+            // onPointerUp 사용 — Safari 는 조합 중 첫 클릭의 down/click 을 소비하지만 pointerup 은 발화.
+            onPointerUp={(e) => { e.stopPropagation(); onEdit(itemId, text_content) }}
+            onClick={(e) => { if (e.detail === 0) { e.stopPropagation(); onEdit(itemId, text_content) } }}
             className="text-xs px-2 py-0.5 rounded text-edit-muted hover:bg-edit-paper-2"
           >{t('common.edit')}</button>
           <span className="text-eyebrow text-edit-line select-none">|</span>
@@ -899,7 +871,8 @@ export const SortableSideBySideBlock = memo(function SortableSideBySideBlock({
           <MarkdownRenderer content={textItem.text_content || ''} className="font-serif" />
           <div className="absolute top-4 right-2 flex gap-1 opacity-0 group-hover/text:opacity-100 transition-opacity">
             <button
-              onMouseDown={(e) => { e.stopPropagation(); onEdit(textItem.id, textItem.text_content || '') }}
+              onPointerUp={(e) => { e.stopPropagation(); onEdit(textItem.id, textItem.text_content || '') }}
+              onClick={(e) => { if (e.detail === 0) { e.stopPropagation(); onEdit(textItem.id, textItem.text_content || '') } }}
               className="text-xs px-2 py-0.5 rounded border border-edit-line text-edit-muted hover:text-edit-ink bg-edit-paper"
             >
               {t('common.edit')}
