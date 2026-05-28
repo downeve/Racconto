@@ -45,36 +45,39 @@ interface EditTextAreaProps {
 function EditTextArea({ defaultValue, onCancel, onSave, cancelLabel, saveLabel, padding = 'p-3' }: EditTextAreaProps) {
   const ref = useRef<HTMLTextAreaElement>(null)
   const [saving, setSaving] = useState(false)
-  const isComposingRef = useRef(false)   // IME 조합 진행 중 여부
-  const pendingSaveRef = useRef(false)    // 조합 중 저장 요청이 들어왔는지
+  const savingRef = useRef(false)         // 동기 중복 저장 방지(state 는 async 라 별도 ref)
+  const isComposingRef = useRef(false)    // IME 조합 진행 중 여부
+  const pendingSaveRef = useRef(false)     // 조합 중 저장 요청이 들어왔는지
 
-  // 최신 onSave 를 flush/click 시점에 읽기 위한 ref (closure 고정 방지)
+  // 최신 onSave 를 flush/저장 시점에 읽기 위한 ref (closure 고정 방지)
   const onSaveRef = useRef(onSave)
   onSaveRef.current = onSave
 
   // 확정된 DOM 값을 읽어 저장하는 단일 실행기.
   const runSave = useCallback(async () => {
-    if (saving) return
+    if (savingRef.current) return
     const domValue = (ref.current?.value ?? '').trim()
     if (!domValue) return
+    savingRef.current = true
     setSaving(true)
-    try { await onSaveRef.current(domValue) } finally { setSaving(false) }
-  }, [saving])
+    try { await onSaveRef.current(domValue) }
+    finally { savingRef.current = false; setSaving(false) }
+  }, [])
   const runSaveRef = useRef(runSave)
   runSaveRef.current = runSave
 
-  // 저장 버튼 클릭. Safari/WebKit 은 조합 중 .value 에 조합 글자가 없고, 조합 중 외부 클릭이
-  // compositionend 트리거로 소비되므로, 조합 중이면 blur() 로 compositionend 를 강제 유발한 뒤
-  // handleCompositionEnd 에서 저장한다. (Chromium 도 동일 경로로 안전)
+  // 저장 트리거. ⚠️ onClick 이 아니라 onMouseDown 에서 호출한다 — Safari/WebKit 은 조합 중
+  // 첫 click 이벤트를 compositionend 트리거로 소비해 onClick 이 발화하지 않기 때문(mousedown 은 발화).
+  // 조합 중이면 blur() 로 compositionend 를 강제 유발 → handleCompositionEnd 에서 확정값 저장.
   const doSave = useCallback(() => {
-    if (saving) return
+    if (savingRef.current) return
     if (isComposingRef.current) {
       pendingSaveRef.current = true
       ref.current?.blur()   // compositionend 즉시 유발
       return
     }
     void runSaveRef.current()
-  }, [saving])
+  }, [])
 
   const handleCompositionEnd = useCallback(() => {
     isComposingRef.current = false
@@ -128,8 +131,10 @@ function EditTextArea({ defaultValue, onCancel, onSave, cancelLabel, saveLabel, 
           {cancelLabel}
         </button>
         <button
-          // 조합 중이면 doSave() 내부에서 blur()→compositionend 경로로 저장하므로 preventDefault 불필요.
-          onClick={(e) => { e.stopPropagation(); doSave() }}
+          // 마우스: onMouseDown 에서 저장(Safari 의 조합 중 click 소비 회피).
+          // 키보드(Enter/Space): click 의 detail===0 일 때만 처리(마우스 click 과 중복 방지).
+          onMouseDown={(e) => { e.stopPropagation(); doSave() }}
+          onClick={(e) => { if (e.detail === 0) { e.stopPropagation(); doSave() } }}
           disabled={saving}
           className="px-4 py-1.5 text-[0.75rem] tracking-[0.04em] uppercase bg-edit-ink text-edit-paper hover:bg-edit-ink/85 rounded-[2px] transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
         >
@@ -481,9 +486,9 @@ export const SortableTextBlock = memo(function SortableTextBlock({
           )}
           {(!isFirst || !isLast) && <span className="text-eyebrow text-edit-line select-none">|</span>}
           <button
-            // 다른 블록 편집 중 이 버튼 클릭 → 현재 textarea blur → compositionend 로 조합 commit →
-            // flush(setPendingTextEdit)가 확정값을 저장. (preventDefault 금지 — Safari 에서 commit 필요)
-            onClick={() => onEdit(itemId, text_content)}
+            // 다른 블록 편집 중 이 버튼을 누르면 flush 가 현재 편집을 자동 저장.
+            // onMouseDown 사용 — Safari 는 조합 중 첫 click 을 소비하므로 click 이면 case 3 가 깨짐.
+            onMouseDown={(e) => { e.stopPropagation(); onEdit(itemId, text_content) }}
             className="text-xs px-2 py-0.5 rounded text-edit-muted hover:bg-edit-paper-2"
           >{t('common.edit')}</button>
           <span className="text-eyebrow text-edit-line select-none">|</span>
@@ -880,7 +885,7 @@ export const SortableSideBySideBlock = memo(function SortableSideBySideBlock({
           <MarkdownRenderer content={textItem.text_content || ''} className="font-serif" />
           <div className="absolute top-4 right-2 flex gap-1 opacity-0 group-hover/text:opacity-100 transition-opacity">
             <button
-              onClick={() => onEdit(textItem.id, textItem.text_content || '')}
+              onMouseDown={(e) => { e.stopPropagation(); onEdit(textItem.id, textItem.text_content || '') }}
               className="text-xs px-2 py-0.5 rounded border border-edit-line text-edit-muted hover:text-edit-ink bg-edit-paper"
             >
               {t('common.edit')}
