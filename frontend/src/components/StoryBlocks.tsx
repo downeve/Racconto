@@ -48,6 +48,10 @@ function EditTextArea({ defaultValue, onCancel, onSave, cancelLabel, saveLabel, 
   const savingRef = useRef(false)         // 동기 중복 저장 방지(state 는 async 라 별도 ref)
   const isComposingRef = useRef(false)    // IME 조합 진행 중 여부 (flush 경로에서 사용)
 
+  // 🔧 임시 디버그 패널 — 빌드가 console 을 제거하므로 화면에 직접 이벤트 순서를 표시.
+  const [dbg, setDbg] = useState<string[]>([])
+  const log = (m: string) => setDbg(d => [...d.slice(-16), `${Date.now() % 100000} ${m}`])
+
   // 최신 onSave 를 flush/저장 시점에 읽기 위한 ref (closure 고정 방지)
   const onSaveRef = useRef(onSave)
   onSaveRef.current = onSave
@@ -69,6 +73,7 @@ function EditTextArea({ defaultValue, onCancel, onSave, cancelLabel, saveLabel, 
   // 스스로 확정(commit)시키므로, Safari 의 '조합 중 첫 click 소비' 문제를 우회한다 → 1회로 저장.
   const handleSubmit = useCallback((e: React.FormEvent) => {
     e.preventDefault()
+    log('submit v=' + JSON.stringify(ref.current?.value))
     void runSaveWithRef.current(ref.current?.value ?? '')
   }, [])
 
@@ -99,8 +104,8 @@ function EditTextArea({ defaultValue, onCancel, onSave, cancelLabel, saveLabel, 
         ref={ref}
         className={`w-full min-h-32 ${padding} font-serif text-[0.9375rem] leading-[1.6] bg-edit-paper border-0 border-b border-edit-line focus:border-edit-ink focus:outline-none resize-none placeholder:text-edit-faint overflow-x-hidden whitespace-pre-wrap [word-break:keep-all] transition-colors duration-150`}
         onInput={e => { const t = e.currentTarget; t.style.height = 'auto'; t.style.height = t.scrollHeight + 'px' }}
-        onCompositionStart={() => { isComposingRef.current = true }}
-        onCompositionEnd={() => { isComposingRef.current = false }}
+        onCompositionStart={() => { isComposingRef.current = true; log('compositionstart') }}
+        onCompositionEnd={(e) => { isComposingRef.current = false; log('compositionend v=' + JSON.stringify(e.currentTarget.value)) }}
         defaultValue={defaultValue}
         autoFocus
       />
@@ -116,10 +121,18 @@ function EditTextArea({ defaultValue, onCancel, onSave, cancelLabel, saveLabel, 
           // 네이티브 폼 submit — 제출 직전 IME 조합을 브라우저가 commit 시켜 Safari 에서도 1회 저장.
           type="submit"
           disabled={saving}
+          onPointerDown={() => log('btn pointerdown')}
+          onMouseDown={() => log('btn mousedown')}
+          onClick={() => log('btn click d=' + (window.event as MouseEvent)?.detail)}
           className="px-4 py-1.5 text-[0.75rem] tracking-[0.04em] uppercase bg-edit-ink text-edit-paper hover:bg-edit-ink/85 rounded-[2px] transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
         >
           {saveLabel}
         </button>
+      </div>
+
+      {/* 🔧 임시 디버그 패널 */}
+      <div style={{ position: 'fixed', left: 8, bottom: 8, zIndex: 99999, background: 'rgba(0,0,0,0.85)', color: '#0f0', font: '11px/1.4 monospace', padding: 8, maxWidth: 360, maxHeight: 240, overflow: 'auto', whiteSpace: 'pre-wrap', borderRadius: 4 }}>
+        {dbg.length === 0 ? '[debug] 이벤트 대기…' : dbg.map((l, i) => <div key={i}>{l}</div>)}
       </div>
     </form>
   )
