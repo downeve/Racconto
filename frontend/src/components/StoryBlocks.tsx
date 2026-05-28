@@ -6,6 +6,7 @@ import { FileText, ArrowLeftRight, Check, Plus, Grid3X3, Rows3, Square, X } from
 import { useHoverCapable } from '../hooks/useHoverCapable'
 import MarkdownRenderer from './MarkdownRenderer'
 import { cfUrl } from '../utils/cfImage'
+import { setPendingTextEdit } from '../utils/pendingTextEdit'
 import {
   DndContext,
   closestCorners,
@@ -21,44 +22,51 @@ import {
 } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
 
-// ── 텍스트 편집 공통 컴포넌트 ───────────────────────────────
-// 한국어 IME composition 과 React state update 사이의 race condition 으로
-// '한 번 누르면 안 되고 두 번째 눌러야 작동' 증상이 발생했음.
-// 저장 버튼의 onMouseDown 에서 textarea 를 강제 blur 시켜
-// composition 을 즉시 commit 한 뒤 click 이 발화되도록 보장.
-// disabled = !value.trim() 으로 침묵 가드(silent no-op)를 표면화.
+// ── 텍스트 편집 공통 컴포넌트 (uncontrolled) ───────────────────
+// 근본 해법: 편집 중에는 textarea DOM 을 단일 진실 소스로 삼고, 키 입력마다
+// React state 로 추적하지 않는다(uncontrolled). 이로써 controlled value + 한국어
+// IME composition 사이의 race ('두 번째 클릭해야 저장' / 커서 점프 / 긴 한글 입력 끊김)가
+// 구조적으로 사라진다. 저장은 항상 ref.current.value 를 읽어 부모에 전달.
+// 다른 블록 편집·새 챕터/텍스트 추가 등 다른 진입점에서는 flushPendingTextEdit 로
+// 직전 편집을 자동 저장하므로, 이 컴포넌트가 mount 동안 자기 ref 를 읽는 저장 함수를
+// 레지스트리에 등록한다.
 
 interface EditTextAreaProps {
-  value: string
-  onChange: (v: string) => void
+  /** 편집 시작 시점의 초기값. uncontrolled 이므로 mount 후 변경은 반영되지 않음. */
+  defaultValue: string
   onCancel: () => void
-  /**
-   * 저장 핸들러. overrideValue 는 textarea DOM 값을 직접 읽어 전달함.
-   * React state 가 IME commit 후 아직 re-render 되지 않은 상황에서도 최신 값을 보장.
-   */
-  onSave: (overrideValue?: string) => void | Promise<void>
+  /** 저장 핸들러. textarea DOM 값을 직접 읽어 overrideValue 로 전달. */
+  onSave: (overrideValue: string) => void | Promise<void>
   cancelLabel: string
   saveLabel: string
   padding?: string
 }
 
-function EditTextArea({ value, onChange, onCancel, onSave, cancelLabel, saveLabel, padding = 'p-3' }: EditTextAreaProps) {
+function EditTextArea({ defaultValue, onCancel, onSave, cancelLabel, saveLabel, padding = 'p-3' }: EditTextAreaProps) {
   const ref = useRef<HTMLTextAreaElement>(null)
   const [saving, setSaving] = useState(false)
-  const canSave = value.trim().length > 0 && !saving
 
-  const handleSave = async (e: React.MouseEvent) => {
-    e.stopPropagation()
+  // 최신 onSave 를 flush/click 시점에 읽기 위한 ref (closure 고정 방지)
+  const onSaveRef = useRef(onSave)
+  onSaveRef.current = onSave
+
+  const doSave = useCallback(async () => {
     if (saving) return
-    // ⚠️ React state(value)는 IME composition commit 직후 re-render 가 click 전에 끝난다고
-    // 보장할 수 없다 (긴 한글 텍스트일수록 reconciliation 비용 + 마이크로태스크 처리로 밀림).
-    // textarea DOM 의 value 는 onMouseDown 에서 호출된 blur() 의 compositionend cascade 로
-    // 이미 commit 되어 있으므로, DOM 을 직접 읽어 부모에 명시적으로 전달한다.
-    const domValue = (ref.current?.value ?? value).trim()
+    const domValue = (ref.current?.value ?? '').trim()
     if (!domValue) return
     setSaving(true)
-    try { await onSave(domValue) } finally { setSaving(false) }
-  }
+    try { await onSaveRef.current(domValue) } finally { setSaving(false) }
+  }, [saving])
+
+  // 다른 편집/추가 진입 시(handleStartEdit·handleAddChapter 등) flushPendingTextEdit 로
+  // 직전 편집을 자동 저장. mount 동안 자기 ref 의 최신 DOM 값을 읽는 저장 함수를 등록한다.
+  useEffect(() => {
+    setPendingTextEdit(async () => {
+      const domValue = (ref.current?.value ?? '').trim()
+      if (domValue) await onSaveRef.current(domValue)
+    })
+    return () => setPendingTextEdit(null)
+  }, [])
 
   return (
     <div className="flex flex-col gap-2">
@@ -66,8 +74,7 @@ function EditTextArea({ value, onChange, onCancel, onSave, cancelLabel, saveLabe
         ref={ref}
         className={`w-full min-h-32 ${padding} font-serif text-[0.9375rem] leading-[1.6] bg-edit-paper border-0 border-b border-edit-line focus:border-edit-ink focus:outline-none resize-none placeholder:text-edit-faint overflow-x-hidden whitespace-pre-wrap [word-break:keep-all] transition-colors duration-150`}
         onInput={e => { const t = e.currentTarget; t.style.height = 'auto'; t.style.height = t.scrollHeight + 'px' }}
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
+        defaultValue={defaultValue}
         autoFocus
       />
       <div className="flex gap-2 justify-end mt-3">
@@ -78,10 +85,11 @@ function EditTextArea({ value, onChange, onCancel, onSave, cancelLabel, saveLabe
           {cancelLabel}
         </button>
         <button
-          // mousedown 에서 textarea blur → IME composition 즉시 종료. DOM value 동기화 보장.
+          // mousedown 에서 textarea blur → IME composition 즉시 commit 후 click 이 DOM 최신값을 읽음.
+          // disabled 는 saving 에만 의존(값 기준 아님) → 첫 mousedown 이 항상 전달되어 blur 가드가 작동.
           onMouseDown={() => ref.current?.blur()}
-          onClick={handleSave}
-          disabled={!canSave}
+          onClick={(e) => { e.stopPropagation(); doSave() }}
+          disabled={saving}
           className="px-4 py-1.5 text-[0.75rem] tracking-[0.04em] uppercase bg-edit-ink text-edit-paper hover:bg-edit-ink/85 rounded-[2px] transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
         >
           {saveLabel}
@@ -360,9 +368,7 @@ export interface SortableTextBlockProps {
   onRemove: (chapterId: string, itemId: string) => void
   onEdit: (itemId: string, currentText: string) => void
   editingTextItemId?: string | null;
-  textDraft?: string;
-  onTextDraftChange?: (val: string) => void;
-  onSaveText?: (overrideValue?: string) => void | Promise<void>;
+  onSaveText?: (overrideValue: string) => void | Promise<void>;
   onCancelEdit?: () => void;
   onSideBySide: (itemId: string, position: 'side-left' | 'side-right', direction: 'above' | 'below') => void
   onMoveBlock?: (direction: 'up' | 'down') => void
@@ -373,7 +379,7 @@ export interface SortableTextBlockProps {
 export const SortableTextBlock = memo(function SortableTextBlock({
   id, itemId, chapterId, text_content, hasPhotoAbove, hasPhotoBelow, onRemove, onEdit,
   // 인라인 편집창 추가 props
-  editingTextItemId, textDraft, onTextDraftChange, onSaveText, onCancelEdit,
+  editingTextItemId, onSaveText, onCancelEdit,
   onSideBySide, onMoveBlock, isFirst, isLast
 }: SortableTextBlockProps) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id })
@@ -402,8 +408,8 @@ export const SortableTextBlock = memo(function SortableTextBlock({
       <div className="relative px-5 py-4 min-w-0 [overflow-x:clip] [word-break:keep-all]">
         {isEditing ? (
           <EditTextArea
-            value={textDraft || ''}
-            onChange={(v) => onTextDraftChange?.(v)}
+            key={itemId}
+            defaultValue={text_content || ''}
             onCancel={() => onCancelEdit?.()}
             onSave={(v) => onSaveText?.(v)}
             cancelLabel={t('common.cancel')}
@@ -752,9 +758,7 @@ export interface SortableSideBySideBlockProps {
 
   // 👇 인라인 편집을 위해 추가
   editingTextItemId?: string | null;
-  textDraft?: string;
-  onTextDraftChange?: (val: string) => void;
-  onSaveText?: (overrideValue?: string) => void | Promise<void>;
+  onSaveText?: (overrideValue: string) => void | Promise<void>;
   onCancelEdit?: () => void;
 
   onEdit: (itemId: string, currentText: string) => void
@@ -768,7 +772,7 @@ export interface SortableSideBySideBlockProps {
 export const SortableSideBySideBlock = memo(function SortableSideBySideBlock({
   blockId, chapterId, items, onRemoveItem, onPhotoClick, onCancelSideBySide,
   // 👇 추가된 props 구조분해 할당
-  editingTextItemId, textDraft, onTextDraftChange, onSaveText, onCancelEdit,
+  editingTextItemId, onSaveText, onCancelEdit,
   onEdit, onFlipColumns, onMoveBlock, isFirst, isLast
 }: SortableSideBySideBlockProps) {
   const { attributes, listeners, setNodeRef: setSortableRef, transform, transition, isDragging } = useSortable({ id: blockId })
@@ -819,10 +823,10 @@ export const SortableSideBySideBlock = memo(function SortableSideBySideBlock({
       {editingTextItemId === textItem.id ? (
         /* 👇 편집 모드일 때: 텍스트 영역만 편집창으로 전환 */
         <EditTextArea
-          value={textDraft || ''}
-          onChange={(v) => onTextDraftChange?.(v)}
+          key={textItem.id}
+          defaultValue={textItem.text_content || ''}
           onCancel={() => onCancelEdit?.()}
-          onSave={() => onSaveText?.()}
+          onSave={(v) => onSaveText?.(v)}
           cancelLabel={t('common.cancel')}
           saveLabel={t('common.save')}
           padding="p-2"

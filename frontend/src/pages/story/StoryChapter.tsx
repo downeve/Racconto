@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback, useEffect, memo } from 'react'
+import { useState, useRef, useCallback, memo } from 'react'
 import axios from 'axios'
 import { useTranslation } from 'react-i18next'
 import {
@@ -19,7 +19,7 @@ import {
   InsertSlot,
   type ChapterItem,
 } from '../../components/StoryBlocks'
-import { setPendingTextEdit, flushPendingTextEdit } from '../../utils/pendingTextEdit'
+import { flushPendingTextEdit } from '../../utils/pendingTextEdit'
 
 const API = import.meta.env.VITE_API_URL
 
@@ -60,8 +60,8 @@ function StoryChapterComponent({
   const { t } = useTranslation()
 
   // 텍스트 편집 상태 (chapter-local)
+  // 편집 중 텍스트 값은 EditTextArea 가 uncontrolled(DOM) 로 보유 — 여기서 추적하지 않음.
   const [editingTextItemId, setEditingTextItemId] = useState<string | null>(null)
-  const [textDraft, setTextDraft] = useState('')
 
   // 인서트 슬롯 상태 (chapter-local)
   const [insertSlotActive, setInsertSlotActive] = useState<{ chapterId: string; insertIndex: number } | null>(null)
@@ -369,11 +369,9 @@ function StoryChapterComponent({
     }
   }, [fetchChapterPhotos])
 
-  const handleSaveTextBlock = useCallback(async (overrideValue?: string) => {
-    // overrideValue: EditTextArea 가 textarea DOM 의 value 를 직접 읽어 전달함.
-    // React state(textDraft)는 IME composition commit 후 re-render 가 click 전에 끝난다는
-    // 보장이 없으므로 (긴 한글 텍스트일수록 더 자주 실패), DOM 기반 값을 우선 사용.
-    const content = (overrideValue ?? textDraft).trim()
+  const handleSaveTextBlock = useCallback(async (overrideValue: string) => {
+    // overrideValue: EditTextArea 가 textarea DOM 값을 직접 읽어 전달 (uncontrolled).
+    const content = overrideValue.trim()
     if (!content || !editingTextItemId) return
     try {
       await axios.put(`${API}/chapters/${chapterId}/texts/${editingTextItemId}`, {
@@ -381,32 +379,19 @@ function StoryChapterComponent({
       })
       fetchChapterPhotos(chapterId)
       setEditingTextItemId(null)
-      setTextDraft('')
-      setPendingTextEdit(null)
     } catch (err) {
       console.error('텍스트 저장 중 에러:', err)
       alert('저장에 실패했습니다.')
     }
-  }, [chapterId, textDraft, editingTextItemId, fetchChapterPhotos])
+  }, [chapterId, editingTextItemId, fetchChapterPhotos])
 
-  // 편집 중인 텍스트 블록의 최신 저장 함수를 모듈 레지스트리에 등록.
-  // 다른 블록 편집·새 챕터/텍스트 추가 등 다른 진입점에서 flushPendingTextEdit 로 자동 저장됨.
-  useEffect(() => {
-    if (editingTextItemId && textDraft.trim()) {
-      setPendingTextEdit(handleSaveTextBlock)
-    } else {
-      setPendingTextEdit(null)
-    }
-    return () => { setPendingTextEdit(null) }
-  }, [editingTextItemId, textDraft, handleSaveTextBlock])
-
-  // 다른 텍스트 블록 편집 진입 시 이전 편집 자동 저장 후 새 편집 시작
-  const handleStartEdit = useCallback(async (itemId: string, text: string) => {
+  // 다른 텍스트 블록 편집 진입 시 이전 편집 자동 저장(flushPendingTextEdit) 후 새 편집 시작.
+  // 자동 저장 함수 등록은 EditTextArea 가 mount 동안 자기 DOM ref 기준으로 직접 수행한다.
+  const handleStartEdit = useCallback(async (itemId: string) => {
     if (itemId !== editingTextItemId) {
       await flushPendingTextEdit()
     }
     setEditingTextItemId(itemId)
-    setTextDraft(text)
   }, [editingTextItemId])
 
 
@@ -638,8 +623,6 @@ function StoryChapterComponent({
                     onCancelSideBySide={(_cid, textItemId) => handleCancelSideBySide(textItemId)}
                     onFlipColumns={() => handleFlipColumns(block.blockId)}
                     editingTextItemId={editingTextItemId}
-                    textDraft={textDraft}
-                    onTextDraftChange={setTextDraft}
                     onSaveText={handleSaveTextBlock}
                     onCancelEdit={() => setEditingTextItemId(null)}
                     onMoveBlock={(dir) => handleMoveBlock(block.blockId, dir)}
@@ -661,8 +644,6 @@ function StoryChapterComponent({
                       handleSideBySide(chapterId, itemId, position, direction)
                     }
                     editingTextItemId={editingTextItemId}
-                    textDraft={textDraft}
-                    onTextDraftChange={setTextDraft}
                     onSaveText={handleSaveTextBlock}
                     onCancelEdit={() => setEditingTextItemId(null)}
                     onMoveBlock={(dir) => handleMoveBlock(block.blockId, dir)}
