@@ -1,5 +1,6 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
+import { imeSafeClick } from '../utils/imeSafeClick';
 
 declare const __APP_VERSION__: string;
 
@@ -10,6 +11,8 @@ export default function FeedbackWidget() {
   const [isOpen, setIsOpen] = useState(false);
   const [feedback, setFeedback] = useState('');
   const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
+  // textarea DOM 직접 읽기용 — 한글 IME composition 후 React state 가 stale 인 race 방지
+  const feedbackRef = useRef<HTMLTextAreaElement>(null);
 
   // ─── 위치 조절을 위한 상태 추가 ───
   const [isShifted, setIsShifted] = useState(false);
@@ -37,7 +40,9 @@ export default function FeedbackWidget() {
       setStatus('error');
       return;
     }
-    if (!feedback.trim()) return;
+    // textarea DOM 우선 읽기 (IME race 방지) — React state 가 아직 commit 안 됐어도 최신 값
+    const content = (feedbackRef.current?.value ?? feedback).trim();
+    if (!content) return;
     setStatus('loading');
 
     const isElectron = !!window.racconto;
@@ -68,7 +73,7 @@ export default function FeedbackWidget() {
     const discordPayload = {
       embeds: [{
         title: "🚨 새로운 베타 피드백",
-        description: feedback,
+        description: content,
         color: 0x2b2d31, // 어두운 회색
         fields: [
           { name: "플랫폼", value: isElectron ? `Electron` : `Web`, inline: true },
@@ -129,6 +134,7 @@ export default function FeedbackWidget() {
             </p>
             
             <textarea
+              ref={feedbackRef}
               value={feedback}
               onChange={(e) => setFeedback(e.target.value)}
               placeholder={t('feedback.placeholder')}
@@ -137,8 +143,8 @@ export default function FeedbackWidget() {
             />
 
             <button
-              onClick={handleSubmit}
-              disabled={status === 'loading' || status === 'success' || !feedback.trim()}
+              {...imeSafeClick(handleSubmit)}
+              disabled={status === 'loading' || status === 'success'}
               className="w-full py-2.5 bg-ink text-card text-sm font-semibold rounded-btn hover:bg-ink-2 disabled:bg-faint transition-[background,color,border] duration-150 ease-out"
             >
               {status === 'idle' && t('feedback.send')}

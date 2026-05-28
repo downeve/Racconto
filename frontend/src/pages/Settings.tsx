@@ -4,6 +4,7 @@ import axios from 'axios'
 import { useTranslation } from 'react-i18next'
 import FolderProjectMapper from '../components/FolderProjectMapper'
 import { useAuth } from '../context/AuthContext'
+import { imeSafeClick } from '../utils/imeSafeClick'
 import {
   Sun, Moon, Check,
   Palette, Columns3, Paintbrush, Tag, Lock, UserCircle,
@@ -62,6 +63,8 @@ export default function Settings() {
   const [usernameSaved, setUsernameSaved] = useState(false)
   const [urlCopied, setUrlCopied] = useState(false)
   const originalUsername = useRef('')
+  // 컬러 레이블 input DOM 직접 읽기용 — 한글 IME composition 후 React state 가 stale 인 race 방지
+  const colorInputRefs = useRef<Record<string, HTMLInputElement | null>>({})
 
   const [tier, setTier] = useState('')
   const [projectCount, setProjectCount] = useState(0)
@@ -173,7 +176,8 @@ export default function Settings() {
       default_sort_order: defaultSortOrder,
     }
     for (const { key } of COLOR_KEYS) {
-      const v = settings[key]
+      // input DOM 우선 읽기 (IME race 방지) — React state 가 아직 commit 안 됐어도 최신 값
+      const v = colorInputRefs.current[key]?.value ?? settings[key]
       if (v !== undefined) payload[key] = v
     }
     return payload
@@ -460,6 +464,7 @@ export default function Settings() {
               <div className={`w-4 h-4 rounded-card ${color} shrink-0`} />
               <span className="text-sm text-muted w-12 shrink-0">{t(`colorLabels.${value}`)}</span>
               <input
+                ref={el => { colorInputRefs.current[key] = el }}
                 className="w-40 border-hair border rounded px-3 py-1.5 text-sm outline-none focus:border-ink transition-[background,color,border] duration-150 ease-out"
                 value={settings[key] || ''}
                 placeholder={t(`colors.${meaningKey}`)}
@@ -630,7 +635,7 @@ export default function Settings() {
       <div className="flex justify-end items-center gap-4 pt-8">
         {saveError && <p className="text-xs text-red-500">{saveError}</p>}
         <button
-          onClick={handleSave}
+          {...imeSafeClick(handleSave)}
           className={`flex items-center gap-2 px-8 py-2.5 text-sm font-medium tracking-[0.02em] rounded-none transition-colors ${
             saved ? 'bg-[oklch(0.55_0.10_150)] text-canvas' : 'bg-ink text-canvas hover:bg-ink-2'
           }`}

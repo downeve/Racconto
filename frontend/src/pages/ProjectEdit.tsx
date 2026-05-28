@@ -3,7 +3,7 @@ import { useParams, useNavigate, useLocation } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import axios from 'axios'
 import { useTranslation } from 'react-i18next'
-import { blurActiveInput } from '../utils/blurActiveInput'
+import { imeSafeClick } from '../utils/imeSafeClick'
 import { useElectronSidebar } from '../context/ElectronSidebarContext'
 import TagInput from '../components/TagInput'
 import { CAMERA_TYPES, SUGGESTED_GENRE_TAGS, type CameraType } from '../constants/tags'
@@ -287,9 +287,7 @@ export default function ProjectEdit() {
             {t('common.cancel')}
           </button>
           <button
-            onMouseDown={blurActiveInput}
-            onClick={handleSubmit}
-            disabled={!title}
+            {...imeSafeClick(handleSubmit)}
             className="t-caption px-5 py-2 bg-edit-ink text-edit-paper rounded-[1px] hover:bg-edit-ink/85 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
           >
             {t('common.save')}

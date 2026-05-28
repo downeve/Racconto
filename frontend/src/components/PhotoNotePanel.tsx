@@ -1,5 +1,6 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import axios from 'axios'
+import { imeSafeClick } from '../utils/imeSafeClick'
 import MarkdownRenderer from './MarkdownRenderer'
 import { useTranslation } from 'react-i18next'
 import { FileText } from 'lucide-react'
@@ -33,6 +34,9 @@ export default function PhotoNotePanel({
   const [editingNote, setEditingNote] = useState<string | null>(null)
   const [editContent, setEditContent] = useState('')
   const [editType, setEditType] = useState('memo')
+  // textarea DOM 직접 읽기용 — 한글 IME composition 후 React state 가 stale 인 race 방지
+  const newContentRef = useRef<HTMLTextAreaElement>(null)
+  const editContentRef = useRef<HTMLTextAreaElement>(null)
 
   const NOTE_TYPES = [
     { value: 'memo',     label: t('note.labelWork'),     color: 'bg-stone-100 text-stone-600',  dot: 'bg-edit-faint' },
@@ -56,10 +60,12 @@ export default function PhotoNotePanel({
   }, [photoId])
 
   const handleAdd = async () => {
-    if (!newContent.trim()) return
+    // textarea DOM 우선 읽기 (IME race 방지) — React state 가 아직 commit 안 됐어도 최신 값
+    const content = (newContentRef.current?.value ?? newContent).trim()
+    if (!content) return
     await axios.post(`${API}/notes/`, {
       project_id: projectId,
-      content: newContent,
+      content,
       note_type: newType,
       photo_id: photoId,
     })
@@ -70,9 +76,10 @@ export default function PhotoNotePanel({
   }
 
   const handleUpdate = async (noteId: string) => {
-    if (!editContent.trim()) return
+    const content = (editContentRef.current?.value ?? editContent).trim()
+    if (!content) return
     await axios.put(`${API}/notes/${noteId}`, {
-      content: editContent,
+      content,
       note_type: editType,
       photo_id: photoId,
     })
@@ -138,6 +145,7 @@ export default function PhotoNotePanel({
                         ))}
                       </div>
                       <textarea
+                        ref={editContentRef}
                         className="w-full border rounded px-2 py-1.5 text-xs mb-2 focus:outline-none focus:ring-1 focus:ring-black resize-none"
                         rows={3}
                         value={editContent}
@@ -146,7 +154,7 @@ export default function PhotoNotePanel({
                       />
                       <div className="flex gap-2">
                         <button
-                          onClick={() => handleUpdate(note.id)}
+                          {...imeSafeClick(() => handleUpdate(note.id))}
                           className="px-3 py-1 text-xs bg-stone-700 text-white rounded hover:bg-stone-800"
                         >
                           {t('common.save')}
@@ -214,6 +222,7 @@ export default function PhotoNotePanel({
             ))}
           </div>
           <textarea
+            ref={newContentRef}
             className="w-full border rounded px-3 py-2 text-xs mb-2 focus:outline-none focus:ring-1 focus:ring-black resize-none"
             placeholder={t('note.editMdDescription2')}
             rows={3}
@@ -222,8 +231,7 @@ export default function PhotoNotePanel({
           />
           <div className="flex justify-end">
             <button
-              onClick={handleAdd}
-              disabled={!newContent.trim()}
+              {...imeSafeClick(handleAdd)}
               className="px-4 py-1.5 text-xs bg-stone-700 text-white rounded hover:bg-stone-800 disabled:opacity-40"
             >
               {t('note.addNote')}

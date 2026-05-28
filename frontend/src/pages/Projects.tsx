@@ -2,7 +2,7 @@ import { useEffect, useRef, useState, useCallback, memo } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import axios from 'axios'
 import ProjectCard from '../components/ProjectCard'
-import { blurActiveInput } from '../utils/blurActiveInput'
+import { imeSafeClick } from '../utils/imeSafeClick'
 import { Link, useLocation } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import ConfirmModal from '../components/ConfirmModal'
@@ -362,9 +362,7 @@ export default function Projects() {
                 className="t-caption px-4 py-2 text-edit-muted hover:text-edit-ink transition-colors"
               >{t('common.cancel')}</button>
               <button
-                onMouseDown={blurActiveInput}
-                onClick={handleSubmit}
-                disabled={!formData.title}
+                {...imeSafeClick(handleSubmit)}
                 className="t-caption px-5 py-2 bg-edit-ink text-edit-paper rounded-btn hover:bg-edit-ink/85 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
               >{t('common.save')}</button>
             </div>
