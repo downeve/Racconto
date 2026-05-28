@@ -190,14 +190,23 @@ function StoryChapterComponent({
 
   const handleBlockDragEnd = useCallback((event: DragEndEvent, currentBlocks: ChapterBlock[]) => {
     const { active, over } = event
-    if (!over || active.id === over.id) return
+    if (!over || active.id === over.id) {
+      // silent return 이라도 React 재렌더를 강제해야 useSortable 이 inline transform 을 0 으로
+      // 재계산함. 그렇지 않으면 자리 비켜주던 다른 블록들의 잔여 transform 이 남아 드래그 핸들/
+      // 툴바의 hover hit-test 위치가 시프트됨. (블록이 많을수록 누적 변위 가시화 — 7537bd9 참조)
+      setChapterPhotos(prev => ({ ...prev }))
+      return
+    }
 
     const findBlockIndex = (dndId: string) =>
       currentBlocks.findIndex(b => b.blockId === dndId || b.items.some(item => item.id === dndId))
 
     const oldIndex = findBlockIndex(String(active.id))
     const newIndex = findBlockIndex(String(over.id))
-    if (oldIndex === -1 || newIndex === -1) return
+    if (oldIndex === -1 || newIndex === -1) {
+      setChapterPhotos(prev => ({ ...prev }))
+      return
+    }
 
     const newBlocks = arrayMove(currentBlocks, oldIndex, newIndex)
     const itemsToSync: { id: string; block_id: string | null; order_num: number; order_in_block: number }[] = []
