@@ -85,9 +85,12 @@ function EditTextArea({ defaultValue, onCancel, onSave, cancelLabel, saveLabel, 
           {cancelLabel}
         </button>
         <button
-          // mousedown 에서 textarea blur → IME composition 즉시 commit 후 click 이 DOM 최신값을 읽음.
-          // disabled 는 saving 에만 의존(값 기준 아님) → 첫 mousedown 이 항상 전달되어 blur 가드가 작동.
-          onMouseDown={() => ref.current?.blur()}
+          // ⚠️ blur 금지. mousedown 에서 preventDefault 로 포커스 이동 자체를 막는다.
+          // 한글 조합 중(미완성 자모 'ㅊ') 포커스가 버튼으로 넘어가면 IME 가 첫 클릭을
+          // 조합 확정용으로 소비하거나 compositionend 의 DOM 반영이 늦어 첫 클릭이 실패함.
+          // textarea 포커스를 유지하면 onClick 이 첫 클릭에 발화하고, Chromium 은 조합 중
+          // 텍스트를 이미 .value 에 담고 있으므로 ref.current.value 로 그대로 읽힌다.
+          onMouseDown={(e) => e.preventDefault()}
           onClick={(e) => { e.stopPropagation(); doSave() }}
           disabled={saving}
           className="px-4 py-1.5 text-[0.75rem] tracking-[0.04em] uppercase bg-edit-ink text-edit-paper hover:bg-edit-ink/85 rounded-[2px] transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
@@ -440,6 +443,9 @@ export const SortableTextBlock = memo(function SortableTextBlock({
           )}
           {(!isFirst || !isLast) && <span className="text-eyebrow text-edit-line select-none">|</span>}
           <button
+            // 다른 블록 편집 중일 때 이 버튼 클릭 → flush 자동 저장. preventDefault 로 현재
+            // 편집 중 textarea 포커스를 유지해야 조합 중 첫 클릭이 IME 에 소비되지 않음.
+            onMouseDown={(e) => e.preventDefault()}
             onClick={() => onEdit(itemId, text_content)}
             className="text-xs px-2 py-0.5 rounded text-edit-muted hover:bg-edit-paper-2"
           >{t('common.edit')}</button>
@@ -837,6 +843,7 @@ export const SortableSideBySideBlock = memo(function SortableSideBySideBlock({
           <MarkdownRenderer content={textItem.text_content || ''} className="font-serif" />
           <div className="absolute top-4 right-2 flex gap-1 opacity-0 group-hover/text:opacity-100 transition-opacity">
             <button
+              onMouseDown={(e) => e.preventDefault()}
               onClick={() => onEdit(textItem.id, textItem.text_content || '')}
               className="text-xs px-2 py-0.5 rounded border border-edit-line text-edit-muted hover:text-edit-ink bg-edit-paper"
             >
