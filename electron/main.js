@@ -204,9 +204,11 @@ async function uploadFile(item) {
   const img = nativeImage.createFromPath(item.filePath)
   const { width, height } = img.getSize()
   let imageBuffer
-  const isJpeg = ['.jpg', '.jpeg'].includes(path.extname(item.filePath).toLowerCase())
-  const quality = isJpeg ? 92 : 88
-  if (Math.max(width, height) > MAX_SIZE) {
+  // quality 는 리사이즈 여부(크기) 기준 — 파일 형식 기준 아님.
+  // 장변 > 3200 → 다운스케일 재샘플링되므로 88, 그 이하 → 이중 압축 손실 최소화 위해 92
+  const willResize = Math.max(width, height) > MAX_SIZE
+  const quality = willResize ? 88 : 92
+  if (willResize) {
     const isLandscape = width >= height
     const newW = isLandscape ? MAX_SIZE : Math.round(width * MAX_SIZE / height)
     const newH = isLandscape ? Math.round(height * MAX_SIZE / width) : MAX_SIZE
