@@ -45,26 +45,67 @@ interface EditTextAreaProps {
 function EditTextArea({ defaultValue, onCancel, onSave, cancelLabel, saveLabel, padding = 'p-3' }: EditTextAreaProps) {
   const ref = useRef<HTMLTextAreaElement>(null)
   const [saving, setSaving] = useState(false)
+  const isComposingRef = useRef(false)   // IME 조합 진행 중 여부
+  const pendingSaveRef = useRef(false)    // 조합 중 저장 요청이 들어왔는지
 
   // 최신 onSave 를 flush/click 시점에 읽기 위한 ref (closure 고정 방지)
   const onSaveRef = useRef(onSave)
   onSaveRef.current = onSave
 
-  const doSave = useCallback(async () => {
+  // 확정된 DOM 값을 읽어 저장하는 단일 실행기.
+  const runSave = useCallback(async () => {
     if (saving) return
     const domValue = (ref.current?.value ?? '').trim()
     if (!domValue) return
     setSaving(true)
     try { await onSaveRef.current(domValue) } finally { setSaving(false) }
   }, [saving])
+  const runSaveRef = useRef(runSave)
+  runSaveRef.current = runSave
+
+  // 저장 버튼 클릭. Safari/WebKit 은 조합 중 .value 에 조합 글자가 없고, 조합 중 외부 클릭이
+  // compositionend 트리거로 소비되므로, 조합 중이면 blur() 로 compositionend 를 강제 유발한 뒤
+  // handleCompositionEnd 에서 저장한다. (Chromium 도 동일 경로로 안전)
+  const doSave = useCallback(() => {
+    if (saving) return
+    if (isComposingRef.current) {
+      pendingSaveRef.current = true
+      ref.current?.blur()   // compositionend 즉시 유발
+      return
+    }
+    void runSaveRef.current()
+  }, [saving])
+
+  const handleCompositionEnd = useCallback(() => {
+    isComposingRef.current = false
+    if (pendingSaveRef.current) {
+      pendingSaveRef.current = false
+      // compositionend 직후 .value 확정 타이밍을 맞추기 위해 한 틱 지연 (Safari 보정)
+      setTimeout(() => { void runSaveRef.current() }, 0)
+    }
+  }, [])
 
   // 다른 편집/추가 진입 시(handleStartEdit·handleAddChapter 등) flushPendingTextEdit 로
-  // 직전 편집을 자동 저장. mount 동안 자기 ref 의 최신 DOM 값을 읽는 저장 함수를 등록한다.
+  // 직전 편집을 자동 저장. 조합 중이라면 compositionend 까지 기다려 확정값을 저장한다.
   useEffect(() => {
-    setPendingTextEdit(async () => {
-      const domValue = (ref.current?.value ?? '').trim()
-      if (domValue) await onSaveRef.current(domValue)
-    })
+    setPendingTextEdit(() => new Promise<void>((resolve) => {
+      const save = async () => {
+        const domValue = (ref.current?.value ?? '').trim()
+        if (domValue) await onSaveRef.current(domValue)
+        resolve()
+      }
+      if (isComposingRef.current) {
+        // 조합 commit 후 .value 확정 → 저장
+        const onEnd = () => {
+          ref.current?.removeEventListener('compositionend', onEnd)
+          setTimeout(() => { void save() }, 0)
+        }
+        ref.current?.addEventListener('compositionend', onEnd)
+        ref.current?.blur()
+      } else {
+        void save()
+      }
+    }))
     return () => setPendingTextEdit(null)
   }, [])
 
@@ -74,6 +115,8 @@ function EditTextArea({ defaultValue, onCancel, onSave, cancelLabel, saveLabel, 
         ref={ref}
         className={`w-full min-h-32 ${padding} font-serif text-[0.9375rem] leading-[1.6] bg-edit-paper border-0 border-b border-edit-line focus:border-edit-ink focus:outline-none resize-none placeholder:text-edit-faint overflow-x-hidden whitespace-pre-wrap [word-break:keep-all] transition-colors duration-150`}
         onInput={e => { const t = e.currentTarget; t.style.height = 'auto'; t.style.height = t.scrollHeight + 'px' }}
+        onCompositionStart={() => { isComposingRef.current = true }}
+        onCompositionEnd={handleCompositionEnd}
         defaultValue={defaultValue}
         autoFocus
       />
@@ -85,12 +128,7 @@ function EditTextArea({ defaultValue, onCancel, onSave, cancelLabel, saveLabel, 
           {cancelLabel}
         </button>
         <button
-          // ⚠️ blur 금지. mousedown 에서 preventDefault 로 포커스 이동 자체를 막는다.
-          // 한글 조합 중(미완성 자모 'ㅊ') 포커스가 버튼으로 넘어가면 IME 가 첫 클릭을
-          // 조합 확정용으로 소비하거나 compositionend 의 DOM 반영이 늦어 첫 클릭이 실패함.
-          // textarea 포커스를 유지하면 onClick 이 첫 클릭에 발화하고, Chromium 은 조합 중
-          // 텍스트를 이미 .value 에 담고 있으므로 ref.current.value 로 그대로 읽힌다.
-          onMouseDown={(e) => e.preventDefault()}
+          // 조합 중이면 doSave() 내부에서 blur()→compositionend 경로로 저장하므로 preventDefault 불필요.
           onClick={(e) => { e.stopPropagation(); doSave() }}
           disabled={saving}
           className="px-4 py-1.5 text-[0.75rem] tracking-[0.04em] uppercase bg-edit-ink text-edit-paper hover:bg-edit-ink/85 rounded-[2px] transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
@@ -443,9 +481,8 @@ export const SortableTextBlock = memo(function SortableTextBlock({
           )}
           {(!isFirst || !isLast) && <span className="text-eyebrow text-edit-line select-none">|</span>}
           <button
-            // 다른 블록 편집 중일 때 이 버튼 클릭 → flush 자동 저장. preventDefault 로 현재
-            // 편집 중 textarea 포커스를 유지해야 조합 중 첫 클릭이 IME 에 소비되지 않음.
-            onMouseDown={(e) => e.preventDefault()}
+            // 다른 블록 편집 중 이 버튼 클릭 → 현재 textarea blur → compositionend 로 조합 commit →
+            // flush(setPendingTextEdit)가 확정값을 저장. (preventDefault 금지 — Safari 에서 commit 필요)
             onClick={() => onEdit(itemId, text_content)}
             className="text-xs px-2 py-0.5 rounded text-edit-muted hover:bg-edit-paper-2"
           >{t('common.edit')}</button>
@@ -843,7 +880,6 @@ export const SortableSideBySideBlock = memo(function SortableSideBySideBlock({
           <MarkdownRenderer content={textItem.text_content || ''} className="font-serif" />
           <div className="absolute top-4 right-2 flex gap-1 opacity-0 group-hover/text:opacity-100 transition-opacity">
             <button
-              onMouseDown={(e) => e.preventDefault()}
               onClick={() => onEdit(textItem.id, textItem.text_content || '')}
               className="text-xs px-2 py-0.5 rounded border border-edit-line text-edit-muted hover:text-edit-ink bg-edit-paper"
             >
