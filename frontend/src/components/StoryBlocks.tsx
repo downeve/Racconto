@@ -54,7 +54,6 @@ function EditTextArea({ defaultValue, onCancel, onSave, cancelLabel, saveLabel, 
 
   // 전달된 값을 저장하는 단일 실행기.
   const runSaveWith = useCallback(async (raw: string) => {
-    console.log('[IME] runSaveWith', { raw, saving: savingRef.current })
     if (savingRef.current) return
     const v = raw.trim()
     if (!v) return
@@ -70,7 +69,6 @@ function EditTextArea({ defaultValue, onCancel, onSave, cancelLabel, saveLabel, 
   // 스스로 확정(commit)시키므로, Safari 의 '조합 중 첫 click 소비' 문제를 우회한다 → 1회로 저장.
   const handleSubmit = useCallback((e: React.FormEvent) => {
     e.preventDefault()
-    console.log('[IME] submit', { value: ref.current?.value, composing: isComposingRef.current })
     void runSaveWithRef.current(ref.current?.value ?? '')
   }, [])
 
@@ -101,8 +99,8 @@ function EditTextArea({ defaultValue, onCancel, onSave, cancelLabel, saveLabel, 
         ref={ref}
         className={`w-full min-h-32 ${padding} font-serif text-[0.9375rem] leading-[1.6] bg-edit-paper border-0 border-b border-edit-line focus:border-edit-ink focus:outline-none resize-none placeholder:text-edit-faint overflow-x-hidden whitespace-pre-wrap [word-break:keep-all] transition-colors duration-150`}
         onInput={e => { const t = e.currentTarget; t.style.height = 'auto'; t.style.height = t.scrollHeight + 'px' }}
-        onCompositionStart={() => { console.log('[IME] compositionstart'); isComposingRef.current = true }}
-        onCompositionEnd={(e) => { console.log('[IME] compositionend', { value: e.currentTarget.value }); isComposingRef.current = false }}
+        onCompositionStart={() => { isComposingRef.current = true }}
+        onCompositionEnd={() => { isComposingRef.current = false }}
         defaultValue={defaultValue}
         autoFocus
       />
