@@ -46,14 +46,13 @@ function EditTextArea({ defaultValue, onCancel, onSave, cancelLabel, saveLabel, 
   const ref = useRef<HTMLTextAreaElement>(null)
   const [saving, setSaving] = useState(false)
   const savingRef = useRef(false)         // 동기 중복 저장 방지(state 는 async 라 별도 ref)
-  const isComposingRef = useRef(false)    // IME 조합 진행 중 여부
-  const saveIntentRef = useRef(false)      // blur 후 저장 의도가 있었는지
+  const isComposingRef = useRef(false)    // IME 조합 진행 중 여부 (flush 경로에서 사용)
 
   // 최신 onSave 를 flush/저장 시점에 읽기 위한 ref (closure 고정 방지)
   const onSaveRef = useRef(onSave)
   onSaveRef.current = onSave
 
-  // 전달된 값을 저장하는 단일 실행기. ⚠️ 값은 항상 compositionend/blur 이후의 확정 .value 여야 함.
+  // 전달된 값을 저장하는 단일 실행기.
   const runSaveWith = useCallback(async (raw: string) => {
     console.log('[IME] runSaveWith', { raw, saving: savingRef.current })
     if (savingRef.current) return
@@ -67,28 +66,12 @@ function EditTextArea({ defaultValue, onCancel, onSave, cancelLabel, saveLabel, 
   const runSaveWithRef = useRef(runSaveWith)
   runSaveWithRef.current = runSaveWith
 
-  // 저장 트리거. ⚠️ onClick 이 아니라 onMouseDown 에서 호출 — Safari/WebKit 은 조합 중 첫 click 을
-  // compositionend 트리거로 소비해 onClick 이 발화하지 않음(mousedown 은 발화).
-  // textarea 가 포커스면 blur() → (조합 중이면 compositionend 먼저) → onBlur 에서 확정 .value 저장.
-  // Safari 는 조합 중 .value 가 미확정이라, setTimeout 추측 대신 blur 이후 시점(onBlur)에서 읽어야 안전.
-  const requestSave = useCallback(() => {
-    const focused = ref.current && document.activeElement === ref.current
-    console.log('[IME] requestSave', { saving: savingRef.current, composing: isComposingRef.current, focused, value: ref.current?.value })
-    if (savingRef.current) return
-    if (focused) {
-      saveIntentRef.current = true
-      ref.current!.blur()
-    } else {
-      void runSaveWithRef.current(ref.current?.value ?? '')
-    }
-  }, [])
-
-  const handleBlur = useCallback(() => {
-    console.log('[IME] blur', { intent: saveIntentRef.current, composing: isComposingRef.current, value: ref.current?.value })
-    if (saveIntentRef.current) {
-      saveIntentRef.current = false
-      void runSaveWithRef.current(ref.current?.value ?? '')
-    }
+  // 저장은 네이티브 폼 submit 으로 처리한다. 브라우저의 폼 제출 메커니즘은 제출 직전 IME 조합을
+  // 스스로 확정(commit)시키므로, Safari 의 '조합 중 첫 click 소비' 문제를 우회한다 → 1회로 저장.
+  const handleSubmit = useCallback((e: React.FormEvent) => {
+    e.preventDefault()
+    console.log('[IME] submit', { value: ref.current?.value, composing: isComposingRef.current })
+    void runSaveWithRef.current(ref.current?.value ?? '')
   }, [])
 
   // 다른 편집/추가 진입 시(handleStartEdit·handleAddChapter 등) flushPendingTextEdit 로
@@ -113,37 +96,34 @@ function EditTextArea({ defaultValue, onCancel, onSave, cancelLabel, saveLabel, 
   }, [])
 
   return (
-    <div className="flex flex-col gap-2">
+    <form className="flex flex-col gap-2" onSubmit={handleSubmit}>
       <textarea
         ref={ref}
         className={`w-full min-h-32 ${padding} font-serif text-[0.9375rem] leading-[1.6] bg-edit-paper border-0 border-b border-edit-line focus:border-edit-ink focus:outline-none resize-none placeholder:text-edit-faint overflow-x-hidden whitespace-pre-wrap [word-break:keep-all] transition-colors duration-150`}
         onInput={e => { const t = e.currentTarget; t.style.height = 'auto'; t.style.height = t.scrollHeight + 'px' }}
         onCompositionStart={() => { console.log('[IME] compositionstart'); isComposingRef.current = true }}
         onCompositionEnd={(e) => { console.log('[IME] compositionend', { value: e.currentTarget.value }); isComposingRef.current = false }}
-        onBlur={handleBlur}
         defaultValue={defaultValue}
         autoFocus
       />
       <div className="flex gap-2 justify-end mt-3">
         <button
-          onMouseDown={(e) => { e.preventDefault(); e.stopPropagation(); onCancel() }}
+          type="button"
+          onClick={(e) => { e.stopPropagation(); onCancel() }}
           className="px-4 py-1.5 text-[0.75rem] tracking-[0.04em] uppercase text-edit-muted hover:text-edit-ink bg-transparent border border-edit-line rounded-[2px] transition-colors"
         >
           {cancelLabel}
         </button>
         <button
-          // 마우스: onMouseDown 에서 저장 요청(Safari 의 조합 중 click 소비 회피). preventDefault 로
-          // 버튼이 포커스를 가져가기 전에 우리가 명시적으로 textarea.blur() → onBlur 에서 확정값 저장.
-          // 키보드(Enter/Space)는 click(detail===0)에서 처리.
-          onMouseDown={(e) => { e.preventDefault(); e.stopPropagation(); requestSave() }}
-          onClick={(e) => { if (e.detail === 0) { e.stopPropagation(); void runSaveWithRef.current(ref.current?.value ?? '') } }}
+          // 네이티브 폼 submit — 제출 직전 IME 조합을 브라우저가 commit 시켜 Safari 에서도 1회 저장.
+          type="submit"
           disabled={saving}
           className="px-4 py-1.5 text-[0.75rem] tracking-[0.04em] uppercase bg-edit-ink text-edit-paper hover:bg-edit-ink/85 rounded-[2px] transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
         >
           {saveLabel}
         </button>
       </div>
-    </div>
+    </form>
   )
 }
 
