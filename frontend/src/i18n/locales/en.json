@@ -1,6 +1,7 @@
 {
   "common": {
     "loading": "Loading...",
+    "saving": "Saving…",
     "collapse": "Collapse",
     "expand": "Expand",
     "save": "Save",
@@ -308,6 +309,10 @@
   },
   "story": {
     "title": "Story",
+    "textSaved": "Text saved",
+    "textSaveFailed": "Failed to save text",
+    "textDeleteWarning": "Permanently delete this text block?",
+    "chapterSaveFailed": "Failed to save chapter",
     "preview": "Portfolio Preview",
     "chapter": "Chapter",
     "chapters": "Chapters",

@@ -42,6 +42,8 @@ export interface StoryChapterProps {
   onChapterChange?: (count: number) => void
   onItemToggle: (chapterId: string, itemId: string, shiftKey: boolean, metaKey: boolean) => void
   onCrossBlockMove: (chapterId: string, itemId: string, sourceBlockId: string, targetBlockId: string) => void
+  showToast?: (message: string, type: 'success' | 'error' | 'warning') => void
+  onRequestConfirm?: (message: string, onConfirm: () => void) => void
 }
 
 function StoryChapterComponent({
@@ -56,6 +58,8 @@ function StoryChapterComponent({
   onChapterChange,
   onItemToggle,
   onCrossBlockMove,
+  showToast,
+  onRequestConfirm,
 }: StoryChapterProps) {
   const { t } = useTranslation()
 
@@ -96,7 +100,7 @@ function StoryChapterComponent({
     fetchChapterPhotos(chapterId)
   }, [chapterId, fetchChapterPhotos])
 
-  const handleRemoveItem = useCallback(async (cid: string, itemId: string) => {
+  const performRemoveItem = useCallback(async (cid: string, itemId: string) => {
     const currentItems = itemsRef.current
     const item = currentItems.find(i => i.id === itemId)
     const blockId = item?.block_id
@@ -122,6 +126,18 @@ function StoryChapterComponent({
     fetchChapterPhotos(cid)
     if (item?.item_type === 'PHOTO') onChapterChange?.(0)
   }, [handleCancelSideBySide, fetchChapterPhotos, onChapterChange])
+
+  const handleRemoveItem = useCallback(async (cid: string, itemId: string) => {
+    const currentItems = itemsRef.current
+    const item = currentItems.find(i => i.id === itemId)
+    if (item?.item_type === 'TEXT' && onRequestConfirm) {
+      onRequestConfirm(t('story.textDeleteWarning'), () => {
+        performRemoveItem(cid, itemId)
+      })
+      return
+    }
+    await performRemoveItem(cid, itemId)
+  }, [performRemoveItem, onRequestConfirm, t])
 
   const handleSideBySide = useCallback(async (
     cid: string,
@@ -366,23 +382,20 @@ function StoryChapterComponent({
       setInsertTextDraft('')
     } catch (err) {
       console.error('텍스트 블록 추가 실패:', err)
+      showToast?.(t('story.textSaveFailed'), 'error')
     }
-  }, [fetchChapterPhotos])
+  }, [fetchChapterPhotos, showToast, t])
 
   const handleSaveTextBlock = useCallback(async (overrideValue: string) => {
     // overrideValue: EditTextArea 가 textarea DOM 값을 직접 읽어 전달 (uncontrolled).
     const content = overrideValue.trim()
     if (!content || !editingTextItemId) return
-    try {
-      await axios.put(`${API}/chapters/${chapterId}/texts/${editingTextItemId}`, {
-        text_content: content,
-      })
-      fetchChapterPhotos(chapterId)
-      setEditingTextItemId(null)
-    } catch (err) {
-      console.error('텍스트 저장 중 에러:', err)
-      alert('저장에 실패했습니다.')
-    }
+    // 실패 시 EditTextArea 의 try/catch 가 toast 를 띄울 수 있도록 throw.
+    await axios.put(`${API}/chapters/${chapterId}/texts/${editingTextItemId}`, {
+      text_content: content,
+    })
+    fetchChapterPhotos(chapterId)
+    setEditingTextItemId(null)
   }, [chapterId, editingTextItemId, fetchChapterPhotos])
 
   // 다른 텍스트 블록 편집 진입 시 이전 편집 자동 저장(flushPendingTextEdit) 후 새 편집 시작.
@@ -430,9 +443,11 @@ function StoryChapterComponent({
             </button>
             <button
               onClick={() => handleAddTextBlockAt(chapterId, insertIndex, insertTextDraft)}
+              disabled={insertTextDraft.trim().length === 0}
               className="px-4 py-1.5 text-[0.75rem] tracking-[0.04em] uppercase
                          bg-edit-ink text-edit-paper hover:bg-edit-ink/85
-                         rounded-[2px] transition-colors"
+                         rounded-[2px] transition-colors
+                         disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-edit-ink"
             >
               {t('common.save')}
             </button>
@@ -628,6 +643,7 @@ function StoryChapterComponent({
                     onMoveBlock={(dir) => handleMoveBlock(block.blockId, dir)}
                     isFirst={blockIdx === 0}
                     isLast={blockIdx === blocks.length - 1}
+                    showToast={showToast}
                   />
                 ) : block.type === 'TEXT' ? (
                   <SortableTextBlock
@@ -649,6 +665,7 @@ function StoryChapterComponent({
                     onMoveBlock={(dir) => handleMoveBlock(block.blockId, dir)}
                     isFirst={blockIdx === 0}
                     isLast={blockIdx === blocks.length - 1}
+                    showToast={showToast}
                   />
                 ) : (
                   <SortablePhotoBlock

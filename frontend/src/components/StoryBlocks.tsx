@@ -39,28 +39,55 @@ interface EditTextAreaProps {
   onSave: (overrideValue: string) => void | Promise<void>
   cancelLabel: string
   saveLabel: string
+  savingLabel: string
+  saveSuccessMessage: string
+  saveErrorMessage: string
   padding?: string
+  showToast?: (message: string, type: 'success' | 'error' | 'warning') => void
 }
 
-function EditTextArea({ defaultValue, onCancel, onSave, cancelLabel, saveLabel, padding = 'p-3' }: EditTextAreaProps) {
+function EditTextArea({
+  defaultValue, onCancel, onSave,
+  cancelLabel, saveLabel, savingLabel, saveSuccessMessage, saveErrorMessage,
+  padding = 'p-3', showToast,
+}: EditTextAreaProps) {
   const ref = useRef<HTMLTextAreaElement>(null)
   const [saving, setSaving] = useState(false)
   const savingRef = useRef(false)         // 동기 중복 저장 방지(state 는 async 라 별도 ref)
   const isComposingRef = useRef(false)    // IME 조합 진행 중 여부 (flush 경로에서 사용)
+  // 빈값 여부만 추적하는 boolean state — 키 입력당 re-render 유발 안 함(값이 바뀔 때만 setState)
+  const [isEmpty, setIsEmpty] = useState(() => defaultValue.trim().length === 0)
+  // 편집 진입 직전 focus 였던 element 캐프쳐 → unmount 시 복귀
+  const prevFocusedRef = useRef<HTMLElement | null>(null)
 
   // 최신 onSave 를 flush/저장 시점에 읽기 위한 ref (closure 고정 방지)
   const onSaveRef = useRef(onSave)
   onSaveRef.current = onSave
+  const showToastRef = useRef(showToast)
+  showToastRef.current = showToast
+  const saveSuccessMessageRef = useRef(saveSuccessMessage)
+  saveSuccessMessageRef.current = saveSuccessMessage
+  const saveErrorMessageRef = useRef(saveErrorMessage)
+  saveErrorMessageRef.current = saveErrorMessage
 
-  // 전달된 값을 저장하는 단일 실행기.
+  // 전달된 값을 저장하는 단일 실행기. 토스트 피드백 + 에러 핸들링 포함.
   const runSaveWith = useCallback(async (raw: string) => {
     if (savingRef.current) return
     const v = raw.trim()
     if (!v) return
     savingRef.current = true
     setSaving(true)
-    try { await onSaveRef.current(v) }
-    finally { savingRef.current = false; setSaving(false) }
+    try {
+      await onSaveRef.current(v)
+      showToastRef.current?.(saveSuccessMessageRef.current, 'success')
+    } catch (err) {
+      console.error('텍스트 저장 실패:', err)
+      showToastRef.current?.(saveErrorMessageRef.current, 'error')
+      // 실패 시 편집창 유지 — 사용자가 다시 시도하거나 내용 보존
+    } finally {
+      savingRef.current = false
+      setSaving(false)
+    }
   }, [])
   const runSaveWithRef = useRef(runSaveWith)
   runSaveWithRef.current = runSaveWith
@@ -74,13 +101,26 @@ function EditTextArea({ defaultValue, onCancel, onSave, cancelLabel, saveLabel, 
     void runSaveWithRef.current(ref.current?.value ?? '')
   }, [])
 
-  // 다른 편집/추가 진입 시(handleStartEdit·handleAddChapter 등) flushPendingTextEdit 로
-  // 직전 편집을 자동 저장. 조합 중이라면 compositionend(=확정) 이후 .value 를 읽어 저장한다.
+  // 마운트 시: 직전 focus 캐프쳐 + textarea autosize 1회 적용 + 자동저장 레지스트리 등록
   useEffect(() => {
+    prevFocusedRef.current = (document.activeElement as HTMLElement | null) ?? null
+    if (ref.current) {
+      const t = ref.current
+      t.style.height = 'auto'
+      t.style.height = t.scrollHeight + 'px'
+    }
     setPendingTextEdit(() => new Promise<void>((resolve) => {
       const finish = async () => {
         const v = (ref.current?.value ?? '').trim()
-        if (v) await onSaveRef.current(v)
+        if (v) {
+          try {
+            await onSaveRef.current(v)
+            showToastRef.current?.(saveSuccessMessageRef.current, 'success')
+          } catch (err) {
+            console.error('텍스트 자동 저장 실패:', err)
+            showToastRef.current?.(saveErrorMessageRef.current, 'error')
+          }
+        }
         resolve()
       }
       if (isComposingRef.current && ref.current) {
@@ -92,17 +132,50 @@ function EditTextArea({ defaultValue, onCancel, onSave, cancelLabel, saveLabel, 
         void finish()
       }
     }))
-    return () => setPendingTextEdit(null)
+    return () => {
+      setPendingTextEdit(null)
+      // unmount 시 직전 focus 복귀 (still in DOM and focusable)
+      const prev = prevFocusedRef.current
+      if (prev && typeof prev.focus === 'function' && document.body.contains(prev)) {
+        try { prev.focus() } catch { /* ignore */ }
+      }
+    }
   }, [])
+
+  // 빈값 boolean 만 추적 — 값이 바뀔 때만 setState (제약 4: 키 입력당 re-render 방지)
+  const handleInput = useCallback((e: React.FormEvent<HTMLTextAreaElement>) => {
+    const t = e.currentTarget
+    t.style.height = 'auto'
+    t.style.height = t.scrollHeight + 'px'
+    const nowEmpty = t.value.trim().length === 0
+    setIsEmpty(prev => prev === nowEmpty ? prev : nowEmpty)
+  }, [])
+
+  // 키보드 단축키: Esc=취소, Cmd/Ctrl+Enter=저장. IME 조합 중 키는 무시.
+  const handleKeyDown = useCallback((e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (e.nativeEvent.isComposing || isComposingRef.current) return
+    if (e.key === 'Escape') {
+      e.preventDefault()
+      onCancel()
+      return
+    }
+    if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) {
+      e.preventDefault()
+      triggerSave()
+    }
+  }, [onCancel, triggerSave])
+
+  const saveDisabled = saving || isEmpty
 
   return (
     <div className="flex flex-col gap-2">
       <textarea
         ref={ref}
         className={`w-full min-h-32 ${padding} font-serif text-[0.9375rem] leading-[1.6] bg-edit-paper border-0 border-b border-edit-line focus:border-edit-ink focus:outline-none resize-none placeholder:text-edit-faint overflow-x-hidden whitespace-pre-wrap [word-break:keep-all] transition-colors duration-150`}
-        onInput={e => { const t = e.currentTarget; t.style.height = 'auto'; t.style.height = t.scrollHeight + 'px' }}
+        onInput={handleInput}
         onCompositionStart={() => { isComposingRef.current = true }}
         onCompositionEnd={() => { isComposingRef.current = false }}
+        onKeyDown={handleKeyDown}
         defaultValue={defaultValue}
         autoFocus
       />
@@ -118,12 +191,12 @@ function EditTextArea({ defaultValue, onCancel, onSave, cancelLabel, saveLabel, 
         </button>
         <button
           type="button"
-          disabled={saving}
-          onPointerUp={(e) => { e.stopPropagation(); triggerSave() }}
-          onClick={(e) => { if (e.detail === 0) { e.stopPropagation(); triggerSave() } }}
+          disabled={saveDisabled}
+          onPointerUp={(e) => { e.stopPropagation(); if (!saveDisabled) triggerSave() }}
+          onClick={(e) => { if (e.detail === 0 && !saveDisabled) { e.stopPropagation(); triggerSave() } }}
           className="px-4 py-1.5 text-[0.75rem] tracking-[0.04em] uppercase bg-edit-ink text-edit-paper hover:bg-edit-ink/85 rounded-[2px] transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
         >
-          {saveLabel}
+          {saving ? savingLabel : saveLabel}
         </button>
       </div>
     </div>
@@ -405,13 +478,14 @@ export interface SortableTextBlockProps {
   onMoveBlock?: (direction: 'up' | 'down') => void
   isFirst?: boolean
   isLast?: boolean
+  showToast?: (message: string, type: 'success' | 'error' | 'warning') => void
 }
 
 export const SortableTextBlock = memo(function SortableTextBlock({
   id, itemId, chapterId, text_content, hasPhotoAbove, hasPhotoBelow, onRemove, onEdit,
   // 인라인 편집창 추가 props
   editingTextItemId, onSaveText, onCancelEdit,
-  onSideBySide, onMoveBlock, isFirst, isLast
+  onSideBySide, onMoveBlock, isFirst, isLast, showToast,
 }: SortableTextBlockProps) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id })
   const style = { transform: CSS.Transform.toString(transform), transition, opacity: isDragging ? 0.5 : 1 }
@@ -445,7 +519,11 @@ export const SortableTextBlock = memo(function SortableTextBlock({
             onSave={(v) => onSaveText?.(v)}
             cancelLabel={t('common.cancel')}
             saveLabel={t('common.save')}
+            savingLabel={t('common.saving')}
+            saveSuccessMessage={t('story.textSaved')}
+            saveErrorMessage={t('story.textSaveFailed')}
             padding="p-3"
+            showToast={showToast}
           />
         ) : (
           <MarkdownRenderer content={text_content} className="pl-4 font-serif" />
@@ -801,13 +879,14 @@ export interface SortableSideBySideBlockProps {
   onMoveBlock?: (direction: 'up' | 'down') => void
   isFirst?: boolean
   isLast?: boolean
+  showToast?: (message: string, type: 'success' | 'error' | 'warning') => void
 }
 
 export const SortableSideBySideBlock = memo(function SortableSideBySideBlock({
   blockId, chapterId, items, onRemoveItem, onPhotoClick, onCancelSideBySide,
   // 👇 추가된 props 구조분해 할당
   editingTextItemId, onSaveText, onCancelEdit,
-  onEdit, onFlipColumns, onMoveBlock, isFirst, isLast
+  onEdit, onFlipColumns, onMoveBlock, isFirst, isLast, showToast,
 }: SortableSideBySideBlockProps) {
   const { attributes, listeners, setNodeRef: setSortableRef, transform, transition, isDragging } = useSortable({ id: blockId })
   const style = { transform: CSS.Transform.toString(transform), transition, opacity: isDragging ? 0.5 : 1 }
@@ -863,7 +942,11 @@ export const SortableSideBySideBlock = memo(function SortableSideBySideBlock({
           onSave={(v) => onSaveText?.(v)}
           cancelLabel={t('common.cancel')}
           saveLabel={t('common.save')}
+          savingLabel={t('common.saving')}
+          saveSuccessMessage={t('story.textSaved')}
+          saveErrorMessage={t('story.textSaveFailed')}
           padding="p-2"
+          showToast={showToast}
         />
       ) : (
         /* 👇 일반 모드: 기존 텍스트 표시 */

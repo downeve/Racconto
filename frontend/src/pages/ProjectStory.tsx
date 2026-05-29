@@ -290,18 +290,22 @@ function groupIntoBlocks(items: ChapterItem[]): ChapterBlock[] {
   })
 }
 
+type ToastType = 'success' | 'error' | 'warning'
+
 function ProjectStory({
   projectId,
   activeTab,
   allPhotos,
   onChapterChange,
+  showToast,
 }: {
   projectId: string,
   activeTab: string,
   allPhotos: Photo[],
   chapterPhotoCount?: number,
   onChapterChange?: () => void,
-  onPhotoUpdate?: (photoId: string, newCaption: string) => void
+  onPhotoUpdate?: (photoId: string, newCaption: string) => void,
+  showToast?: (message: string, type: ToastType) => void
 }) {
   const queryClient = useQueryClient()
   const [chapters, setChapters] = useState<Chapter[]>([])
@@ -320,6 +324,7 @@ function ProjectStory({
   const editTitleRef = useRef<HTMLInputElement>(null)
   const editDescRef = useRef<HTMLTextAreaElement>(null)
   const [confirmModal, setConfirmModal] = useState<{ message: string; onConfirm: () => void } | null>(null)
+  const [savingChapter, setSavingChapter] = useState(false)
 
   const { t } = useTranslation()
 
@@ -497,6 +502,7 @@ function ProjectStory({
   }, [chapterPreviewOpen])
 
   const handleAddChapter = async () => {
+    if (savingChapter) return
     // textarea/input DOM 의 값을 직접 읽어 IME race 에서 React state 가 stale 인 경우에도
     // 최신 값으로 저장. ref 가 null 이면 state 로 fallback.
     const title = (newTitleRef.current?.value ?? newTitle).trim()
@@ -504,35 +510,53 @@ function ProjectStory({
     if (!title) return
     // 편집 중인 텍스트 블록이 있다면 먼저 자동 저장
     await flushPendingTextEdit()
-    await axios.post(`${API}/chapters/`, {
-      project_id: projectId,
-      title,
-      description: desc,
-      order_num: chapters.length,
-      parent_id: addingSubChapterTo,
-    })
-    setNewTitle('')
-    setNewDesc('')
-    setShowAddChapter(false)
-    setAddingSubChapterTo(null)
-    invalidateStory(); onChapterChange?.()
+    setSavingChapter(true)
+    try {
+      await axios.post(`${API}/chapters/`, {
+        project_id: projectId,
+        title,
+        description: desc,
+        order_num: chapters.length,
+        parent_id: addingSubChapterTo,
+      })
+      // 성공 시에만 폼 닫기 — 실패 시 사용자가 입력값을 유지하고 재시도 가능.
+      setNewTitle('')
+      setNewDesc('')
+      setShowAddChapter(false)
+      setAddingSubChapterTo(null)
+      invalidateStory(); onChapterChange?.()
+    } catch (err) {
+      console.error('챕터 추가 실패:', err)
+      showToast?.(t('story.chapterSaveFailed'), 'error')
+    } finally {
+      setSavingChapter(false)
+    }
   }
 
   const handleUpdateChapter = async (chapter: Chapter) => {
+    if (savingChapter) return
     const title = (editTitleRef.current?.value ?? editTitle).trim()
     const desc = editDescRef.current?.value ?? editDesc
     if (!title) return
     // 편집 중인 텍스트 블록이 있다면 먼저 자동 저장
     await flushPendingTextEdit()
-    await axios.put(`${API}/chapters/${chapter.id}`, {
-      title,
-      description: desc,
-      order_num: chapter.order_num,
-      parent_id: chapter.parent_id,
-      project_id: chapter.project_id,
-    })
-    setEditingChapter(null)
-    invalidateStory(); onChapterChange?.()
+    setSavingChapter(true)
+    try {
+      await axios.put(`${API}/chapters/${chapter.id}`, {
+        title,
+        description: desc,
+        order_num: chapter.order_num,
+        parent_id: chapter.parent_id,
+        project_id: chapter.project_id,
+      })
+      setEditingChapter(null)
+      invalidateStory(); onChapterChange?.()
+    } catch (err) {
+      console.error('챕터 수정 실패:', err)
+      showToast?.(t('story.chapterSaveFailed'), 'error')
+    } finally {
+      setSavingChapter(false)
+    }
   }
 
   const handleDeleteChapter = async (chapterId: string) => {
@@ -659,9 +683,8 @@ function ProjectStory({
         await axios.put(`${API}/chapters/reorder`, { chapter_ids: chapterIds })
         invalidateStory(); onChapterChange?.()
       } catch (error) {
-        // 다국어 적용: 콘솔 에러 및 alert 메시지
         console.error(t('story.error.ReorderFailedLog'), error)
-        alert(t('story.error.ReorderFailedAlert'))
+        showToast?.(t('story.error.ReorderFailedAlert'), 'error')
       }
     }
 
@@ -1020,9 +1043,10 @@ function ProjectStory({
               >{t('common.cancel')}</button>
               <button
                 {...imeSafeClick(handleAddChapter)}
+                disabled={savingChapter || !newTitle.trim()}
                 className="t-caption px-5 py-2 bg-edit-ink text-edit-paper rounded-[1px]
                            hover:bg-edit-ink/85 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
-              >{t('common.add')}</button>
+              >{savingChapter ? t('common.saving') : t('common.add')}</button>
             </div>
           </div>
         )}
@@ -1137,9 +1161,10 @@ function ProjectStory({
                         >{t('common.cancel')}</button>
                         <button
                           {...imeSafeClick(() => handleUpdateChapter(chapter))}
+                          disabled={savingChapter || !editTitle.trim()}
                           className="t-caption px-5 py-2 bg-edit-ink text-edit-paper rounded-[1px]
                                      hover:bg-edit-ink/85 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
-                        >{t('common.save')}</button>
+                        >{savingChapter ? t('common.saving') : t('common.save')}</button>
                       </div>
                     </div>
                   ) : (
@@ -1207,6 +1232,8 @@ function ProjectStory({
                   onChapterChange={onChapterChange}
                   onItemToggle={onItemToggle}
                   onCrossBlockMove={handleCrossBlockMove}
+                  showToast={showToast}
+                  onRequestConfirm={(message, onConfirm) => setConfirmModal({ message, onConfirm })}
                 />
 
                 {/* 서브챕터들 */}
@@ -1307,9 +1334,10 @@ function ProjectStory({
                                 >{t('common.cancel')}</button>
                                 <button
                                   {...imeSafeClick(() => handleUpdateChapter(subChapter))}
+                                  disabled={savingChapter || !editTitle.trim()}
                                   className="t-caption px-5 py-2 bg-edit-ink text-edit-paper rounded-[1px]
                                              hover:bg-edit-ink/85 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
-                                >{t('common.save')}</button>
+                                >{savingChapter ? t('common.saving') : t('common.save')}</button>
                               </div>
                             </div>
                           ) : (
@@ -1330,6 +1358,8 @@ function ProjectStory({
                       onChapterChange={onChapterChange}
                       onItemToggle={onItemToggle}
                       onCrossBlockMove={handleCrossBlockMove}
+                      showToast={showToast}
+                      onRequestConfirm={(message, onConfirm) => setConfirmModal({ message, onConfirm })}
                         />
                   </div>
                   </div>

@@ -70,13 +70,9 @@ export default function Dashboard() {
         {/* 1. Welcome Section */}
         <section className="mb-space-md">
           <p className="t-eyebrow text-muted mb-3">Welcome back</p>
-          <h1 className="font-serif text-[2.5rem] md:text-[3.25rem] leading-[1.05] tracking-[-0.015em] font-normal text-ink-2 [word-break:keep-all]">
-            {t('dashboard.title1')}<br className="hidden md:block" />
-            {t('dashboard.title2')}
+          <h1 className="font-serif text-[1.25rem] font-normal text-ink-2 [word-break:keep-all]">
+            {t('dashboard.title1')} {t('dashboard.title2')}
           </h1>
-          <p className="mt-5 font-serif italic text-[1.25rem] text-muted">
-            &#x201C;Every photo has a story to tell.&#x201D;
-          </p>
         </section>
 
         {/* 2. Quick Actions: 대시보드만의 기능적 섹션 */}

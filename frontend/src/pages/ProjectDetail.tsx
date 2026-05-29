@@ -1526,6 +1526,7 @@ export default function ProjectDetail({
           allPhotos={photos.filter(p => !p.deleted_at)}
           chapterPhotoCount={chapterPhotoVersion}
           onChapterChange={() => queryClient.invalidateQueries({ queryKey: ['storyChapters', numericId] })}
+          showToast={showToast}
         />
       </div>
 
