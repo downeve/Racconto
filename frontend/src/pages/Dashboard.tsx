@@ -67,9 +67,9 @@ export default function Dashboard() {
       <div className="max-w-7xl mx-auto px-6 pt-space-md">
         
         {/* 1. Welcome Section */}
-        <section className="mb-space-md">
+        <section className="mb-space-sm">
           <p className="t-eyebrow text-muted mb-3">Welcome back</p>
-          <h1 className="font-serif text-[1.25rem] font-normal text-ink-2 [word-break:keep-all]">
+          <h1 className="font-serif text-h2 font-normal text-ink-2 [word-break:keep-all]">
             {t('dashboard.title1')} {t('dashboard.title2')}
           </h1>
         </section>
