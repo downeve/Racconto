@@ -65,7 +65,10 @@ const collectFilesFromEntry = async (entry: any, prefix: string): Promise<File[]
       entry.file(
         (f: File) => {
           if (ALLOWED_IMAGE_TYPES.includes(f.type)) {
-            resolve([assignRelativePath(f, prefix ? `${prefix}/${f.name}` : f.name)])
+            // 폴더 컨텍스트(prefix)가 있을 때만 webkitRelativePath 부여.
+            // prefix === '' (단일 파일 drag) 인데 파일명을 relativePath 로 부여하면 후속에서
+            // 그 파일명이 폴더명으로 해석되어 사진별로 가짜 폴더가 생기는 버그가 발생함.
+            resolve([prefix ? assignRelativePath(f, `${prefix}/${f.name}`) : f])
           } else {
             resolve([])
           }
