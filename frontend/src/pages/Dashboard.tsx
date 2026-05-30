@@ -8,7 +8,6 @@ import CoverFallback from '../components/CoverFallback'
 import { cfUrl } from '../utils/cfImage'
 
 const API = import.meta.env.VITE_API_URL
-const isElectron = typeof window !== 'undefined' && !!window.racconto
 
 interface Project {
   id: string
@@ -65,7 +64,7 @@ export default function Dashboard() {
 
   return (
     <div className="min-h-screen pb-20">
-      <div className={`max-w-7xl mx-auto px-6 ${isElectron ? 'pt-4' : 'pt-space-md'}`}>
+      <div className="max-w-7xl mx-auto px-6 pt-space-md">
         
         {/* 1. Welcome Section */}
         <section className="mb-space-md">

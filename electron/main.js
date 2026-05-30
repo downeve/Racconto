@@ -736,23 +736,6 @@ function buildAppMenu() {
       ],
     },
     {
-      label: t('navigate'),
-      submenu: [
-        {
-          label: t('dashboard'),
-          click: () => mainWindow?.webContents.send('menu:navigate', '/dashboard'),
-        },
-        {
-          label: t('projects'),
-          click: () => mainWindow?.webContents.send('menu:navigate', '/projects'),
-        },
-        {
-          label: t('portfolio'),
-          click: () => mainWindow?.webContents.send('menu:action', 'portfolio'),
-        },
-      ],
-    },
-    {
       label: t('window'),
       submenu: [
         { role: 'minimize' },

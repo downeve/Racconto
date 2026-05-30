@@ -1,6 +1,6 @@
 {
   "name": "racconto-desktop",
-  "version": "0.2.1",
+  "version": "0.2.42",
   "description": "Racconto Desktop App",
   "main": "main.js",
   "scripts": {
