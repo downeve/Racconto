@@ -71,7 +71,9 @@ export function ElectronSidebarProvider({ children }: { children: ReactNode }) {
 
       try {
         const relativePath = (file as any).webkitRelativePath
-        const folder = relativePath ? relativePath.split('/')[0] : null
+        // 슬래시가 포함된 경우(폴더 컨텍스트)에만 첫 segment 를 folder 로 사용.
+        // 단일 segment(파일명만 들어온 경우)는 폴더가 아니므로 null.
+        const folder = relativePath && relativePath.includes('/') ? relativePath.split('/')[0] : null
 
         const isDuplicate = existingPhotos.some(
           p => p.original_filename === file.name && p.folder === folder && !p.deleted_at

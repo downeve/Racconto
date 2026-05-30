@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { useQueryClient } from '@tanstack/react-query'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useNavigate, useLocation, Link } from 'react-router-dom'
 import axios from 'axios'
 import { useTranslation } from 'react-i18next'
@@ -35,7 +35,6 @@ interface Props {
 const isMac = typeof window !== 'undefined' && window.racconto?.platform === 'darwin'
 
 export default function ElectronSidebar({ activeTab, onTabChange, showTabs, width, onWidthChange }: Props) {
-  const [projects, setProjects] = useState<Project[]>([])
   const [confirmModal, setConfirmModal] = useState<{ message: string; onConfirm: () => void } | null>(null)
   const [showProjects, setShowProjects] = useState(
     () => localStorage.getItem('sidebar_projects_open') !== 'false'
@@ -134,14 +133,22 @@ export default function ElectronSidebar({ activeTab, onTabChange, showTabs, widt
     document.addEventListener('mouseup', onMouseUp)
   }
 
+  // Projects.tsx 와 동일한 React Query 캐시(`['projects']`)를 공유 — 정렬·옵티미스틱 업데이트 일관성 보장.
+  const { data: projects = [] } = useQuery<Project[]>({
+    queryKey: ['projects'],
+    queryFn: async () => {
+      const token = localStorage.getItem('token')
+      const res = await axios.get<Project[]>(`${API}/projects/`, {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+      return res.data
+    },
+  })
+
+  // 레거시 triggerRefresh 호출자(ProjectDetail/Edit/Trash 등)와 호환 — refreshTrigger 가 바뀌면 캐시 무효화.
   useEffect(() => {
-    const token = localStorage.getItem('token')
-    axios.get(`${API}/projects/`, {
-      headers: { Authorization: `Bearer ${token}` }
-    }).then(res => {
-      setProjects(res.data)
-    })
-  }, [refreshTrigger])
+    if (refreshTrigger > 0) queryClient.invalidateQueries({ queryKey: ['projects'] })
+  }, [refreshTrigger, queryClient])
 
   const isOnProjectDetail = location.pathname.startsWith('/projects/') &&
     !location.pathname.endsWith('/edit')
