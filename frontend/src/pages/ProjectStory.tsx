@@ -430,9 +430,15 @@ function ProjectStory({
     // ProjectDetail 도 같은 ['storyChapters', projectId] 캐시를 공유하므로 단일 invalidate 로
     // 양쪽 페이지 모두 갱신됨 (이전엔 별도 chapterPhotos 캐시도 함께 무효화했지만 통합 후 불필요).
     queryClient.invalidateQueries({ queryKey: ['storyChapters', projectId] })
+    // 공개 포트폴리오는 별도 캐시(staleTime 5분)라 함께 무효화하지 않으면 편집 직후
+    // 공개 페이지 진입 시 옛 데이터가 표시됨 (flip/reorder/layout/text 모든 mutation 공통).
+    queryClient.invalidateQueries({ queryKey: ['portfolio'] })
+    queryClient.invalidateQueries({ queryKey: ['portfolioSlug'] })
   }, [queryClient, projectId])
 
   const fetchChapterPhotos = useCallback((_chapterId: string): Promise<void> => {
+    queryClient.invalidateQueries({ queryKey: ['portfolio'] })
+    queryClient.invalidateQueries({ queryKey: ['portfolioSlug'] })
     return queryClient.invalidateQueries({ queryKey: ['storyChapters', projectId] })
   }, [queryClient, projectId])
 
@@ -1321,12 +1327,13 @@ function ProjectStory({
                               <div className="py-4">
                                 <p className="t-eyebrow text-edit-muted mb-2">{t('project.labelDescription')}</p>
                                 <textarea
-                                  ref={editDescRef}
                                   className="w-full font-serif text-body bg-transparent border-0 border-b border-edit-line
                                              focus:border-edit-ink focus:outline-none py-2 resize-none transition-colors duration-150
                                              placeholder:text-edit-faint"
-                                  rows={2}
+                                  rows={1}
                                   value={editDesc}
+                                  ref={el => { editDescRef.current = el; if (el) { el.style.height = 'auto'; el.style.height = `${Math.max(el.scrollHeight, 72)}px` } }}
+                                  onInput={e => { const el = e.currentTarget; el.style.height = 'auto'; el.style.height = `${Math.max(el.scrollHeight, 72)}px` }}
                                   onChange={e => setEditDesc(e.target.value)}
                                 />
                               </div>
