@@ -84,7 +84,7 @@ export default function PublicPortfolio() {
 
   const enabled = !!username && username !== '@setup'
 
-  const { data: listData, isError: listError } = useQuery({
+  const { data: listData, isError: listError, isLoading: listLoading } = useQuery({
     queryKey: ['portfolio', username],
     queryFn: async () => (await axios.get(`${API}/portfolio/${username}`)).data,
     enabled: enabled && !slug,
@@ -465,7 +465,8 @@ export default function PublicPortfolio() {
                 darkMode={darkMode}
               />
             ))}
-            {projects.length === 0 && (
+            {/* 로딩 중에는 EmptyState 를 띄우지 않음 — 첫 접근 시 빈 상태 깜빡임 방지 */}
+            {projects.length === 0 && !listLoading && (
               <div className="col-span-1 md:col-span-2 xl:col-span-3">
                 <EmptyState
                   heading={t('portfolio.noPublicProjects')}
