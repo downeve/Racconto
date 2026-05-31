@@ -1233,7 +1233,10 @@ function ProjectStory({
                   onItemToggle={onItemToggle}
                   onCrossBlockMove={handleCrossBlockMove}
                   showToast={showToast}
-                  onRequestConfirm={(message, onConfirm) => setConfirmModal({ message, onConfirm })}
+                  onRequestConfirm={(message, onConfirm) => setConfirmModal({
+                    message,
+                    onConfirm: () => { setConfirmModal(null); onConfirm() },
+                  })}
                 />
 
                 {/* 서브챕터들 */}
@@ -1359,7 +1362,10 @@ function ProjectStory({
                       onItemToggle={onItemToggle}
                       onCrossBlockMove={handleCrossBlockMove}
                       showToast={showToast}
-                      onRequestConfirm={(message, onConfirm) => setConfirmModal({ message, onConfirm })}
+                      onRequestConfirm={(message, onConfirm) => setConfirmModal({
+                    message,
+                    onConfirm: () => { setConfirmModal(null); onConfirm() },
+                  })}
                         />
                   </div>
                   </div>
