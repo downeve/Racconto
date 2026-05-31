@@ -1,5 +1,6 @@
-import { useState, useEffect, useRef, useCallback } from 'react'
+import { useState, useEffect, useRef, useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
+import { useInfiniteQuery } from '@tanstack/react-query'
 import { Search, X } from 'lucide-react'
 import axios from 'axios'
 import PublicNavbar from '../components/PublicNavbar'
@@ -46,10 +47,6 @@ interface SearchResponse {
 export default function Explore() {
   const { t } = useTranslation()
   const { isAuthenticated } = useAuth()
-  const [items, setItems] = useState<ExploreItem[]>([])
-  const [cursor, setCursor] = useState<string | null>(null)
-  const [hasMore, setHasMore] = useState(true)
-  const [loading, setLoading] = useState(false)
   const [cameraFilter, setCameraFilter] = useState<CameraType | ''>('')
   const [tagFilter, setTagFilter] = useState<string>('')
   const sentinelRef = useRef<HTMLDivElement>(null)
@@ -61,47 +58,42 @@ export default function Explore() {
   const [searchLoading, setSearchLoading] = useState(false)
   const isSearching = searchQuery.length >= 2
 
-  useEffect(() => {
-    setItems([])
-    setCursor(null)
-    setHasMore(true)
-  }, [cameraFilter, tagFilter])
-
-  const fetchPage = useCallback(async (currentCursor: string | null, camera: CameraType | '', tag: string) => {
-    if (loading) return
-    setLoading(true)
-    try {
+  // 피드를 React Query 캐시에 보관 — 상세 다녀온 뒤 재진입 시 누적 페이지가 즉시
+  // 복원되어 목록 재생성/커버 빈칸 깜빡임이 사라진다(이미지도 캐시에서 즉시 페인트).
+  const {
+    data,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+    isLoading,
+  } = useInfiniteQuery({
+    queryKey: ['exploreFeed', cameraFilter, tagFilter],
+    queryFn: async ({ pageParam }) => {
       const params = new URLSearchParams()
-      if (currentCursor) params.set('cursor', currentCursor)
-      if (camera) params.set('camera_type', camera)
-      if (tag) params.set('tag', tag)
+      if (pageParam) params.set('cursor', pageParam as string)
+      if (cameraFilter) params.set('camera_type', cameraFilter)
+      if (tagFilter) params.set('tag', tagFilter)
       const { data } = await axios.get<FeedResponse>(`${API}/explore/feed?${params.toString()}`)
-      setItems(prev => currentCursor ? [...prev, ...data.items] : data.items)
-      setCursor(data.next_cursor)
-      setHasMore(data.has_more)
-    } catch {
-      // 네트워크 오류 무시
-    } finally {
-      setLoading(false)
-    }
-  }, [loading])
-
-  useEffect(() => {
-    fetchPage(null, cameraFilter, tagFilter)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [cameraFilter, tagFilter])
+      return data
+    },
+    initialPageParam: null as string | null,
+    getNextPageParam: (lastPage) => (lastPage.has_more ? lastPage.next_cursor : undefined),
+    staleTime: 1000 * 60 * 5,
+  })
+  const items = useMemo<ExploreItem[]>(() => data?.pages.flatMap(p => p.items) ?? [], [data])
+  const loading = isLoading || isFetchingNextPage
 
   useEffect(() => {
     const sentinel = sentinelRef.current
-    if (!sentinel || !hasMore || isSearching) return
+    if (!sentinel || !hasNextPage || isSearching) return
     const obs = new IntersectionObserver(entries => {
-      if (entries[0].isIntersecting && !loading && hasMore && cursor) {
-        fetchPage(cursor, cameraFilter, tagFilter)
+      if (entries[0].isIntersecting && hasNextPage && !isFetchingNextPage) {
+        fetchNextPage()
       }
     }, { rootMargin: '600px' })
     obs.observe(sentinel)
     return () => obs.disconnect()
-  }, [cursor, hasMore, loading, cameraFilter, tagFilter, fetchPage, isSearching])
+  }, [hasNextPage, isFetchingNextPage, isSearching, fetchNextPage])
 
   useEffect(() => {
     if (!isSearching) {
