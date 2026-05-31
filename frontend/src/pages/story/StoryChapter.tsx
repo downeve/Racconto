@@ -321,7 +321,11 @@ function StoryChapterComponent({
 
     const oldIndex = blockItems.findIndex(i => i.id === activeId)
     const newIndex = blockItems.findIndex(i => i.id === overId)
-    if (oldIndex === -1 || newIndex === -1) return
+    if (oldIndex === -1 || newIndex === -1) {
+      // handleBlockDragEnd 의 동일 silent return 과 일관되게 transform 잔여 정리.
+      setChapterPhotos(prev => ({ ...prev }))
+      return
+    }
 
     const intendedOrder = arrayMove(blockItems, oldIndex, newIndex).map(i => i.id)
 
