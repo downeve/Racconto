@@ -662,12 +662,12 @@ export default function PublicPortfolio() {
           className="fixed inset-0 bg-[oklch(0.12_0.012_60/0.98)] z-50 flex flex-col outline-none"
           onClick={() => setLightboxIndex(null)}
         >
-          {/* Thin top bar: chapter title, counter, close */}
+          {/* Thin top bar: chapter title(center), counter, close */}
           <div
-            className={`shrink-0 flex items-center justify-between px-6 h-10 border-b border-d-line transition-opacity duration-500 ${chromeOn ? 'opacity-100' : 'opacity-0'}`}
+            className={`relative shrink-0 flex items-center justify-end px-6 h-10 border-b border-d-line transition-opacity duration-500 ${chromeOn ? 'opacity-100' : 'opacity-0'}`}
             onClick={e => e.stopPropagation()}
           >
-            <span className="t-eyebrow text-d-faint truncate max-w-[60%]">{activeLightboxItem.title}</span>
+            <span className="t-eyebrow text-d-faint truncate max-w-[60%] absolute left-1/2 -translate-x-1/2">{activeLightboxItem.title}</span>
             <div className="flex items-center gap-3 shrink-0">
               <span className="t-numeral text-d-faint">{lightboxIndex + 1} / {lightboxItems.length}</span>
               <button
