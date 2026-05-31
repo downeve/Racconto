@@ -1,7 +1,7 @@
 import MarkdownRenderer from '../MarkdownRenderer'
 import PhotoReveal from '../PhotoReveal'
 import type { PortfolioChapterItem, PortfolioPhoto } from '../PortfolioChapterItems'
-import { cfUrl } from '../../utils/cfImage'
+import { cfUrl, cfSrcSet } from '../../utils/cfImage'
 
 interface Props {
   items: PortfolioChapterItem[]
@@ -89,7 +89,7 @@ export default function MobilePortfolioChapterItems({
             <div key={photo.id} className="rounded-photo overflow-hidden cursor-pointer" onClick={() => onLightbox?.(photo as PortfolioPhoto, allLightboxItems)}>
               <img
                 src={cfUrl(photo.image_url, 'grid')}
-                srcSet={`${cfUrl(photo.image_url, 'mobile')} 480w, ${cfUrl(photo.image_url, 'grid')} 800w, ${cfUrl(photo.image_url, 'public')} 3200w`}
+                srcSet={cfSrcSet(photo.image_url)}
                 sizes="(max-width: 768px) 100vw, 800px"
                 alt={photo.caption || ''}
                 loading="lazy"
@@ -129,7 +129,7 @@ export default function MobilePortfolioChapterItems({
           >
             <img
               src={cfUrl(photo.image_url, 'grid')}
-              srcSet={`${cfUrl(photo.image_url, 'mobile')} 480w, ${cfUrl(photo.image_url, 'grid')} 800w, ${cfUrl(photo.image_url, 'public')} 3200w`}
+              srcSet={cfSrcSet(photo.image_url)}
               sizes="(max-width: 768px) 100vw, 800px"
               alt={photo.caption || ''}
               loading="lazy"

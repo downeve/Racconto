@@ -1,7 +1,7 @@
 import type { CSSProperties } from 'react'
 import { useState } from 'react'
 import MarkdownRenderer from './MarkdownRenderer'
-import { cfUrl } from '../utils/cfImage'
+import { cfUrl, cfSrcSet } from '../utils/cfImage'
 import PhotoReveal from './PhotoReveal'
 
 export const PORTFOLIO_WIDTH = 896  // max-w-4xl. 폭 변경 시 이 값과 className 함께 수정
@@ -100,7 +100,9 @@ export default function PortfolioChapterItems({
             onClick={() => onLightbox?.(photo as PortfolioPhoto, allLightboxItems)}
           >
             <img
-              src={cfUrl(photo.image_url, 'public')}
+              src={cfUrl(photo.image_url, 'lightbox')}
+              srcSet={cfSrcSet(photo.image_url)}
+              sizes={`${Math.round(rowHeight * ratios[j])}px`}
               alt={photo.caption || ''}
               loading="lazy"
               className="w-full h-full rounded-photo object-cover hover:opacity-90 transition-opacity block"
@@ -222,7 +224,9 @@ export default function PortfolioChapterItems({
             return (
               <div key={photo.id} className="break-inside-avoid rounded-photo">
                 <img
-                  src={cfUrl(photo.image_url, 'public')}
+                  src={cfUrl(photo.image_url, 'lightbox')}
+                  srcSet={cfSrcSet(photo.image_url)}
+                  sizes={`${Math.round(photoColWidth)}px`}
                   width={photo.width || undefined}
                   height={photo.height || undefined}
                   alt={photo.caption || ''}
@@ -279,7 +283,9 @@ export default function PortfolioChapterItems({
           {photos.map((photo, pi) => (
             <PhotoReveal key={photo.id} className="break-inside-avoid" delay={pi * 60}>
               <img
-                src={cfUrl(photo.image_url, 'public')}
+                src={cfUrl(photo.image_url, 'lightbox')}
+                srcSet={cfSrcSet(photo.image_url)}
+                sizes={`${effectiveWidth}px`}
                 width={photo.width || undefined}
                 height={photo.height || undefined}
                 alt={photo.caption || ''}

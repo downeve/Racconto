@@ -33,3 +33,20 @@ export const getLightboxVariant = (): CfVariant =>
  */
 export const cfLightboxUrl = (imageUrl: string | null | undefined): string =>
   cfUrl(imageUrl, getLightboxVariant())
+
+/**
+ * 인라인 갤러리 피드용 responsive srcSet 문자열.
+ * 표시 px(sizes) × DPR 에 맞춰 브라우저가 후보 중 최적 variant 를 자동 선택.
+ * 호출부는 정확한 렌더 px 을 sizes 로 전달해야 한다(예: `${width}px`).
+ * CF 이미지가 아니면 빈 문자열 → src 단독 fallback.
+ */
+export const cfSrcSet = (imageUrl: string | null | undefined): string => {
+  if (!imageUrl || !imageUrl.includes('imagedelivery.net')) return ''
+  return [
+    `${cfUrl(imageUrl, 'mobile')} 480w`,
+    `${cfUrl(imageUrl, 'grid')} 800w`,
+    `${cfUrl(imageUrl, 'lightboxmobile')} 1600w`,
+    `${cfUrl(imageUrl, 'lightbox')} 2048w`,
+    `${cfUrl(imageUrl, 'public')} 3200w`,
+  ].join(', ')
+}
