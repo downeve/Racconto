@@ -13,7 +13,7 @@ import PortfolioListCard from '../components/PortfolioListCard'
 import EmptyState from '../components/EmptyState'
 import PortfolioComments from '../components/PortfolioComments'
 import { Sun, Moon, MapPin, ChevronLeft, ChevronRight, X, Link2, Check, ArrowUp } from 'lucide-react'
-import { cfUrl } from '../utils/cfImage'
+import { cfUrl, cfLightboxUrl } from '../utils/cfImage'
 
 const API = import.meta.env.VITE_API_URL
 const isElectron = typeof window !== 'undefined' && !!window.racconto
@@ -289,7 +289,7 @@ export default function PublicPortfolio() {
       const url = lightboxItems[i].photo.image_url
       if (!url) return
       const img = new Image()
-      img.src = cfUrl(url, 'public')
+      img.src = cfLightboxUrl(url)
     })
   }, [lightboxIndex, lightboxItems])
 
@@ -703,7 +703,7 @@ export default function PublicPortfolio() {
           >
             <img
               key={lightboxIndex}
-              src={cfUrl(activeLightboxItem.photo.image_url ?? '', 'public')}
+              src={cfLightboxUrl(activeLightboxItem.photo.image_url)}
               alt={activeLightboxItem.photo.caption || ''}
               className="max-h-full max-w-full object-contain animate-[fade_.35s_ease-out]"
               style={zoom.imgStyle}

@@ -1,7 +1,7 @@
 import { useEffect } from 'react'
 import { FileText } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
-import { cfUrl } from '../../utils/cfImage'
+import { cfLightboxUrl } from '../../utils/cfImage'
 import PhotoNotePanel from '../../components/PhotoNotePanel'
 import type { ChapterItem } from '../../components/StoryBlocks'
 
@@ -40,7 +40,7 @@ export default function StoryLightbox({
       const url = photos[i]?.image_url
       if (!url) return
       const img = new Image()
-      img.src = cfUrl(url, 'public')
+      img.src = cfLightboxUrl(url)
     })
   }, [selectedIndex, photos, photo])
 
@@ -97,7 +97,7 @@ export default function StoryLightbox({
           >‹</button>
         )}
         <img
-          src={cfUrl(photo.image_url, 'public') || undefined}
+          src={cfLightboxUrl(photo.image_url) || undefined}
           alt={photo.caption || undefined}
           className="max-w-[calc(100%-8rem)] max-h-full object-contain"
           onClick={e => e.stopPropagation()}

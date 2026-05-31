@@ -2,7 +2,7 @@ import { useEffect, useState, memo } from 'react'
 import { useTranslation } from 'react-i18next'
 import PhotoNotePanel from './PhotoNotePanel'
 import { BookOpen, FileText, AlertTriangle, Check, Star, RotateCcw, RotateCw } from 'lucide-react'
-import { cfUrl } from '../utils/cfImage'
+import { cfUrl, cfLightboxUrl } from '../utils/cfImage'
 import { useChromeAutoHide } from '../hooks/useChromeAutoHide'
 
 // ── EXIF 표기 헬퍼 ─────────────────────────────────────────
@@ -169,7 +169,7 @@ export function Lightbox({
   useEffect(() => {
     const preload = (url: string) => {
       const img = new Image()
-      img.src = cfUrl(url, 'public')
+      img.src = cfLightboxUrl(url)
     }
     if (idx > 0) preload(photos[idx - 1].image_url)
     if (idx < photos.length - 1) preload(photos[idx + 1].image_url)
@@ -326,7 +326,7 @@ export function Lightbox({
           >‹</button>
         )}
         <img
-          src={cfUrl(photo.image_url, 'public')}
+          src={cfLightboxUrl(photo.image_url)}
           alt={photo.caption || ''}
           className="max-w-[calc(100%-8rem)] max-h-full object-contain cursor-default"
           onClick={e => e.stopPropagation()}

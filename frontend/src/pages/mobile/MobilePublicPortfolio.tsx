@@ -12,7 +12,7 @@ import PortfolioListCard from '../../components/PortfolioListCard'
 import PortfolioListBanner from '../../components/PortfolioListBanner'
 import PortfolioComments from '../../components/PortfolioComments'
 import MobilePortfolioChapterItems from '../../components/mobile/MobilePortfolioChapterItems'
-import { cfUrl } from '../../utils/cfImage'
+import { cfUrl, cfLightboxUrl } from '../../utils/cfImage'
 import { useActiveChapter } from '../../hooks/useActiveChapter'
 import type { PortfolioPhoto } from '../../components/PortfolioChapterItems'
 
@@ -200,7 +200,7 @@ export default function MobilePublicPortfolio() {
       const url = lightboxItems[i].photo.image_url
       if (!url) return
       const img = new Image()
-      img.src = cfUrl(url, 'public')
+      img.src = cfLightboxUrl(url)
     })
   }, [lightboxIndex, lightboxItems])
 
@@ -524,7 +524,7 @@ export default function MobilePublicPortfolio() {
             }}
           >
             <img
-              src={cfUrl(lightboxItems[lightboxIndex].photo.image_url ?? '', 'public')}
+              src={cfLightboxUrl(lightboxItems[lightboxIndex].photo.image_url)}
               alt={lightboxItems[lightboxIndex].photo.caption || ''}
               style={{ width: '100%', maxHeight: '100%', objectFit: 'contain' }}
               draggable={false}

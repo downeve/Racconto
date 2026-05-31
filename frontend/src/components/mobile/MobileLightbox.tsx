@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { X, ChevronLeft, ChevronRight, RotateCw, BookOpen, FileText, ChevronDown } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import PhotoNotePanel from '../PhotoNotePanel'
+import { cfLightboxUrl } from '../../utils/cfImage'
 import type { Photo, ColorLabel } from '../ProjectDetailComponents'
 
 interface MobileLightboxProps {
@@ -56,7 +57,7 @@ export default function MobileLightbox({
 
   // 프리로드
   useEffect(() => {
-    const preload = (url: string) => { const img = new Image(); img.src = url }
+    const preload = (url: string) => { const img = new Image(); img.src = cfLightboxUrl(url) }
     if (idx > 0) preload(photos[idx - 1].image_url)
     if (idx < photos.length - 1) preload(photos[idx + 1].image_url)
   }, [idx, photos])
@@ -95,7 +96,7 @@ export default function MobileLightbox({
         onTouchEnd={handleTouchEnd}
       >
         <img
-          src={photo.image_url}
+          src={cfLightboxUrl(photo.image_url)}
           alt={photo.caption || 'photo'}
           style={{ width: '100%', height: '100dvh', objectFit: 'contain' }}
           draggable={false}
