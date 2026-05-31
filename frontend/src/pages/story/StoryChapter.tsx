@@ -257,6 +257,12 @@ function StoryChapterComponent({
       return { ...prev, [chapterId]: newItems }
     })
 
+    // 성공 reorder 도 silent return 과 동일한 transform 잔여 문제가 있음.
+    // DragOverlay dropAnimation(250ms) 진행 동안 useSortable 의 transform 이 0 으로
+    // 완전히 정리되지 않아 displaced 블록의 hit-test 가 시프트된 채 남는 케이스가 보고됨.
+    // dropAnimation 종료 후 한 번 더 빈 갱신으로 강제 재렌더 → transform 재계산 보장.
+    setTimeout(() => setChapterPhotos(prev => ({ ...prev })), 300)
+
     axios.put(`${API}/chapters/${chapterId}/items/bulk-sync`, { items: itemsToSync })
       .catch(err => console.error('블록 순서 업데이트 실패:', err))
   }, [chapterId, setChapterPhotos])
@@ -336,6 +342,9 @@ function StoryChapterComponent({
       result.splice(insertIdx, 0, ...reorderedItems)
       return { ...prev, [chapterId]: result }
     })
+
+    // 블록 reorder 와 동일하게 dropAnimation 종료 후 빈 갱신으로 transform 재계산 강제.
+    setTimeout(() => setChapterPhotos(prev => ({ ...prev })), 300)
 
     axios.put(`${API}/chapters/${chapterId}/blocks/${blockId}/reorder`, {
       block_id: blockId,
