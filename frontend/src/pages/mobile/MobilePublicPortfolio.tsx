@@ -1,5 +1,5 @@
 import { useEffect, useState, useMemo, useCallback, useRef } from 'react'
-import { useParams, useNavigate, useLocation, Link } from 'react-router-dom'
+import { useParams, useNavigate, useLocation } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import axios from 'axios'
 import { useTranslation } from 'react-i18next'
@@ -233,51 +233,16 @@ export default function MobilePublicPortfolio() {
   return (
     <div className={`min-h-screen ${bg}`}>
 
-      {/* 목록 화면 — 풀 포트폴리오 navbar(로고 + Explore·@username + 다크토글), 로그인 무관 */}
-      {!isDetailRoute && (
+      {/* PublicNavbar — 목록·로그아웃 상세 모두 동일하게 미니멀(로고 + 다크토글)만.
+          (로그인 상세는 navbar 없이 좌상단 floating back 사용) */}
+      {(!isDetailRoute || !isAuthenticated) && (
         <PublicNavbar
-          username={username}
           darkMode={darkMode}
           portfolio
           compactLogo
+          minimal
           onToggleDark={handleToggleDark}
         />
-      )}
-
-      {/* 로그아웃 개별 상세 — 상단바는 로고 + 다크토글만(minimal),
-          Explore·@username 은 바로 아래 보조 행으로 분리. (로그인 상세는 floating back 사용) */}
-      {isDetailRoute && !isAuthenticated && (
-        <>
-          <PublicNavbar
-            darkMode={darkMode}
-            portfolio
-            compactLogo
-            minimal
-            onToggleDark={handleToggleDark}
-          />
-          <div
-            className={`fixed left-0 right-0 z-40 backdrop-blur-sm border-b transition-[background,color,border] duration-150 ease-out ${darkMode ? 'bg-ink/90 border-hair/20' : 'bg-canvas/90 border-edit-line'}`}
-            style={{ top: 'calc(env(safe-area-inset-top) + 56px)' }}
-          >
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 h-10 flex items-center gap-5">
-              {username && (
-                <Link
-                  to={`/${username}`}
-                  state={{ resetToList: true }}
-                  className={`text-body transition-colors duration-150 ${darkMode ? 'text-faint hover:text-hair' : 'text-muted hover:text-ink'} hover:font-bold`}
-                >
-                  @{username}
-                </Link>
-              )}
-              <Link
-                to="/explore"
-                className={`text-body transition-colors duration-150 ${darkMode ? 'text-faint hover:text-hair' : 'text-muted hover:text-ink'} hover:font-bold`}
-              >
-                {t('explore.menu', 'Explore')}
-              </Link>
-            </div>
-          </div>
-        </>
       )}
 
       {/* 진행 hairline */}
@@ -347,7 +312,7 @@ export default function MobilePublicPortfolio() {
         {slugPending ? (
           // ── slug 상세 로딩 중 — 목록/EmptyState 깜빡임 방지용 로딩 표시 ──
           <div
-            style={{ paddingTop: `calc(env(safe-area-inset-top) + ${isAuthenticated ? 90 : 130}px)` }}
+            style={{ paddingTop: 'calc(env(safe-area-inset-top) + 90px)' }}
             className="flex justify-center"
           >
             <span className={`t-caption ${subText}`}>{t('common.loading')}</span>
@@ -391,8 +356,8 @@ export default function MobilePublicPortfolio() {
         ) : (
           // ── 프로젝트 상세 — V2 Document Reader ────────────
           <div className="pb-16">
-            {/* 프로젝트 헤더 — 로그아웃 상세는 navbar(56) + 보조 행(40)을 비우도록 패딩 추가 */}
-            <div style={{ paddingTop: `calc(env(safe-area-inset-top) + ${isAuthenticated ? 90 : 130}px)` }}>
+            {/* 프로젝트 헤더 */}
+            <div style={{ paddingTop: 'calc(env(safe-area-inset-top) + 90px)' }}>
               <div className={`flex flex-wrap items-center gap-3 t-caption mb-4 ${subText}`}>
                 {selectedProject.location && (
                   <span className="inline-flex items-center gap-1">
