@@ -1,5 +1,5 @@
 import { useEffect, useState, useMemo, useCallback, useRef } from 'react'
-import { useParams, useNavigate, useLocation } from 'react-router-dom'
+import { useParams, useNavigate, useLocation, Link } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import axios from 'axios'
 import { useTranslation } from 'react-i18next'
@@ -61,6 +61,11 @@ export default function MobilePublicPortfolio() {
     ? ((slugData?.project ?? null) as PortfolioProject | null)
     : localSelectedProject
   const notFound = listError || slugError
+  // 상세 의도 여부 — slug 또는 로컬 선택. slug 로딩 중에도 detail 모드로 간주해
+  // 목록↔미니멀 navbar 깜빡임을 방지.
+  const isDetailRoute = !!slug || !!localSelectedProject
+  // slug 상세 로딩 중(아직 데이터·에러 모두 없음) — 이 동안 목록/EmptyState 대신 로딩 표시.
+  const slugPending = !!slug && !selectedProject && !slugError
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null)
   const [lightboxItems, setLightboxItems] = useState<{ photo: PortfolioPhoto; title: string }[]>([])
   const [copied, setCopied] = useState(false)
@@ -93,6 +98,12 @@ export default function MobilePublicPortfolio() {
   useEffect(() => {
     if ((location.state as { resetToList?: boolean } | null)?.resetToList) setLocalSelectedProject(null)
   }, [location.state])
+
+  // slug 기반 네비게이션(목록→상세, 상세→상세, 상세→목록)은 react-router Link 라
+  // 스크롤 위치가 유지된다(MobileInfoApp 엔 전역 ScrollToTop 없음). slug 변경 시 최상단 복귀.
+  useEffect(() => {
+    window.scrollTo(0, 0)
+  }, [slug])
 
   useEffect(() => {
     if (!isAuthenticated && username === '@setup') navigate('/', { replace: true })
@@ -222,9 +233,8 @@ export default function MobilePublicPortfolio() {
   return (
     <div className={`min-h-screen ${bg}`}>
 
-      {/* Navbar — 모바일은 자체 Navbar 없어 인증 여부 무관 PublicNavbar 노출.
-          단 detail 화면에서는 floating back 버튼이 있으므로 기존 동작(비로그인만) 유지. */}
-      {(!selectedProject || !isAuthenticated) && (
+      {/* 목록 화면 — 풀 포트폴리오 navbar(로고 + Explore·@username + 다크토글), 로그인 무관 */}
+      {!isDetailRoute && (
         <PublicNavbar
           username={username}
           darkMode={darkMode}
@@ -232,6 +242,42 @@ export default function MobilePublicPortfolio() {
           compactLogo
           onToggleDark={handleToggleDark}
         />
+      )}
+
+      {/* 로그아웃 개별 상세 — 상단바는 로고 + 다크토글만(minimal),
+          Explore·@username 은 바로 아래 보조 행으로 분리. (로그인 상세는 floating back 사용) */}
+      {isDetailRoute && !isAuthenticated && (
+        <>
+          <PublicNavbar
+            darkMode={darkMode}
+            portfolio
+            compactLogo
+            minimal
+            onToggleDark={handleToggleDark}
+          />
+          <div
+            className={`fixed left-0 right-0 z-40 backdrop-blur-sm border-b transition-[background,color,border] duration-150 ease-out ${darkMode ? 'bg-ink/90 border-hair/20' : 'bg-canvas/90 border-edit-line'}`}
+            style={{ top: 'calc(env(safe-area-inset-top) + 56px)' }}
+          >
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 h-10 flex items-center gap-5">
+              {username && (
+                <Link
+                  to={`/${username}`}
+                  state={{ resetToList: true }}
+                  className={`text-body transition-colors duration-150 ${darkMode ? 'text-faint hover:text-hair' : 'text-muted hover:text-ink'} hover:font-bold`}
+                >
+                  @{username}
+                </Link>
+              )}
+              <Link
+                to="/explore"
+                className={`text-body transition-colors duration-150 ${darkMode ? 'text-faint hover:text-hair' : 'text-muted hover:text-ink'} hover:font-bold`}
+              >
+                {t('explore.menu', 'Explore')}
+              </Link>
+            </div>
+          </div>
+        </>
       )}
 
       {/* 진행 hairline */}
@@ -244,9 +290,9 @@ export default function MobilePublicPortfolio() {
         </div>
       )}
 
-      {/* floating back button (상세 화면)
-          referrer 가 /explore 면 텍스트 라벨 동봉해 복귀 위치 명시. 그 외엔 기존 원형 아이콘. */}
-      {selectedProject && (() => {
+      {/* floating back button — 로그인 상세 전용(상단 navbar 없음).
+          로그아웃 상세는 미니멀 navbar + 보조 행(@username)이 복귀를 담당하므로 미표시(로고 겹침 방지). */}
+      {selectedProject && isAuthenticated && (() => {
         const fromExplore = (location.state as { from?: string } | null)?.from === '/explore'
         const baseTheme = darkMode ? 'bg-d-bg/85 border-d-line' : 'bg-canvas/85 border-hair/60'
         return (
@@ -298,7 +344,15 @@ export default function MobilePublicPortfolio() {
       )}
 
       <div className="px-[22px]">
-        {!selectedProject ? (
+        {slugPending ? (
+          // ── slug 상세 로딩 중 — 목록/EmptyState 깜빡임 방지용 로딩 표시 ──
+          <div
+            style={{ paddingTop: `calc(env(safe-area-inset-top) + ${isAuthenticated ? 90 : 130}px)` }}
+            className="flex justify-center"
+          >
+            <span className={`t-caption ${subText}`}>{t('common.loading')}</span>
+          </div>
+        ) : !selectedProject ? (
           // ── 프로젝트 목록 ──────────────────────────────────
           <>
             <div style={{ paddingTop: 'calc(env(safe-area-inset-top) + 72px)' }} className="pb-6">
@@ -337,8 +391,8 @@ export default function MobilePublicPortfolio() {
         ) : (
           // ── 프로젝트 상세 — V2 Document Reader ────────────
           <div className="pb-16">
-            {/* 프로젝트 헤더 */}
-            <div style={{ paddingTop: 'calc(env(safe-area-inset-top) + 90px)' }}>
+            {/* 프로젝트 헤더 — 로그아웃 상세는 navbar(56) + 보조 행(40)을 비우도록 패딩 추가 */}
+            <div style={{ paddingTop: `calc(env(safe-area-inset-top) + ${isAuthenticated ? 90 : 130}px)` }}>
               <div className={`flex flex-wrap items-center gap-3 t-caption mb-4 ${subText}`}>
                 {selectedProject.location && (
                   <span className="inline-flex items-center gap-1">

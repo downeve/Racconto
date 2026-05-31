@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next'
 import { Sun, Moon } from 'lucide-react'
 import { Wordmark } from './Wordmark'
 
-export default function PublicNavbar({ username, darkMode, compact, portfolio, onToggleDark, showUsername, compactLogo }: { username?: string; darkMode?: boolean; compact?: boolean; portfolio?: boolean; onToggleDark?: () => void; showUsername?: boolean; compactLogo?: boolean } = {}) {
+export default function PublicNavbar({ username, darkMode, compact, portfolio, onToggleDark, showUsername, compactLogo, minimal }: { username?: string; darkMode?: boolean; compact?: boolean; portfolio?: boolean; onToggleDark?: () => void; showUsername?: boolean; compactLogo?: boolean; minimal?: boolean } = {}) {
   const { t, i18n } = useTranslation()
 
   const [isLangOpen, setIsLangOpen] = useState(false)
@@ -42,20 +42,24 @@ export default function PublicNavbar({ username, darkMode, compact, portfolio, o
         <div className="max-w-7xl mx-auto px-4 sm:px-6 h-14 flex items-center justify-between">
           <Wordmark size={compactLogo ? 'md' : 'lg'} tone={dm ? 'on-ink' : 'on-paper'} />
           <div className="flex items-center gap-3 sm:gap-6">
-            <Link
-              to="/explore"
-              className={`text-body md:text-h3 transition-[background,color,border] duration-150 ease-out ${dm ? 'text-faint hover:text-hair' : 'text-muted hover:text-ink'} hover:font-bold`}
-            >
-              {t('explore.menu', 'Explore')}
-            </Link>
-            {username && (
-              <Link
-                to={`/${username}`}
-                state={{ resetToList: true }}
-                className={`text-body md:text-h3 transition-[background,color,border] duration-150 ease-out ${dm ? 'text-faint hover:text-hair' : 'text-muted hover:text-ink'} hover:font-bold`}
-              >
-                @{username}
-              </Link>
+            {!minimal && (
+              <>
+                <Link
+                  to="/explore"
+                  className={`text-body md:text-h3 transition-[background,color,border] duration-150 ease-out ${dm ? 'text-faint hover:text-hair' : 'text-muted hover:text-ink'} hover:font-bold`}
+                >
+                  {t('explore.menu', 'Explore')}
+                </Link>
+                {username && (
+                  <Link
+                    to={`/${username}`}
+                    state={{ resetToList: true }}
+                    className={`text-body md:text-h3 transition-[background,color,border] duration-150 ease-out ${dm ? 'text-faint hover:text-hair' : 'text-muted hover:text-ink'} hover:font-bold`}
+                  >
+                    @{username}
+                  </Link>
+                )}
+              </>
             )}
             {onToggleDark && (
               <button
