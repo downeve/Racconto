@@ -403,13 +403,28 @@ function StoryChapterComponent({
     // overrideValue: EditTextArea 가 textarea DOM 값을 직접 읽어 전달 (uncontrolled).
     const content = overrideValue.trim()
     if (!content || !editingTextItemId) return
+    const itemId = editingTextItemId
     // 실패 시 EditTextArea 의 try/catch 가 toast 를 띄울 수 있도록 throw.
-    await axios.put(`${API}/chapters/${chapterId}/texts/${editingTextItemId}`, {
+    await axios.put(`${API}/chapters/${chapterId}/texts/${itemId}`, {
       text_content: content,
     })
-    fetchChapterPhotos(chapterId)
+    // 옵티미스틱 업데이트 — fetchChapterPhotos 응답을 기다리지 않고 로컬 캐시를 즉시 새 텍스트로 갱신.
+    // 그렇지 않으면 setEditingTextItemId(null) 직후 EditTextArea 가 unmount 되고 MarkdownRenderer 가
+    // 아직 fetch 안 끝난 옛 text_content 로 잠깐 렌더되어 '옛 텍스트 깜빡임' 현상이 생김.
+    setChapterPhotos(prev => {
+      const list = prev[chapterId]
+      if (!list) return prev
+      return {
+        ...prev,
+        [chapterId]: list.map(item =>
+          item.id === itemId ? { ...item, text_content: content } : item
+        ),
+      }
+    })
     setEditingTextItemId(null)
-  }, [chapterId, editingTextItemId, fetchChapterPhotos])
+    // 서버 응답으로 최종 정합성 보정(메타데이터 등 다른 필드 갱신용).
+    fetchChapterPhotos(chapterId)
+  }, [chapterId, editingTextItemId, fetchChapterPhotos, setChapterPhotos])
 
   // 다른 텍스트 블록 편집 진입 시 이전 편집 자동 저장(flushPendingTextEdit) 후 새 편집 시작.
   // 자동 저장 함수 등록은 EditTextArea 가 mount 동안 자기 DOM ref 기준으로 직접 수행한다.
