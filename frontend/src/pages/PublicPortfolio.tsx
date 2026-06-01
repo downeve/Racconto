@@ -436,6 +436,9 @@ export default function PublicPortfolio() {
                 {selectedProject.title}
               </h1>
             </header>
+          ) : slug ? (
+            // ── slug 상세 로딩 중 — 목록 배너 대신 비움(@username 목록 깜빡임 방지) ──
+            null
           ) : (
             // ── List view: 풀-블리드 커버 배너 ──
             <header className="mb-space-md">
