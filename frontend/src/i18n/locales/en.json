@@ -411,11 +411,6 @@
     "pin": "Pin"
   },
   "portfolio": {
-    "viewMyTheme": "View in my theme",
-    "viewAuthorTheme": "Back to author's theme",
-    "viewMyThemeHint": "This portfolio uses the author's theme. Click to view in your theme.",
-    "viewAuthorThemeHint": "Return to the theme the author intended.",
-    "viewThemeToggle": "Toggle theme view",
     "views": "views",
     "noChapters": "No chapters yet",
     "createChapterFirst": "Create a chapter in the Story tab to publish photos.",

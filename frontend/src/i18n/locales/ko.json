@@ -412,11 +412,6 @@
   },
   "portfolio": {
     "views": "조회",
-    "viewMyTheme": "내 테마로 보기",
-    "viewAuthorTheme": "작가 테마로 보기",
-    "viewMyThemeHint": "이 포트폴리오는 작가가 설정한 테마로 표시됩니다. 내 테마로 보려면 클릭하세요.",
-    "viewAuthorThemeHint": "작가가 의도한 테마로 돌아가려면 클릭하세요.",
-    "viewThemeToggle": "테마 보기 전환",
     "noChapters": "아직 챕터가 없어요",
     "createChapterFirst": "스토리 탭에서 챕터를 만들어 사진을 공개해보세요.",
     "noPublicProjects": "공개한 프로젝트가 없어요",

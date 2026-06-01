@@ -4,7 +4,6 @@ import { useQuery } from '@tanstack/react-query'
 import axios from 'axios'
 import { useTranslation } from 'react-i18next'
 import { useAuth } from '../../context/AuthContext'
-import { useTheme } from '../../theme/ThemeProvider'
 import { MapPin, X, ChevronLeft, Link2, Check } from 'lucide-react'
 import EmptyState from '../../components/EmptyState'
 import PublicNavbar from '../../components/PublicNavbar'
@@ -41,9 +40,8 @@ export default function MobilePublicPortfolio() {
 
   const [localSelectedProject, setLocalSelectedProject] = useState<PortfolioProject | null>(null)
   const [authorTheme, setAuthorTheme] = useState<'light' | 'dark'>('light')
-  const [escape, setEscape] = useState<boolean>(false)
-  const { effective: globalEffective } = useTheme()
-  const scopedTheme: 'light' | 'dark' = escape ? globalEffective : authorTheme
+  const [viewerOverride, setViewerOverride] = useState<'light' | 'dark' | null>(null)
+  const scopedTheme: 'light' | 'dark' = viewerOverride ?? authorTheme
 
   const enabled = !!username && username !== '@setup'
   const { data: portfolioData, isError: listError, isLoading: listLoading } = useQuery({
@@ -120,7 +118,8 @@ export default function MobilePublicPortfolio() {
 
   useEffect(() => {
     if (!username) return
-    setEscape(localStorage.getItem(`portfolio_theme_escape_${username}`) === '1')
+    const saved = localStorage.getItem(`portfolio_theme_${username}`)
+    setViewerOverride(saved === 'light' || saved === 'dark' ? saved : null)
   }, [username])
 
   useEffect(() => {
@@ -142,13 +141,11 @@ export default function MobilePublicPortfolio() {
     return () => { document.title = original }
   }, [selectedProject, username])
 
-  // 토글 = escape on/off (방문자 전역 선호로 복귀 ↔ 작가 테마).
+  // 라이트/다크 직접 토글 — 현재 표시 테마의 반대로 전환해 viewer override 로 저장.
   const handleToggleDark = () => {
-    setEscape(prev => {
-      const next = !prev
-      if (username) localStorage.setItem(`portfolio_theme_escape_${username}`, next ? '1' : '0')
-      return next
-    })
+    const next = scopedTheme === 'dark' ? 'light' : 'dark'
+    setViewerOverride(next)
+    if (username) localStorage.setItem(`portfolio_theme_${username}`, next)
   }
 
   const openProject = (project: PortfolioProject) => {
@@ -252,8 +249,8 @@ export default function MobilePublicPortfolio() {
           minimal
           onToggleDark={handleToggleDark}
           toggleLabel={{
-            icon: escape ? 'moon' : 'sun',
-            text: t(escape ? 'portfolio.viewAuthorTheme' : 'portfolio.viewMyTheme'),
+            icon: scopedTheme === 'dark' ? 'sun' : 'moon',
+            text: t(scopedTheme === 'dark' ? 'settings.themeBeige' : 'settings.themeDark'),
           }}
         />
       )}

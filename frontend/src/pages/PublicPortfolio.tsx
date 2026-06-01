@@ -6,7 +6,6 @@ import { useQuery } from '@tanstack/react-query'
 import axios from 'axios'
 import { useTranslation } from 'react-i18next'
 import { useAuth } from '../context/AuthContext'
-import { useTheme } from '../theme/ThemeProvider'
 import PortfolioChapterItems, { type PortfolioPhoto } from '../components/PortfolioChapterItems'
 import PublicNavbar from '../components/PublicNavbar'
 import FollowButton from '../components/FollowButton'
@@ -79,11 +78,10 @@ function PortfolioBanner({ username, projects, showFollow }: BannerProps) {
 export default function PublicPortfolio() {
   const { username, slug } = useParams<{ username: string; slug?: string }>()
   const [localSelectedProject, setLocalSelectedProject] = useState<PortfolioProject | null>(null)
-  // 작가가 정한 테마(API portfolio_theme). 방문자 escape 여부와 무관하게 보존.
+  // 작가가 정한 테마(API portfolio_theme). 방문자 override 와 무관하게 보존.
   const [authorTheme, setAuthorTheme] = useState<'light' | 'dark'>('light')
-  // "내 테마로 보기" escape — 켜짐 시 작가 테마 무시하고 방문자 전역 선호를 따른다.
-  const [escape, setEscape] = useState<boolean>(false)
-  const { effective: globalEffective } = useTheme()
+  // 방문자가 이 포트폴리오를 직접 라이트/다크로 본 override (작가별·세션 한정). null 이면 작가 테마.
+  const [viewerOverride, setViewerOverride] = useState<'light' | 'dark' | null>(null)
 
   const enabled = !!username && username !== '@setup'
 
@@ -154,10 +152,11 @@ export default function PublicPortfolio() {
     if (slugData?.theme === 'dark' || slugData?.theme === 'light') setAuthorTheme(slugData.theme)
   }, [slugData])
 
-  // 작가별 escape 상태를 localStorage 에서 복원 (포트폴리오/세션 한정 — 계정 동기화 X).
+  // 작가별 viewer override 를 localStorage 에서 복원 (포트폴리오/세션 한정 — 계정 동기화 X).
   useEffect(() => {
     if (!username) return
-    setEscape(localStorage.getItem(`portfolio_theme_escape_${username}`) === '1')
+    const saved = localStorage.getItem(`portfolio_theme_${username}`)
+    setViewerOverride(saved === 'light' || saved === 'dark' ? saved : null)
   }, [username])
 
   // 브라우저 탭 제목 동기화 — 개별 프로젝트면 프로젝트 제목, 작가 페이지면 @username
@@ -171,14 +170,11 @@ export default function PublicPortfolio() {
     return () => { document.title = original }
   }, [selectedProject, username])
 
-  // 토글 의미 = escape on/off. 켜짐 → 방문자 전역 선호로 복귀, 꺼짐 → 작가 테마.
-  // (라이트 강제가 아니라 양방향 — 다크 OS 사용자가 작가=라이트 포트폴리오에서도 다크로 볼 수 있음.)
+  // 라이트/다크 직접 토글 — 현재 표시 테마의 반대로 전환해 viewer override 로 저장.
   const handleToggleDark = () => {
-    setEscape(v => {
-      const next = !v
-      if (username) localStorage.setItem(`portfolio_theme_escape_${username}`, next ? '1' : '0')
-      return next
-    })
+    const next = scopedTheme === 'dark' ? 'light' : 'dark'
+    setViewerOverride(next)
+    if (username) localStorage.setItem(`portfolio_theme_${username}`, next)
   }
 
   const openProject = (project: PortfolioProject) => {
@@ -351,8 +347,8 @@ export default function PublicPortfolio() {
   }, [])
 
   // 작가 테마(L2) 스코프 — 의미 토큰만 사용하면 [data-theme] 가 자동 라이트/다크 매핑.
-  // escape 가 켜져 있으면 작가 테마 무시하고 방문자 전역 선호(useTheme.effective)를 따른다.
-  const scopedTheme: 'light' | 'dark' = escape ? globalEffective : authorTheme
+  // 방문자가 직접 라이트/다크로 바꿨으면 그 override, 아니면 작가 테마.
+  const scopedTheme: 'light' | 'dark' = viewerOverride ?? authorTheme
   const bg = 'bg-canvas text-ink'
   const subText = 'text-muted'
   const microcopy = 'text-muted'
@@ -379,8 +375,8 @@ export default function PublicPortfolio() {
         portfolio
         onToggleDark={handleToggleDark}
         toggleLabel={{
-          icon: escape ? 'moon' : 'sun',
-          text: t(escape ? 'portfolio.viewAuthorTheme' : 'portfolio.viewMyTheme'),
+          icon: scopedTheme === 'dark' ? 'sun' : 'moon',
+          text: t(scopedTheme === 'dark' ? 'settings.themeBeige' : 'settings.themeDark'),
         }}
       />}
         {!isAuthenticated && <div className="h-14" />}
@@ -402,8 +398,8 @@ export default function PublicPortfolio() {
         portfolio
         onToggleDark={handleToggleDark}
         toggleLabel={{
-          icon: escape ? 'moon' : 'sun',
-          text: t(escape ? 'portfolio.viewAuthorTheme' : 'portfolio.viewMyTheme'),
+          icon: scopedTheme === 'dark' ? 'sun' : 'moon',
+          text: t(scopedTheme === 'dark' ? 'settings.themeBeige' : 'settings.themeDark'),
         }}
       />}
       {/* fixed navbar 높이만큼 밀어내는 spacer */}
@@ -435,13 +431,12 @@ export default function PublicPortfolio() {
           {isAuthenticated && (
             <button
               onClick={handleToggleDark}
-              aria-label={t('portfolio.viewThemeToggle')}
-              title={escape ? t('portfolio.viewAuthorThemeHint') : t('portfolio.viewMyThemeHint')}
+              aria-label="테마 전환"
               className="inline-flex items-center gap-1 px-3 py-1 text-xs rounded-btn border border-hair text-muted hover:text-ink"
             >
-              {escape
-                ? <><Moon size={12} strokeWidth={1.5} /> {t('portfolio.viewAuthorTheme')}</>
-                : <><Sun size={12} strokeWidth={1.5} /> {t('portfolio.viewMyTheme')}</>}
+              {scopedTheme === 'dark'
+                ? <><Sun size={12} strokeWidth={1.5} /> {t('settings.themeBeige')}</>
+                : <><Moon size={12} strokeWidth={1.5} /> {t('settings.themeDark')}</>}
             </button>
           )}
         </div>
