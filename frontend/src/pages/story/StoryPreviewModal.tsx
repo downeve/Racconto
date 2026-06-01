@@ -42,19 +42,16 @@ export default function StoryPreviewModal({
       {/* ── 포트폴리오 미리보기 오버레이 ─────────────────────── */}
       {showPreview && (() => {
         const dm = previewDarkMode
-        const bg = dm ? 'bg-ink text-hair' : 'bg-canvas text-ink'
-        const headerBg = dm ? 'bg-ink/90 border-hair/10' : 'bg-canvas/90 border-faint'
-        const subText = dm ? 'text-faint' : 'text-muted'
-        const divider = dm ? 'bg-muted' : 'bg-faint'
-        const closeColor = dm ? 'text-faint hover:text-hair' : 'text-faint hover:text-ink-2'
-        const toggleClass = dm
-          ? 'border-muted text-faint hover:text-hair'
-          : 'border-faint text-muted hover:text-ink'
+        // 미리보기는 선택한 테마를 data-theme 스코프로 시뮬레이션 — 내부는 의미 토큰만.
+        const subText = 'text-muted'
+        const divider = 'bg-hair-strong'
+        const closeColor = 'text-faint hover:text-ink'
+        const toggleClass = 'border-hair text-muted hover:text-ink'
 
         return (
-          <div className={`fixed inset-0 z-[90] ${bg} overflow-y-auto transition-[background,color,border] duration-150 ease-out`}>
+          <div data-theme={dm ? 'dark' : 'light'} className="fixed inset-0 z-[90] bg-canvas text-ink overflow-y-auto transition-[background,color,border] duration-150 ease-out">
             {/* 헤더 */}
-            <div className={`sticky top-0 z-10 backdrop-blur-sm border-b ${headerBg}`}>
+            <div className="sticky top-0 z-10 backdrop-blur-sm border-b bg-canvas/90 border-hair">
               <div className="max-w-4xl mx-auto px-6 h-12 flex items-center justify-between">
                 <span className={`text-xs tracking-widest uppercase ${subText}`}>Portfolio Preview</span>
                 <div className="flex items-center gap-3">
@@ -90,12 +87,12 @@ export default function StoryPreviewModal({
                         <header className="mb-10">
                           <div className="flex items-baseline gap-5">
                             <span
-                              className={`font-serif font-light leading-none tracking-[-0.04em] [font-variant-numeric:oldstyle-nums] ${dm ? 'text-d-accent' : 'text-accent'}`}
+                              className="font-serif font-light leading-none tracking-[-0.04em] [font-variant-numeric:oldstyle-nums] text-accent"
                               style={{ fontSize: 'clamp(72px, 8vw, 112px)' }}
                             >
                               {String(idx + 1).padStart(2, '0')}
                             </span>
-                            <div className={`flex-1 max-w-[480px] h-[0.5px] ${dm ? 'bg-d-line' : 'bg-hair'}`} />
+                            <div className="flex-1 max-w-[480px] h-[0.5px] bg-hair-strong" />
                           </div>
                           <h3 className="font-serif text-[32px] leading-[1.1] tracking-[-0.015em] font-normal mt-6">
                             {chapter.title}
@@ -116,7 +113,7 @@ export default function StoryPreviewModal({
                           <div key={sub.id} className="mt-space-md">
                             <div className={`h-px mb-10 w-1/3 ${divider}`} />
                             <div className="mb-8">
-                              <p className={`t-eyebrow mb-2 ${dm ? 'text-d-faint' : 'text-faint'}`}>
+                              <p className="t-eyebrow mb-2 text-faint">
                                 Section {String(idx + 1).padStart(2, '0')}.{String(subIdx + 1).padStart(2, '0')}.
                               </p>
                               <h4 className="font-serif text-[20px] tracking-tight font-normal">
@@ -146,13 +143,9 @@ export default function StoryPreviewModal({
       {/* ── 챕터별 슬라이드오버 Preview ─────────────────────── */}
       {chapterPreviewId && (() => {
         const dm = previewDarkMode
-        const bg = dm ? 'bg-ink text-hair' : 'bg-canvas text-ink'
-        const headerBg = dm ? 'bg-ink/90 border-hair/10' : 'bg-canvas/90 border-faint'
-        const subText = dm ? 'text-faint' : 'text-muted'
-        const accent = dm ? 'bg-card/30' : 'bg-faint'
-        const toggleClass = dm
-          ? 'border-muted text-faint hover:text-hair'
-          : 'border-faint text-muted hover:text-ink'
+        const subText = 'text-muted'
+        const accent = 'bg-hair-strong'
+        const toggleClass = 'border-hair text-muted hover:text-ink'
 
         const targetChapter = chapters.find(c => c.id === chapterPreviewId)
         if (!targetChapter) return null
@@ -170,14 +163,15 @@ export default function StoryPreviewModal({
               onClick={closeChapterPreview}
             />
 
-            {/* 슬라이드오버 패널 */}
+            {/* 슬라이드오버 패널 — 선택 테마를 data-theme 스코프로 시뮬레이션 */}
             <div
-              className={`fixed top-0 right-0 h-full z-[86] w-[min(896px,100vw)] ${bg} shadow-2xl flex flex-col
+              data-theme={dm ? 'dark' : 'light'}
+              className={`fixed top-0 right-0 h-full z-[86] w-[min(896px,100vw)] bg-canvas text-ink shadow-2xl flex flex-col
                 transition-transform duration-300 ease-out
                 ${chapterPreviewOpen ? 'translate-x-0' : 'translate-x-full'}`}
             >
               {/* 패널 헤더 */}
-              <div className={`shrink-0 sticky top-0 z-10 backdrop-blur-sm border-b ${headerBg}`}>
+              <div className="shrink-0 sticky top-0 z-10 backdrop-blur-sm border-b bg-canvas/90 border-hair">
                 <div className="px-5 h-12 flex items-center justify-between">
                   <div className="flex items-center gap-2 min-w-0">
                     <span className="font-serif text-h3 tracking-tight truncate">{targetChapter.title}</span>

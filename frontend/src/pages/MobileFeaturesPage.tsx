@@ -192,7 +192,7 @@ export default function MobileFeaturesPage() {
         </Link>
         <p className="mt-5 text-xs text-faint">
           {t('landing.alreadyHaveAccount')}{' '}
-          <Link to="/login" className="text-d-soft underline underline-offset-2">
+          <Link to="/login" className="text-canvas/70 underline underline-offset-2">
             {t('auth.login')}
           </Link>
         </p>

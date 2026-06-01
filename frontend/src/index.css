@@ -31,6 +31,18 @@
   --rc-hair-strong: oklch(0.342 0.006 78 / 0.22);
   --rc-focus:       oklch(0.50 0.085 55 / 0.45);
 
+  /* 편집기 전용 표면(ProjectStory/StoryBlocks/Settings/Admin/랜딩 등 — edit-* 네임스페이스) */
+  --rc-edit-canvas:      0.928 0.007 88.6;
+  --rc-edit-canvas-2:    0.945 0.005 90;
+  --rc-edit-paper:       0.976 0.004 91.4;
+  --rc-edit-paper-2:     0.982 0.003 91;
+  --rc-edit-line:        0.88 0.006 88;
+  --rc-edit-line-strong: 0.78 0.007 88;
+  --rc-edit-ink:         0.218 0.004 84.6;
+  --rc-edit-muted:       0.531 0.008 88.7;
+  --rc-edit-faint:       0.72 0.007 90;
+  --rc-edit-accent:      0.50 0.085 55;
+
   color-scheme: light;
 }
 
@@ -54,6 +66,18 @@
   --rc-hair:        oklch(0.92 0.006 85 / 0.12);
   --rc-hair-strong: oklch(0.92 0.006 85 / 0.22);
   --rc-focus:       oklch(0.669 0.094 54.3 / 0.55);
+
+  /* 편집기 전용 표면 — 다크 (라이트 위계 반전) */
+  --rc-edit-canvas:      0.196 0.003 67.7;
+  --rc-edit-canvas-2:    0.244 0.004 84;
+  --rc-edit-paper:       0.231 0.004 84.6;
+  --rc-edit-paper-2:     0.270 0.005 84;
+  --rc-edit-line:        0.34 0.006 84;
+  --rc-edit-line-strong: 0.44 0.006 84;
+  --rc-edit-ink:         0.915 0.006 85;
+  --rc-edit-muted:       0.651 0.009 84.6;
+  --rc-edit-faint:       0.560 0.008 84;
+  --rc-edit-accent:      0.669 0.094 54.3;
 
   color-scheme: dark;
 }

@@ -19,11 +19,10 @@ interface ChapterBlock {
 interface MobileStoryViewerProps {
   chapters: Chapter[]
   blocksPerChapter: Record<string, ChapterBlock[]>
-  darkMode?: boolean
   onPhotoClick?: (item: ChapterItem) => void
 }
 
-export default function MobileStoryViewer({ chapters, blocksPerChapter, darkMode, onPhotoClick }: MobileStoryViewerProps) {
+export default function MobileStoryViewer({ chapters, blocksPerChapter, onPhotoClick }: MobileStoryViewerProps) {
   const { t } = useTranslation()
 
   const renderBlock = (block: ChapterBlock) => {
@@ -93,16 +92,16 @@ export default function MobileStoryViewer({ chapters, blocksPerChapter, darkMode
   }
 
   return (
-    <div className={`flex flex-col pb-8 ${darkMode ? 'bg-stone-900 text-white' : 'bg-canvas'}`}>
+    <div className="flex flex-col pb-8 bg-canvas text-ink">
       {topChapters.map(chapter => {
         const subChapters = chapters.filter(c => c.parent_id === chapter.id).sort((a, b) => a.order_num - b.order_num)
         const blocks = blocksPerChapter[chapter.id] || []
 
         return (
           <div key={chapter.id} className="px-4 mt-6">
-            <h2 className={`text-lg font-semibold mb-1 ${darkMode ? 'text-white' : 'text-stone-900'}`}>{chapter.title}</h2>
+            <h2 className="text-lg font-semibold mb-1 text-ink">{chapter.title}</h2>
             {chapter.description && (
-              <p className={`text-sm mb-3 ${darkMode ? 'text-stone-300' : 'text-stone-500'}`}>{chapter.description}</p>
+              <p className="text-sm mb-3 text-muted">{chapter.description}</p>
             )}
 
             {blocks.map(block => renderBlock(block))}
@@ -111,9 +110,9 @@ export default function MobileStoryViewer({ chapters, blocksPerChapter, darkMode
               const subBlocks = blocksPerChapter[sub.id] || []
               return (
                 <div key={sub.id} className="mt-4">
-                  <h3 className={`text-base font-medium mb-1 ${darkMode ? 'text-stone-200' : 'text-stone-700'}`}>{sub.title}</h3>
+                  <h3 className="text-base font-medium mb-1 text-ink-2">{sub.title}</h3>
                   {sub.description && (
-                    <p className={`text-sm mb-2 ${darkMode ? 'text-stone-400' : 'text-stone-400'}`}>{sub.description}</p>
+                    <p className="text-sm mb-2 text-muted">{sub.description}</p>
                   )}
                   {subBlocks.map(block => renderBlock(block))}
                 </div>

@@ -6,8 +6,6 @@ import { cfUrl, cfSrcSet } from '../../utils/cfImage'
 interface Props {
   items: PortfolioChapterItem[]
   allLightboxItems?: { photo: PortfolioPhoto; title: string }[]
-  /** @deprecated 스코프 [data-theme] 로 자동 매핑. 호환을 위해 optional 로만 유지(STEP 4 PART B 정리 예정). */
-  darkMode?: boolean
   containerWidth?: number
   gap?: number
   onLightbox?: (photo: PortfolioPhoto, items: { photo: PortfolioPhoto; title: string }[]) => void
