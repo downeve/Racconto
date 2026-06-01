@@ -2,6 +2,7 @@ import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import './index.css'
 import AppRouter from './AppRouter.tsx'
+import { ThemeProvider } from './theme/ThemeProvider'
 import './i18n'
 
 // 새 배포로 chunk 해시가 바뀐 상태에서 사용자가 오래 머문 탭이 다른 페이지로 이동하면
@@ -14,6 +15,8 @@ window.addEventListener('vite:preloadError', (event) => {
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    <AppRouter />
+    <ThemeProvider>
+      <AppRouter />
+    </ThemeProvider>
   </StrictMode>,
 )
