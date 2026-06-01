@@ -238,3 +238,5 @@ imageTmp/
 
 # 임시 대시보드 HTML
 racconto_dashboard_v3.html
+# 디자인 핸드오프 문서 (소스 아님)
+design_handoff_token_consistency/

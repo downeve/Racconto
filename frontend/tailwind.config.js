@@ -28,16 +28,16 @@ export default {
         card: '#FFFFFF',                // 하위 호환용 (canvas-2 와 동일)
         ink:       o('oklch(0.18 0.012 60)'),  // 제목 및 강조
         'ink-2':   o('oklch(0.28 0.012 60)'),  // 본문
-        muted:     o('oklch(0.55 0.012 65)'),  // 보조 텍스트
-        faint:     o('oklch(0.78 0.010 75)'),  // 메타, placeholder
+        muted:     o('oklch(0.50 0.012 65)'),  // 보조 텍스트 (AA: canvas 5.25:1)
+        faint:     o('oklch(0.78 0.010 75)'),  // 메타, placeholder/장식 전용 (WCAG 예외)
         hair:      o('oklch(0.90 0.010 75)'),  // 구분선, 보더
-        accent:    o('oklch(0.55 0.08 55)'),   // 포커스, 링크 Hover
+        accent:    o('oklch(0.50 0.085 55)'),  // 포커스, 링크 (AA: 5.39:1)
         lightbox: colors.stone[950],           // 라이트박스 배경색 (하위 호환)
         // 다크 모드 — warm taupe
         'd-bg':      o('oklch(0.18 0.012 60)'),  // 다크 메인 배경
         'd-surface': o('oklch(0.22 0.012 60)'),  // 다크 카드/패널
         'd-line':    o('oklch(0.32 0.010 70)'),  // 다크 구분선
-        'd-faint':   o('oklch(0.55 0.008 75)'),  // 다크 microcopy
+        'd-faint':   o('oklch(0.66 0.008 75)'),  // 다크 microcopy (AA: d-bg 6.05:1)
         'd-soft':    o('oklch(0.78 0.010 75)'),  // 다크 secondary body
         'd-hair':    o('oklch(0.94 0.008 75)'),  // 다크 body
         // 편집기 전용 의미 토큰 (ProjectStory / StoryBlocks)
@@ -61,6 +61,21 @@ export default {
         'label-green':      o('oklch(0.65 0.13 150)'),
         'label-blue':       o('oklch(0.55 0.12 240)'),
         'label-purple':     o('oklch(0.55 0.12 300)'),
+        // 의미 토큰 (파괴/성공/경고) — 모든 표면 단일 출처
+        danger:      o('oklch(0.50 0.15 25)'),   // 파괴적 동작 (= edit-danger)
+        ok:          o('oklch(0.55 0.10 150)'),  // 성공/확인
+        warn:        o('oklch(0.62 0.13 75)'),   // 경고 (= edit-warning)
+        // 인프라 토큰
+        placeholder: o('oklch(0.92 0.012 75)'),     // 스켈레톤·이미지 자리
+        scrim:       'oklch(0.12 0.012 60 / 0.98)', // 라이트박스 배경
+        'd-accent':  o('oklch(0.64 0.09 55)'),      // 다크 전용 warm accent (d-bg 5.45:1)
+        // 상태 뱃지 (bg/fg 쌍) — StatusBadge 전용
+        badge: {
+          'progress-bg': 'oklch(0.93 0.03 55)',   'progress-fg': 'oklch(0.46 0.09 55)',
+          'done-bg':     'oklch(0.93 0.04 150)',  'done-fg':     'oklch(0.42 0.10 150)',
+          'pub-bg':      'oklch(0.18 0.012 60)',  'pub-fg':      '#F4EFE7',
+          'arch-bg':     '#E7E0D7',               'arch-fg':     'oklch(0.50 0.012 65)',
+        },
         // 하위 호환 (기존 PublicPortfolio 다크 헬퍼에서 사용)
         'card-cover': colors.stone[800],
         'card-surface': colors.stone[900],
