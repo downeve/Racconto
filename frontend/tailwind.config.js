@@ -4,6 +4,10 @@ import colors from 'tailwindcss/colors'
 const o = (c) => ({ opacityValue }) =>
   opacityValue !== undefined ? c.replace(')', ` / ${opacityValue})`) : c
 
+// 테마 토큰(CSS 변수 채널) → 색. `<alpha-value>` 가 Tailwind opacity 유틸과 호환.
+// 변수 값은 "L C H" 세 숫자 채널이어야 함 (index.css 의 --rc-* 정의 참조).
+const ch = (v) => `oklch(${v} / <alpha-value>)`
+
 /** @type {import('tailwindcss').Config} */
 export default {
   content: [
@@ -22,19 +26,24 @@ export default {
         // 기존 *-gray-*/*-stone-* 클래스가 명암 단계는 유지한 채 warm 제거(무채색)됨.
         gray: colors.neutral,
         stone: colors.neutral,
-        canvas:    o('oklch(0.928 0.007 88.6)'),  // 갤러리 중성 배경 (was 따뜻 크림)
-        'canvas-2': o('oklch(0.958 0.005 95.1)'), // 모달·카드 (중성 off-white)
-        'canvas-3': o('oklch(0.945 0.005 90)'),   // 중간 밴드 (미사용, 중성)
-        'canvas-4': o('oklch(0.905 0.007 88)'),   // Secondary hover, 한 단계 어두운 면
-        'secondary-border': '#D6D3D1',  // Secondary 버튼 Hover border
-        card: o('oklch(0.976 0.004 91.4)'),       // 카드·시트 (중성 off-white)
-        ink:       o('oklch(0.218 0.004 84.6)'),  // 제목 및 강조 (중성)
-        'ink-2':   o('oklch(0.342 0.006 78.3)'),  // 본문 (중성)
-        muted:     o('oklch(0.531 0.008 88.7)'),  // 보조 텍스트 (AA canvas ≈5.3:1)
-        faint:     o('oklch(0.735 0.009 91.5)'),  // 메타·placeholder 장식 (중성)
-        hair:      o('oklch(0.90 0.006 88)'),      // 구분선 (hue 중성, L 유지)
-        accent:    o('oklch(0.50 0.085 55)'),     // 테라코타 — 변경 금지 (행동/상태 전용)
-        'accent-soft': o('oklch(0.933 0.012 59.6)'), // 활성 필터칩 틴트 배경
+        // 표면·잉크·강조 — index.css 의 --rc-* 변수를 참조 (라이트/다크 자동 스왑).
+        // 값을 직접 박지 않고 채널 변수를 ch() 로 감싸 opacity 유틸 호환을 유지.
+        canvas:      ch('var(--rc-canvas)'),
+        'canvas-2':  ch('var(--rc-canvas-2)'),
+        'canvas-3':  ch('var(--rc-canvas-3)'),
+        'canvas-4':  ch('var(--rc-canvas-4)'),
+        'secondary-border': '#D6D3D1',  // Secondary 버튼 Hover border (raw — STEP 5-B 정리 예정)
+        card:        ch('var(--rc-card)'),
+        ink:         ch('var(--rc-ink)'),
+        'ink-2':     ch('var(--rc-ink-2)'),
+        muted:       ch('var(--rc-muted)'),
+        faint:       ch('var(--rc-faint)'),
+        accent:      ch('var(--rc-accent)'),
+        'accent-2':  ch('var(--rc-accent-2)'),
+        // alpha 가 변수에 박힌 토큰 — opacity 유틸 미사용 전제 (그래서 ch() 안 씌움)
+        'accent-soft': 'var(--rc-accent-soft)',
+        hair:          'var(--rc-hair)',
+        'hair-strong': 'var(--rc-hair-strong)',
         // (dead 'lightbox' 색 토큰 제거 — scrim 으로 대체. z-index 'lightbox' 는 별개로 유지)
         // 다크 모드 — warm taupe
         'd-bg':      o('oklch(0.196 0.003 67.7)'), // 다크 중성 배경 (was warm)

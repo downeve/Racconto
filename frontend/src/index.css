@@ -2,6 +2,61 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ──────────────────────────────────────────────────────────────────────
+   Racconto 테마 토큰 (단일 출처) — Dark Mode STEP 1
+   :root            = 라이트 (Gallery Neutral / P3·A 확정안)
+   [data-theme=dark]= 다크   (Gallery Neutral Dark — 의미 이름 그대로 흡수)
+   토큰 형식: "L C H" 채널만 담아 oklch(var(--rc-*) / <alpha-value>) 로 사용.
+   alpha 포함 토큰(hair, focus 등)은 변수 자체에 oklch(...) 통째로 담음.
+   ─────────────────────────────────────────────────────────────────── */
+:root {
+  /* 표면 */
+  --rc-canvas:   0.928 0.007 88.6;   /* #E9E7E2  페이지 배경            */
+  --rc-canvas-2: 0.958 0.005 95.1;   /* #F2F1ED  밴드 2               */
+  --rc-canvas-3: 0.945 0.005 90;     /*          밴드 중간             */
+  --rc-canvas-4: 0.905 0.007 88;     /* #E0DED8  hover = 한 단계 어둡게 */
+  --rc-card:     0.976 0.004 91.4;   /* #F8F7F4  카드·시트            */
+  /* 잉크(텍스트) */
+  --rc-ink:      0.218 0.004 84.6;   /* #1B1A18  제목·강조            */
+  --rc-ink-2:    0.342 0.006 78.3;   /* #3A3835  본문                */
+  --rc-muted:    0.531 0.008 88.7;   /* #6E6C67  보조 (AA ≈5.3:1)     */
+  --rc-faint:    0.735 0.009 91.5;   /* #ABA9A3  메타·placeholder 장식 */
+  /* 강조(테라코타) — 행동·상태에만 */
+  --rc-accent:      0.50 0.085 55;
+  --rc-accent-2:    0.44 0.082 52;
+  --rc-accent-soft: oklch(0.933 0.012 59.6);          /* 활성칩 틴트(라이트=불투명) */
+  /* alpha 포함 */
+  --rc-hair:        oklch(0.342 0.006 78 / 0.12);
+  --rc-hair-strong: oklch(0.342 0.006 78 / 0.22);
+  --rc-focus:       oklch(0.50 0.085 55 / 0.45);
+
+  color-scheme: light;
+}
+
+[data-theme="dark"] {
+  /* 표면 — 라이트 위계를 뒤집어 보존(canvas 가장 어둡고 hover 는 밝게) */
+  --rc-canvas:   0.196 0.003 67.7;   /* #161514 */
+  --rc-canvas-2: 0.224 0.004 84;
+  --rc-canvas-3: 0.244 0.004 84;
+  --rc-canvas-4: 0.270 0.005 84;     /* hover = 한 단계 "밝게" */
+  --rc-card:     0.231 0.004 84.6;   /* #1E1D1B */
+  /* 잉크 */
+  --rc-ink:      0.915 0.006 85;     /* #E6E3DD */
+  --rc-ink-2:    0.783 0.009 84.6;   /* #BBB8B2 */
+  --rc-muted:    0.651 0.009 84.6;   /* #928F89  AA */
+  --rc-faint:    0.560 0.008 84;
+  /* 강조 — 다크 전용 밝은 테라코타 */
+  --rc-accent:      0.669 0.094 54.3;
+  --rc-accent-2:    0.620 0.090 53;
+  --rc-accent-soft: oklch(0.669 0.094 54.3 / 0.16);   /* 다크 틴트 */
+  /* alpha 포함 — 밝은 잉크의 저투명 오버레이 */
+  --rc-hair:        oklch(0.92 0.006 85 / 0.12);
+  --rc-hair-strong: oklch(0.92 0.006 85 / 0.22);
+  --rc-focus:       oklch(0.669 0.094 54.3 / 0.55);
+
+  color-scheme: dark;
+}
+
 /* Pretendard — 셀프호스팅 (KS X 1001 Std + 라틴, 단일 woff2 ~285KB) */
 @font-face {
   font-family: 'Pretendard Variable';
