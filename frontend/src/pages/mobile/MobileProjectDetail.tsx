@@ -131,11 +131,11 @@ export default function MobileProjectDetail() {
 
 
   const colorLabels: ColorLabel[] = useMemo(() => [
-    { value: 'red', color: 'bg-red-500', label: labelSettings['color_label_red'] },
-    { value: 'yellow', color: 'bg-yellow-400', label: labelSettings['color_label_yellow'] },
-    { value: 'green', color: 'bg-green-500', label: labelSettings['color_label_green'] },
-    { value: 'blue', color: 'bg-blue-500', label: labelSettings['color_label_blue'] },
-    { value: 'purple', color: 'bg-purple-500', label: labelSettings['color_label_purple'] },
+    { value: 'red', color: 'bg-label-red', label: labelSettings['color_label_red'] },
+    { value: 'yellow', color: 'bg-label-yellow', label: labelSettings['color_label_yellow'] },
+    { value: 'green', color: 'bg-label-green', label: labelSettings['color_label_green'] },
+    { value: 'blue', color: 'bg-label-blue', label: labelSettings['color_label_blue'] },
+    { value: 'purple', color: 'bg-label-purple', label: labelSettings['color_label_purple'] },
   ], [labelSettings])
 
   const filteredPhotos = useMemo(() => photos.filter(photo => {

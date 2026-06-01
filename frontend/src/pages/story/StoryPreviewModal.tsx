@@ -90,7 +90,7 @@ export default function StoryPreviewModal({
                         <header className="mb-10">
                           <div className="flex items-baseline gap-5">
                             <span
-                              className={`font-serif font-light leading-none tracking-[-0.04em] [font-variant-numeric:oldstyle-nums] ${dm ? 'text-d-soft' : 'text-accent'}`}
+                              className={`font-serif font-light leading-none tracking-[-0.04em] [font-variant-numeric:oldstyle-nums] ${dm ? 'text-d-accent' : 'text-accent'}`}
                               style={{ fontSize: 'clamp(72px, 8vw, 112px)' }}
                             >
                               {String(idx + 1).padStart(2, '0')}

@@ -521,7 +521,7 @@ export default function PublicPortfolio() {
                                   ? 'border border-transparent text-d-soft hover:text-d-hair'
                                   : 'border border-transparent text-muted hover:text-ink-2'}`}
                   >
-                    <span className={`font-serif ${darkMode ? 'text-d-soft' : 'text-accent'}`} style={{ fontVariantNumeric: 'oldstyle-nums' }}>
+                    <span className={`font-serif ${darkMode ? 'text-d-accent' : 'text-accent'}`} style={{ fontVariantNumeric: 'oldstyle-nums' }}>
                       {String(i + 1).padStart(2, '0')}
                     </span>
                     {ch.title}
@@ -538,7 +538,7 @@ export default function PublicPortfolio() {
                       {/* Oversized numeral + capped hairline (Option B) */}
                       <div className="flex items-baseline gap-5">
                         <span
-                          className={`font-serif font-light leading-none tracking-[-0.04em] [font-variant-numeric:oldstyle-nums] ${darkMode ? 'text-d-soft' : 'text-accent'}`}
+                          className={`font-serif font-light leading-none tracking-[-0.04em] [font-variant-numeric:oldstyle-nums] ${darkMode ? 'text-d-accent' : 'text-accent'}`}
                           style={{ fontSize: 'clamp(72px, 8vw, 112px)' }}
                         >
                           {String(idx + 1).padStart(2, '0')}
@@ -788,7 +788,7 @@ export default function PublicPortfolio() {
       {selectedProject && (
         <div className="fixed top-0 left-0 right-0 z-30 h-0.5 bg-transparent pointer-events-none">
           <div
-            className={`h-full transition-[width] duration-150 ${darkMode ? 'bg-d-soft' : 'bg-accent'}`}
+            className={`h-full transition-[width] duration-150 ${darkMode ? 'bg-d-accent' : 'bg-accent'}`}
             style={{ width: `${scrollProgress * 100}%` }}
           />
         </div>

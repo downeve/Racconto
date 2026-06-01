@@ -130,7 +130,7 @@ export default function MobileLightbox({
               key={star}
               onClick={() => onSetRating(photo, star)}
               className={`flex-1 min-h-[44px] flex items-center justify-center text-lg ${
-                photo.rating && photo.rating >= star ? 'text-yellow-400' : 'text-white/20'
+                photo.rating && photo.rating >= star ? 'text-label-yellow' : 'text-white/20'
               }`}
             >★</button>
           ))}

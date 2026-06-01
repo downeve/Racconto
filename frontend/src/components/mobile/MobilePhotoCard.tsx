@@ -75,7 +75,7 @@ export const MobilePhotoCard = memo(function MobilePhotoCard({
 
       {/* 별점 표시 */}
       {photo.rating && photo.rating > 0 && !selectionMode && (
-        <div className="absolute bottom-1 right-1 text-yellow-400 text-xs leading-none drop-shadow">
+        <div className="absolute bottom-1 right-1 text-label-yellow text-xs leading-none drop-shadow">
           {'★'.repeat(photo.rating)}
         </div>
       )}

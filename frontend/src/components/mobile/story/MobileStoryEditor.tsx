@@ -91,7 +91,7 @@ export default function MobileStoryEditor({
               <div className="absolute right-0 top-full mt-1 bg-white border border-stone-200 rounded-xl shadow-lg z-10 min-w-[140px]">
                 <button
                   onClick={() => { setMenuBlockId(null); onDeleteBlock(block.blockId, block.type) }}
-                  className="w-full text-left px-4 py-3 min-h-[44px] text-sm text-red-500"
+                  className="w-full text-left px-4 py-3 min-h-[44px] text-sm text-danger"
                 >
                   {t('story.deleteBlock') || '블록 삭제'}
                 </button>

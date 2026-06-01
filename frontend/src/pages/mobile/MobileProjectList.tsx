@@ -8,6 +8,7 @@ import { useElectronSidebar } from '../../context/ElectronSidebarContext'
 import MobileShell from '../../components/mobile/MobileShell'
 import ConfirmModal from '../../components/ConfirmModal'
 import ToastNotification from '../../components/ToastNotification'
+import StatusBadge from '../../components/StatusBadge'
 
 const API = import.meta.env.VITE_API_URL
 
@@ -23,13 +24,6 @@ interface Project {
   is_public: string
   created_at: string
   updated_at: string
-}
-
-const STATUS_BADGE: Record<string, { label: string; cls: string }> = {
-  in_progress: { label: 'project.statusInProgress', cls: 'bg-purple-400 text-white' },
-  completed: { label: 'project.statusCompleted', cls: 'bg-green-500 text-white' },
-  published: { label: 'project.statusPublished', cls: 'bg-blue-400 text-white' },
-  archived: { label: 'project.statusArchived', cls: 'bg-stone-300 text-stone-700' },
 }
 
 export default function MobileProjectList() {
@@ -177,7 +171,6 @@ export default function MobileProjectList() {
 
       <div className="flex flex-col gap-3 p-4">
         {projects.map((project, idx) => {
-          const badge = STATUS_BADGE[project.status]
           return (
             <div
               key={project.id}
@@ -200,11 +193,9 @@ export default function MobileProjectList() {
                 {project.location && (
                   <p className="text-xs text-stone-400 truncate mt-0.5">{project.location}</p>
                 )}
-                {badge && (
-                  <span className={`inline-block mt-1 text-eyebrow font-semibold px-2 py-0.5 rounded-full ${badge.cls}`}>
-                    {t(badge.label)}
-                  </span>
-                )}
+                <span className="inline-block mt-1">
+                  <StatusBadge status={project.status} />
+                </span>
               </div>
               <button
                 onClick={e => { e.stopPropagation(); openProjectMenu(project, idx) }}

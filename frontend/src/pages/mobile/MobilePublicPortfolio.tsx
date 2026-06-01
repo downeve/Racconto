@@ -249,7 +249,7 @@ export default function MobilePublicPortfolio() {
       {selectedProject && (
         <div className="fixed top-0 left-0 right-0 z-30 h-0.5 bg-transparent pointer-events-none">
           <div
-            className="h-full bg-accent transition-[width] duration-200"
+            className={`h-full transition-[width] duration-200 ${darkMode ? 'bg-d-accent' : 'bg-accent'}`}
             style={{ width: `${scrollProgress * 100}%` }}
           />
         </div>
@@ -399,7 +399,7 @@ export default function MobilePublicPortfolio() {
                       {/* 챕터 헤더 — oversized number + hairline + serif title */}
                       <header className="mb-8">
                         <div className="flex items-baseline gap-3.5 mb-3.5">
-                          <span className={`font-serif text-[44px] font-light tracking-[-0.04em] leading-none ${darkMode ? 'text-d-soft' : 'text-accent'}`}>
+                          <span className={`font-serif text-[44px] font-light tracking-[-0.04em] leading-none ${darkMode ? 'text-d-accent' : 'text-accent'}`}>
                             {String(idx + 1).padStart(2, '0')}
                           </span>
                           <div className={`flex-1 h-px ${darkMode ? 'bg-d-line' : 'bg-hair'}`} />
