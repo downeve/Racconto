@@ -22,7 +22,7 @@ import MobileTrash from './pages/mobile/MobileTrash'
 
 function PrivateRoute({ children }: { children: React.ReactNode }) {
   const { isAuthenticated, isLoading } = useAuth()
-  if (isLoading) return <div className="min-h-screen bg-[#F7F4F0]" />
+  if (isLoading) return <div className="min-h-screen bg-canvas" />
   return isAuthenticated ? <>{children}</> : <Navigate to="/login" replace />
 }
 

@@ -13,7 +13,7 @@ export default function MobileTopBar({ title, showBack, rightAction }: MobileTop
 
   return (
     <div
-      className="flex items-center justify-between px-4 bg-[#F7F4F0] border-b border-stone-200 shrink-0"
+      className="flex items-center justify-between px-4 bg-canvas border-b border-stone-200 shrink-0"
       style={{ paddingTop: `calc(env(safe-area-inset-top) + 0.75rem)`, paddingBottom: '0.75rem', height: `calc(56px + env(safe-area-inset-top))` }}
     >
       <div className="flex items-center gap-2 min-w-[44px]">

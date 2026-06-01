@@ -93,7 +93,7 @@ export default function MobileStoryViewer({ chapters, blocksPerChapter, darkMode
   }
 
   return (
-    <div className={`flex flex-col pb-8 ${darkMode ? 'bg-stone-900 text-white' : 'bg-[#F7F4F0]'}`}>
+    <div className={`flex flex-col pb-8 ${darkMode ? 'bg-stone-900 text-white' : 'bg-canvas'}`}>
       {topChapters.map(chapter => {
         const subChapters = chapters.filter(c => c.parent_id === chapter.id).sort((a, b) => a.order_num - b.order_num)
         const blocks = blocksPerChapter[chapter.id] || []

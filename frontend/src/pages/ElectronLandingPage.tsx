@@ -104,7 +104,7 @@ export default function ElectronLandingPage() {
         <div
           className="absolute inset-0 pointer-events-none"
           style={{
-            backgroundImage: 'linear-gradient(to bottom, #E7E3DE 1px, transparent 1px), linear-gradient(90deg, #e7e3de 1px, transparent 1px)',
+            backgroundImage: 'linear-gradient(to bottom, #E2E0DC 1px, transparent 1px), linear-gradient(90deg, #e2e0dc 1px, transparent 1px)',
             backgroundSize: '60px 60px',
             opacity: 0.4,
           }}

@@ -210,7 +210,7 @@ export default function MobileProjectList() {
 
       {/* 새 프로젝트 전체화면 모달 */}
       {showNewForm && (
-        <div className="fixed inset-0 z-50 bg-[#F7F4F0] flex flex-col" style={{ paddingTop: 'env(safe-area-inset-top)', paddingBottom: 'env(safe-area-inset-bottom)' }}>
+        <div className="fixed inset-0 z-50 bg-canvas flex flex-col" style={{ paddingTop: 'env(safe-area-inset-top)', paddingBottom: 'env(safe-area-inset-bottom)' }}>
           <div className="flex items-center justify-between px-4 py-3 border-b border-stone-200">
             <button onClick={() => setShowNewForm(false)} className="min-w-[44px] min-h-[44px] flex items-center justify-center text-stone-500 text-sm">
               {t('common.cancel')}

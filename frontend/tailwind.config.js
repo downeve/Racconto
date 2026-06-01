@@ -18,8 +18,10 @@ export default {
   theme: {
     extend: {
       colors: {
-        // gray를 stone으로 remapping — 기존 bg-gray-* 클래스가 stone 톤으로 바뀜
-        gray: colors.stone,
+        // gray·stone 스케일을 중성(neutral)으로 오버라이드 — Gallery Neutral 전환.
+        // 기존 *-gray-*/*-stone-* 클래스가 명암 단계는 유지한 채 warm 제거(무채색)됨.
+        gray: colors.neutral,
+        stone: colors.neutral,
         canvas:    o('oklch(0.928 0.007 88.6)'),  // 갤러리 중성 배경 (was 따뜻 크림)
         'canvas-2': o('oklch(0.958 0.005 95.1)'), // 모달·카드 (중성 off-white)
         'canvas-3': o('oklch(0.945 0.005 90)'),   // 중간 밴드 (미사용, 중성)
@@ -78,8 +80,8 @@ export default {
           'arch-bg':     '#E7E0D7',               'arch-fg':     'oklch(0.50 0.012 65)',
         },
         // 하위 호환 (기존 PublicPortfolio 다크 헬퍼에서 사용)
-        'card-cover': colors.stone[800],
-        'card-surface': colors.stone[900],
+        'card-cover': colors.neutral[800],
+        'card-surface': colors.neutral[900],
         status: {
           progress:  '#F59E0B',  // amber-500
           completed: '#10B981',  // emerald-500

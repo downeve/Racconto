@@ -26,7 +26,7 @@ export default function MobileBottomNav() {
 
   return (
     <nav
-      className="flex items-center bg-[#F7F4F0] border-t border-stone-200 shrink-0"
+      className="flex items-center bg-canvas border-t border-stone-200 shrink-0"
       style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
     >
       {TABS.map(({ key, path, Icon, labelKey }) => {
