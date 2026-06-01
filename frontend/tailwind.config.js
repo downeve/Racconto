@@ -20,36 +20,37 @@ export default {
       colors: {
         // gray를 stone으로 remapping — 기존 bg-gray-* 클래스가 stone 톤으로 바뀜
         gray: colors.stone,
-        canvas:    '#F4EFE7',           // 종이 (메인 배경)
-        'canvas-2': '#FFFFFF',          // 모달, 카드
-        'canvas-3': '#292524',          // Primary 버튼 Hover, warm stone-800
-        'canvas-4': '#E7E0D7',          // Secondary 버튼 Hover, warm-stone-200
-        'secondary-border': '#D6D3D1',  // Secondary 버튼 Hover border, warm-stone-300
-        card: '#FFFFFF',                // 하위 호환용 (canvas-2 와 동일)
-        ink:       o('oklch(0.18 0.012 60)'),  // 제목 및 강조
-        'ink-2':   o('oklch(0.28 0.012 60)'),  // 본문
-        muted:     o('oklch(0.50 0.012 65)'),  // 보조 텍스트 (AA: canvas 5.25:1)
-        faint:     o('oklch(0.78 0.010 75)'),  // 메타, placeholder/장식 전용 (WCAG 예외)
-        hair:      o('oklch(0.90 0.010 75)'),  // 구분선, 보더
-        accent:    o('oklch(0.50 0.085 55)'),  // 포커스, 링크 (AA: 5.39:1)
+        canvas:    o('oklch(0.928 0.007 88.6)'),  // 갤러리 중성 배경 (was 따뜻 크림)
+        'canvas-2': o('oklch(0.958 0.005 95.1)'), // 모달·카드 (중성 off-white)
+        'canvas-3': o('oklch(0.945 0.005 90)'),   // 중간 밴드 (미사용, 중성)
+        'canvas-4': o('oklch(0.905 0.007 88)'),   // Secondary hover, 한 단계 어두운 면
+        'secondary-border': '#D6D3D1',  // Secondary 버튼 Hover border
+        card: o('oklch(0.976 0.004 91.4)'),       // 카드·시트 (중성 off-white)
+        ink:       o('oklch(0.218 0.004 84.6)'),  // 제목 및 강조 (중성)
+        'ink-2':   o('oklch(0.342 0.006 78.3)'),  // 본문 (중성)
+        muted:     o('oklch(0.531 0.008 88.7)'),  // 보조 텍스트 (AA canvas ≈5.3:1)
+        faint:     o('oklch(0.735 0.009 91.5)'),  // 메타·placeholder 장식 (중성)
+        hair:      o('oklch(0.90 0.006 88)'),      // 구분선 (hue 중성, L 유지)
+        accent:    o('oklch(0.50 0.085 55)'),     // 테라코타 — 변경 금지 (행동/상태 전용)
+        'accent-soft': o('oklch(0.933 0.012 59.6)'), // 활성 필터칩 틴트 배경
         // (dead 'lightbox' 색 토큰 제거 — scrim 으로 대체. z-index 'lightbox' 는 별개로 유지)
         // 다크 모드 — warm taupe
-        'd-bg':      o('oklch(0.18 0.012 60)'),  // 다크 메인 배경
-        'd-surface': o('oklch(0.22 0.012 60)'),  // 다크 카드/패널
-        'd-line':    o('oklch(0.32 0.010 70)'),  // 다크 구분선
-        'd-faint':   o('oklch(0.66 0.008 75)'),  // 다크 microcopy (AA: d-bg 6.05:1)
-        'd-soft':    o('oklch(0.78 0.010 75)'),  // 다크 secondary body
-        'd-hair':    o('oklch(0.94 0.008 75)'),  // 다크 body
+        'd-bg':      o('oklch(0.196 0.003 67.7)'), // 다크 중성 배경 (was warm)
+        'd-surface': o('oklch(0.231 0.004 84.6)'), // 다크 카드/패널 (중성)
+        'd-line':    o('oklch(0.325 0.009 88.7)'), // 다크 구분선 (중성)
+        'd-faint':   o('oklch(0.651 0.009 84.6)'), // 다크 microcopy (AA d-bg)
+        'd-soft':    o('oklch(0.783 0.009 84.6)'), // 다크 secondary body (중성)
+        'd-hair':    o('oklch(0.94 0.005 88)'),    // 다크 body (hue 중성)
         // 편집기 전용 의미 토큰 (ProjectStory / StoryBlocks)
-        'edit-canvas':      '#F4EFE7',                    // 편집 페이지 배경 (canvas)
-        'edit-canvas-2':    o('oklch(0.94 0.008 75)'),   // canvas 위 hover
-        'edit-paper':       '#FFFFFF',                    // 편집 sheet (순백)
-        'edit-paper-2':     o('oklch(0.975 0.004 75)'),  // sheet 위 hover
-        'edit-line':        o('oklch(0.88 0.008 75)'),
-        'edit-line-strong': o('oklch(0.78 0.010 75)'),
-        'edit-ink':         o('oklch(0.22 0.012 60)'),
-        'edit-muted':       o('oklch(0.55 0.012 65)'),
-        'edit-faint':       o('oklch(0.72 0.010 75)'),
+        'edit-canvas':      o('oklch(0.928 0.007 88.6)'), // 편집 배경 (= canvas 중성)
+        'edit-canvas-2':    o('oklch(0.945 0.005 90)'),   // canvas 위 hover (중성)
+        'edit-paper':       o('oklch(0.976 0.004 91.4)'), // 편집 sheet (= card 중성)
+        'edit-paper-2':     o('oklch(0.982 0.003 91)'),   // sheet 위 hover (중성)
+        'edit-line':        o('oklch(0.88 0.006 88)'),    // hue 중성, L 유지
+        'edit-line-strong': o('oklch(0.78 0.007 88)'),
+        'edit-ink':         o('oklch(0.218 0.004 84.6)'), // = ink 중성
+        'edit-muted':       o('oklch(0.531 0.008 88.7)'), // = muted 중성
+        'edit-faint':       o('oklch(0.72 0.007 90)'),    // hue 중성, L 유지
         'edit-accent':      o('oklch(0.50 0.085 55)'),  // = warm accent (쿨블루 통일)
         'edit-danger':      o('oklch(0.50 0.15 25)'),
         'edit-warning':     o('oklch(0.62 0.13 75)'),
@@ -66,9 +67,9 @@ export default {
         ok:          o('oklch(0.55 0.10 150)'),  // 성공/확인
         warn:        o('oklch(0.62 0.13 75)'),   // 경고 (= edit-warning)
         // 인프라 토큰
-        placeholder: o('oklch(0.92 0.012 75)'),     // 스켈레톤·이미지 자리
+        placeholder: o('oklch(0.91 0.006 88)'),     // 스켈레톤·이미지 자리 (중성)
         scrim:       'oklch(0.12 0.012 60 / 0.98)', // 라이트박스 배경
-        'd-accent':  o('oklch(0.64 0.09 55)'),      // 다크 전용 warm accent (d-bg 5.45:1)
+        'd-accent':  o('oklch(0.669 0.094 54.3)'),  // 다크 전용 warm accent (유지·밝게)
         // 상태 뱃지 (bg/fg 쌍) — StatusBadge 전용
         badge: {
           'progress-bg': 'oklch(0.93 0.03 55)',   'progress-fg': 'oklch(0.46 0.09 55)',
