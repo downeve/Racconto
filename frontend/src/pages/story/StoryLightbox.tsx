@@ -48,6 +48,7 @@ export default function StoryLightbox({
 
   return (
     <div
+      data-theme="dark"
       className="fixed inset-0 bg-black/90 z-50 flex flex-col"
       onClick={() => { onClose(); onCloseNotePanel() }}
     >
@@ -59,27 +60,27 @@ export default function StoryLightbox({
       >
         <div className="flex-1" />
         <div className="flex items-center gap-3">
-          <span className="text-edit-paper/70 text-small">
+          <span className="text-ink/70 text-small">
             {getChapterDisplayTitle(photo.chapter_id)}
           </span>
           <button
             onClick={e => { e.stopPropagation(); onToggleNotePanel() }}
             className={`inline-flex items-center gap-1.5 t-caption px-3 py-1.5 rounded-[1px] border transition-colors duration-150 ${
               showNotePanel
-                ? 'border-edit-paper/50 text-edit-paper bg-edit-paper/5'
-                : 'border-edit-paper/30 text-edit-paper/80 hover:text-edit-paper hover:border-edit-paper/60'
+                ? 'border-ink/50 text-ink bg-ink/10'
+                : 'border-ink/30 text-ink/80 hover:text-ink hover:border-ink/60'
             }`}
           >
             <FileText size={12} strokeWidth={1.5} />{t('note.title')}
           </button>
         </div>
         <div className="flex-1 flex items-center justify-end gap-2">
-          <span className="text-edit-paper/60 text-small">
+          <span className="text-ink/60 text-small">
             {selectedIndex + 1} / {photos.length}
           </span>
           <button
             onClick={() => { onClose(); onCloseNotePanel() }}
-            className="text-edit-paper/80 hover:text-edit-paper text-h2 p-3"
+            className="text-ink/80 hover:text-ink text-h2 p-3"
           >✕</button>
         </div>
       </div>
@@ -91,7 +92,7 @@ export default function StoryLightbox({
       >
         {selectedIndex > 0 && (
           <button
-            className="absolute left-4 z-10 text-edit-paper/80 hover:text-edit-paper text-h1 select-none p-4"
+            className="absolute left-4 z-10 text-ink/80 hover:text-ink text-h1 select-none p-4"
             onMouseDown={e => e.preventDefault()}
             onClick={e => { e.stopPropagation(); onNavigate(selectedIndex - 1) }}
           >‹</button>
@@ -104,7 +105,7 @@ export default function StoryLightbox({
         />
         {selectedIndex < photos.length - 1 && (
           <button
-            className="absolute right-4 z-10 text-edit-paper/80 hover:text-edit-paper text-h1 select-none p-4"
+            className="absolute right-4 z-10 text-ink/80 hover:text-ink text-h1 select-none p-4"
             onMouseDown={e => e.preventDefault()}
             onClick={e => { e.stopPropagation(); onNavigate(selectedIndex + 1) }}
           >›</button>
