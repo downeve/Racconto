@@ -453,7 +453,7 @@ export const PhotoCard = memo(function PhotoCard({
     <div className={`rounded-btn overflow-hidden transition-[box-shadow] ${
       isSelected ? 'ring-2 ring-edit-ink ring-offset-2 ring-offset-edit-paper' : ''
     }`}>
-      <div className="relative group bg-[#F2EFE6]">
+      <div className="relative group bg-edit-canvas">
 
         {/* 이미지 */}
         <img
