@@ -59,9 +59,9 @@ export default function PortfolioPreview({ blocks }: PortfolioPreviewProps) {
           <div key={block.blockId} style={{ marginBottom: blockIdx < rendered.length - 1 ? `${BLOCK_GAP}px` : 0 }}>
             {block.kind === 'text' && (
               <div className="flex items-center gap-1 my-1">
-                <div className="flex-1 h-px bg-stone-200" />
+                <div className="flex-1 h-px bg-hair" />
                 <span className="text-caption font-mono text-faint shrink-0">{t('story.portfolioPreviewText')}</span>
-                <div className="flex-1 h-px bg-stone-200" />
+                <div className="flex-1 h-px bg-hair" />
               </div>
             )}
 
@@ -71,7 +71,7 @@ export default function PortfolioPreview({ blocks }: PortfolioPreviewProps) {
 
               const photoCol = (
                 <div
-                  className="rounded-sm bg-stone-200 overflow-hidden"
+                  className="rounded-sm bg-placeholder overflow-hidden"
                   style={{ flex: 3, height: `${BAR_HEIGHT}px` }}
                 >
                   {block.photos[0]?.image_url && (
@@ -85,7 +85,7 @@ export default function PortfolioPreview({ blocks }: PortfolioPreviewProps) {
 
               const textCol = (
                 <div
-                  className="flex items-center justify-center rounded-sm bg-stone-100 border border-stone-200 text-eyebrow text-faint"
+                  className="flex items-center justify-center rounded-sm bg-placeholder border border-hair text-eyebrow text-faint"
                   style={{ flex: 2, height: `${BAR_HEIGHT}px` }}
                 >
                   {t('story.portfolioPreviewText')}
@@ -106,7 +106,7 @@ export default function PortfolioPreview({ blocks }: PortfolioPreviewProps) {
               >
                 {row.isFullWidth ? (
                   <div
-                    className="rounded-sm bg-stone-200 overflow-hidden"
+                    className="rounded-sm bg-placeholder overflow-hidden"
                     style={{ flex: 1, height: `${BAR_HEIGHT}px` }}
                   >
                     {row.photos[0]?.image_url && (
@@ -120,7 +120,7 @@ export default function PortfolioPreview({ blocks }: PortfolioPreviewProps) {
                   row.photos.map(photo => (
                     <div
                       key={photo.id}
-                      className="rounded-sm bg-stone-200 overflow-hidden"
+                      className="rounded-sm bg-placeholder overflow-hidden"
                       style={{ flex: 1, height: `${BAR_HEIGHT}px` }}
                     >
                       {photo.image_url && (

@@ -125,7 +125,7 @@ export default function PhotoNotePanel({
             notes.map(note => {
               const typeInfo = getNoteType(note.note_type)
               return (
-                <div key={note.id} className="bg-stone-50 rounded-card p-3">
+                <div key={note.id} className="bg-canvas-2 rounded-card p-3">
                   {editingNote === note.id ? (
                     <div>
                       <div className="flex gap-1.5 flex-wrap mb-2">

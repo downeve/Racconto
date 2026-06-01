@@ -63,7 +63,7 @@ export default function MobilePhotoBlockEditor({
             key={l}
             onClick={() => onLayoutChange(l)}
             className={`flex-1 min-h-[44px] text-xs rounded transition-colors ${
-              block.blockLayout === l ? 'bg-stone-900 text-white' : 'bg-stone-100 text-stone-500'
+              block.blockLayout === l ? 'bg-ink text-canvas' : 'bg-canvas-4 text-muted'
             }`}
           >
             {t(`portfolio.column${l.charAt(0).toUpperCase()}${l.slice(1)}`) || l}
@@ -74,7 +74,7 @@ export default function MobilePhotoBlockEditor({
       {/* 사진 목록 */}
       <div className="flex-1 overflow-y-auto p-4 flex flex-col gap-3">
         {photoItems.map((item, idx) => (
-          <div key={item.id} className="flex items-center gap-3 bg-stone-50 rounded-xl p-2">
+          <div key={item.id} className="flex items-center gap-3 bg-canvas-2 rounded-xl p-2">
             <img
               src={item.image_url || ''}
               className="w-16 h-16 rounded-lg object-cover shrink-0"

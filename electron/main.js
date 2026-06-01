@@ -669,8 +669,8 @@ function createWindow() {
   mainWindow = new BrowserWindow({
     width: 1280,
     height: 800,
-    // 시작/리사이즈 시 흰 플래시 방지 — 웹 canvas 토큰(#F4EFE7)과 동기화
-    backgroundColor: '#F4EFE7',
+    // 시작/리사이즈 시 흰 플래시 방지 — 웹 canvas 토큰(중성 #E9E7E2)과 동기화
+    backgroundColor: '#E9E7E2',
     titleBarStyle: isMac ? 'hiddenInset' : 'default',
     ...(isMac ? { trafficLightPosition: { x: 14, y: 16 } } : {}),
     webPreferences: {

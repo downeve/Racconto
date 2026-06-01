@@ -174,7 +174,7 @@ export default function MobileProjectList() {
           return (
             <div
               key={project.id}
-              className="bg-white rounded-xl shadow-sm border border-stone-100 flex items-center gap-3 p-3 active:bg-stone-50"
+              className="bg-white rounded-xl shadow-sm border border-stone-100 flex items-center gap-3 p-3 active:bg-canvas-4"
               onClick={() => navigate(`/projects/${project.slug || project.id}`)}
             >
               <div className="shrink-0">
@@ -185,7 +185,7 @@ export default function MobileProjectList() {
                     alt={project.title}
                   />
                 ) : (
-                  <div className="w-20 h-20 rounded-lg bg-stone-100" />
+                  <div className="w-20 h-20 rounded-lg bg-placeholder" />
                 )}
               </div>
               <div className="flex-1 min-w-0">

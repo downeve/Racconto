@@ -20,12 +20,12 @@ export default function MobileMoveBlockSheet({ otherBlocks, onSelect, onClose }:
           <button
             key={block.blockId}
             onClick={() => { onSelect(block.blockId); onClose() }}
-            className="relative aspect-[3/2] rounded-lg overflow-hidden bg-stone-100"
+            className="relative aspect-[3/2] rounded-lg overflow-hidden bg-placeholder"
           >
             {block.firstImageUrl ? (
               <img src={block.firstImageUrl} className="w-full h-full object-cover" alt="" />
             ) : (
-              <div className="w-full h-full bg-stone-200" />
+              <div className="w-full h-full bg-placeholder" />
             )}
             {block.count > 1 && (
               <div className="absolute bottom-1 right-1 bg-black/50 text-white text-eyebrow px-1 rounded">

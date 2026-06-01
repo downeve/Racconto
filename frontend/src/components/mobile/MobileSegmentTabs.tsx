@@ -15,7 +15,7 @@ interface MobileSegmentTabsProps {
 export default function MobileSegmentTabs({ tabs, activeTab, onChange }: MobileSegmentTabsProps) {
   return (
     <div
-      className="flex bg-stone-100 border-b border-stone-200 shrink-0"
+      className="flex bg-canvas-4 border-b border-hair shrink-0"
       style={{ position: 'sticky', top: 0, zIndex: 10 }}
     >
       {tabs.map(({ key, label, icon: Icon }) => {

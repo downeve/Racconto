@@ -46,7 +46,7 @@ export const TabletStoryBlock = memo(function TabletStoryBlock({
       ref={setRef}
       style={style}
       className={`relative mb-2 rounded-card border transition-[background,color,border] duration-150 ease-out ${
-        isOver && isExternalDrag ? 'bg-edit-drop/50 border-edit-line-strong' : 'bg-stone-50 border-stone-200'
+        isOver && isExternalDrag ? 'bg-edit-drop/50 border-edit-line-strong' : 'bg-canvas-2 border-hair'
       }`}
     >
       {/* 헤더 행: 드래그 핸들 + 레이아웃 버튼 항상 노출 */}

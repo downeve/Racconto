@@ -154,7 +154,7 @@ export default function MobileExplore() {
             <button
               type="button"
               onClick={() => setTagFilter('')}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 t-caption rounded-btn bg-ink text-canvas border border-ink"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 t-caption rounded-btn bg-accent-soft text-accent border border-accent"
             >
               #{tagFilter}
               <X size={12} strokeWidth={1.5} />
@@ -170,7 +170,7 @@ export default function MobileExplore() {
               onClick={() => setCameraFilter('')}
               className={`shrink-0 px-3 py-1.5 t-caption rounded-btn border transition-colors ${
                 cameraFilter === ''
-                  ? 'bg-ink text-canvas border-ink'
+                  ? 'bg-accent-soft text-accent border-accent'
                   : 'border-hair text-muted'
               }`}
             >
@@ -183,7 +183,7 @@ export default function MobileExplore() {
                 onClick={() => setCameraFilter(ct.value)}
                 className={`shrink-0 px-3 py-1.5 t-caption rounded-btn border transition-colors ${
                   cameraFilter === ct.value
-                    ? 'bg-ink text-canvas border-ink'
+                    ? 'bg-accent-soft text-accent border-accent'
                     : 'border-hair text-muted'
                 }`}
               >

@@ -156,7 +156,7 @@ export default function Explore() {
             <button
               type="button"
               onClick={() => setTagFilter('')}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 t-caption rounded-btn bg-ink text-canvas border border-ink hover:bg-ink/85 transition-colors"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 t-caption rounded-btn bg-accent-soft text-accent border border-accent transition-colors"
             >
               #{tagFilter}
               <X size={12} strokeWidth={1.5} />
@@ -172,7 +172,7 @@ export default function Explore() {
               onClick={() => setCameraFilter('')}
               className={`px-3 py-1.5 t-caption rounded-btn border transition-colors ${
                 cameraFilter === ''
-                  ? 'bg-ink text-canvas border-ink'
+                  ? 'bg-accent-soft text-accent border-accent'
                   : 'border-hair text-muted hover:text-ink hover:border-faint'
               }`}
             >
@@ -185,7 +185,7 @@ export default function Explore() {
                 onClick={() => setCameraFilter(ct.value)}
                 className={`px-3 py-1.5 t-caption rounded-btn border transition-colors ${
                   cameraFilter === ct.value
-                    ? 'bg-ink text-canvas border-ink'
+                    ? 'bg-accent-soft text-accent border-accent'
                     : 'border-hair text-muted hover:text-ink hover:border-faint'
                 }`}
               >

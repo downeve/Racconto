@@ -34,7 +34,7 @@ export default function ConfirmModal(props: Props) {
               <button
                 key={block.blockId}
                 onClick={() => onSelect(block.blockId)}
-                className="flex flex-col items-center gap-1 p-1 rounded-btn hover:bg-stone-50 border border-transparent hover:border-stone-200 transition-[background,color,border] duration-150 ease-out"
+                className="flex flex-col items-center gap-1 p-1 rounded-btn hover:bg-canvas-4 border border-transparent hover:border-secondary-border transition-[background,color,border] duration-150 ease-out"
               >
                 <div className="w-full aspect-[3/2] rounded-btn overflow-hidden bg-gray-100">
                   {block.firstImageUrl
@@ -47,7 +47,7 @@ export default function ConfirmModal(props: Props) {
             {/* 새 블록 슬롯 */}
             <button
               onClick={() => onSelect('new')}
-              className="flex flex-col items-center gap-1 p-1 rounded-btn hover:bg-stone-50 border border-transparent hover:border-stone-200 transition-[background,color,border] duration-150 ease-out"
+              className="flex flex-col items-center gap-1 p-1 rounded-btn hover:bg-canvas-4 border border-transparent hover:border-secondary-border transition-[background,color,border] duration-150 ease-out"
             >
               <div className="w-full aspect-[3/2] rounded border-2 border-dashed border-faint bg-card flex items-center justify-center">
                 <span className="text-muted text-2xl leading-none">+</span>
@@ -68,7 +68,7 @@ export default function ConfirmModal(props: Props) {
         <div className="flex justify-end gap-2">
           <button
             onClick={onCancel}
-            className="px-4 py-2 text-sm text-stone-600 border border-stone-300 rounded-btn hover:bg-stone-50"
+            className="px-4 py-2 text-sm text-muted border border-hair rounded-btn hover:bg-canvas-4"
           >
             {t('common.cancel')}
           </button>

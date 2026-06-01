@@ -96,7 +96,7 @@ export default function PortfolioListCard({
                   key={tag}
                   type="button"
                   onClick={e => { e.preventDefault(); e.stopPropagation(); onTagClick(tag) }}
-                  className={`${spacing} hover:text-edit-ink hover:underline underline-offset-2 transition-colors`}
+                  className={`${spacing} hover:text-ink hover:underline underline-offset-2 transition-colors`}
                 >
                   #{tag}
                 </button>
