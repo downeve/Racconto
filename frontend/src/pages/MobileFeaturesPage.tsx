@@ -36,42 +36,42 @@ function MobileFeatureCard({ feature, index }: { feature: FeatureData; index: nu
       }`}
       style={{ transitionDelay: `${index * 50}ms` }}
     >
-      <div className="rounded-card overflow-hidden shadow border border-stone-200 bg-stone-50 mb-4">
+      <div className="rounded-card overflow-hidden shadow border border-hair bg-canvas-2 mb-4">
         <img
           src={feature.screenshotSrc}
           alt={feature.screenshotAlt}
           className="w-full object-cover object-top"
         />
       </div>
-      <p className="text-xs tracking-[0.25em] text-stone-400 uppercase mb-2">
-        <span className="font-mono mr-2 text-stone-300">{feature.number}</span>
+      <p className="text-xs tracking-[0.25em] text-muted uppercase mb-2">
+        <span className="font-mono mr-2 text-faint">{feature.number}</span>
         {feature.tag}
       </p>
       <h3
-        className="text-xl font-bold text-stone-900 mb-3 leading-snug"
+        className="text-xl font-bold text-ink mb-3 leading-snug"
       >
         {feature.title}
       </h3>
-      <p className="text-sm text-stone-500 leading-relaxed">{feature.desc}</p>
+      <p className="text-sm text-muted leading-relaxed">{feature.desc}</p>
 
       {feature.isDesktop && (
-        <div className="mt-4 rounded border border-stone-200 bg-[#F7F4F0] px-4 py-4">
-          <p className="text-xs tracking-[0.2em] text-stone-400 uppercase mb-2">
+        <div className="mt-4 rounded border border-hair bg-canvas-2 px-4 py-4">
+          <p className="text-xs tracking-[0.2em] text-muted uppercase mb-2">
             Desktop App · Beta
           </p>
-          <p className="text-xs text-stone-600 leading-relaxed mb-3">
+          <p className="text-xs text-ink-2 leading-relaxed mb-3">
             Free Download for macOS(.dmg) & Windows(.exe)
           </p>
           <div className="flex gap-2">
             <a
               href="/downloads/Racconto.dmg"
-              className="flex-1 text-center py-2 bg-stone-900 text-white text-xs tracking-widest rounded"
+              className="flex-1 text-center py-2 bg-ink text-canvas text-xs tracking-widest rounded"
             >
               macOS
             </a>
             <a
               href="/downloads/Racconto-Setup.exe"
-              className="flex-1 text-center py-2 border border-stone-300 text-stone-700 text-xs tracking-widest rounded"
+              className="flex-1 text-center py-2 border border-hair text-ink-2 text-xs tracking-widest rounded"
             >
               Windows
             </a>
@@ -133,31 +133,31 @@ export default function MobileFeaturesPage() {
 
   return (
     <div
-      className="min-h-screen bg-[#F7F4F0] text-stone-900"
+      className="min-h-screen bg-canvas text-ink"
     >
       <PublicNavbar />
 
       {/* Header */}
       <section className="pt-28 pb-10 px-6 text-center">
-        <p className="text-xs tracking-[0.35em] text-stone-400 uppercase mb-4">
+        <p className="text-xs tracking-[0.35em] text-muted uppercase mb-4">
           What Racconto does
         </p>
         <h1
-          className="text-3xl font-bold text-stone-900 mb-4 leading-tight break-keep"
+          className="text-3xl font-bold text-ink mb-4 leading-tight break-keep"
           style={{ letterSpacing: '-0.02em' }}
         >
           {t('landing.feature.featureDetailTitle')}
         </h1>
         <p
-          className="text-sm text-stone-500 leading-relaxed break-keep"
+          className="text-sm text-muted leading-relaxed break-keep"
           style={{ fontStyle: 'italic' }}
         >
           {t('landing.feature.featureDetailDesc')}
         </p>
         <div className="flex items-center justify-center gap-4 mt-8">
-          <div className="h-px w-12 bg-stone-300" />
-          <div className="w-1 h-1 rounded-card bg-stone-400" />
-          <div className="h-px w-12 bg-stone-300" />
+          <div className="h-px w-12 bg-hair" />
+          <div className="w-1 h-1 rounded-card bg-faint" />
+          <div className="h-px w-12 bg-hair" />
         </div>
       </section>
 
@@ -171,37 +171,37 @@ export default function MobileFeaturesPage() {
       </section>
 
       {/* CTA */}
-      <section className="py-16 px-6 bg-stone-900 text-white text-center">
-        <p className="text-xs tracking-[0.3em] text-stone-400 uppercase mb-4">
+      <section className="py-16 px-6 bg-ink text-canvas text-center">
+        <p className="text-xs tracking-[0.3em] text-faint uppercase mb-4">
           {t('landing.betaEyebrow')}
         </p>
         <h2 className="text-2xl font-bold mb-3">
           {t('landing.betaTitle')}
         </h2>
-        <p className="text-stone-400 mb-2 text-sm leading-relaxed">
+        <p className="text-faint mb-2 text-sm leading-relaxed">
           {t('landing.betaDesc')}
         </p>
-        <p className="text-stone-500 mb-8 text-xs">
+        <p className="text-faint mb-8 text-xs">
           {t('landing.betaLimit')}
         </p>
         <Link
           to="/register"
-          className="inline-block w-full max-w-xs px-8 py-4 bg-white text-stone-900 text-sm tracking-widest font-semibold rounded"
+          className="inline-block w-full max-w-xs px-8 py-4 bg-card text-ink text-sm tracking-widest font-semibold rounded"
         >
           {t('landing.ctaPrimary')}
         </Link>
-        <p className="mt-5 text-xs text-stone-500">
+        <p className="mt-5 text-xs text-faint">
           {t('landing.alreadyHaveAccount')}{' '}
-          <Link to="/login" className="text-stone-300 underline underline-offset-2">
+          <Link to="/login" className="text-d-soft underline underline-offset-2">
             {t('auth.login')}
           </Link>
         </p>
       </section>
 
       {/* Footer */}
-      <footer className="py-6 px-6 bg-stone-900 border-t border-stone-800 flex items-center justify-between">
-        <span className="text-stone-500 text-sm tracking-widest">Racconto</span>
-        <p className="text-stone-600 text-xs">© 2026 Racconto.</p>
+      <footer className="py-6 px-6 bg-ink border-t border-ink-2 flex items-center justify-between">
+        <span className="text-faint text-sm tracking-widest">Racconto</span>
+        <p className="text-faint text-xs">© 2026 Racconto.</p>
       </footer>
     </div>
   )

@@ -11,8 +11,8 @@ type Provider = 'google' | 'apple' | 'naver' | 'line'
 function ElectronSocialButton({ provider, label, onClick }: { provider: Provider; label: string; onClick: () => void }) {
   const base = 'flex items-center justify-center gap-2 px-3 py-2.5 rounded-card text-menu transition-colors'
   const styles: Record<Provider, { className: string; style?: React.CSSProperties }> = {
-    google: { className: `${base} border border-stone-200 bg-white text-stone-700 hover:bg-stone-50` },
-    apple:  { className: `${base} bg-stone-900 text-white hover:bg-stone-800` },
+    google: { className: `${base} border border-hair bg-card text-ink-2 hover:bg-canvas-4` },
+    apple:  { className: `${base} bg-ink text-canvas hover:bg-ink-2` },
     naver:  { className: `${base} border border-edit-line bg-card text-edit-ink hover:bg-gray-50` },
     line:   { className: `${base} border border-edit-line bg-card text-edit-ink hover:bg-gray-50` },
   }
@@ -98,7 +98,7 @@ export default function ElectronLandingPage() {
     <div className="h-screen flex overflow-hidden">
 
       {/* ── 왼쪽 패널 — 메인 텍스트 ── */}
-      <div className="w-[42%] flex flex-col items-center justify-center px-10 py-12 shrink-0 border-r border-stone-200 relative overflow-hidden bg-[#F7F4F0]">
+      <div className="w-[42%] flex flex-col items-center justify-center px-10 py-12 shrink-0 border-r border-hair relative overflow-hidden bg-canvas-2">
 
         {/* 배경 그리드 장식 */}
         <div
@@ -144,7 +144,7 @@ export default function ElectronLandingPage() {
       </div>
 
       {/* ── 오른쪽 패널 — 로그인 ── */}
-      <div className="flex-1 flex flex-col bg-[#F7F4F0]">
+      <div className="flex-1 flex flex-col bg-canvas-2">
         <div className="flex-1 flex items-center justify-center px-12">
           <div className="w-full max-w-[320px]">
 
@@ -152,7 +152,7 @@ export default function ElectronLandingPage() {
 
             <div className="space-y-3">
               <input
-                className="w-full border border-stone-200 rounded-card px-3 py-2.5 text-body bg-white focus:outline-none focus:ring-2 focus:ring-stone-300"
+                className="w-full border border-hair rounded-card px-3 py-2.5 text-body bg-card focus:outline-none focus:ring-2 focus:ring-secondary-border"
                 type="email"
                 placeholder={t('auth.mail')}
                 value={email}
@@ -161,7 +161,7 @@ export default function ElectronLandingPage() {
                 autoFocus
               />
               <input
-                className="w-full border border-stone-200 rounded-card px-3 py-2.5 text-body bg-white focus:outline-none focus:ring-2 focus:ring-stone-300"
+                className="w-full border border-hair rounded-card px-3 py-2.5 text-body bg-card focus:outline-none focus:ring-2 focus:ring-secondary-border"
                 type="password"
                 placeholder={t('auth.password')}
                 value={password}
@@ -191,10 +191,10 @@ export default function ElectronLandingPage() {
             <div className="mt-6">
               <div className="relative">
                 <div className="absolute inset-0 flex items-center">
-                  <div className="w-full border-t border-stone-200" />
+                  <div className="w-full border-t border-hair" />
                 </div>
                 <div className="relative flex justify-center">
-                  <span className="px-3 bg-[#F7F4F0] text-small text-muted">
+                  <span className="px-3 bg-canvas-2 text-small text-muted">
                     {t('auth.or', '또는')}
                   </span>
                 </div>

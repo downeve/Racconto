@@ -18,17 +18,17 @@ interface FeatureData {
 // ─── 다운로드 배너 (기능 05 하단 인라인 배치) ───────────────────────────────
 function DownloadBanner() {
   return (
-    <div className="mt-6 rounded border border-stone-200 bg-[#F7F4F0] px-6 py-5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+    <div className="mt-6 rounded border border-hair bg-canvas-2 px-6 py-5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
       <div>
-        <p className="text-xs tracking-[0.2em] text-stone-400 uppercase mb-1">Desktop App · Beta</p>
-        <p className="text-sm text-stone-600 leading-relaxed">
+        <p className="text-xs tracking-[0.2em] text-muted uppercase mb-1">Desktop App · Beta</p>
+        <p className="text-sm text-ink-2 leading-relaxed">
           Free Download for macOS(.dmg) & Windows(.exe) install file here.
         </p>
       </div>
       <div className="flex gap-3 shrink-0">
         <a
           href="/downloads/Racconto.dmg"
-          className="inline-flex items-center gap-2 px-4 py-2 bg-stone-900 text-white text-xs tracking-widest rounded hover:bg-stone-700 transition-[background,color,border] duration-150 ease-out"
+          className="inline-flex items-center gap-2 px-4 py-2 bg-ink text-canvas text-xs tracking-widest rounded hover:bg-ink-2 transition-[background,color,border] duration-150 ease-out"
         >
           <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="currentColor">
             <path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.8-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z" />
@@ -37,7 +37,7 @@ function DownloadBanner() {
         </a>
         <a
           href="/downloads/Racconto-Setup.exe"
-          className="inline-flex items-center gap-2 px-4 py-2 border border-stone-300 text-stone-700 text-xs tracking-widest rounded hover:border-stone-500 hover:text-stone-900 transition-[background,color,border] duration-150 ease-out"
+          className="inline-flex items-center gap-2 px-4 py-2 border border-hair text-ink-2 text-xs tracking-widest rounded hover:border-muted hover:text-ink transition-[background,color,border] duration-150 ease-out"
         >
           <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="currentColor">
             <path d="M3 12V6.75l6-1.32v6.57H3zm17 0V5l-9 1.68V12h9zm-17 1h6v6.08L3 17.75V13zm17 0v7l-9-1.71V13h9z" />
@@ -83,7 +83,7 @@ function FeatureSection({
       style={{ transitionDelay: `${index * 60}ms` }}
     >
       <div className={isOdd ? 'md:order-2' : ''}>
-        <div className="rounded-card overflow-hidden shadow border border-stone-200 bg-stone-50">
+        <div className="rounded-card overflow-hidden shadow border border-hair bg-canvas-2">
           <div
             className={feature.animateScroll ? 'w-full' : 'w-full'}
             style={
@@ -102,16 +102,16 @@ function FeatureSection({
       </div>
 
       <div className={isOdd ? 'md:order-1' : ''}>
-        <p className="text-xs tracking-[0.25em] text-stone-400 uppercase mb-3">
-          <span className="font-mono mr-2 text-stone-300">{feature.number}</span>
+        <p className="text-xs tracking-[0.25em] text-muted uppercase mb-3">
+          <span className="font-mono mr-2 text-faint">{feature.number}</span>
           {feature.tag}
         </p>
         <h3
-          className="text-2xl md:text-3xl font-bold text-stone-900 mb-4 leading-snug"
+          className="text-2xl md:text-3xl font-bold text-ink mb-4 leading-snug"
         >
           {feature.title}
         </h3>
-        <p className="text-stone-500 text-sm md:text-base leading-relaxed [word-break:keep-all]">
+        <p className="text-muted text-sm md:text-base leading-relaxed [word-break:keep-all]">
           {feature.desc}
         </p>
 
@@ -204,9 +204,9 @@ export default function FeaturesPage() {
         </p>
 
         <div className="flex items-center justify-center gap-4 mt-10">
-          <div className="h-px w-16 bg-stone-300" />
-          <div className="w-1.5 h-1.5 rounded-card bg-stone-400" />
-          <div className="h-px w-16 bg-stone-300" />
+          <div className="h-px w-16 bg-hair" />
+          <div className="w-1.5 h-1.5 rounded-card bg-faint" />
+          <div className="h-px w-16 bg-hair" />
         </div>
       </section>
 
@@ -228,21 +228,21 @@ export default function FeaturesPage() {
           >
             {t('landing.betaTitle')}
           </h2>
-          <p className="text-stone-400 mb-2 text-sm leading-relaxed">
+          <p className="text-faint mb-2 text-sm leading-relaxed">
             {t('landing.betaDesc')}
           </p>
-          <p className="text-stone-500 mb-10 text-xs">{t('landing.betaLimit')}</p>
+          <p className="text-faint mb-10 text-xs">{t('landing.betaLimit')}</p>
           <Link
             to="/register"
-            className="inline-block px-10 py-4 bg-card text-stone-900 text-sm tracking-widest font-semibold hover:bg-stone-100 transition-[background,color,border] duration-150 ease-out rounded"
+            className="inline-block px-10 py-4 bg-card text-ink text-sm tracking-widest font-semibold hover:bg-canvas-4 transition-[background,color,border] duration-150 ease-out rounded"
           >
             {t('landing.ctaPrimary')}
           </Link>
-          <p className="mt-6 text-xs text-stone-500">
+          <p className="mt-6 text-xs text-faint">
             {t('landing.alreadyHaveAccount')}{' '}
             <Link
               to="/login"
-              className="text-stone-300 hover:text-white underline underline-offset-2"
+              className="text-d-soft hover:text-canvas underline underline-offset-2"
             >
               {t('auth.login')}
             </Link>
@@ -250,14 +250,14 @@ export default function FeaturesPage() {
         </div>
       </section>
 
-      <footer className="py-8 px-6 bg-stone-900 border-t border-stone-800">
+      <footer className="py-8 px-6 bg-ink border-t border-ink-2">
         <div className="max-w-6xl mx-auto flex items-center justify-between">
           <span
-            className="text-stone-500 text-sm tracking-widest"
+            className="text-faint text-sm tracking-widest"
           >
             Racconto
           </span>
-          <p className="text-stone-600 text-xs">© 2026 Racconto. All rights reserved.</p>
+          <p className="text-faint text-xs">© 2026 Racconto. All rights reserved.</p>
         </div>
       </footer>
     </div>
