@@ -45,7 +45,7 @@ export default function MobileTextEditorModal({
 
       <div className="flex-1 overflow-y-auto p-4" style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}>
         {showPreview ? (
-          <MarkdownRenderer content={draft} darkMode={false} />
+          <MarkdownRenderer content={draft} />
         ) : (
           <textarea
             ref={textareaRef}

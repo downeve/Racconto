@@ -32,7 +32,7 @@ export default function MobileStoryViewer({ chapters, blocksPerChapter, darkMode
       if (!textItem?.text_content) return null
       return (
         <div key={block.blockId} className="mb-4 px-1">
-          <MarkdownRenderer content={textItem.text_content} darkMode={darkMode} />
+          <MarkdownRenderer content={textItem.text_content} />
         </div>
       )
     }
@@ -56,7 +56,7 @@ export default function MobileStoryViewer({ chapters, blocksPerChapter, darkMode
             ))}
           </div>
           {textItem?.text_content && (
-            <MarkdownRenderer content={textItem.text_content} darkMode={darkMode} />
+            <MarkdownRenderer content={textItem.text_content} />
           )}
         </div>
       )

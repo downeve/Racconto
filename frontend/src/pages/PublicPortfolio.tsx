@@ -54,16 +54,14 @@ interface PortfolioProject {
 interface BannerProps {
   username: string
   projects: PortfolioProject[]
-  darkMode: boolean
   showFollow: boolean
 }
 
-function PortfolioBanner({ username, projects, darkMode, showFollow }: BannerProps) {
+function PortfolioBanner({ username, projects, showFollow }: BannerProps) {
   const projectCount = projects.length
-  const eyebrowColor = darkMode ? 'text-d-soft' : 'text-muted'
   return (
     <div className="pb-2">
-      <p className={`t-eyebrow mb-2 ${eyebrowColor}`}>
+      <p className="t-eyebrow mb-2 text-muted">
         Portfolio
         {projectCount > 0 && <span className="ml-2 opacity-70">· {projectCount} {projectCount === 1 ? 'project' : 'projects'}</span>}
       </p>
@@ -71,7 +69,7 @@ function PortfolioBanner({ username, projects, darkMode, showFollow }: BannerPro
         <h1 className="font-serif font-normal leading-[1.1] tracking-[-0.015em]" style={{ fontSize: 'clamp(28px, 4vw, 38px)' }}>
           @{username}
         </h1>
-        {showFollow && <FollowButton username={username} darkMode={darkMode} />}
+        {showFollow && <FollowButton username={username} />}
       </div>
     </div>
   )
@@ -343,16 +341,16 @@ export default function PublicPortfolio() {
     if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' })
   }, [])
 
-  const bg       = darkMode ? 'bg-d-bg text-d-hair'  : 'bg-canvas text-ink'
-  const subText  = darkMode ? 'text-d-soft'          : 'text-muted'
-  const microcopy = darkMode ? 'text-d-soft'         : 'text-muted'
-  const barBg    = darkMode
-    ? 'bg-d-bg/85 border-d-line'
-    : 'bg-canvas/85 border-hair/60'
+  // 작가 테마(L2) 스코프 — 의미 토큰만 사용하면 [data-theme] 가 자동 라이트/다크 매핑.
+  const scopedTheme: 'light' | 'dark' = darkMode ? 'dark' : 'light'
+  const bg = 'bg-canvas text-ink'
+  const subText = 'text-muted'
+  const microcopy = 'text-muted'
+  const barBg = 'bg-canvas/85 border-hair'
 
   if (username === '@setup' || !username) {
     return (
-      <div className={`min-h-screen flex flex-col ${darkMode ? 'bg-ink text-hair' : 'bg-canvas text-ink'}`}>
+      <div data-theme={scopedTheme} className="min-h-screen flex flex-col bg-canvas text-ink">
         <main className="flex-1 flex items-center justify-center px-6 pb-32">
           <EmptyState
             heading={t('portfolio.startMessage')}
@@ -365,15 +363,14 @@ export default function PublicPortfolio() {
 
   if (notFound) {
     return (
-      <div className={`min-h-screen ${bg}`}>
-        {!isAuthenticated && <PublicNavbar username={username} darkMode={darkMode} portfolio onToggleDark={handleToggleDark} />}
+      <div data-theme={scopedTheme} className={`min-h-screen ${bg}`}>
+        {!isAuthenticated && <PublicNavbar username={username} portfolio onToggleDark={handleToggleDark} />}
         {!isAuthenticated && <div className="h-14" />}
         <main className="flex items-center justify-center px-6 py-24">
           <EmptyState
             heading={`@${username}${t('portfolio.noUser')}`}
             body={t('portfolio.noUserBody')}
             cta={<a href="/" className="t-caption underline text-muted hover:text-ink-2">{t('portfolio.exploreOthers')}</a>}
-            darkMode={darkMode}
           />
         </main>
       </div>
@@ -381,8 +378,8 @@ export default function PublicPortfolio() {
   }
 
   return (
-    <div className={`min-h-screen ${bg} transition-[background,color,border] duration-150 ease-out`}>
-      {!isAuthenticated && <PublicNavbar username={username} darkMode={darkMode} portfolio onToggleDark={handleToggleDark} />}
+    <div data-theme={scopedTheme} className={`min-h-screen ${bg} transition-[background,color,border] duration-150 ease-out`}>
+      {!isAuthenticated && <PublicNavbar username={username} portfolio onToggleDark={handleToggleDark} />}
       {/* fixed navbar 높이만큼 밀어내는 spacer */}
       {!isAuthenticated && <div className="h-14" />}
 
@@ -402,7 +399,7 @@ export default function PublicPortfolio() {
                 <ChevronLeft size={14} strokeWidth={1.5} />
                 <span>{fromExplore ? t('explore.menu') : `@${username}`}</span>
                 <span className="mx-0.5 opacity-40">/</span>
-                <span className={darkMode ? 'text-hair' : 'text-ink-2'}>{selectedProject.title}</span>
+                <span className="text-ink-2">{selectedProject.title}</span>
               </button>
             )
           })() : (
@@ -413,7 +410,7 @@ export default function PublicPortfolio() {
             <button
               onClick={handleToggleDark}
               aria-label="다크 모드 전환"
-              className={`inline-flex items-center gap-1 px-3 py-1 text-xs rounded-btn border ${darkMode ? 'border-ink-2 text-faint' : 'border-faint text-muted'}`}
+              className="inline-flex items-center gap-1 px-3 py-1 text-xs rounded-btn border border-hair text-muted hover:text-ink"
             >
               {darkMode
                 ? <><Sun size={12} strokeWidth={1.5} /> {t('settings.themeBeige')}</>
@@ -445,7 +442,6 @@ export default function PublicPortfolio() {
               <PortfolioBanner
                 username={username!}
                 projects={projects}
-                darkMode={darkMode}
                 showFollow={isAuthenticated && !!user?.username && user.username !== username}
               />
             </header>
@@ -465,7 +461,6 @@ export default function PublicPortfolio() {
                 title={project.title}
                 location={project.location}
                 description={project.description}
-                darkMode={darkMode}
               />
             ))}
             {/* 로딩 중에는 EmptyState 를 띄우지 않음 — 첫 접근 시 빈 상태 깜빡임 방지 */}
@@ -473,7 +468,6 @@ export default function PublicPortfolio() {
               <div className="col-span-1 md:col-span-2 xl:col-span-3">
                 <EmptyState
                   heading={t('portfolio.noPublicProjects')}
-                  darkMode={darkMode}
                 />
               </div>
             )}
@@ -491,17 +485,17 @@ export default function PublicPortfolio() {
                     {selectedProject.location}
                   </span>
                 )}
-                {selectedProject.location && <span className="w-[3px] h-[3px] rounded-full bg-faint dark:bg-d-faint" />}
+                {selectedProject.location && <span className="w-[3px] h-[3px] rounded-full bg-faint" />}
                 <span>{allLightboxItems.length} photos</span>
                 {selectedProject.updated_at && (
                   <>
-                    <span className="w-[3px] h-[3px] rounded-full bg-faint dark:bg-d-faint" />
+                    <span className="w-[3px] h-[3px] rounded-full bg-faint" />
                     <span>{new Date(selectedProject.updated_at).toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' })}</span>
                   </>
                 )}
                 {typeof selectedProject.view_count === 'number' && (
                   <>
-                    <span className="w-[3px] h-[3px] rounded-full bg-faint dark:bg-d-faint" />
+                    <span className="w-[3px] h-[3px] rounded-full bg-faint" />
                     <span>{selectedProject.view_count.toLocaleString()} {t('portfolio.views')}</span>
                   </>
                 )}
@@ -514,17 +508,14 @@ export default function PublicPortfolio() {
             </div>
 
             {selectedProject.chapters.length > 1 && (
-              <nav className={`flex flex-wrap gap-2.5 mt-10 py-4 border-y ${darkMode ? 'border-d-line' : 'border-hair'}`}>
+              <nav className="flex flex-wrap gap-2.5 mt-10 py-4 border-y border-hair">
                 {selectedProject.chapters.map((ch: Chapter, i: number) => (
                   <a
                     key={ch.id}
                     href={`#chapter-section-${ch.id}`}
-                    className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-btn text-small font-sans
-                                ${darkMode
-                                  ? 'border border-transparent text-d-soft hover:text-d-hair'
-                                  : 'border border-transparent text-muted hover:text-ink-2'}`}
+                    className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-btn text-small font-sans border border-transparent text-muted hover:text-ink-2"
                   >
-                    <span className={`font-serif ${darkMode ? 'text-d-accent' : 'text-accent'}`} style={{ fontVariantNumeric: 'oldstyle-nums' }}>
+                    <span className="font-serif text-accent" style={{ fontVariantNumeric: 'oldstyle-nums' }}>
                       {String(i + 1).padStart(2, '0')}
                     </span>
                     {ch.title}
@@ -541,12 +532,12 @@ export default function PublicPortfolio() {
                       {/* Oversized numeral + capped hairline (Option B) */}
                       <div className="flex items-baseline gap-5">
                         <span
-                          className={`font-serif font-light leading-none tracking-[-0.04em] [font-variant-numeric:oldstyle-nums] ${darkMode ? 'text-d-accent' : 'text-accent'}`}
+                          className="font-serif font-light leading-none tracking-[-0.04em] [font-variant-numeric:oldstyle-nums] text-accent"
                           style={{ fontSize: 'clamp(72px, 8vw, 112px)' }}
                         >
                           {String(idx + 1).padStart(2, '0')}
                         </span>
-                        <div className={`flex-1 max-w-[480px] h-[0.5px] ${darkMode ? 'bg-d-line' : 'bg-hair'}`} />
+                        <div className="flex-1 max-w-[480px] h-[0.5px] bg-hair-strong" />
                       </div>
                       <h3 className="font-serif text-[32px] leading-[1.1] tracking-[-0.015em] font-normal mt-6">
                         {chapter.title}
@@ -560,7 +551,6 @@ export default function PublicPortfolio() {
                     <PortfolioChapterItems
                       items={chapter.items || []}
                       allLightboxItems={allLightboxItems}
-                      darkMode={darkMode}
                       onLightbox={openLightbox}
                     />
                     {chapter.sub_chapters?.map((sub: Chapter, subIdx: number) => (
@@ -581,7 +571,6 @@ export default function PublicPortfolio() {
                         <PortfolioChapterItems
                           items={sub.items || []}
                           allLightboxItems={allLightboxItems}
-                          darkMode={darkMode}
                           onLightbox={openLightbox}
                         />
                       </div>
@@ -593,23 +582,18 @@ export default function PublicPortfolio() {
               <EmptyState
                 heading={t('portfolio.noChapters')}
                 body={t('portfolio.createChapterFirst')}
-                darkMode={darkMode}
               />
             )}
 
             {/* 공유 버튼 */}
-            <div className={`mt-24 pt-10 border-t ${darkMode ? 'border-d-line' : 'border-hair'}`}>
+            <div className="mt-24 pt-10 border-t border-hair">
               <p className={`t-eyebrow mb-5 ${microcopy}`}>{t('portfolio.share')}</p>
               <div className="flex flex-wrap gap-2">
                 <>
                   <button
                     title="Facebook"
                     onClick={() => openShareUrl(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(getShareUrl())}`)}
-                    className={`inline-flex items-center gap-2 px-3 py-2 rounded-btn border t-caption transition-colors duration-150 ${
-                      darkMode
-                        ? 'border-d-line text-d-faint hover:text-d-hair hover:border-d-soft'
-                        : 'border-hair text-faint hover:text-ink-2 hover:border-faint'
-                    }`}
+                    className="inline-flex items-center gap-2 px-3 py-2 rounded-btn border t-caption transition-colors duration-150 border-hair text-faint hover:text-ink-2 hover:border-hair-strong"
                   >
                     <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
                       <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
@@ -618,11 +602,7 @@ export default function PublicPortfolio() {
                   <button
                     title="X"
                     onClick={() => openShareUrl(`https://twitter.com/intent/tweet?url=${encodeURIComponent(getShareUrl())}&text=${encodeURIComponent(selectedProject.title)}`)}
-                    className={`inline-flex items-center gap-2 px-3 py-2 rounded-btn border t-caption transition-colors duration-150 ${
-                      darkMode
-                        ? 'border-d-line text-d-faint hover:text-d-hair hover:border-d-soft'
-                        : 'border-hair text-faint hover:text-ink-2 hover:border-faint'
-                    }`}
+                    className="inline-flex items-center gap-2 px-3 py-2 rounded-btn border t-caption transition-colors duration-150 border-hair text-faint hover:text-ink-2 hover:border-hair-strong"
                   >
                     <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
                       <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.744l7.737-8.835L1.254 2.25H8.08l4.259 5.632 5.905-5.632zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
@@ -632,8 +612,8 @@ export default function PublicPortfolio() {
                     onClick={handleCopyLink}
                     className={`inline-flex items-center gap-2 px-3 py-2 rounded-btn border t-caption transition-colors duration-150 ${
                       copied
-                        ? darkMode ? 'border-d-soft text-d-hair' : 'border-faint text-ink-2'
-                        : darkMode ? 'border-d-line text-d-faint hover:text-d-hair hover:border-d-soft' : 'border-hair text-faint hover:text-ink-2 hover:border-faint'
+                        ? 'border-hair-strong text-ink-2'
+                        : 'border-hair text-faint hover:text-ink-2 hover:border-hair-strong'
                     }`}
                   >
                     {copied ? <Check size={12} strokeWidth={2} /> : <Link2 size={12} strokeWidth={1.5} />}
@@ -646,7 +626,6 @@ export default function PublicPortfolio() {
             {selectedProject && (slug || localSelectedProject) && (
               <PortfolioComments
                 projectId={selectedProject.id}
-                darkMode={darkMode}
                 isAuthenticated={isAuthenticated}
                 currentUsername={user?.username}
                 portfolioOwnerUsername={username ?? ''}
@@ -656,10 +635,11 @@ export default function PublicPortfolio() {
         )}
       </div>
 
-      {/* Lightbox */}
+      {/* Lightbox — 전체화면 뷰어는 작품 몰입을 위해 작가/방문자 테마 무관 다크 고정(STEP 7). */}
       {lightboxIndex !== null && activeLightboxItem && (
         <div
           ref={lightboxRef}
+          data-theme="dark"
           role="dialog"
           aria-modal="true"
           tabIndex={-1}
@@ -668,16 +648,16 @@ export default function PublicPortfolio() {
         >
           {/* Thin top bar: chapter title(center), counter, close */}
           <div
-            className={`relative shrink-0 flex items-center justify-end px-6 h-10 border-b border-d-line transition-opacity duration-500 ${chromeOn ? 'opacity-100' : 'opacity-0'}`}
+            className={`relative shrink-0 flex items-center justify-end px-6 h-10 border-b border-hair transition-opacity duration-500 ${chromeOn ? 'opacity-100' : 'opacity-0'}`}
             onClick={e => e.stopPropagation()}
           >
-            <span className="t-eyebrow text-d-faint truncate max-w-[60%] absolute left-1/2 -translate-x-1/2">{activeLightboxItem.title}</span>
+            <span className="t-eyebrow text-muted truncate max-w-[60%] absolute left-1/2 -translate-x-1/2">{activeLightboxItem.title}</span>
             <div className="flex items-center gap-3 shrink-0">
-              <span className="t-numeral text-d-faint">{lightboxIndex + 1} / {lightboxItems.length}</span>
+              <span className="t-numeral text-muted">{lightboxIndex + 1} / {lightboxItems.length}</span>
               <button
                 aria-label="닫기"
                 onClick={() => setLightboxIndex(null)}
-                className="p-1.5 text-d-faint hover:text-d-hair hover:bg-d-line/50 transition-colors"
+                className="p-1.5 text-muted hover:text-ink hover:bg-hair-strong transition-colors"
               >
                 <X size={16} strokeWidth={1.5} />
               </button>
@@ -688,7 +668,7 @@ export default function PublicPortfolio() {
           {lightboxIndex > 0 && (
             <button
               aria-label="이전 사진"
-              className={`absolute left-4 top-1/2 -translate-y-1/2 z-10 p-3 text-d-faint hover:text-d-hair hover:bg-d-line/50 transition-[opacity,color,background] duration-500 ${chromeOn ? 'opacity-100' : 'opacity-0'}`}
+              className={`absolute left-4 top-1/2 -translate-y-1/2 z-10 p-3 text-muted hover:text-ink hover:bg-hair-strong transition-[opacity,color,background] duration-500 ${chromeOn ? 'opacity-100' : 'opacity-0'}`}
               onMouseDown={e => e.preventDefault()}
               onClick={e => { e.stopPropagation(); setLightboxIndex(lightboxIndex - 1) }}
             >
@@ -732,7 +712,7 @@ export default function PublicPortfolio() {
           {lightboxIndex < lightboxItems.length - 1 && (
             <button
               aria-label="다음 사진"
-              className={`absolute right-4 top-1/2 -translate-y-1/2 z-10 p-3 text-d-faint hover:text-d-hair hover:bg-d-line/50 transition-[opacity,color,background] duration-500 ${chromeOn ? 'opacity-100' : 'opacity-0'}`}
+              className={`absolute right-4 top-1/2 -translate-y-1/2 z-10 p-3 text-muted hover:text-ink hover:bg-hair-strong transition-[opacity,color,background] duration-500 ${chromeOn ? 'opacity-100' : 'opacity-0'}`}
               onMouseDown={e => e.preventDefault()}
               onClick={e => { e.stopPropagation(); setLightboxIndex(lightboxIndex + 1) }}
             >
@@ -742,8 +722,8 @@ export default function PublicPortfolio() {
 
           {/* Keyboard hint toast — 첫 진입 시 1회 */}
           {showLightboxHint && (
-            <div className="absolute bottom-8 left-1/2 -translate-x-1/2 px-4 py-2 bg-d-line/70 pointer-events-none whitespace-nowrap">
-              <span className="t-caption text-d-faint">← → ESC</span>
+            <div className="absolute bottom-8 left-1/2 -translate-x-1/2 px-4 py-2 bg-hair-strong pointer-events-none whitespace-nowrap">
+              <span className="t-caption text-muted">← → ESC</span>
             </div>
           )}
 
@@ -754,7 +734,7 @@ export default function PublicPortfolio() {
               onClick={() => setLongPressActive(false)}
             >
               <div
-                className="w-full max-w-sm mx-4 mb-8 bg-d-bg/95 backdrop-blur-md rounded-card overflow-hidden"
+                className="w-full max-w-sm mx-4 mb-8 bg-canvas/95 backdrop-blur-md rounded-card overflow-hidden"
                 onClick={e => e.stopPropagation()}
               >
                 <a
@@ -762,21 +742,21 @@ export default function PublicPortfolio() {
                   download
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex items-center px-5 py-4 t-caption text-d-hair border-b border-d-line hover:bg-d-line/30"
+                  className="flex items-center px-5 py-4 t-caption text-ink border-b border-hair hover:bg-hair"
                   onClick={() => setLongPressActive(false)}
                 >
                   사진 저장
                 </a>
                 {activeLightboxItem.photo.caption && (
                   <button
-                    className="w-full flex items-center px-5 py-4 t-caption text-d-hair border-b border-d-line hover:bg-d-line/30 text-left"
+                    className="w-full flex items-center px-5 py-4 t-caption text-ink border-b border-hair hover:bg-hair text-left"
                     onClick={() => { navigator.clipboard.writeText(activeLightboxItem.photo.caption || '').catch(() => {}); setLongPressActive(false) }}
                   >
                     캡션 복사
                   </button>
                 )}
                 <button
-                  className="w-full flex items-center px-5 py-4 t-caption text-d-faint hover:bg-d-line/30 text-left"
+                  className="w-full flex items-center px-5 py-4 t-caption text-muted hover:bg-hair text-left"
                   onClick={() => setLongPressActive(false)}
                 >
                   취소
@@ -791,7 +771,7 @@ export default function PublicPortfolio() {
       {selectedProject && (
         <div className="fixed top-0 left-0 right-0 z-30 h-0.5 bg-transparent pointer-events-none">
           <div
-            className={`h-full transition-[width] duration-150 ${darkMode ? 'bg-d-accent' : 'bg-accent'}`}
+            className="h-full transition-[width] duration-150 bg-accent"
             style={{ width: `${scrollProgress * 100}%` }}
           />
         </div>
@@ -800,9 +780,7 @@ export default function PublicPortfolio() {
       {/* 우측 dot-rail — 챕터 ≥ 2일 때만 표시 */}
       {selectedProject && selectedProject.chapters.length > 1 && lightboxIndex === null && (
         <nav
-          className={`fixed right-6 z-30 flex flex-col items-center gap-3 px-2 py-3
-                      rounded-full border backdrop-blur-md
-                      ${darkMode ? 'bg-d-bg/85 border-d-line' : 'bg-canvas/85 border-hair/60'}`}
+          className="fixed right-6 z-30 flex flex-col items-center gap-3 px-2 py-3 rounded-full border backdrop-blur-md bg-canvas/85 border-hair-strong"
           style={{ top: '50%', transform: 'translateY(-50%)' }}
           aria-label="챕터 이동"
         >
@@ -812,8 +790,8 @@ export default function PublicPortfolio() {
               onClick={() => scrollToChapter(ch.id)}
               className={`w-6 h-6 rounded-full flex items-center justify-center text-[11px] font-medium transition-colors
                           ${activeChapterId === ch.id
-                            ? darkMode ? 'bg-d-hair text-d-bg' : 'bg-ink text-canvas'
-                            : darkMode ? 'text-d-soft hover:text-d-hair' : 'text-muted hover:text-ink'}`}
+                            ? 'bg-ink text-canvas'
+                            : 'text-muted hover:text-ink'}`}
               aria-label={`${ch.title} 챕터로 이동`}
             >
               {i + 1}

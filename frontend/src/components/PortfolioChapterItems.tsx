@@ -39,7 +39,6 @@ export interface PortfolioChapterItem {
 interface Props {
   items: PortfolioChapterItem[]
   allLightboxItems?: { photo: PortfolioPhoto; title: string }[]
-  darkMode: boolean
   containerWidth?: number          // 기본값: PORTFOLIO_WIDTH - 48
   onLightbox?: (photo: PortfolioPhoto, items: { photo: PortfolioPhoto; title: string }[]) => void
 }
@@ -47,7 +46,6 @@ interface Props {
 export default function PortfolioChapterItems({
   items,
   allLightboxItems = [],
-  darkMode,
   containerWidth,
   onLightbox,
 }: Props) {
@@ -160,7 +158,6 @@ export default function PortfolioChapterItems({
         <div key={`text-${i}`} className="my-space-lg text-left max-w-2xl">
           <MarkdownRenderer
             content={item.text_content || ''}
-            darkMode={darkMode}
             className="leading-[2.1] [word-break:keep-all] font-serif"
           />
         </div>
@@ -186,7 +183,6 @@ export default function PortfolioChapterItems({
           <div key={`text-${bid}`} className="my-space-lg text-left max-w-2xl">
             <MarkdownRenderer
               content={group.text.text_content || ''}
-              darkMode={darkMode}
               className="leading-[2.1] [word-break:keep-all] font-serif"
             />
           </div>
@@ -258,7 +254,6 @@ export default function PortfolioChapterItems({
         >
           <MarkdownRenderer
             content={group.text.text_content || ''}
-            darkMode={darkMode}
             className="leading-[2.1] [word-break:keep-all] w-full min-w-0 font-serif"
           />
         </div>

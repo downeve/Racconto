@@ -109,7 +109,6 @@ export default function StoryPreviewModal({
 
                         <PortfolioChapterItems
                           items={items as PortfolioChapterItem[]}
-                          darkMode={dm}
                         />
 
                         {/* 서브챕터 */}
@@ -131,7 +130,6 @@ export default function StoryPreviewModal({
                             </div>
                             <PortfolioChapterItems
                               items={getVisibleChapterItems(sub.id) as PortfolioChapterItem[]}
-                              darkMode={dm}
                             />
                           </div>
                         ))}
@@ -215,7 +213,6 @@ export default function StoryPreviewModal({
                   <div className={`mb-6 h-px w-10 ${accent}`} />
                   <PortfolioChapterItems
                     items={getVisibleChapterItems(chapterPreviewId) as PortfolioChapterItem[]}
-                    darkMode={dm}
                     containerWidth={832}
                   />
                 </div>

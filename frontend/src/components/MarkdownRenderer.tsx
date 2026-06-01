@@ -6,7 +6,6 @@ import rehypeRaw from 'rehype-raw'
 interface Props {
   content: string
   className?: string
-  darkMode?: boolean
 }
 
 // remark의 emphasis delimiter 규칙 한계 보완:
@@ -21,10 +20,8 @@ function preprocessBoldItalic(text: string): string {
   return result
 }
 
-export default function MarkdownRenderer({ content, className = '', darkMode = false }: Props) {
-  const baseText = darkMode ? 'text-white/80' : 'text-gray-700'
-  const headingColor = darkMode ? 'text-white' : 'text-gray-900'
-
+export default function MarkdownRenderer({ content, className = '' }: Props) {
+  // 색은 의미 토큰만(상위 [data-theme] 스코프가 자동 라이트/다크 매핑).
   return (
     <div className={className}>
     <ReactMarkdown
@@ -32,23 +29,23 @@ export default function MarkdownRenderer({ content, className = '', darkMode = f
       rehypePlugins={[rehypeRaw]}
       components={{
         p: ({ children }) => (
-        <p className={`text-body mb-4 last:mb-0 break-words ${baseText}`}>
+        <p className="text-body mb-4 last:mb-0 break-words text-ink-2">
           {children}
         </p>),
         strong: ({ children }) => <strong className="font-bold">{children}</strong>,
         em:     ({ children }) => <em className="italic">{children}</em>,
         del:    ({ children }) => <del className="line-through opacity-60">{children}</del>,
-        h1:     ({ children }) => <h1 className={`text-h1 font-bold mb-2 ${headingColor}`}>{children}</h1>,
-        h2:     ({ children }) => <h2 className={`text-h2 font-semibold mb-1.5 ${headingColor}`}>{children}</h2>,
-        h3:     ({ children }) => <h3 className={`text-body font-semibold mb-1 ${headingColor}`}>{children}</h3>,
+        h1:     ({ children }) => <h1 className="text-h1 font-bold mb-2 text-ink">{children}</h1>,
+        h2:     ({ children }) => <h2 className="text-h2 font-semibold mb-1.5 text-ink">{children}</h2>,
+        h3:     ({ children }) => <h3 className="text-body font-semibold mb-1 text-ink">{children}</h3>,
         blockquote: ({ children }) => (
-          <blockquote className={`border-l-2 pl-4 my-2 italic ${darkMode ? 'border-white/20 text-white/50' : 'border-gray-300 text-gray-500'}`}>
+          <blockquote className="border-l-2 pl-4 my-2 italic border-hair text-muted">
             {children}
           </blockquote>
         ),
         a: ({ href, children }) => (
           <a href={href} target="_blank" rel="noopener noreferrer"
-            className={`underline underline-offset-2 ${darkMode ? 'text-d-accent' : 'text-accent'}`}>
+            className="underline underline-offset-2 text-accent">
             {children}
           </a>
         ),

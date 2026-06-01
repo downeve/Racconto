@@ -6,14 +6,15 @@ import { cfUrl, cfSrcSet } from '../../utils/cfImage'
 interface Props {
   items: PortfolioChapterItem[]
   allLightboxItems?: { photo: PortfolioPhoto; title: string }[]
-  darkMode: boolean
+  /** @deprecated 스코프 [data-theme] 로 자동 매핑. 호환을 위해 optional 로만 유지(STEP 4 PART B 정리 예정). */
+  darkMode?: boolean
   containerWidth?: number
   gap?: number
   onLightbox?: (photo: PortfolioPhoto, items: { photo: PortfolioPhoto; title: string }[]) => void
 }
 
 export default function MobilePortfolioChapterItems({
-  items, allLightboxItems = [], darkMode, onLightbox
+  items, allLightboxItems = [], onLightbox
 }: Props) {
 
   const renderedBlocks = new Set<string>()
@@ -52,7 +53,7 @@ export default function MobilePortfolioChapterItems({
         <div key={`text-${i}`} className="my-8">
           <MarkdownRenderer
             content={item.text_content || ''}
-            darkMode={darkMode}
+            
             className="leading-[2] [word-break:keep-all] font-serif text-[15.5px]"
           />
         </div>
@@ -75,7 +76,7 @@ export default function MobilePortfolioChapterItems({
           <div key={`text-${bid}`} className="my-8">
             <MarkdownRenderer
               content={group.text.text_content || ''}
-              darkMode={darkMode}
+              
               className="leading-[2] [word-break:keep-all] font-serif text-[15.5px]"
             />
           </div>
@@ -95,7 +96,7 @@ export default function MobilePortfolioChapterItems({
                 loading="lazy"
                 className="w-full block rounded-photo"
               />
-              {photo.caption && <p className={`t-caption mt-2 ${darkMode ? 'text-d-faint' : 'text-faint'}`}>{photo.caption}</p>}
+              {photo.caption && <p className={`t-caption mt-2 text-faint`}>{photo.caption}</p>}
             </div>
           ))}
         </div>
@@ -103,7 +104,7 @@ export default function MobilePortfolioChapterItems({
       const textBlock = group.text?.text_content ? (
         <MarkdownRenderer
           content={group.text.text_content}
-          darkMode={darkMode}
+          
           className="leading-[2] [word-break:keep-all] font-serif text-[15.5px]"
         />
       ) : null
@@ -136,7 +137,7 @@ export default function MobilePortfolioChapterItems({
               className="w-full object-cover hover:opacity-90 transition-opacity block"
             />
             {photo.caption && (
-              <p className={`t-caption mt-2 ${darkMode ? 'text-d-faint' : 'text-faint'}`}>
+              <p className={`t-caption mt-2 text-faint`}>
                 {photo.caption}
               </p>
             )}

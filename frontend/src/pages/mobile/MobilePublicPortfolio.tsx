@@ -224,7 +224,6 @@ export default function MobilePublicPortfolio() {
       <div className={`min-h-screen flex items-center justify-center ${bg}`}>
         <EmptyState
           heading={t('portfolio.notFound') || '포트폴리오를 찾을 수 없습니다.'}
-          darkMode={darkMode}
         />
       </div>
     )
@@ -237,7 +236,6 @@ export default function MobilePublicPortfolio() {
           (로그인 상세는 navbar 없이 좌상단 floating back 사용) */}
       {(!isDetailRoute || !isAuthenticated) && (
         <PublicNavbar
-          darkMode={darkMode}
           portfolio
           compactLogo
           minimal
@@ -326,11 +324,10 @@ export default function MobilePublicPortfolio() {
                   ? ` · ${projects.length} ${projects.length === 1 ? 'project' : 'projects'}`
                   : ''}`}
                 title={`@${username}`}
-                darkMode={darkMode}
-              />
+                    />
               {isAuthenticated && user?.username && user.username !== username && (
                 <div className="-mt-8 mb-8">
-                  <FollowButton username={username!} darkMode={darkMode} />
+                  <FollowButton username={username!} />
                 </div>
               )}
             </div>
@@ -345,12 +342,11 @@ export default function MobilePublicPortfolio() {
                   title={project.title}
                   location={project.location}
                   description={project.description}
-                  darkMode={darkMode}
-                />
+                        />
               ))}
               {/* 로딩 중에는 EmptyState 를 띄우지 않음 — 첫 접근 시 빈 상태 깜빡임 방지 */}
               {projects.length === 0 && !listLoading && (
-                <EmptyState heading={t('portfolio.noPublicProjects')} darkMode={darkMode} />
+                <EmptyState heading={t('portfolio.noPublicProjects')} />
               )}
             </div>
           </>
@@ -418,8 +414,7 @@ export default function MobilePublicPortfolio() {
                       <MobilePortfolioChapterItems
                         items={chapter.items || []}
                         allLightboxItems={allChapterItems}
-                        darkMode={darkMode}
-                        onLightbox={openLightbox}
+                                      onLightbox={openLightbox}
                       />
 
                       {/* 서브챕터 */}
@@ -437,8 +432,7 @@ export default function MobilePublicPortfolio() {
                           <MobilePortfolioChapterItems
                             items={sub.items || []}
                             allLightboxItems={allChapterItems}
-                            darkMode={darkMode}
-                            onLightbox={openLightbox}
+                                              onLightbox={openLightbox}
                           />
                         </div>
                       ))}
@@ -447,7 +441,7 @@ export default function MobilePublicPortfolio() {
                 })}
               </div>
             ) : (
-              <EmptyState heading={t('portfolio.noChapters')} darkMode={darkMode} />
+              <EmptyState heading={t('portfolio.noChapters')} />
             )}
 
             {/* 공유 버튼 */}
@@ -500,7 +494,6 @@ export default function MobilePublicPortfolio() {
               <div style={{ paddingBottom: 'calc(env(safe-area-inset-bottom) + 48px)' }}>
                 <PortfolioComments
                   projectId={selectedProject.id}
-                  darkMode={darkMode}
                   isAuthenticated={isAuthenticated}
                   currentUsername={user?.username}
                   portfolioOwnerUsername={username ?? ''}

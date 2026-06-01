@@ -6,7 +6,6 @@ const API = import.meta.env.VITE_API_URL
 
 interface Props {
   username: string
-  darkMode?: boolean
 }
 
 interface StatusResponse {
@@ -18,8 +17,9 @@ interface StatusResponse {
  * 작가 팔로우 버튼.
  * - 비로그인 또는 본인 페이지에서는 호출자가 마운트하지 않도록 한다 (PublicPortfolio 에서 분기).
  * - idempotent POST/DELETE 로 토글.
+ * - 색은 의미 토큰만(상위 [data-theme] 스코프가 자동 라이트/다크 매핑).
  */
-export default function FollowButton({ username, darkMode = false }: Props) {
+export default function FollowButton({ username }: Props) {
   const { t } = useTranslation()
   const [following, setFollowing] = useState<boolean | null>(null)
   const [pending, setPending] = useState(false)
@@ -52,10 +52,9 @@ export default function FollowButton({ username, darkMode = false }: Props) {
     }
   }
 
-  const baseDark = 'border-hair text-faint hover:text-hair'
-  const baseLight = 'border-edit-line text-edit-muted hover:text-edit-ink hover:border-edit-line-strong'
-  const activeDark = 'border-ink bg-ink text-canvas hover:bg-ink/85'
-  const activeLight = 'border-edit-ink bg-edit-ink text-edit-paper hover:bg-edit-ink/85'
+  // following=true → passive(이미 팔로우 중). following=false → active CTA.
+  const passive = 'border-hair text-muted hover:text-ink'
+  const active = 'border-ink bg-ink text-canvas hover:bg-ink/85'
 
   return (
     <button
@@ -63,9 +62,7 @@ export default function FollowButton({ username, darkMode = false }: Props) {
       onClick={toggle}
       disabled={pending}
       className={`inline-flex items-center px-3 py-1 t-caption rounded-btn border transition-colors duration-150 disabled:opacity-50 ${
-        following
-          ? (darkMode ? baseDark : baseLight)
-          : (darkMode ? activeDark : activeLight)
+        following ? passive : active
       }`}
     >
       {following
