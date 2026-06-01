@@ -4,6 +4,7 @@ import axios from 'axios'
 import { useTranslation } from 'react-i18next'
 import FolderProjectMapper from '../components/FolderProjectMapper'
 import { useAuth } from '../context/AuthContext'
+import { useTheme } from '../theme/ThemeProvider'
 import { imeSafeClick } from '../utils/imeSafeClick'
 import {
   Sun, Moon, Check,
@@ -79,6 +80,7 @@ export default function Settings() {
 
   const { logout } = useAuth()
   const { t, i18n } = useTranslation()
+  const { pref: themePref, setPref: setThemePref } = useTheme()
 
   const handlePasswordChange = async () => {
     setPasswordError('')
@@ -475,7 +477,34 @@ export default function Settings() {
         </div>
       </div>
 
-      {/* 포트폴리오 테마 */}
+      {/* 사이트 전역 테마 (다크모드) */}
+      <div className="border-b border-hair py-8">
+        <h3 className="t-eyebrow text-muted mb-2 flex items-center gap-2">
+          <Paintbrush className="w-4 h-4" strokeWidth={1.5} />
+          {t('settings.themeTitle')}
+        </h3>
+        <p className="text-xs text-faint mb-5 ml-6">{t('settings.themeSystemDesc')}</p>
+        <div className="ml-6 inline-flex gap-0.5 border border-hair rounded-[1px] p-0.5">
+          {(['system', 'light', 'dark'] as const).map(opt => {
+            const active = themePref === opt
+            return (
+              <button
+                key={opt}
+                onClick={() => setThemePref(opt)}
+                className={`px-4 py-1.5 text-sm transition-colors rounded-[1px] ${
+                  active ? 'bg-card text-ink shadow-sm' : 'text-muted hover:text-ink'
+                }`}
+              >
+                {opt === 'system' && t('settings.themeSystem')}
+                {opt === 'light' && t('settings.themeLight')}
+                {opt === 'dark' && t('settings.themeDark')}
+              </button>
+            )
+          })}
+        </div>
+      </div>
+
+      {/* 포트폴리오 테마 (작가 단위 — 사이트 다크모드와 별개) */}
       <div className="border-b border-hair py-8">
         <h3 className="t-eyebrow text-muted mb-6 flex items-center gap-2">
           <Paintbrush className="w-4 h-4" strokeWidth={1.5} />

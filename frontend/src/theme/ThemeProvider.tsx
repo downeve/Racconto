@@ -10,7 +10,8 @@
  * - 저장: localStorage('theme_pref'). STEP 3 에서 로그인 사용자 계정 동기화 추가 예정.
  */
 
-import { createContext, useContext, useEffect, useState, useCallback, useMemo, type ReactNode } from 'react'
+import { createContext, useContext, useEffect, useState, useCallback, useMemo, useRef, type ReactNode } from 'react'
+import axios from 'axios'
 
 export type ThemePref = 'system' | 'light' | 'dark'
 export type ThemeEffective = 'light' | 'dark'
@@ -24,6 +25,14 @@ interface ThemeContextValue {
 const ThemeContext = createContext<ThemeContextValue | null>(null)
 
 const STORAGE_KEY = 'theme_pref'
+const API = import.meta.env.VITE_API_URL
+
+const isValidPref = (v: unknown): v is ThemePref =>
+  v === 'system' || v === 'light' || v === 'dark'
+
+const hasAuthToken = (): boolean => {
+  try { return !!localStorage.getItem('token') } catch { return false }
+}
 
 const readSystemEffective = (): ThemeEffective => {
   if (typeof window === 'undefined' || !window.matchMedia) return 'light'
@@ -50,6 +59,8 @@ const readStoredPref = (): ThemePref => {
 export function ThemeProvider({ children }: { children: ReactNode }) {
   const [pref, setPrefState] = useState<ThemePref>(readStoredPref)
   const [effective, setEffective] = useState<ThemeEffective>(() => resolveEffective(readStoredPref()))
+  // 마운트 시점 동기화가 한 번만 일어나도록 보호.
+  const serverSyncedRef = useRef(false)
 
   // pref 변경 시 effective 재계산 + DOM 반영
   useEffect(() => {
@@ -76,7 +87,34 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
   const setPref = useCallback((next: ThemePref) => {
     setPrefState(next)
     try { localStorage.setItem(STORAGE_KEY, next) } catch { /* 저장 실패 무시 */ }
+    // 로그인 사용자면 서버에도 PUT (계정 동기화 — 기기 간 유지). 실패는 무시(로컬은 이미 반영).
+    if (hasAuthToken() && API) {
+      axios.put(`${API}/settings/theme_pref`, { value: next }).catch(() => { /* 무시 */ })
+    }
     // DOM 반영은 useEffect 로 처리 (이중 호출 방지)
+  }, [])
+
+  // 마운트 시 서버 동기화 — 로그인 사용자라면:
+  //   서버에 theme_pref 가 있으면 그 값을 채택(localStorage 덮어씀, 기기 간 유지).
+  //   없으면 현재 localStorage 값을 서버로 push-up(첫 로그인 기기의 선호 보존).
+  useEffect(() => {
+    if (serverSyncedRef.current) return
+    if (!hasAuthToken() || !API) return
+    serverSyncedRef.current = true
+    axios.get<Record<string, string>>(`${API}/settings/`).then(({ data }) => {
+      const server = data?.theme_pref
+      if (isValidPref(server)) {
+        if (server !== pref) {
+          setPrefState(server)
+          try { localStorage.setItem(STORAGE_KEY, server) } catch { /* 무시 */ }
+        }
+      } else {
+        // 서버에 값 없음 → 현재 로컬 값을 서버에 저장
+        axios.put(`${API}/settings/theme_pref`, { value: pref }).catch(() => { /* 무시 */ })
+      }
+    }).catch(() => { /* 무시 */ })
+    // pref 는 의존성에 넣지 않음 — push-up 은 마운트 시점의 값 한 번만.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   const value = useMemo<ThemeContextValue>(() => ({ pref, setPref, effective }), [pref, setPref, effective])
