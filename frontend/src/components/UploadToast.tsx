@@ -75,7 +75,7 @@ export default function UploadToast() {
       <div className="w-full bg-stone-600 rounded-card h-1.5">
         <div
           className={`h-1.5 rounded-card transition-all duration-300 ${
-            progress.limitExceeded || (progress.failed > 0 && progress.finished) ? 'bg-red-400' : 'bg-white'
+            progress.limitExceeded || (progress.failed > 0 && progress.finished) ? 'bg-danger' : 'bg-white'
           }`}
           style={{ width: progress.limitExceeded ? '100%' : `${percent}%` }}
         />

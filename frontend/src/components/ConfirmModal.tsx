@@ -74,7 +74,7 @@ export default function ConfirmModal(props: Props) {
           </button>
           <button
             onClick={onConfirm}
-            className={`px-4 py-2 text-sm text-white rounded-btn ${dangerous ? 'bg-red-600 hover:bg-red-700' : 'bg-stone-800 hover:bg-stone-700'}`}
+            className={`px-4 py-2 text-sm text-white rounded-btn ${dangerous ? 'bg-danger hover:bg-danger/85' : 'bg-stone-800 hover:bg-stone-700'}`}
           >
             {t('common.confirm')}
           </button>

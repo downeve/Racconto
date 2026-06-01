@@ -73,7 +73,7 @@ export const TabletPhotoCard = memo(function TabletPhotoCard({
         />
 
         {photo.local_missing && (
-          <div className="absolute top-2 left-2 z-10 bg-yellow-400 text-ink-2 text-eyebrow font-semibold px-2 py-0.5 rounded-full flex items-center gap-1">
+          <div className="absolute top-2 left-2 z-10 bg-label-yellow text-ink-2 text-eyebrow font-semibold px-2 py-0.5 rounded-full flex items-center gap-1">
             <AlertTriangle size={11} strokeWidth={1.5} />{t('project.noLocalFile')}
           </div>
         )}
@@ -102,7 +102,7 @@ export const TabletPhotoCard = memo(function TabletPhotoCard({
                 onClick={e => { e.stopPropagation(); onSetCover(photo) }}
                 className={`min-w-[44px] min-h-[44px] flex items-center justify-center px-2 py-1 text-eyebrow rounded-card shadow font-base ${
                   project?.cover_image_url === photo.image_url
-                    ? 'bg-yellow-400 text-ink-2'
+                    ? 'bg-label-yellow text-ink-2'
                     : 'bg-ink/30 hover:bg-ink-2/90 text-card'
                 }`}
               >
@@ -110,7 +110,7 @@ export const TabletPhotoCard = memo(function TabletPhotoCard({
               </button>
               <button
                 onClick={e => { e.stopPropagation(); onDelete(photo.id) }}
-                className="min-w-[44px] min-h-[44px] flex items-center justify-center bg-red-500/30 hover:bg-red-600 text-card rounded-full shadow text-xs font-bold transition-colors"
+                className="min-w-[44px] min-h-[44px] flex items-center justify-center bg-danger/30 hover:bg-danger text-card rounded-full shadow text-xs font-bold transition-colors"
               >✕</button>
             </div>
 
@@ -123,7 +123,7 @@ export const TabletPhotoCard = memo(function TabletPhotoCard({
                       key={star}
                       onClick={e => { e.stopPropagation(); onSetRating(photo, star) }}
                       className={`min-w-[44px] min-h-[44px] flex items-center justify-center text-small transition-all drop-shadow ${
-                        isActive ? 'text-yellow-400 scale-110' : 'text-white/40'
+                        isActive ? 'text-label-yellow scale-110' : 'text-white/40'
                       }`}
                     >★</button>
                   )

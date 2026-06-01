@@ -46,7 +46,7 @@ export default function MobilePhotoActionSheet({
               key={star}
               onClick={() => { onSetRating(photo, star); onClose() }}
               className={`flex-1 min-h-[44px] min-w-[44px] flex items-center justify-center text-xl transition-colors ${
-                photo.rating && photo.rating >= star ? 'text-yellow-400' : 'text-stone-200'
+                photo.rating && photo.rating >= star ? 'text-label-yellow' : 'text-stone-200'
               }`}
             >
               ★
@@ -101,7 +101,7 @@ export default function MobilePhotoActionSheet({
       {/* 삭제 */}
       <button
         onClick={handleDelete}
-        className="w-full text-left px-0 py-3 min-h-[44px] text-sm text-red-500 mt-1"
+        className="w-full text-left px-0 py-3 min-h-[44px] text-sm text-danger mt-1"
       >
         {t('common.delete')}
       </button>

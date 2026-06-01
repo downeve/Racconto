@@ -13,8 +13,8 @@ function ElectronSocialButton({ provider, label, onClick }: { provider: Provider
   const styles: Record<Provider, { className: string; style?: React.CSSProperties }> = {
     google: { className: `${base} border border-stone-200 bg-white text-stone-700 hover:bg-stone-50` },
     apple:  { className: `${base} bg-stone-900 text-white hover:bg-stone-800` },
-    naver:  { className: `${base} text-white hover:opacity-90`, style: { backgroundColor: '#03C75A' } },
-    line:   { className: `${base} text-white hover:opacity-90`, style: { backgroundColor: '#06C755' } },
+    naver:  { className: `${base} border border-edit-line bg-card text-edit-ink hover:bg-gray-50` },
+    line:   { className: `${base} border border-edit-line bg-card text-edit-ink hover:bg-gray-50` },
   }
   const { className, style } = styles[provider]
   return (
@@ -40,12 +40,12 @@ function SocialIcon({ provider }: { provider: Provider }) {
     </svg>
   )
   if (provider === 'naver') return (
-    <svg className="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="white">
+    <svg className="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="#03C75A">
       <path d="M16.273 12.845L7.376 0H0v24h7.727V11.155L16.624 24H24V0h-7.727z"/>
     </svg>
   )
   return (
-    <svg className="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="white">
+    <svg className="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="#06C755">
       <path d="M19.365 9.863c.349 0 .63.285.63.631 0 .345-.281.63-.63.63H17.61v1.125h1.755c.349 0 .63.283.63.63 0 .344-.281.629-.63.629h-2.386c-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.63-.63h2.386c.346 0 .627.285.627.63 0 .349-.281.63-.627.63H17.61v1.125h1.755zm-3.855 3.016c0 .27-.174.51-.432.596-.064.021-.133.031-.199.031-.211 0-.391-.09-.51-.25l-2.443-3.317v2.94c0 .344-.279.629-.631.629-.346 0-.626-.285-.626-.629V8.108c0-.27.173-.51.43-.595.06-.023.136-.033.194-.033.195 0 .375.105.495.254l2.462 3.33V8.108c0-.345.282-.63.63-.63.345 0 .63.285.63.63v4.771zm-5.741 0c0 .344-.282.629-.631.629-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.627-.63.349 0 .631.285.631.63v4.771zm-2.466.629H4.917c-.345 0-.63-.285-.63-.629V8.108c0-.345.285-.63.63-.63.348 0 .63.285.63.63v4.141h1.756c.348 0 .629.283.629.63 0 .344-.281.629-.629.629M12 0C5.373 0 0 4.973 0 11.09c0 5.427 4.191 9.963 9.892 10.912.385.082.906.258 1.038.594.12.302.078.775.038 1.08l-.164 1.02c-.05.302-.244 1.189.044 1.298.291.107 1.543-.599 2.141-.951 1.814-1.069 3.338-2.394 4.562-3.96C18.898 18.803 24 15.14 24 11.09 24 4.973 18.627 0 12 0"/>
     </svg>
   )

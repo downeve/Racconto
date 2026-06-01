@@ -1107,14 +1107,14 @@ export default function ProjectDetail({
                       onClick={() => handleAddToChapter(chapterMenuPhoto!, parent.id)}
                       className="w-full text-left px-3 py-2 text-small rounded-[1px] hover:bg-edit-paper-2 text-edit-ink whitespace-nowrap flex items-center justify-between gap-4">
                       <span>Ch. {pIdx + 1}. {parent.title}</span>
-                      {currentChapterId === parent.id && <Check size={12} strokeWidth={2} className="text-green-600 shrink-0" />}
+                      {currentChapterId === parent.id && <Check size={12} strokeWidth={2} className="text-ok shrink-0" />}
                     </button>
                     {chapters.filter(child => child.parent_id === parent.id).map((child, cIdx) => (
                       <button key={child.id}
                         onClick={() => handleAddToChapter(chapterMenuPhoto!, child.id)}
                         className="w-full text-left px-3 py-2 text-small rounded-[1px] hover:bg-edit-paper-2 text-edit-muted pl-9 whitespace-nowrap flex items-center justify-between gap-4">
                         <span>Ch. {pIdx + 1}.{cIdx + 1}. {child.title}</span>
-                        {currentChapterId === child.id && <Check size={12} strokeWidth={2} className="text-green-600 shrink-0" />}
+                        {currentChapterId === child.id && <Check size={12} strokeWidth={2} className="text-ok shrink-0" />}
                       </button>
                     ))}
                   </div>
@@ -1365,20 +1365,20 @@ export default function ProjectDetail({
                               },
                             })
                           }}
-                          className="text-menu px-3 py-1.5 bg-red-500 hover:bg-red-600 text-card rounded transition-colors"
+                          className="text-menu px-3 py-1.5 bg-danger hover:bg-danger/85 text-card rounded transition-colors"
                         >
                           ✕ {t('trash.bulkDelete')}
                         </button>
                       </div>
                     </div>
                   ) : (
-                    <div className="mb-4 flex items-center justify-between bg-red-50 border border-red-200 rounded-card px-3 py-2 gap-3">
+                    <div className="mb-4 flex items-center justify-between bg-danger/8 border border-danger/30 rounded-card px-3 py-2 gap-3">
                       <div className="min-w-0">
-                        <p className="text-menu text-red-600 flex items-center gap-1">
+                        <p className="text-menu text-danger flex items-center gap-1">
                           <Trash2 size={13} strokeWidth={1.5} className="shrink-0" />{t('photo.trash')} {trashedPhotos.length}{t('photo.countText')}
                         </p>
                         {localTrashPhotos.length > 0 && (
-                          <p className="text-caption text-amber-600 mt-0.5 flex items-center gap-1">
+                          <p className="text-caption text-warn mt-0.5 flex items-center gap-1">
                             <AlertTriangle size={11} strokeWidth={1.5} className="shrink-0" />{t('trash.localSyncBadge')} {localTrashPhotos.length}{t('photo.countText')}
                           </p>
                         )}
@@ -1386,7 +1386,7 @@ export default function ProjectDetail({
                       <button
                         onClick={handleDeleteAllTrash}
                         disabled={deletingTrash}
-                        className="shrink-0 text-menu px-3 py-1.5 bg-red-500 hover:bg-red-600 text-card rounded disabled:opacity-50"
+                        className="shrink-0 text-menu px-3 py-1.5 bg-danger hover:bg-danger/85 text-card rounded disabled:opacity-50"
                       >
                         {deletingTrash
                           ? t('photo.deleting')
@@ -1426,7 +1426,7 @@ export default function ProjectDetail({
                               />
                               {isLocal && !isSelected && (
                                 <div className="absolute top-1.5 left-1.5 z-10">
-                                  <span className="inline-flex items-center gap-1 px-1.5 py-0.5 text-eyebrow font-medium rounded bg-amber-500/90 text-card backdrop-blur-sm">
+                                  <span className="inline-flex items-center gap-1 px-1.5 py-0.5 text-eyebrow font-medium rounded bg-warn/90 text-card backdrop-blur-sm">
                                     {t('trash.localSyncBadge')}
                                   </span>
                                 </div>
@@ -1501,7 +1501,7 @@ export default function ProjectDetail({
                                     })
                                   }}
                                   className={`w-full text-center px-3 py-1.5 text-menu rounded-card font-medium shadow ${
-                                    !isLocal ? 'bg-red-600 text-card hover:bg-red-700' : 'bg-gray-500 text-card hover:bg-gray-600'
+                                    !isLocal ? 'bg-danger text-card hover:bg-danger/85' : 'bg-gray-500 text-card hover:bg-gray-600'
                                   }`}
                                 >
                                   ✕ {t('trash.permanentDelete')}
@@ -1509,7 +1509,7 @@ export default function ProjectDetail({
                               </div>
                             )}
                             <div className="p-2 bg-transparent flex items-center justify-center h-10">
-                              <p className="text-menu text-red-500 font-medium">
+                              <p className="text-menu text-danger font-medium">
                                 {t('trash.delete_warning', { daysLeft })}
                               </p>
                             </div>
@@ -1621,7 +1621,7 @@ export default function ProjectDetail({
                   })
                 }}
                 disabled={selectedPhotoIds.size === 0}
-                className="inline-flex items-center gap-1.5 px-2 py-1.5 font-bold text-menu bg-red-500 text-white hover:bg-red-600 border border-red-500 disabled:opacity-40 transition-colors ease-out"
+                className="inline-flex items-center gap-1.5 px-2 py-1.5 font-bold text-menu bg-danger text-white hover:bg-danger/85 border border-danger disabled:opacity-40 transition-colors ease-out"
               >
                 <Trash2 size={13} strokeWidth={1.5} />{t('photo.moveToTrash')}
               </button>

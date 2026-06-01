@@ -118,7 +118,7 @@ export default function MobilePhotoBlockEditor({
                   </button>
                   <button
                     onClick={() => { setActionMenuId(null); onRemoveItem(item.id) }}
-                    className="w-full text-left px-4 py-3 min-h-[44px] text-sm text-red-500"
+                    className="w-full text-left px-4 py-3 min-h-[44px] text-sm text-danger"
                   >
                     {t('story.deleteBlock') || '블록에서 제거'}
                   </button>

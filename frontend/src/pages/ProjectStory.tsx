@@ -1449,7 +1449,7 @@ function ProjectStory({
                 message: t('story.bulkDeleteConfirm', { count: selectedItemIds.size }),
                 onConfirm: handleGlobalBulkDelete,
               })}
-              className="inline-flex items-center gap-1.5 px-2 py-1.5 font-bold text-menu bg-red-500 text-white hover:bg-red-600 border border-red-500 transition-colors ease-out"
+              className="inline-flex items-center gap-1.5 px-2 py-1.5 font-bold text-menu bg-danger text-white hover:bg-danger/85 border border-danger transition-colors ease-out"
             >
               <Trash2 size={13} strokeWidth={1.5} />{t('common.delete')}
             </button>

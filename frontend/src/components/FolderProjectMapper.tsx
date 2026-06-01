@@ -116,26 +116,26 @@ export default function FolderProjectMapper() {
             const isMissing = missingFolders.has(folderPath)
             return (
               <div key={folderPath}
-                className={`flex items-center justify-between px-3 py-2 text-sm ${isMissing ? 'bg-amber-50 border border-amber-200' : 'bg-hair/30'}`}>
+                className={`flex items-center justify-between px-3 py-2 text-sm ${isMissing ? 'bg-warn/10 border border-warn/30' : 'bg-hair/30'}`}>
                 <div className="flex items-center gap-2 min-w-0">
                   {isMissing
-                    ? <TriangleAlert size={14} strokeWidth={1.5} className="text-amber-500 shrink-0" />
+                    ? <TriangleAlert size={14} strokeWidth={1.5} className="text-warn shrink-0" />
                     : <Link size={14} strokeWidth={1.5} className="text-faint shrink-0" />
                   }
                   <div className="min-w-0">
-                    <p className={`font-medium truncate ${isMissing ? 'text-amber-700' : 'text-ink-2'}`}>
+                    <p className={`font-medium truncate ${isMissing ? 'text-warn' : 'text-ink-2'}`}>
                       {mapping.projectName}
                     </p>
-                    <p className={`text-xs truncate ${isMissing ? 'text-amber-500' : 'text-faint'}`}>
+                    <p className={`text-xs truncate ${isMissing ? 'text-warn' : 'text-faint'}`}>
                       {folderPath}
                     </p>
                     {isMissing && (
-                      <p className="text-xs text-amber-600 mt-0.5">{t('electron.folderMissingTooltip')}</p>
+                      <p className="text-xs text-warn mt-0.5">{t('electron.folderMissingTooltip')}</p>
                     )}
                   </div>
                 </div>
                 <button onClick={() => handleUnlink(folderPath)}
-                  className="ml-2 text-faint hover:text-[oklch(0.50_0.15_25)] shrink-0 transition-colors">
+                  className="ml-2 text-faint hover:text-danger shrink-0 transition-colors">
                   <X size={14} strokeWidth={1.5} />
                 </button>
               </div>

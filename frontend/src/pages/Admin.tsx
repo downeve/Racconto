@@ -273,7 +273,7 @@ const InfraCostsSection = () => {
                         <Pencil size={12} strokeWidth={1.5} />
                       </button>
                       <button onClick={() => remove(row.id)}
-                        className="text-edit-muted hover:text-red-500 transition-colors">
+                        className="text-edit-muted hover:text-danger transition-colors">
                         <Trash2 size={12} strokeWidth={1.5} />
                       </button>
                     </div>
