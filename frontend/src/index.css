@@ -102,6 +102,28 @@
   body {
     @apply bg-edit-canvas text-edit-ink;
   }
+
+  /* ── 테마 전환 크로스페이드 (Dark Mode STEP 8) ──────────────────────────
+     라↔다 경계 깜빡임을 220ms 장면 전환으로. CSS 변수 자체는 트랜지션 안 되므로
+     변수를 소비하는 background/color/border 에 건다. base 레이어라서 컴포넌트의
+     transition-* 유틸(hover 150ms 등)이 더 높은 우선순위로 덮어쓴다(충돌 없음).
+     transform/box-shadow/opacity 는 제외(hover·패널 애니메이션 보호). 색 3종만.        */
+  body,
+  [class*="bg-canvas"], [class*="bg-card"], [class*="bg-edit-"],
+  [class*="text-ink"], [class*="text-muted"], [class*="text-faint"], [class*="text-edit-"],
+  [class*="border-hair"], [class*="border-edit-"] {
+    transition: background-color .22s cubic-bezier(.16, 1, .3, 1),
+                color            .22s cubic-bezier(.16, 1, .3, 1),
+                border-color     .22s cubic-bezier(.16, 1, .3, 1);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    body,
+    [class*="bg-canvas"], [class*="bg-card"], [class*="bg-edit-"],
+    [class*="text-ink"], [class*="text-muted"], [class*="text-faint"], [class*="text-edit-"],
+    [class*="border-hair"], [class*="border-edit-"] {
+      transition: none;
+    }
+  }
 }
 
 /* 2. 커스텀 클래스 설정 */

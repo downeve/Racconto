@@ -10,6 +10,7 @@ import { cfUrl } from '../utils/cfImage'
 import { Wordmark } from './Wordmark'
 import ConfirmModal from './ConfirmModal'
 import { applyFontScale, getStoredFontScale, type FontScale } from '../utils/fontScale'
+import { useTheme } from '../theme/ThemeProvider'
 
 const API = import.meta.env.VITE_API_URL
 
@@ -44,6 +45,7 @@ export default function ElectronSidebar({ activeTab, onTabChange, showTabs, widt
   const { t, i18n } = useTranslation()
   const { refreshTrigger, triggerRefresh } = useElectronSidebar()
   const { user, logout } = useAuth()
+  const { pref: themePref, setPref: setThemePref } = useTheme()
   const queryClient = useQueryClient()
   const [dropdownOpen, setDropdownOpen] = useState(false)
   const dropdownRef = useRef<HTMLDivElement>(null)
@@ -401,6 +403,26 @@ export default function ElectronSidebar({ activeTab, onTabChange, showTabs, widt
                     }`}
                   >
                     {label}
+                  </button>
+                ))}
+              </div>
+            </div>
+            <div className="border-t border-edit-line my-1" />
+            {/* 테마 3지선다 — Settings 와 동일(시스템 따름/라이트/다크) */}
+            <div className="px-3 py-1.5">
+              <p className="t-caption text-edit-faint mb-1.5">{t('settings.themeTitle')}</p>
+              <div className="inline-flex max-w-full border border-edit-line rounded-[1px] p-0.5 gap-0.5">
+                {(['system', 'light', 'dark'] as const).map(opt => (
+                  <button
+                    key={opt}
+                    onClick={() => setThemePref(opt)}
+                    className={`flex-1 min-w-0 px-2 py-1 t-caption rounded-[1px] transition-colors duration-150 ${
+                      themePref === opt
+                        ? 'bg-edit-ink text-edit-paper'
+                        : 'text-edit-muted hover:text-edit-ink'
+                    }`}
+                  >
+                    {opt === 'system' ? t('settings.themeSystem') : opt === 'light' ? t('settings.themeLight') : t('settings.themeDark')}
                   </button>
                 ))}
               </div>

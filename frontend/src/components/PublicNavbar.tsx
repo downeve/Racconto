@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { Sun, Moon } from 'lucide-react'
 import { Wordmark } from './Wordmark'
+import ThemeToggle from './ThemeToggle'
 
 /**
  * 공개 페이지 네비게이션. 색은 의미 토큰만(상위 [data-theme] 스코프가 자동 라이트/다크 매핑).
@@ -156,6 +157,9 @@ export default function PublicNavbar({
               </div>
             )}
           </div>
+
+          {/* 전역 테마 빠른 토글 — 공개 화면(랜딩·Explore·로그인) 비로그인 사용자도 사용 */}
+          <ThemeToggle />
 
           {/* Explore 는 모바일에서도 노출 — 비로그인 모바일 사용자의 핵심 진입점 */}
           <Link to="/explore"
