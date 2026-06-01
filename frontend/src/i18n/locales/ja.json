@@ -411,6 +411,11 @@
     "pin": "固定"
   },
   "portfolio": {
+    "viewMyTheme": "自分のテーマで表示",
+    "viewAuthorTheme": "作者のテーマに戻す",
+    "viewMyThemeHint": "このポートフォリオは作者が設定したテーマで表示されます。自分のテーマで表示するにはクリック。",
+    "viewAuthorThemeHint": "作者が意図したテーマに戻ります。",
+    "viewThemeToggle": "テーマ表示切替",
     "views": "ビュー",
     "noChapters": "チャプターがありません",
     "createChapterFirst": "ストーリータブでチャプターを作成すると、写真を公開できます。",
