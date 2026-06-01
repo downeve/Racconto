@@ -248,7 +248,7 @@ export default function TabletSidebar({ activeTab, onTabChange, showTabs, width 
             <div className="border-t border-hair my-1" />
             <button
               onClick={() => { setDropdownOpen(false); logout() }}
-              className="w-full text-left px-3 py-2 min-h-[44px] text-small text-red-400"
+              className="w-full text-left px-3 py-2 min-h-[44px] text-small text-danger"
             >
               {t('auth.logout')}
             </button>

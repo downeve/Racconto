@@ -371,7 +371,7 @@ export function Lightbox({
           onClick={e => { e.stopPropagation(); setShowChapterMenu(false) }}
         >
           <div
-            className="absolute bg-edit-paper rounded-[2px] py-1 w-max shadow-[0_8px_32px_rgba(0,0,0,0.12)] z-popover"
+            className="absolute bg-edit-paper rounded-btn py-1 w-max shadow-[0_8px_32px_rgba(0,0,0,0.12)] z-popover"
             style={{ top: '4rem', left: '50%', transform: 'translateX(-50%)' }}
             onClick={e => e.stopPropagation()}
           >
@@ -386,7 +386,7 @@ export function Lightbox({
                     className="w-full text-left px-3 py-2 text-small rounded-[1px] hover:bg-edit-paper-2 text-edit-ink whitespace-nowrap flex items-center justify-between gap-4"
                   >
                     <span>Ch. {pIdx + 1}. {parent.title}</span>
-                    {currentChapterId === parent.id && <Check size={12} strokeWidth={2} className="text-green-600 shrink-0" />}
+                    {currentChapterId === parent.id && <Check size={12} strokeWidth={2} className="text-ok shrink-0" />}
                   </button>
                   {chapters.filter(c => c.parent_id === parent.id).map((child, cIdx) => (
                     <button
@@ -395,7 +395,7 @@ export function Lightbox({
                       className="w-full text-left px-3 py-2 text-small rounded-[1px] hover:bg-edit-paper-2 text-edit-muted pl-9 whitespace-nowrap flex items-center justify-between gap-4"
                     >
                       <span>Ch. {pIdx + 1}.{cIdx + 1}. {child.title}</span>
-                      {currentChapterId === child.id && <Check size={12} strokeWidth={2} className="text-green-600 shrink-0" />}
+                      {currentChapterId === child.id && <Check size={12} strokeWidth={2} className="text-ok shrink-0" />}
                     </button>
                   ))}
                 </div>
@@ -450,7 +450,7 @@ export const PhotoCard = memo(function PhotoCard({
   const [hoverStar, setHoverStar] = useState<number | null>(null)
 
   return (
-    <div className={`rounded-[2px] overflow-hidden transition-[box-shadow] ${
+    <div className={`rounded-btn overflow-hidden transition-[box-shadow] ${
       isSelected ? 'ring-2 ring-edit-ink ring-offset-2 ring-offset-edit-paper' : ''
     }`}>
       <div className="relative group bg-[#F2EFE6]">

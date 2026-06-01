@@ -1081,7 +1081,7 @@ export default function ProjectDetail({
         </div>
         {project.cover_image_url && (
           <div className="shrink-0 flex flex-col items-center gap-2">
-            <img src={project.cover_image_url} alt="커버" className="w-24 h-24 object-cover rounded-[2px]" />
+            <img src={project.cover_image_url} alt="커버" className="w-24 h-24 object-cover rounded-btn" />
             <button onClick={handleRemoveCover} className="t-eyebrow text-edit-muted hover:text-edit-danger transition-colors">{t('photo.removeCover')}</button>
           </div>
         )}
@@ -1090,7 +1090,7 @@ export default function ProjectDetail({
       {chapterMenuPhoto && (
         <div className="fixed inset-0 bg-black/55 z-modal flex items-center justify-center backdrop-blur-sm"
           onClick={() => setChapterMenuPhoto(null)}>
-          <div className="bg-edit-paper rounded-[2px] p-6 min-w-[340px] max-w-[440px] shadow-[0_24px_64px_rgba(0,0,0,0.18)]"
+          <div className="bg-edit-paper rounded-btn p-6 min-w-[340px] max-w-[440px] shadow-[0_24px_64px_rgba(0,0,0,0.18)]"
             onClick={e => e.stopPropagation()}>
             <h3 className="font-serif text-body font-normal mb-4">{t('story.selectChapter')}</h3>
             <div>
@@ -1151,7 +1151,7 @@ export default function ProjectDetail({
                   `p-1.5 rounded-[1px] inline-flex items-center gap-1.5 t-caption transition-colors duration-150 ${
                     active ? 'bg-edit-ink text-edit-paper' : 'text-edit-muted hover:text-edit-ink hover:bg-edit-paper'
                   }`
-                const dropdownPanel = 'absolute top-full mt-1 bg-edit-paper border border-edit-line rounded-[2px] shadow-[0_8px_24px_rgba(0,0,0,0.06)] z-popover'
+                const dropdownPanel = 'absolute top-full mt-1 bg-edit-paper border border-edit-line rounded-btn shadow-[0_8px_24px_rgba(0,0,0,0.06)] z-popover'
                 return (
                   <>
                     {/* 뷰 */}

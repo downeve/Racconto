@@ -37,7 +37,7 @@ export function ConfirmDialog({
       onClick={onClose}
     >
       <div
-        className="bg-edit-canvas border border-edit-line rounded-[2px]
+        className="bg-edit-canvas border border-edit-line rounded-btn
                     shadow-[0_8px_32px_rgba(0,0,0,0.12)]
                     max-w-sm w-full mx-4 p-6"
         onClick={e => e.stopPropagation()}

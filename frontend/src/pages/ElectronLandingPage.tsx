@@ -168,7 +168,7 @@ export default function ElectronLandingPage() {
                 onChange={e => setPassword(e.target.value)}
                 onKeyDown={e => e.key === 'Enter' && handleSubmit()}
               />
-              {error && <p className="text-red-500 text-small">{error}</p>}
+              {error && <p className="text-danger text-small">{error}</p>}
               <button
                 onClick={handleSubmit}
                 disabled={loading}

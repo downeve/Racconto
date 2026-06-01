@@ -170,12 +170,12 @@ export default function PortfolioComments({
   const microcopy = darkMode ? 'text-d-faint' : 'text-faint'
   const subText = darkMode ? 'text-d-soft' : 'text-muted'
   const textInk = darkMode ? 'text-d-hair' : 'text-ink'
-  const inputClass = `w-full px-3 py-2 text-sm rounded-[2px] border bg-transparent outline-none transition-colors duration-150 ${
+  const inputClass = `w-full px-3 py-2 text-sm rounded-btn border bg-transparent outline-none transition-colors duration-150 ${
     darkMode
       ? 'border-d-line text-d-hair placeholder:text-d-faint/70 focus:border-d-soft'
       : 'border-hair text-ink placeholder:text-faint focus:border-ink-2'
   }`
-  const submitBtnClass = `px-4 py-2 text-sm rounded-[2px] border transition-colors duration-150 ${
+  const submitBtnClass = `px-4 py-2 text-sm rounded-btn border transition-colors duration-150 ${
     darkMode
       ? 'border-d-soft text-d-hair hover:bg-d-hair hover:text-d-bg disabled:opacity-40 disabled:hover:bg-transparent disabled:hover:text-d-hair'
       : 'border-ink text-ink hover:bg-ink hover:text-canvas disabled:opacity-40 disabled:hover:bg-transparent disabled:hover:text-ink'
@@ -275,12 +275,12 @@ export default function PortfolioComments({
         <div className="flex items-center justify-between gap-3">
           <span className={`t-caption ${microcopy}`}>{replyBody.length} / 500</span>
           {replyError && (
-            <span className="t-caption text-red-500 flex-1 truncate">{replyError}</span>
+            <span className="t-caption text-danger flex-1 truncate">{replyError}</span>
           )}
           <div className="flex items-center gap-2">
             <button
               onClick={cancelReply}
-              className={`px-3 py-2 text-sm rounded-[2px] border transition-colors ${
+              className={`px-3 py-2 text-sm rounded-btn border transition-colors ${
                 darkMode ? 'border-d-line text-d-soft hover:text-d-hair' : 'border-hair text-muted hover:text-ink-2'
               }`}
             >
@@ -364,7 +364,7 @@ export default function PortfolioComments({
         <div className="flex items-center justify-between gap-3">
           <span className={`t-caption ${microcopy}`}>{body.length} / 500</span>
           {submitError && (
-            <span className="t-caption text-red-500 flex-1 truncate">{submitError}</span>
+            <span className="t-caption text-danger flex-1 truncate">{submitError}</span>
           )}
           <button
             onClick={handleSubmit}

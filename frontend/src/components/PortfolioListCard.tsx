@@ -44,7 +44,7 @@ export default function PortfolioListCard({
   const aspect = ASPECT[mode]
   const subText  = darkMode ? 'text-d-soft'  : 'text-muted'
   const faintTxt = darkMode ? 'text-d-faint' : 'text-faint'
-  const coverBg  = darkMode ? 'bg-d-surface' : 'bg-[oklch(0.92_0.012_75)]'
+  const coverBg  = darkMode ? 'bg-d-surface' : 'bg-placeholder'
 
   const inner = (
     <>

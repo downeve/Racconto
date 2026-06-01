@@ -32,7 +32,7 @@ export default {
         faint:     o('oklch(0.78 0.010 75)'),  // 메타, placeholder/장식 전용 (WCAG 예외)
         hair:      o('oklch(0.90 0.010 75)'),  // 구분선, 보더
         accent:    o('oklch(0.50 0.085 55)'),  // 포커스, 링크 (AA: 5.39:1)
-        lightbox: colors.stone[950],           // 라이트박스 배경색 (하위 호환)
+        // (dead 'lightbox' 색 토큰 제거 — scrim 으로 대체. z-index 'lightbox' 는 별개로 유지)
         // 다크 모드 — warm taupe
         'd-bg':      o('oklch(0.18 0.012 60)'),  // 다크 메인 배경
         'd-surface': o('oklch(0.22 0.012 60)'),  // 다크 카드/패널
@@ -50,10 +50,10 @@ export default {
         'edit-ink':         o('oklch(0.22 0.012 60)'),
         'edit-muted':       o('oklch(0.55 0.012 65)'),
         'edit-faint':       o('oklch(0.72 0.010 75)'),
-        'edit-accent':      o('oklch(0.45 0.10 240)'),
+        'edit-accent':      o('oklch(0.50 0.085 55)'),  // = warm accent (쿨블루 통일)
         'edit-danger':      o('oklch(0.50 0.15 25)'),
         'edit-warning':     o('oklch(0.62 0.13 75)'),
-        'edit-drop':        o('oklch(0.95 0.04 240)'),
+        'edit-drop':        o('oklch(0.95 0.03 55)'),   // warm 드롭 틴트
 
         // 컬러 라벨 5종 (동일 채도/명도 곡선)
         'label-red':        o('oklch(0.62 0.16 25)'),

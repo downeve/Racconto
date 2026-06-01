@@ -5,9 +5,9 @@ interface Props {
 }
 
 const bg = {
-  success: 'bg-stone-800',
-  error: 'bg-red-700',
-  warning: 'bg-amber-700',
+  success: 'bg-ink',
+  error: 'bg-danger',
+  warning: 'bg-warn',
 }
 
 export default function ToastNotification({ message, type, onClose }: Props) {

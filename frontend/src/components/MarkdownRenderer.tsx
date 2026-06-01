@@ -48,7 +48,7 @@ export default function MarkdownRenderer({ content, className = '', darkMode = f
         ),
         a: ({ href, children }) => (
           <a href={href} target="_blank" rel="noopener noreferrer"
-            className={`underline underline-offset-2 ${darkMode ? 'text-blue-300' : 'text-blue-600'}`}>
+            className={`underline underline-offset-2 ${darkMode ? 'text-d-accent' : 'text-accent'}`}>
             {children}
           </a>
         ),

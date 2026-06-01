@@ -458,7 +458,7 @@ export default function MobilePublicPortfolio() {
                   <button
                     title="Facebook"
                     onClick={() => openShareUrl(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(getShareUrl())}`)}
-                    className={`inline-flex items-center gap-2 px-3 py-2 rounded-[2px] border t-caption transition-colors duration-150 ${
+                    className={`inline-flex items-center gap-2 px-3 py-2 rounded-btn border t-caption transition-colors duration-150 ${
                       darkMode
                         ? 'border-d-line text-d-faint hover:text-d-hair hover:border-d-soft'
                         : 'border-hair text-faint hover:text-ink-2 hover:border-faint'
@@ -471,7 +471,7 @@ export default function MobilePublicPortfolio() {
                   <button
                     title="X"
                     onClick={() => openShareUrl(`https://twitter.com/intent/tweet?url=${encodeURIComponent(getShareUrl())}&text=${encodeURIComponent(selectedProject.title)}`)}
-                    className={`inline-flex items-center gap-2 px-3 py-2 rounded-[2px] border t-caption transition-colors duration-150 ${
+                    className={`inline-flex items-center gap-2 px-3 py-2 rounded-btn border t-caption transition-colors duration-150 ${
                       darkMode
                         ? 'border-d-line text-d-faint hover:text-d-hair hover:border-d-soft'
                         : 'border-hair text-faint hover:text-ink-2 hover:border-faint'
@@ -483,7 +483,7 @@ export default function MobilePublicPortfolio() {
                   </button>
                   <button
                     onClick={handleCopyLink}
-                    className={`inline-flex items-center gap-2 px-3 py-2 rounded-[2px] border t-caption transition-colors duration-150 ${
+                    className={`inline-flex items-center gap-2 px-3 py-2 rounded-btn border t-caption transition-colors duration-150 ${
                       copied
                         ? darkMode ? 'border-d-soft text-d-hair' : 'border-faint text-ink-2'
                         : darkMode ? 'border-d-line text-d-faint hover:text-d-hair hover:border-d-soft' : 'border-hair text-faint hover:text-ink-2 hover:border-faint'
@@ -514,7 +514,7 @@ export default function MobilePublicPortfolio() {
       {/* Lightbox — filmstrip (Phase 4 mobile) */}
       {lightboxIndex !== null && lightboxItems[lightboxIndex] && (
         <div
-          className="fixed inset-0 bg-[oklch(0.12_0.012_60/0.98)] z-50 flex flex-col"
+          className="fixed inset-0 bg-scrim z-50 flex flex-col"
           style={{ paddingTop: 'env(safe-area-inset-top)', paddingBottom: 'env(safe-area-inset-bottom)' }}
         >
           {/* 상단: 닫기 + italic 캡션 */}

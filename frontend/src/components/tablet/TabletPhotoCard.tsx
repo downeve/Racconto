@@ -42,7 +42,7 @@ export const TabletPhotoCard = memo(function TabletPhotoCard({
   const overlayVisible = showOverlay || overlayLocked
 
   return (
-    <div className={`rounded-photo overflow-hidden bg-gray-100 transition-all ${isSelected ? 'ring-4 ring-blue-500 shadow' : ''}`}>
+    <div className={`rounded-photo overflow-hidden bg-gray-100 transition-all ${isSelected ? 'ring-4 ring-accent shadow' : ''}`}>
       <div
         className="relative group"
         onMouseEnter={() => setShowOverlay(true)}
@@ -84,7 +84,7 @@ export const TabletPhotoCard = memo(function TabletPhotoCard({
             onClick={e => { e.stopPropagation(); onToggleSelect(photo.id) }}
           >
             <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition-colors shadow ${
-              isSelected ? 'bg-blue-500/50 border-blue-500/30' : 'bg-ink-2/40 border-card/80'
+              isSelected ? 'bg-accent/50 border-accent/40' : 'bg-ink-2/40 border-card/80'
             }`}>
               {isSelected && <Check size={12} strokeWidth={1.5} className="text-card" />}
             </div>

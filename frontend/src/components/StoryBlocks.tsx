@@ -185,7 +185,7 @@ function EditTextArea({
           // 취소도 조합 중 첫 클릭 소비를 피하려면 pointerup 사용(키보드는 click detail===0).
           onPointerUp={(e) => { e.stopPropagation(); onCancel() }}
           onClick={(e) => { if (e.detail === 0) { e.stopPropagation(); onCancel() } }}
-          className="px-4 py-1.5 text-[0.75rem] tracking-[0.04em] uppercase text-edit-muted hover:text-edit-ink bg-transparent border border-edit-line rounded-[2px] transition-colors"
+          className="px-4 py-1.5 text-[0.75rem] tracking-[0.04em] uppercase text-edit-muted hover:text-edit-ink bg-transparent border border-edit-line rounded-btn transition-colors"
         >
           {cancelLabel}
         </button>
@@ -194,7 +194,7 @@ function EditTextArea({
           disabled={saveDisabled}
           onPointerUp={(e) => { e.stopPropagation(); if (!saveDisabled) triggerSave() }}
           onClick={(e) => { if (e.detail === 0 && !saveDisabled) { e.stopPropagation(); triggerSave() } }}
-          className="px-4 py-1.5 text-[0.75rem] tracking-[0.04em] uppercase bg-edit-ink text-edit-paper hover:bg-edit-ink/85 rounded-[2px] transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+          className="px-4 py-1.5 text-[0.75rem] tracking-[0.04em] uppercase bg-edit-ink text-edit-paper hover:bg-edit-ink/85 rounded-btn transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
         >
           {saving ? savingLabel : saveLabel}
         </button>
@@ -345,7 +345,7 @@ export const InsertSlot = memo(function InsertSlot({
 
       {/* popover — open일 때만 mount (현재 side-by-side 옵션 비활성) */}
       {open && (
-        <div className="absolute top-full left-1/2 -translate-x-1/2 mt-1 z-popover bg-edit-paper border border-edit-line rounded-[2px] shadow-sm py-1 min-w-[160px]">
+        <div className="absolute top-full left-1/2 -translate-x-1/2 mt-1 z-popover bg-edit-paper border border-edit-line rounded-btn shadow-sm py-1 min-w-[160px]">
           <button
             onClick={() => { onInsertText(chapterId, insertIndex); setOpen(false); setHovered(false) }}
             className="w-full text-left px-3 py-1.5 text-sm text-edit-ink hover:bg-edit-paper-2 flex items-center gap-2"
@@ -498,7 +498,7 @@ export const SortableTextBlock = memo(function SortableTextBlock({
   const isEditing = editingTextItemId === itemId;
 
   return (
-    <div ref={setRef} style={style} className="w-full group relative mb-3 min-w-0 rounded-[2px] border border-edit-line/40 hover:border-edit-line-strong hover:bg-edit-paper/40 transition-[background-color,border-color] duration-150">
+    <div ref={setRef} style={style} className="w-full group relative mb-3 min-w-0 rounded-btn border border-edit-line/40 hover:border-edit-line-strong hover:bg-edit-paper/40 transition-[background-color,border-color] duration-150">
       {/* 드래그 핸들 — 외부 좌측 (PHOTO/SIDE 블록과 동일 위치) */}
       {!isEditing && (
         <div
@@ -532,7 +532,7 @@ export const SortableTextBlock = memo(function SortableTextBlock({
 
       {/* 호버 툴바 — inner div 뒤에 배치해야 Safari에서 [overflow-x:clip] stacking context 위에 렌더링됨 */}
       {!isEditing && (
-        <div className="absolute -top-4 right-5 opacity-0 group-hover:opacity-100 transition-opacity z-modal flex items-center gap-1 bg-edit-paper border border-edit-line rounded-[2px] shadow-sm px-1.5 py-0.5">
+        <div className="absolute -top-4 right-5 opacity-0 group-hover:opacity-100 transition-opacity z-modal flex items-center gap-1 bg-edit-paper border border-edit-line rounded-btn shadow-sm px-1.5 py-0.5">
           {!isFirst && (
             <button
               onClick={() => { onMoveBlock?.('up'); scrollToSelf() }}
@@ -736,7 +736,7 @@ export const SortablePhotoBlock = memo(function SortablePhotoBlock({
     <div
       ref={setRef}
       style={style}
-      className={`group/block relative mb-3 px-3 py-3 rounded-[2px]
+      className={`group/block relative mb-3 px-3 py-3 rounded-btn
                   transition-[background-color,border-color] duration-150
                   border border-edit-line/40 hover:bg-edit-paper/40 hover:border-edit-line-strong
                   ${isOver && isExternalDrag
@@ -778,7 +778,7 @@ export const SortablePhotoBlock = memo(function SortablePhotoBlock({
 
       {/* 블록 툴바 — hover 시 표시 (위/아래 이동 + 나란히) */}
       {((!isFirst || !isLast) || hasTextAbove || hasTextBelow) && (
-        <div className="absolute -top-4 right-5 opacity-0 group-hover/block:opacity-100 transition-opacity z-block-toolbar flex items-center gap-1 bg-edit-paper border border-edit-line rounded-[2px] shadow-sm px-1.5 py-0.5">
+        <div className="absolute -top-4 right-5 opacity-0 group-hover/block:opacity-100 transition-opacity z-block-toolbar flex items-center gap-1 bg-edit-paper border border-edit-line rounded-btn shadow-sm px-1.5 py-0.5">
           {!isFirst && (
             <button
               onClick={() => { onMoveBlock?.('up'); scrollToSelf() }}
@@ -967,7 +967,7 @@ export const SortableSideBySideBlock = memo(function SortableSideBySideBlock({
   ) : null
 
   return (
-    <div ref={setNodeRef} style={style} className="group/block relative mb-3 px-3 py-3 rounded-[2px] border border-edit-line/40 hover:bg-edit-paper/40 hover:border-edit-line-strong transition-[background-color,border-color] duration-150">
+    <div ref={setNodeRef} style={style} className="group/block relative mb-3 px-3 py-3 rounded-btn border border-edit-line/40 hover:bg-edit-paper/40 hover:border-edit-line-strong transition-[background-color,border-color] duration-150">
       <div
         {...attributes}
         {...listeners}
@@ -976,7 +976,7 @@ export const SortableSideBySideBlock = memo(function SortableSideBySideBlock({
         <DragHandleDots />
       </div>
 
-      <div className="absolute -top-4 right-5 opacity-0 group-hover/block:opacity-100 transition-opacity z-block-toolbar flex items-center gap-1 bg-edit-paper border border-edit-line rounded-[2px] shadow-sm px-1.5 py-0.5">
+      <div className="absolute -top-4 right-5 opacity-0 group-hover/block:opacity-100 transition-opacity z-block-toolbar flex items-center gap-1 bg-edit-paper border border-edit-line rounded-btn shadow-sm px-1.5 py-0.5">
         {!isFirst && (
           <button
             onClick={() => { onMoveBlock?.('up'); scrollToSelf() }}

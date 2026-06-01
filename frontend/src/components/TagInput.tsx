@@ -64,12 +64,12 @@ export default function TagInput({
 
   return (
     <div ref={wrapperRef} className="relative">
-      <div className="flex flex-wrap items-center gap-1.5 px-2 py-1.5 border border-edit-line rounded-[2px] focus-within:border-edit-ink transition-colors bg-edit-paper">
+      <div className="flex flex-wrap items-center gap-1.5 px-2 py-1.5 border border-edit-line rounded-btn focus-within:border-edit-ink transition-colors bg-edit-paper">
         {value.map(tag => (
           <span
             key={tag}
             className="inline-flex items-center gap-1 px-2 py-0.5 text-[0.75rem]
-                       bg-edit-paper-2 text-edit-ink rounded-[2px]"
+                       bg-edit-paper-2 text-edit-ink rounded-btn"
           >
             #{tag}
             <button
@@ -96,7 +96,7 @@ export default function TagInput({
         />
       </div>
       {showSuggestions && filteredSuggestions.length > 0 && !limitReached && (
-        <ul className="absolute z-popover left-0 right-0 top-full mt-1 bg-edit-paper border border-edit-line rounded-[2px] shadow-[0_8px_24px_rgba(0,0,0,0.08)] py-1 max-h-48 overflow-y-auto">
+        <ul className="absolute z-popover left-0 right-0 top-full mt-1 bg-edit-paper border border-edit-line rounded-btn shadow-[0_8px_24px_rgba(0,0,0,0.08)] py-1 max-h-48 overflow-y-auto">
           {filteredSuggestions.map(s => (
             <li key={s}>
               <button

@@ -9,7 +9,7 @@ export default function CoverFallback({ title, dark = false }: CoverFallbackProp
       className={`w-full h-full flex items-end p-6 bg-gradient-to-br ${
         dark
           ? 'from-d-surface to-d-bg'
-          : 'from-[oklch(0.94_0.012_75)] to-[oklch(0.86_0.014_75)]'
+          : 'from-placeholder to-canvas-4'
       }`}
     >
       <div>

@@ -126,7 +126,7 @@ export default function Trash() {
                 {project.title_en && (
                   <p className="t-caption text-faint mt-0.5">{project.title_en}</p>
                 )}
-                <p className="t-caption text-[oklch(0.55_0.10_25)] mt-2">
+                <p className="t-caption text-danger mt-2">
                   {getDaysLeft(project.deleted_at)}{t('trash.deletedAt')}
                 </p>
               </div>
@@ -139,7 +139,7 @@ export default function Trash() {
                 </button>
                 <button
                   onClick={() => handlePermanentDelete(project.id)}
-                  className="bg-[oklch(0.50_0.15_25)] text-canvas px-4 py-2 text-[0.8125rem] font-medium"
+                  className="bg-danger text-canvas px-4 py-2 text-[0.8125rem] font-medium"
                 >
                   {t('trash.permanentDelete')}
                 </button>

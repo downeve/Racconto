@@ -94,7 +94,7 @@ export default function PhotoLibraryPanel({
   }
 
   return (
-    <div className="w-96 flex-shrink-0 sticky top-6 flex flex-col bg-edit-paper border border-edit-line rounded-[2px] max-h-[calc(100vh-5rem)] overflow-hidden shadow">
+    <div className="w-96 flex-shrink-0 sticky top-6 flex flex-col bg-edit-paper border border-edit-line rounded-btn max-h-[calc(100vh-5rem)] overflow-hidden shadow">
 
       {/* 헤더 */}
       <div className="flex items-center justify-between px-3 py-2.5 border-b border-edit-line shrink-0">
@@ -114,7 +114,7 @@ export default function PhotoLibraryPanel({
         <select
           value={selectedChapterId}
           onChange={e => handleChapterChange(e.target.value)}
-          className="w-full text-[0.8125rem] font-sans text-edit-ink bg-edit-paper border border-edit-line rounded-[2px] px-2 py-1.5 focus:outline-none focus:border-edit-ink transition-colors mb-2"
+          className="w-full text-[0.8125rem] font-sans text-edit-ink bg-edit-paper border border-edit-line rounded-btn px-2 py-1.5 focus:outline-none focus:border-edit-ink transition-colors mb-2"
         >
           {chapterOptions.map(({ chapter, label }) => (
             <option key={chapter.id} value={chapter.id}>{label}</option>

@@ -35,7 +35,7 @@ function NotesSidebarContent({ notes, filterType, filterPinned, setFilterType, s
 
   const NOTE_TYPES = [
     { value: 'memo',     label: t('note.labelWork'),     dot: 'bg-edit-faint' },
-    { value: 'concept',  label: t('note.labelConcept'),  dot: 'bg-edit-accent' },
+    { value: 'concept',  label: t('note.labelConcept'),  dot: 'bg-label-blue' },
     { value: 'research', label: t('note.labelResearch'), dot: 'bg-label-green' },
     { value: 'client',   label: t('note.labelClient'),   dot: 'bg-label-yellow' },
   ]
@@ -358,7 +358,7 @@ function ProjectNotes({
 
   const NOTE_TYPES = [
     { value: 'memo',     label: t('note.labelWork'),     dot: 'bg-edit-faint' },
-    { value: 'concept',  label: t('note.labelConcept'),  dot: 'bg-edit-accent' },
+    { value: 'concept',  label: t('note.labelConcept'),  dot: 'bg-label-blue' },
     { value: 'research', label: t('note.labelResearch'), dot: 'bg-label-green' },
     { value: 'client',   label: t('note.labelClient'),   dot: 'bg-label-yellow' },
   ]

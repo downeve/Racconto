@@ -356,7 +356,7 @@ export default function ElectronSidebar({ activeTab, onTabChange, showTabs, widt
           <span className="text-[0.8125rem] font-sans text-edit-muted truncate">{user?.email}</span>
         </button>
         {dropdownOpen && (
-          <div className="absolute bottom-full left-2 right-2 mb-1 z-popover bg-edit-paper rounded-[2px] py-1 border border-edit-line shadow-[0_8px_24px_rgba(0,0,0,0.08)]">
+          <div className="absolute bottom-full left-2 right-2 mb-1 z-popover bg-edit-paper rounded-btn py-1 border border-edit-line shadow-[0_8px_24px_rgba(0,0,0,0.08)]">
             <Link
               to="/trash"
               onClick={() => setDropdownOpen(false)}

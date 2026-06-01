@@ -29,7 +29,7 @@ export function PhotoActionMenu({ onMove, onDelete }: { onMove: () => void; onDe
       </button>
       {open && (
         <div className="absolute top-full right-0 mt-1 z-popover min-w-[140px]
-                        bg-white border border-edit-line rounded-[2px]
+                        bg-white border border-edit-line rounded-btn
                         shadow-[0_4px_12px_rgba(0,0,0,0.06)] py-1">
           <button
             onClick={() => { onMove(); setOpen(false) }}

@@ -14,11 +14,11 @@ const API = import.meta.env.VITE_API_URL
 const DELIVERY_ENABLED = import.meta.env.VITE_ENABLE_DELIVERY === 'true'
 
 const COLOR_KEYS = [
-  { key: 'color_label_red',    color: 'bg-red-500',    value: 'red', meaningKey: 'reject' },
-  { key: 'color_label_yellow', color: 'bg-yellow-400', value: 'yellow', meaningKey: 'hold' },
-  { key: 'color_label_green',  color: 'bg-green-500',  value: 'green', meaningKey: 'select' },
-  { key: 'color_label_blue',   color: 'bg-blue-500',   value: 'blue', meaningKey: 'clientShare' },
-  { key: 'color_label_purple', color: 'bg-purple-500', value: 'purple', meaningKey: 'finalSelect' },
+  { key: 'color_label_red',    color: 'bg-label-red',    value: 'red', meaningKey: 'reject' },
+  { key: 'color_label_yellow', color: 'bg-label-yellow', value: 'yellow', meaningKey: 'hold' },
+  { key: 'color_label_green',  color: 'bg-label-green',  value: 'green', meaningKey: 'select' },
+  { key: 'color_label_blue',   color: 'bg-label-blue',   value: 'blue', meaningKey: 'clientShare' },
+  { key: 'color_label_purple', color: 'bg-label-purple', value: 'purple', meaningKey: 'finalSelect' },
 ]
 
 // 백엔드 `auth.py` 의 RESERVED_USERNAMES 와 동기화 유지.
@@ -518,7 +518,7 @@ export default function Settings() {
             onClick={handleUsernameSave}
             disabled={(usernameStatus !== 'available' && username !== '') && !usernameSaved}
             className={`px-4 py-2 text-sm transition-colors ${
-              usernameSaved ? 'bg-[oklch(0.55_0.10_150)] text-canvas' :
+              usernameSaved ? 'bg-ok text-canvas' :
               (usernameStatus === 'available' || username === '') ? 'bg-ink text-canvas hover:bg-ink-2' :
               'bg-hair text-faint cursor-not-allowed'
             }`}
@@ -527,13 +527,13 @@ export default function Settings() {
           </button>
         </div>
         {usernameStatus === 'available' && (
-          <p className="text-xs text-green-500 mt-1.5 ml-[calc(theme(spacing.7)+theme(spacing.32)+theme(spacing.2))] flex items-center gap-1"><Check size={12} strokeWidth={1.5} />{t('settings.usernameAvailable')}</p>
+          <p className="text-xs text-ok mt-1.5 ml-[calc(theme(spacing.7)+theme(spacing.32)+theme(spacing.2))] flex items-center gap-1"><Check size={12} strokeWidth={1.5} />{t('settings.usernameAvailable')}</p>
         )}
         {usernameStatus === 'taken' && (
-          <p className="text-xs text-red-500 mt-1.5">{t('settings.usernameTaken')}</p>
+          <p className="text-xs text-danger mt-1.5">{t('settings.usernameTaken')}</p>
         )}
         {usernameStatus === 'invalid' && (
-          <p className="text-xs text-red-500 mt-1.5">{t('settings.usernameInvalid')}</p>
+          <p className="text-xs text-danger mt-1.5">{t('settings.usernameInvalid')}</p>
         )}
         {username && usernameStatus === 'idle' && (
           <button
@@ -616,8 +616,8 @@ export default function Settings() {
             />
           </div>
 
-          {passwordError && <p className="text-red-500 text-xs">{passwordError}</p>}
-          {passwordSuccess && <p className="text-green-500 text-xs">{passwordSuccess}</p>}
+          {passwordError && <p className="text-danger text-xs">{passwordError}</p>}
+          {passwordSuccess && <p className="text-ok text-xs">{passwordSuccess}</p>}
 
           <div className="flex justify-start pt-2">
             <button
@@ -633,11 +633,11 @@ export default function Settings() {
 
       {/* 저장 버튼 */}
       <div className="flex justify-end items-center gap-4 pt-8">
-        {saveError && <p className="text-xs text-red-500">{saveError}</p>}
+        {saveError && <p className="text-xs text-danger">{saveError}</p>}
         <button
           {...imeSafeClick(handleSave)}
           className={`flex items-center gap-2 px-8 py-2.5 text-sm font-medium tracking-[0.02em] rounded-none transition-colors ${
-            saved ? 'bg-[oklch(0.55_0.10_150)] text-canvas' : 'bg-ink text-canvas hover:bg-ink-2'
+            saved ? 'bg-ok text-canvas' : 'bg-ink text-canvas hover:bg-ink-2'
           }`}
         >
           {saved ? t('settings.saveSuccess') : t('common.save')}
@@ -649,35 +649,35 @@ export default function Settings() {
         {!showWithdraw ? (
           <button
             onClick={() => setShowWithdraw(true)}
-            className="text-sm text-[oklch(0.55_0.10_25)] hover:text-[oklch(0.45_0.12_25)] underline underline-offset-2 transition-colors"
+            className="text-sm text-danger hover:text-danger/80 underline underline-offset-2 transition-colors"
           >
             {t('settings.withdrawAccount')}
           </button>
         ) : (
-          <div className="border-y border-[oklch(0.78_0.08_25)] py-6 bg-[oklch(0.96_0.025_25)]">
-            <h3 className="text-small font-medium text-[oklch(0.40_0.12_25)] mb-1">
+          <div className="border-y border-danger/30 py-6 bg-danger/8">
+            <h3 className="text-small font-medium text-danger mb-1">
               {t('settings.withdrawTitle')}
             </h3>
-            <p className="text-menu text-[oklch(0.50_0.10_25)] mb-4">
+            <p className="text-menu text-danger mb-4">
               {t('settings.withdrawDesc')}
             </p>
             {!isSocialUser && (
               <input
                 type="password"
-                className="w-full border border-[oklch(0.78_0.08_25)] px-3 py-2 text-sm outline-none focus:border-[oklch(0.55_0.10_25)] mb-3 bg-canvas"
+                className="w-full border border-danger/30 px-3 py-2 text-sm outline-none focus:border-danger mb-3 bg-canvas"
                 placeholder={t('settings.withdrawPasswordPlaceholder')}
                 value={withdrawPassword}
                 onChange={e => setWithdrawPassword(e.target.value)}
               />
             )}
             {withdrawError && (
-              <p className="text-menu text-[oklch(0.50_0.10_25)] mb-3">{withdrawError}</p>
+              <p className="text-menu text-danger mb-3">{withdrawError}</p>
             )}
             <div className="flex gap-2">
               <button
                 onClick={handleWithdraw}
                 disabled={withdrawing}
-                className="flex items-center gap-1.5 px-4 py-2 text-menu bg-[oklch(0.50_0.15_25)] text-canvas hover:bg-[oklch(0.45_0.15_25)] disabled:opacity-50 transition-colors"
+                className="flex items-center gap-1.5 px-4 py-2 text-menu bg-danger text-canvas hover:bg-danger/85 disabled:opacity-50 transition-colors"
               >
                 {withdrawing ? (
                   <>

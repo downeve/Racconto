@@ -429,7 +429,7 @@ function StoryChapterComponent({
         <div
           key={`form-${insertIndex}`}
           className="my-2 px-4 py-3 bg-edit-paper border border-edit-line
-                     rounded-[2px] shadow-[0_1px_0_rgba(0,0,0,0.04)]
+                     rounded-btn shadow-[0_1px_0_rgba(0,0,0,0.04)]
                      animate-in fade-in slide-in-from-top-1 duration-150"
         >
           <textarea
@@ -449,7 +449,7 @@ function StoryChapterComponent({
               onClick={() => { setInsertSlotActive(null); setInsertTextDraft('') }}
               className="px-4 py-1.5 text-[0.75rem] tracking-[0.04em] uppercase
                          text-edit-muted hover:text-edit-ink
-                         bg-transparent border border-edit-line rounded-[2px]
+                         bg-transparent border border-edit-line rounded-btn
                          transition-colors"
             >
               {t('common.cancel')}
@@ -459,7 +459,7 @@ function StoryChapterComponent({
               disabled={insertTextDraft.trim().length === 0}
               className="px-4 py-1.5 text-[0.75rem] tracking-[0.04em] uppercase
                          bg-edit-ink text-edit-paper hover:bg-edit-ink/85
-                         rounded-[2px] transition-colors
+                         rounded-btn transition-colors
                          disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-edit-ink"
             >
               {t('common.save')}
@@ -727,14 +727,14 @@ function StoryChapterComponent({
             dropAnimation={{ duration: 250, easing: 'cubic-bezier(0.18, 0.67, 0.6, 1.22)' }}
           >
             {activeBlockId && !draggingItemId ? (
-              <div className="bg-edit-paper border border-edit-line rounded-[2px] p-3 opacity-90 shadow-[0_8px_24px_rgba(0,0,0,0.06)]">
+              <div className="bg-edit-paper border border-edit-line rounded-btn p-3 opacity-90 shadow-[0_8px_24px_rgba(0,0,0,0.06)]">
                 <div className="grid grid-cols-3 gap-2">
                   {activeBlockItems.map(item => (
                     <div
                       key={item.id}
                       className={item.item_type === 'PHOTO'
                         ? 'aspect-[3/2] overflow-hidden bg-edit-paper-2'
-                        : 'col-span-3 bg-edit-paper border border-edit-line rounded-[2px] px-5 py-4'}
+                        : 'col-span-3 bg-edit-paper border border-edit-line rounded-btn px-5 py-4'}
                     >
                       {item.item_type === 'PHOTO' ? (
                         item.image_url
@@ -752,12 +752,12 @@ function StoryChapterComponent({
               const draggedItem = itemsRef.current.find(i => i.id === draggingItemId)
               if (!draggedItem) return null
               if (draggedItem.item_type === 'TEXT') return (
-                <div className="w-180 bg-edit-paper border border-edit-line rounded-[2px] px-5 py-4 shadow-[0_8px_24px_rgba(0,0,0,0.06)] rotate-1 scale-105 opacity-95">
+                <div className="w-180 bg-edit-paper border border-edit-line rounded-btn px-5 py-4 shadow-[0_8px_24px_rgba(0,0,0,0.06)] rotate-1 scale-105 opacity-95">
                   <p className="text-sm text-edit-ink line-clamp-3">{draggedItem.text_content}</p>
                 </div>
               )
               return (
-                <div className="aspect-[3/2] w-60 rounded-[2px] overflow-hidden shadow-[0_8px_24px_rgba(0,0,0,0.06)] rotate-3 scale-105 bg-edit-paper-2 opacity-60 cursor-grabbing">
+                <div className="aspect-[3/2] w-60 rounded-btn overflow-hidden shadow-[0_8px_24px_rgba(0,0,0,0.06)] rotate-3 scale-105 bg-edit-paper-2 opacity-60 cursor-grabbing">
                   {draggedItem.image_url && <img src={draggedItem.image_url} className="w-full h-full object-contain" />}
                 </div>
               )

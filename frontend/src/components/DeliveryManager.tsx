@@ -7,11 +7,11 @@ import { Lock, Camera } from 'lucide-react'
 const API = import.meta.env.VITE_API_URL
 
 const COLOR_DEFAULTS = [
-  { value: 'red',    bg: 'bg-red-500',    defaultLabel: '거절' },
-  { value: 'yellow', bg: 'bg-yellow-400', defaultLabel: '보류' },
-  { value: 'green',  bg: 'bg-green-500',  defaultLabel: '선택' },
-  { value: 'blue',   bg: 'bg-blue-500',   defaultLabel: '클라이언트 공유' },
-  { value: 'purple', bg: 'bg-purple-500', defaultLabel: '최종 선택' },
+  { value: 'red',    bg: 'bg-label-red',    defaultLabel: '거절' },
+  { value: 'yellow', bg: 'bg-label-yellow', defaultLabel: '보류' },
+  { value: 'green',  bg: 'bg-label-green',  defaultLabel: '선택' },
+  { value: 'blue',   bg: 'bg-label-blue',   defaultLabel: '클라이언트 공유' },
+  { value: 'purple', bg: 'bg-label-purple', defaultLabel: '최종 선택' },
 ]
 
 interface ColorOption {
@@ -243,9 +243,9 @@ export default function DeliveryManager({ projectId }: Props) {
               <div className="flex items-center gap-3 px-4 py-3 bg-white">
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 flex-wrap">
-                    <span className="text-sm font-medium text-gray-800 truncate">{link.label || '무제 링크'}</span>
+                    <span className="text-sm font-medium text-ink-2 truncate">{link.label || '무제 링크'}</span>
                     {link.has_password && (
-                      <span className="inline-flex items-center gap-1 text-xs px-1.5 py-0.5 bg-yellow-100 text-yellow-700 rounded"><Lock size={10} strokeWidth={1.5} /> 비번</span>
+                      <span className="inline-flex items-center gap-1 text-xs px-1.5 py-0.5 bg-warn/15 text-warn rounded"><Lock size={10} strokeWidth={1.5} /> 비번</span>
                     )}
                   </div>
                   <div className="text-xs text-gray-400 mt-0.5 flex gap-2 flex-wrap">
@@ -272,7 +272,7 @@ export default function DeliveryManager({ projectId }: Props) {
                     </svg>
                   </button>
                   <button onClick={() => deleteLink(link.id)} title="삭제"
-                    className="p-1.5 text-gray-400 hover:text-red-500 transition-[background,color,border] duration-150 ease-out">
+                    className="p-1.5 text-muted hover:text-danger transition-[background,color,border] duration-150 ease-out">
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
                         d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
@@ -310,9 +310,9 @@ export default function DeliveryManager({ projectId }: Props) {
                                   <p className="text-xs text-gray-500 leading-tight">{displayCaption}</p>
                                 )}
                                 {s.comment && (
-                                  <div className="bg-blue-50 border border-blue-100 rounded px-2 py-1.5">
-                                    <p className="text-xs text-blue-700 font-medium mb-0.5">고객 코멘트</p>
-                                    <p className="text-xs text-blue-600 leading-tight">{s.comment}</p>
+                                  <div className="bg-canvas-4 border border-hair rounded px-2 py-1.5">
+                                    <p className="text-xs text-ink-2 font-medium mb-0.5">고객 코멘트</p>
+                                    <p className="text-xs text-muted leading-tight">{s.comment}</p>
                                   </div>
                                 )}
                                 {s.comment && (
@@ -321,7 +321,7 @@ export default function DeliveryManager({ projectId }: Props) {
                                     disabled={applyingCaption === s.photo_id || isApplied}
                                     className={`w-full text-xs px-2 py-1 rounded border transition-[background,color,border] duration-150 ease-out ${
                                       isApplied
-                                        ? 'border-green-300 bg-green-50 text-green-600 cursor-default'
+                                        ? 'border-ok/40 bg-ok/10 text-ok cursor-default'
                                         : applyingCaption === s.photo_id
                                           ? 'border-gray-200 text-gray-400 cursor-wait'
                                           : 'border-gray-300 hover:bg-gray-100 text-gray-500'

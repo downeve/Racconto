@@ -255,7 +255,7 @@ export default function ProjectEdit() {
                     key={ct.value}
                     type="button"
                     onClick={() => setCameraType(active ? '' : ct.value)}
-                    className={`px-3 py-1.5 t-caption rounded-[2px] border transition-colors ${
+                    className={`px-3 py-1.5 t-caption rounded-btn border transition-colors ${
                       active
                         ? 'bg-edit-ink text-edit-paper border-edit-ink'
                         : 'border-edit-line text-edit-muted hover:text-edit-ink hover:border-edit-line-strong'

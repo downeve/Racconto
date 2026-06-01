@@ -30,7 +30,7 @@ export const MobilePhotoCard = memo(function MobilePhotoCard({
 
   return (
     <div
-      className={`rounded-photo overflow-hidden bg-gray-100 relative ${isSelected ? 'ring-4 ring-blue-500' : ''}`}
+      className={`rounded-photo overflow-hidden bg-gray-100 relative ${isSelected ? 'ring-4 ring-accent' : ''}`}
       onTouchStart={handleTouchStart}
       onTouchEnd={handleTouchEnd}
       onTouchMove={handleTouchMove}
@@ -66,7 +66,7 @@ export const MobilePhotoCard = memo(function MobilePhotoCard({
           onClick={e => { e.stopPropagation(); onToggleSelect(photo.id) }}
         >
           <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center shadow ${
-            isSelected ? 'bg-blue-500/50 border-blue-500/30' : 'bg-black/40 border-white/80'
+            isSelected ? 'bg-accent/50 border-accent/40' : 'bg-black/40 border-white/80'
           }`}>
             {isSelected && <Check size={14} strokeWidth={1.5} className="text-white" />}
           </div>

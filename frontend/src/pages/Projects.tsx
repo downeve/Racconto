@@ -65,8 +65,8 @@ const SortableProjectCard = memo(function SortableProjectCard({
         </div>
         <ProjectCard project={project} />
         <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity flex gap-1">
-          <Link to={`/projects/${project.slug || project.id}/edit`} state={{ from: '/projects' }} className="bg-card text-ink px-2 py-1 text-xs rounded shadow hover:bg-muted hover:text-hair" onClick={e => e.stopPropagation()}>{t('common.edit')}</Link>
-          <button onClick={e => { e.preventDefault(); onDelete(project.id) }} className="bg-red-400 text-card px-2 py-1 text-xs rounded shadow hover:bg-red-600">{t('common.delete')}</button>
+          <Link to={`/projects/${project.slug || project.id}/edit`} state={{ from: '/projects' }} className="bg-card text-ink px-2 py-1 text-xs rounded-btn shadow hover:bg-canvas-4 hover:text-ink" onClick={e => e.stopPropagation()}>{t('common.edit')}</Link>
+          <button onClick={e => { e.preventDefault(); onDelete(project.id) }} className="bg-danger text-card px-2 py-1 text-xs rounded-btn shadow hover:bg-danger/85">{t('common.delete')}</button>
         </div>
       </div>
     </div>
@@ -210,7 +210,7 @@ export default function Projects() {
       )}
       {toast && <ToastNotification message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
       <div className="flex items-center justify-between mb-space-sm">
-          <h2 className="font-body font-serif font-semibold text-h2">
+          <h2 className="font-serif font-semibold text-h2">
             {t('nav.projectsList')}
           </h2>
         <button
@@ -333,7 +333,7 @@ export default function Projects() {
                       key={ct.value}
                       type="button"
                       onClick={() => setField('cameraType', active ? '' : ct.value)}
-                      className={`px-3 py-1.5 t-caption rounded-[2px] border transition-colors ${
+                      className={`px-3 py-1.5 t-caption rounded-btn border transition-colors ${
                         active
                           ? 'bg-edit-ink text-edit-paper border-edit-ink'
                           : 'border-edit-line text-edit-muted hover:text-edit-ink hover:border-edit-line-strong'

@@ -133,7 +133,7 @@ export default function MobileExplore() {
             value={searchInput}
             onChange={e => setSearchInput(e.target.value)}
             placeholder={t('explore.searchPlaceholder', 'Search photographers or portfolios…')}
-            className="w-full pl-9 pr-9 py-2.5 text-[0.9375rem] bg-canvas-2 border border-hair rounded-[2px] focus:border-ink focus:outline-none transition-colors placeholder:text-faint"
+            className="w-full pl-9 pr-9 py-2.5 text-[0.9375rem] bg-canvas-2 border border-hair rounded-btn focus:border-ink focus:outline-none transition-colors placeholder:text-faint"
           />
           {searchInput && (
             <button
@@ -154,7 +154,7 @@ export default function MobileExplore() {
             <button
               type="button"
               onClick={() => setTagFilter('')}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 t-caption rounded-[2px] bg-ink text-canvas border border-ink"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 t-caption rounded-btn bg-ink text-canvas border border-ink"
             >
               #{tagFilter}
               <X size={12} strokeWidth={1.5} />
@@ -168,7 +168,7 @@ export default function MobileExplore() {
             <button
               type="button"
               onClick={() => setCameraFilter('')}
-              className={`shrink-0 px-3 py-1.5 t-caption rounded-[2px] border transition-colors ${
+              className={`shrink-0 px-3 py-1.5 t-caption rounded-btn border transition-colors ${
                 cameraFilter === ''
                   ? 'bg-ink text-canvas border-ink'
                   : 'border-hair text-muted'
@@ -181,7 +181,7 @@ export default function MobileExplore() {
                 key={ct.value}
                 type="button"
                 onClick={() => setCameraFilter(ct.value)}
-                className={`shrink-0 px-3 py-1.5 t-caption rounded-[2px] border transition-colors ${
+                className={`shrink-0 px-3 py-1.5 t-caption rounded-btn border transition-colors ${
                   cameraFilter === ct.value
                     ? 'bg-ink text-canvas border-ink'
                     : 'border-hair text-muted'
@@ -210,7 +210,7 @@ export default function MobileExplore() {
                 <div className="grid grid-cols-3 gap-x-3 gap-y-6">
                   {searchResults.users.map(u => (
                     <Link key={u.username} to={`/${u.username}`} state={{ from: '/explore' }} className="block">
-                      <div className="aspect-square overflow-hidden bg-[oklch(0.92_0.012_75)]">
+                      <div className="aspect-square overflow-hidden bg-placeholder">
                         {u.cover_image_url && (
                           <img
                             src={cfUrl(u.cover_image_url, 'grid')}
@@ -283,9 +283,9 @@ export default function MobileExplore() {
           <div className="space-y-12 mt-10">
             {Array.from({ length: 3 }).map((_, i) => (
               <div key={i}>
-                <div className="aspect-[3/2] bg-[oklch(0.92_0.012_75)] animate-pulse" />
-                <div className="mt-3 h-3 w-20 bg-[oklch(0.92_0.012_75)] animate-pulse" />
-                <div className="mt-2 h-4 w-3/4 bg-[oklch(0.92_0.012_75)] animate-pulse" />
+                <div className="aspect-[3/2] bg-placeholder animate-pulse" />
+                <div className="mt-3 h-3 w-20 bg-placeholder animate-pulse" />
+                <div className="mt-2 h-4 w-3/4 bg-placeholder animate-pulse" />
               </div>
             ))}
           </div>

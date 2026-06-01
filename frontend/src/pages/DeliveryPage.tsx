@@ -196,7 +196,7 @@ export default function DeliveryPage() {
             onChange={e => setPassword(e.target.value)}
             onKeyDown={e => e.key === 'Enter' && submitPassword()}
           />
-          {pwError && <p className="text-red-500 text-sm mb-3">{pwError}</p>}
+          {pwError && <p className="text-danger text-sm mb-3">{pwError}</p>}
           <button
             onClick={submitPassword}
             className="w-full py-3 bg-gray-900 hover:bg-gray-700 text-white rounded-xl font-medium transition-[background,color,border] duration-150 ease-out"
@@ -233,7 +233,7 @@ export default function DeliveryPage() {
               disabled={saving || selectedCount === 0}
               className={`px-4 py-2 text-sm rounded-full font-medium transition-[background,color,border] duration-150 ease-out ${
                 saved
-                  ? 'bg-green-600 text-white'
+                  ? 'bg-ok text-white'
                   : 'bg-gray-900 hover:bg-gray-700 text-white disabled:opacity-40'
               }`}
             >

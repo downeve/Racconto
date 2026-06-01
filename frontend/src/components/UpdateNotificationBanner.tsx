@@ -51,7 +51,7 @@ export default function UpdateNotificationBanner() {
       role="status"
       aria-live="polite"
       className="fixed top-4 right-4 z-popover w-80 max-w-[calc(100vw-2rem)]
-                 bg-edit-paper border border-edit-line rounded-[2px]
+                 bg-edit-paper border border-edit-line rounded-btn
                  shadow-[0_8px_24px_rgba(0,0,0,0.12)] p-4
                  animate-in fade-in slide-in-from-top-2 duration-200"
     >
@@ -89,7 +89,7 @@ export default function UpdateNotificationBanner() {
           className="inline-flex items-center gap-1.5 px-3 py-1.5
                      bg-edit-ink text-edit-paper hover:bg-edit-ink/85
                      text-[0.75rem] tracking-[0.04em] uppercase
-                     rounded-[2px] transition-colors disabled:opacity-40"
+                     rounded-btn transition-colors disabled:opacity-40"
         >
           <Download size={12} strokeWidth={1.5} />
           {t('update.download', 'Download')}

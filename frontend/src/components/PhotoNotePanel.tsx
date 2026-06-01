@@ -39,10 +39,10 @@ export default function PhotoNotePanel({
   const editContentRef = useRef<HTMLTextAreaElement>(null)
 
   const NOTE_TYPES = [
-    { value: 'memo',     label: t('note.labelWork'),     color: 'bg-stone-100 text-stone-600',  dot: 'bg-edit-faint' },
-    { value: 'concept',  label: t('note.labelConcept'),  color: 'bg-blue-50 text-blue-600',     dot: 'bg-edit-accent' },
-    { value: 'research', label: t('note.labelResearch'), color: 'bg-green-50 text-green-600',   dot: 'bg-label-green' },
-    { value: 'client',   label: t('note.labelClient'),   color: 'bg-amber-50 text-amber-600',   dot: 'bg-label-yellow' },
+    { value: 'memo',     label: t('note.labelWork'),     color: 'bg-canvas-4 text-muted',           dot: 'bg-edit-faint' },
+    { value: 'concept',  label: t('note.labelConcept'),  color: 'bg-label-blue/12 text-label-blue',   dot: 'bg-label-blue' },
+    { value: 'research', label: t('note.labelResearch'), color: 'bg-label-green/12 text-label-green', dot: 'bg-label-green' },
+    { value: 'client',   label: t('note.labelClient'),   color: 'bg-label-yellow/12 text-label-yellow', dot: 'bg-label-yellow' },
   ]
 
   const getNoteType = (value: string) => {
@@ -188,7 +188,7 @@ export default function PhotoNotePanel({
                           </button>
                           <button
                             onClick={() => handleDelete(note.id)}
-                            className="text-xs text-red-400 hover:text-red-600"
+                            className="text-xs text-danger hover:text-danger/80"
                           >
                             {t('common.delete')}
                           </button>

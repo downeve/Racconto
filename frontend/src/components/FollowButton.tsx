@@ -62,7 +62,7 @@ export default function FollowButton({ username, darkMode = false }: Props) {
       type="button"
       onClick={toggle}
       disabled={pending}
-      className={`inline-flex items-center px-3 py-1 t-caption rounded-[2px] border transition-colors duration-150 disabled:opacity-50 ${
+      className={`inline-flex items-center px-3 py-1 t-caption rounded-btn border transition-colors duration-150 disabled:opacity-50 ${
         following
           ? (darkMode ? baseDark : baseLight)
           : (darkMode ? activeDark : activeLight)

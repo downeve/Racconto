@@ -345,7 +345,7 @@ export default function PublicPortfolio() {
 
   const bg       = darkMode ? 'bg-d-bg text-d-hair'  : 'bg-canvas text-ink'
   const subText  = darkMode ? 'text-d-soft'          : 'text-muted'
-  const microcopy = darkMode ? 'text-d-faint'        : 'text-faint'
+  const microcopy = darkMode ? 'text-d-soft'         : 'text-muted'
   const barBg    = darkMode
     ? 'bg-d-bg/85 border-d-line'
     : 'bg-canvas/85 border-hair/60'
@@ -602,7 +602,7 @@ export default function PublicPortfolio() {
                   <button
                     title="Facebook"
                     onClick={() => openShareUrl(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(getShareUrl())}`)}
-                    className={`inline-flex items-center gap-2 px-3 py-2 rounded-[2px] border t-caption transition-colors duration-150 ${
+                    className={`inline-flex items-center gap-2 px-3 py-2 rounded-btn border t-caption transition-colors duration-150 ${
                       darkMode
                         ? 'border-d-line text-d-faint hover:text-d-hair hover:border-d-soft'
                         : 'border-hair text-faint hover:text-ink-2 hover:border-faint'
@@ -615,7 +615,7 @@ export default function PublicPortfolio() {
                   <button
                     title="X"
                     onClick={() => openShareUrl(`https://twitter.com/intent/tweet?url=${encodeURIComponent(getShareUrl())}&text=${encodeURIComponent(selectedProject.title)}`)}
-                    className={`inline-flex items-center gap-2 px-3 py-2 rounded-[2px] border t-caption transition-colors duration-150 ${
+                    className={`inline-flex items-center gap-2 px-3 py-2 rounded-btn border t-caption transition-colors duration-150 ${
                       darkMode
                         ? 'border-d-line text-d-faint hover:text-d-hair hover:border-d-soft'
                         : 'border-hair text-faint hover:text-ink-2 hover:border-faint'
@@ -627,7 +627,7 @@ export default function PublicPortfolio() {
                   </button>
                   <button
                     onClick={handleCopyLink}
-                    className={`inline-flex items-center gap-2 px-3 py-2 rounded-[2px] border t-caption transition-colors duration-150 ${
+                    className={`inline-flex items-center gap-2 px-3 py-2 rounded-btn border t-caption transition-colors duration-150 ${
                       copied
                         ? darkMode ? 'border-d-soft text-d-hair' : 'border-faint text-ink-2'
                         : darkMode ? 'border-d-line text-d-faint hover:text-d-hair hover:border-d-soft' : 'border-hair text-faint hover:text-ink-2 hover:border-faint'
@@ -660,7 +660,7 @@ export default function PublicPortfolio() {
           role="dialog"
           aria-modal="true"
           tabIndex={-1}
-          className="fixed inset-0 bg-[oklch(0.12_0.012_60/0.98)] z-50 flex flex-col outline-none"
+          className="fixed inset-0 bg-scrim z-50 flex flex-col outline-none"
           onClick={() => setLightboxIndex(null)}
         >
           {/* Thin top bar: chapter title(center), counter, close */}
@@ -751,7 +751,7 @@ export default function PublicPortfolio() {
               onClick={() => setLongPressActive(false)}
             >
               <div
-                className="w-full max-w-sm mx-4 mb-8 bg-d-bg/95 backdrop-blur-md rounded-[4px] overflow-hidden"
+                className="w-full max-w-sm mx-4 mb-8 bg-d-bg/95 backdrop-blur-md rounded-card overflow-hidden"
                 onClick={e => e.stopPropagation()}
               >
                 <a
