@@ -508,7 +508,7 @@ function StoryChapterComponent({
     <>
       {blocks.length === 0 && (
         <div className="py-2">
-          <p className="text-sm text-gray-400 mb-2">{t('story.addPhotoGuide')}</p>
+          <p className="text-sm text-edit-faint mb-2">{t('story.addPhotoGuide')}</p>
           {renderInsertSlot(0)}
         </div>
       )}

@@ -428,7 +428,7 @@ export function SortablePhotoChapter({
             aria-label={selected ? '선택 해제' : '선택'}
             tabIndex={0}
           >
-            {selected && <Check size={11} strokeWidth={2.5} className="text-edit-ink" />}
+            {selected && <Check size={11} strokeWidth={2.5} className="text-black" />}
           </button>
         )}
 
@@ -538,14 +538,14 @@ export const SortableTextBlock = memo(function SortableTextBlock({
               onClick={() => { onMoveBlock?.('up'); scrollToSelf() }}
               className="text-eyebrow px-2 py-1 rounded font-bold text-edit-muted hover:bg-edit-paper-2"
               title="위로 이동"
-            >↑</button>
+            >▲</button>
           )}
           {!isLast && (
             <button
               onClick={() => { onMoveBlock?.('down'); scrollToSelf() }}
               className="text-eyebrow px-2 py-1 rounded font-bold text-edit-muted hover:bg-edit-paper-2"
               title="아래로 이동"
-            >↓</button>
+            >▼</button>
           )}
           {(!isFirst || !isLast) && <span className="text-eyebrow text-edit-line select-none">|</span>}
           <button
@@ -784,14 +784,14 @@ export const SortablePhotoBlock = memo(function SortablePhotoBlock({
               onClick={() => { onMoveBlock?.('up'); scrollToSelf() }}
               className="text-eyebrow px-2 py-1 rounded font-bold text-edit-muted hover:bg-edit-paper-2 focus-visible:opacity-100"
               title="위로 이동"
-            >↑</button>
+            >▲</button>
           )}
           {!isLast && (
             <button
               onClick={() => { onMoveBlock?.('down'); scrollToSelf() }}
               className="text-eyebrow px-2 py-1 rounded font-bold text-edit-muted hover:bg-edit-paper-2 focus-visible:opacity-100"
               title="아래로 이동"
-            >↓</button>
+            >▼</button>
           )}
           {(hasTextAbove || hasTextBelow) && (
             <>
@@ -982,14 +982,14 @@ export const SortableSideBySideBlock = memo(function SortableSideBySideBlock({
             onClick={() => { onMoveBlock?.('up'); scrollToSelf() }}
             className="text-eyebrow px-2 py-1 rounded font-bold text-edit-muted hover:bg-edit-paper-2"
             title="위로 이동"
-          >↑</button>
+          >▲</button>
         )}
         {!isLast && (
           <button
             onClick={() => { onMoveBlock?.('down'); scrollToSelf() }}
             className="text-eyebrow px-2 py-1 rounded font-bold text-edit-muted hover:bg-edit-paper-2"
             title="아래로 이동"
-          >↓</button>
+          >▼</button>
         )}
         <button
           onClick={onFlipColumns}

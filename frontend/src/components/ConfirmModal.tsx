@@ -24,10 +24,10 @@ export default function ConfirmModal(props: Props) {
     const { blocks, onSelect, onCancel } = props
     return (
       <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-[200] p-4">
-        <div className="bg-white rounded-card shadow w-full max-w-sm p-6">
+        <div className="bg-card rounded-card shadow w-full max-w-sm p-6">
           <div className="flex items-center justify-between mb-4">
-            <p className="text-sm font-semibold text-stone-800">{t('story.toOtherBlockTitle')}</p>
-            <button onClick={onCancel} className="text-stone-400 hover:text-stone-700 text-lg leading-none rounded-btn">✕</button>
+            <p className="text-sm font-semibold text-ink">{t('story.toOtherBlockTitle')}</p>
+            <button onClick={onCancel} className="text-muted hover:text-ink text-lg leading-none rounded-btn">✕</button>
           </div>
           <div className="grid grid-cols-3 gap-2">
             {blocks.map(block => (
@@ -36,10 +36,10 @@ export default function ConfirmModal(props: Props) {
                 onClick={() => onSelect(block.blockId)}
                 className="flex flex-col items-center gap-1 p-1 rounded-btn hover:bg-canvas-4 border border-transparent hover:border-secondary-border transition-[background,color,border] duration-150 ease-out"
               >
-                <div className="w-full aspect-[3/2] rounded-btn overflow-hidden bg-gray-100">
+                <div className="w-full aspect-[3/2] rounded-btn overflow-hidden bg-canvas-3">
                   {block.firstImageUrl
                     ? <img src={block.firstImageUrl} className="w-full h-full object-cover" />
-                    : <div className="w-full h-full bg-gray-200" />
+                    : <div className="w-full h-full bg-canvas-4" />
                   }
                 </div>
               </button>
@@ -64,7 +64,7 @@ export default function ConfirmModal(props: Props) {
   return (
     <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-[100] p-4">
       <div className="bg-card rounded-card shadow w-full max-w-sm p-6">
-        <p className="text-sm text-stone-800 leading-relaxed mb-6 whitespace-pre-wrap">{message}</p>
+        <p className="text-sm text-ink leading-relaxed mb-6 whitespace-pre-wrap">{message}</p>
         <div className="flex justify-end gap-2">
           <button
             onClick={onCancel}
@@ -74,7 +74,7 @@ export default function ConfirmModal(props: Props) {
           </button>
           <button
             onClick={onConfirm}
-            className={`px-4 py-2 text-sm text-white rounded-btn ${dangerous ? 'bg-danger hover:bg-danger/85' : 'bg-stone-800 hover:bg-stone-700'}`}
+            className={`px-4 py-2 text-sm rounded-btn ${dangerous ? 'bg-danger text-white hover:bg-danger/85' : 'bg-ink text-canvas hover:bg-ink-2'}`}
           >
             {t('common.confirm')}
           </button>
