@@ -39,9 +39,6 @@ export default function MobilePublicPortfolio() {
   const { isAuthenticated, user } = useAuth()
 
   const [localSelectedProject, setLocalSelectedProject] = useState<PortfolioProject | null>(null)
-  const [authorTheme, setAuthorTheme] = useState<'light' | 'dark'>('light')
-  const [viewerOverride, setViewerOverride] = useState<'light' | 'dark' | null>(null)
-  const scopedTheme: 'light' | 'dark' = viewerOverride ?? authorTheme
 
   const enabled = !!username && username !== '@setup'
   const { data: portfolioData, isError: listError, isLoading: listLoading } = useQuery({
@@ -111,24 +108,7 @@ export default function MobilePublicPortfolio() {
     if (!isAuthenticated && username === '@setup') navigate('/', { replace: true })
   }, [isAuthenticated, username, navigate])
 
-  // 작가 테마(API) 만 반영 — escape 는 별도(아래 useEffect).
-  const applyTheme = useCallback((apiTheme: string) => {
-    if (apiTheme === 'dark' || apiTheme === 'light') setAuthorTheme(apiTheme)
-  }, [])
-
-  useEffect(() => {
-    if (!username) return
-    const saved = localStorage.getItem(`portfolio_theme_${username}`)
-    setViewerOverride(saved === 'light' || saved === 'dark' ? saved : null)
-  }, [username])
-
-  useEffect(() => {
-    if (portfolioData?.theme) applyTheme(portfolioData.theme)
-  }, [portfolioData, applyTheme])
-
-  useEffect(() => {
-    if (slugData?.theme) applyTheme(slugData.theme)
-  }, [slugData, applyTheme])
+  // 포트폴리오는 사이트 전역 테마(<html data-theme>)를 그대로 따른다.
 
   // 브라우저 탭 제목 — 개별 프로젝트면 프로젝트 제목, 작가 페이지면 @username
   useEffect(() => {
@@ -140,13 +120,6 @@ export default function MobilePublicPortfolio() {
     }
     return () => { document.title = original }
   }, [selectedProject, username])
-
-  // 라이트/다크 직접 토글 — 현재 표시 테마의 반대로 전환해 viewer override 로 저장.
-  const handleToggleDark = () => {
-    const next = scopedTheme === 'dark' ? 'light' : 'dark'
-    setViewerOverride(next)
-    if (username) localStorage.setItem(`portfolio_theme_${username}`, next)
-  }
 
   const openProject = (project: PortfolioProject) => {
     if (project.slug) {
@@ -229,7 +202,7 @@ export default function MobilePublicPortfolio() {
 
   if (notFound) {
     return (
-      <div data-theme={scopedTheme} className={`min-h-screen flex items-center justify-center ${bg}`}>
+      <div className={`min-h-screen flex items-center justify-center ${bg}`}>
         <EmptyState
           heading={t('portfolio.notFound') || '포트폴리오를 찾을 수 없습니다.'}
         />
@@ -238,20 +211,15 @@ export default function MobilePublicPortfolio() {
   }
 
   return (
-    <div data-theme={scopedTheme} className={`min-h-screen ${bg}`}>
+    <div className={`min-h-screen ${bg}`}>
 
-      {/* PublicNavbar — 목록·로그아웃 상세 모두 동일하게 미니멀(로고 + 테마 토글)만.
+      {/* PublicNavbar — 목록·로그아웃 상세 모두 동일하게 미니멀(로고 + 전역 테마 토글)만.
           (로그인 상세는 navbar 없이 좌상단 floating back 사용) */}
       {(!isDetailRoute || !isAuthenticated) && (
         <PublicNavbar
           portfolio
           compactLogo
           minimal
-          onToggleDark={handleToggleDark}
-          toggleLabel={{
-            icon: scopedTheme === 'dark' ? 'sun' : 'moon',
-            text: t(scopedTheme === 'dark' ? 'settings.themeBeige' : 'settings.themeDark'),
-          }}
         />
       )}
 

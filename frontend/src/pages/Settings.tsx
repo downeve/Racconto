@@ -7,7 +7,7 @@ import { useAuth } from '../context/AuthContext'
 import { useTheme } from '../theme/ThemeProvider'
 import { imeSafeClick } from '../utils/imeSafeClick'
 import {
-  Sun, Moon, Check,
+  Check,
   Palette, Columns3, Paintbrush, Tag, Lock, UserCircle,
 } from 'lucide-react'
 
@@ -51,7 +51,6 @@ export default function Settings() {
   const [passwordError, setPasswordError] = useState('')
   const [passwordSuccess, setPasswordSuccess] = useState('')
   
-  const [portfolioTheme, setPortfolioTheme] = useState('light')
   const [deliveryTagColor, setDeliveryTagColor] = useState('purple')
   const [defaultGridCols, setDefaultGridCols] = useState('3')
   const [defaultShowExif, setDefaultShowExif] = useState('true')
@@ -140,7 +139,6 @@ export default function Settings() {
   useEffect(() => {
     if (!settingsData) return
     setSettings(settingsData)
-    setPortfolioTheme(settingsData['portfolio_theme'] || 'light')
     setDeliveryTagColor(settingsData['delivery_tag_color'] || 'purple')
     setDefaultGridCols(settingsData['default_grid_cols'] || '3')
     setDefaultShowExif(settingsData['default_show_exif'] || 'true')
@@ -169,7 +167,6 @@ export default function Settings() {
   const buildPayload = () => {
     // 알려진 키만 명시적으로 보냄 (레거시/미허용 키 spread 방지)
     const payload: Record<string, string> = {
-      portfolio_theme: portfolioTheme,
       delivery_tag_color: deliveryTagColor,
       default_grid_cols: defaultGridCols,
       default_show_exif: defaultShowExif,
@@ -501,28 +498,6 @@ export default function Settings() {
               </button>
             )
           })}
-        </div>
-      </div>
-
-      {/* 포트폴리오 테마 (작가 단위 — 사이트 다크모드와 별개) */}
-      <div className="border-b border-hair py-8">
-        <h3 className="t-eyebrow text-muted mb-6 flex items-center gap-2">
-          <Paintbrush className="w-4 h-4" strokeWidth={1.5} />
-          {t('settings.portfolioThemeDesc')}
-        </h3>
-        <div className="flex gap-3">
-          <button
-            onClick={() => setPortfolioTheme('light')}
-            className={`inline-flex items-center gap-1.5 px-4 py-2 text-sm border transition-colors ${portfolioTheme === 'light' ? 'bg-ink text-canvas border-ink' : 'border-hair hover:bg-canvas-2 text-muted hover:text-ink'}`}
-          >
-            <Sun size={14} strokeWidth={1.5} />{t('settings.themeLight')}
-          </button>
-          <button
-            onClick={() => setPortfolioTheme('dark')}
-            className={`inline-flex items-center gap-1.5 px-4 py-2 text-sm border transition-colors ${portfolioTheme === 'dark' ? 'bg-ink text-canvas border-ink' : 'border-hair hover:bg-canvas-2 text-muted hover:text-ink'}`}
-          >
-            <Moon size={14} strokeWidth={1.5} />{t('settings.themeDark')}
-          </button>
         </div>
       </div>
 

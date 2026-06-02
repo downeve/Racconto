@@ -1,23 +1,19 @@
 import { useState, useRef, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import { Sun, Moon } from 'lucide-react'
 import { Wordmark } from './Wordmark'
 import ThemeToggle from './ThemeToggle'
 
 /**
  * 공개 페이지 네비게이션. 색은 의미 토큰만(상위 [data-theme] 스코프가 자동 라이트/다크 매핑).
- * onToggleDark 가 있으면 우상단에 테마 토글 버튼 노출 (라벨은 호출자가 결정 — escape hatch 의미는 STEP 4-6 에서).
+ * 테마 토글(ThemeToggle)은 전역 사이트 테마를 전환 — 포트폴리오·랜딩·Explore 어디서나 동일.
  */
 export default function PublicNavbar({
-  username, compact, portfolio, onToggleDark, toggleLabel, showUsername, compactLogo, minimal,
+  username, compact, portfolio, showUsername, compactLogo, minimal,
 }: {
   username?: string
   compact?: boolean
   portfolio?: boolean
-  onToggleDark?: () => void
-  /** 토글 버튼 라벨 — undefined 면 기본 (Sun/Moon + themeBeige/themeDark) */
-  toggleLabel?: { icon: 'sun' | 'moon'; text: string }
   showUsername?: boolean
   compactLogo?: boolean
   minimal?: boolean
@@ -54,24 +50,7 @@ export default function PublicNavbar({
   const navBar = 'fixed top-0 left-0 right-0 z-50 backdrop-blur-sm border-b border-hair bg-canvas/90 transition-[background,color,border] duration-150 ease-out'
   const navLink = 'text-body md:text-h3 transition-[background,color,border] duration-150 ease-out text-muted hover:text-ink hover:font-bold'
 
-  const ToggleBtn = onToggleDark ? (
-    <button
-      onClick={onToggleDark}
-      aria-label="테마 토글"
-      className="inline-flex items-center gap-1 px-3 py-1 text-xs rounded-btn border border-hair text-muted hover:text-ink"
-    >
-      {toggleLabel ? (
-        <>
-          {toggleLabel.icon === 'sun'
-            ? <Sun size={12} strokeWidth={1.5} />
-            : <Moon size={12} strokeWidth={1.5} />}
-          {toggleLabel.text}
-        </>
-      ) : (
-        <><Moon size={12} strokeWidth={1.5} /> {t('settings.themeDark')}</>
-      )}
-    </button>
-  ) : null
+  const ToggleBtn = <ThemeToggle className="w-8 h-8" />
 
   if (portfolio) {
     return (
