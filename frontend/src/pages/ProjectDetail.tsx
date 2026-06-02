@@ -361,11 +361,13 @@ export default function ProjectDetail({
   })
   const numericId = project ? String(project.id) : null
 
-  const { data: photos = [] } = useQuery<Photo[]>({
+  const { data: photos = [], isLoading: photosLoading } = useQuery<Photo[]>({
     queryKey: ['photos', numericId],
     queryFn: async () => (await axios.get(`${API}/photos/?project_id=${numericId}`)).data,
     enabled: !!numericId,
   })
+  // project 로딩(numericId 부재) 또는 photos 로딩 중 — 빈 상태 노출 금지
+  const photosPending = !numericId || photosLoading
 
   const { data: trashedPhotos = [] } = useQuery<Photo[]>({
     queryKey: ['photosTrash', numericId],
@@ -1287,7 +1289,7 @@ export default function ProjectDetail({
                   ))}
                 </div>
 
-                {filteredPhotos.length === 0 && (
+                {filteredPhotos.length === 0 && !photosPending && (
                   <div className="text-center text-h3 py-20 text-muted">
                     {photos.length === 0
                       ? <><p className="mb-2">{t('photo.noPhotos')}</p></>
