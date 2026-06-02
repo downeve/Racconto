@@ -391,6 +391,8 @@ export default function Settings() {
               </div>
             </div>
 
+            <div className="w-px self-stretch bg-hair" />
+
             <div className="flex items-center gap-4">
               <span className="text-sm text-muted">{t('settings.defaultExif')}</span>
               <div className="flex gap-2">
