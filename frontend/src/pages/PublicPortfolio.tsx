@@ -735,11 +735,12 @@ export default function PublicPortfolio() {
         </div>
       )}
 
-      {/* 진행 hairline */}
+      {/* 진행 hairline — 로그아웃 시엔 상단 PublicNavbar(h-14, z-50)에 가리므로 navbar 아래로,
+          로그인 시엔 navbar 가 없어 최상단(top-0). 색은 ink 로 라이트/다크 양쪽 고대비. */}
       {selectedProject && (
-        <div className="fixed top-0 left-0 right-0 z-30 h-0.5 bg-transparent pointer-events-none">
+        <div className={`fixed left-0 right-0 z-30 h-0.5 bg-transparent pointer-events-none ${isAuthenticated ? 'top-0' : 'top-14'}`}>
           <div
-            className="h-full transition-[width] duration-150 bg-accent"
+            className="h-full transition-[width] duration-150 bg-ink"
             style={{ width: `${scrollProgress * 100}%` }}
           />
         </div>
