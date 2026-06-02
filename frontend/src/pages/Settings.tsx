@@ -481,15 +481,15 @@ export default function Settings() {
           {t('settings.themeTitle')}
         </h3>
         <p className="text-xs text-faint mb-5 ml-6">{t('settings.themeSystemDesc')}</p>
-        <div className="ml-6 inline-flex gap-0.5 border border-hair rounded-[1px] p-0.5">
+        <div className="ml-6 flex gap-2">
           {(['system', 'light', 'dark'] as const).map(opt => {
             const active = themePref === opt
             return (
               <button
                 key={opt}
                 onClick={() => setThemePref(opt)}
-                className={`px-4 py-1.5 text-sm transition-colors rounded-[1px] ${
-                  active ? 'bg-card text-ink shadow-sm' : 'text-muted hover:text-ink'
+                className={`px-4 py-1.5 text-xs font-medium transition-colors ${
+                  active ? 'bg-ink text-canvas' : 'bg-hair hover:bg-canvas-2 text-muted hover:text-ink'
                 }`}
               >
                 {opt === 'system' && t('settings.themeSystem')}
