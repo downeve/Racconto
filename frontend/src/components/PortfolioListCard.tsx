@@ -43,7 +43,7 @@ export default function PortfolioListCard({
   const aspect = ASPECT[mode]
   const subText  = 'text-muted'
   const faintTxt = 'text-faint'
-  const coverBg  = 'bg-canvas-3'
+  const coverBg  = 'bg-canvas-4'
 
   const inner = (
     <>
