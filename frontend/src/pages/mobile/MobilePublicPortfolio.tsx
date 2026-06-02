@@ -224,11 +224,11 @@ export default function MobilePublicPortfolio() {
       )}
 
       {/* 진행 hairline — 로그아웃 상세는 상단 PublicNavbar(h-14)가 있어 navbar 아래로,
-          로그인 상세는 navbar 없이 floating back 이라 최상단(top-0). 색은 ink 로 양 테마 고대비. */}
+          로그인 상세는 navbar 없이 floating back 이라 최상단(top-0). 색은 brand accent. */}
       {selectedProject && (
         <div className={`fixed left-0 right-0 z-30 h-0.5 bg-transparent pointer-events-none ${isAuthenticated ? 'top-0' : 'top-14'}`}>
           <div
-            className="h-full transition-[width] duration-200 bg-ink"
+            className="h-full transition-[width] duration-200 bg-accent"
             style={{ width: `${scrollProgress * 100}%` }}
           />
         </div>
