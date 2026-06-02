@@ -189,14 +189,14 @@ function StorySidebarContent({
                     aria-label="위로 이동"
                     className="px-0.5 py-0.5 t-caption text-edit-faint hover:text-edit-ink
                                disabled:opacity-20 transition-colors"
-                  >↑</button>
+                  >▲</button>
                   <button
                     onClick={() => handleMoveChapter(chapter.id, 'down')}
                     disabled={idx === mainChapters.length - 1}
                     aria-label="아래로 이동"
                     className="px-0.5 py-0.5 t-caption text-edit-faint hover:text-edit-ink
                                disabled:opacity-20 transition-colors"
-                  >↓</button>
+                  >▼</button>
                 </div>
               </div>
               {!isCollapsed && subChapters.length > 0 && (
@@ -228,14 +228,14 @@ function StorySidebarContent({
                           aria-label="위로 이동"
                           className="px-0.5 py-0.5 t-caption text-edit-faint hover:text-edit-ink
                                      disabled:opacity-20 transition-colors"
-                        >↑</button>
+                        >▲</button>
                         <button
                           onClick={() => handleMoveChapter(sub.id, 'down')}
                           disabled={subIdx === subChapters.length - 1}
                           aria-label="아래로 이동"
                           className="px-0.5 py-0.5 t-caption text-edit-faint hover:text-edit-ink
                                      disabled:opacity-20 transition-colors"
-                        >↓</button>
+                        >▼</button>
                       </div>
                     </div>
                   ))}
@@ -1103,13 +1103,13 @@ function ProjectStory({
                         disabled={idx === 0}
                         aria-label="위로 이동"
                         className="t-caption text-edit-muted hover:text-edit-ink disabled:opacity-30 transition-colors"
-                      >↑</button>
+                      >▲</button>
                       <button
                         onClick={() => handleMoveChapter(chapter.id, 'down')}
                         disabled={idx === chapters.filter(c => !c.parent_id).length - 1}
                         aria-label="아래로 이동"
                         className="t-caption text-edit-muted hover:text-edit-ink disabled:opacity-30 transition-colors"
-                      >↓</button>
+                      >▼</button>
                       <button
                         onClick={async () => { await flushPendingTextEdit(); setEditingChapter(chapter.id); setEditTitle(chapter.title); setEditDesc(chapter.description || '') }}
                         className="t-caption text-edit-muted hover:text-edit-ink transition-colors"
@@ -1280,13 +1280,13 @@ function ProjectStory({
                                 disabled={subIdx === 0}
                                 aria-label="위로 이동"
                                 className="t-caption text-edit-muted hover:text-edit-ink disabled:opacity-30 transition-colors"
-                              >↑</button>
+                              >▲</button>
                               <button
                                 onClick={() => handleMoveChapter(subChapter.id, 'down')}
                                 disabled={subIdx === subChapters.length - 1}
                                 aria-label="아래로 이동"
                                 className="t-caption text-edit-muted hover:text-edit-ink disabled:opacity-30 transition-colors"
-                              >↓</button>
+                              >▼</button>
                               <button
                                 onClick={async () => { await flushPendingTextEdit(); setEditingChapter(subChapter.id); setEditTitle(subChapter.title); setEditDesc(subChapter.description || '') }}
                                 className="t-caption text-edit-muted hover:text-edit-ink transition-colors"
