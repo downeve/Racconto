@@ -166,7 +166,7 @@ export default function StoryPreviewModal({
             {/* 슬라이드오버 패널 — 선택 테마를 data-theme 스코프로 시뮬레이션 */}
             <div
               data-theme={dm ? 'dark' : 'light'}
-              className={`fixed top-0 right-0 h-full z-[86] w-[min(896px,100vw)] bg-canvas text-ink shadow-2xl flex flex-col
+              className={`fixed top-0 right-0 h-full z-[86] w-[min(896px,100vw)] bg-canvas text-ink border-l border-hair-strong shadow-2xl flex flex-col
                 transition-transform duration-300 ease-out
                 ${chapterPreviewOpen ? 'translate-x-0' : 'translate-x-full'}`}
             >
