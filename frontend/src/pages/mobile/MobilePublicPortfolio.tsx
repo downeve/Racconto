@@ -39,7 +39,6 @@ export default function MobilePublicPortfolio() {
   const { isAuthenticated, user } = useAuth()
 
   const [localSelectedProject, setLocalSelectedProject] = useState<PortfolioProject | null>(null)
-  const [darkMode, setDarkMode] = useState(false)
 
   const enabled = !!username && username !== '@setup'
   const { data: portfolioData, isError: listError, isLoading: listLoading } = useQuery({
@@ -109,18 +108,7 @@ export default function MobilePublicPortfolio() {
     if (!isAuthenticated && username === '@setup') navigate('/', { replace: true })
   }, [isAuthenticated, username, navigate])
 
-  const applyTheme = useCallback((apiTheme: string) => {
-    const saved = localStorage.getItem(`portfolio_theme_${username}`)
-    setDarkMode(saved !== null ? saved === 'dark' : apiTheme === 'dark')
-  }, [username])
-
-  useEffect(() => {
-    if (portfolioData?.theme) applyTheme(portfolioData.theme)
-  }, [portfolioData, applyTheme])
-
-  useEffect(() => {
-    if (slugData?.theme) applyTheme(slugData.theme)
-  }, [slugData, applyTheme])
+  // 포트폴리오는 사이트 전역 테마(<html data-theme>)를 그대로 따른다.
 
   // 브라우저 탭 제목 — 개별 프로젝트면 프로젝트 제목, 작가 페이지면 @username
   useEffect(() => {
@@ -132,14 +120,6 @@ export default function MobilePublicPortfolio() {
     }
     return () => { document.title = original }
   }, [selectedProject, username])
-
-  const handleToggleDark = () => {
-    setDarkMode(prev => {
-      const next = !prev
-      if (username) localStorage.setItem(`portfolio_theme_${username}`, next ? 'dark' : 'light')
-      return next
-    })
-  }
 
   const openProject = (project: PortfolioProject) => {
     if (project.slug) {
@@ -215,16 +195,16 @@ export default function MobilePublicPortfolio() {
     })
   }, [lightboxIndex, lightboxItems])
 
-  const bg      = darkMode ? 'bg-d-bg text-d-hair'  : 'bg-canvas text-ink'
-  const subText = darkMode ? 'text-d-soft'           : 'text-muted'
-  const microcopy = darkMode ? 'text-d-faint'        : 'text-faint'
+  // 작가 테마 스코프에서 의미 토큰이 자동 라이트/다크 매핑.
+  const bg = 'bg-canvas text-ink'
+  const subText = 'text-muted'
+  const microcopy = 'text-faint'
 
   if (notFound) {
     return (
       <div className={`min-h-screen flex items-center justify-center ${bg}`}>
         <EmptyState
           heading={t('portfolio.notFound') || '포트폴리오를 찾을 수 없습니다.'}
-          darkMode={darkMode}
         />
       </div>
     )
@@ -233,23 +213,22 @@ export default function MobilePublicPortfolio() {
   return (
     <div className={`min-h-screen ${bg}`}>
 
-      {/* PublicNavbar — 목록·로그아웃 상세 모두 동일하게 미니멀(로고 + 다크토글)만.
+      {/* PublicNavbar — 목록·로그아웃 상세 모두 동일하게 미니멀(로고 + 전역 테마 토글)만.
           (로그인 상세는 navbar 없이 좌상단 floating back 사용) */}
       {(!isDetailRoute || !isAuthenticated) && (
         <PublicNavbar
-          darkMode={darkMode}
           portfolio
           compactLogo
           minimal
-          onToggleDark={handleToggleDark}
         />
       )}
 
-      {/* 진행 hairline */}
+      {/* 진행 hairline — 로그아웃 상세는 상단 PublicNavbar(h-14)가 있어 navbar 아래로,
+          로그인 상세는 navbar 없이 floating back 이라 최상단(top-0). 색은 brand accent. */}
       {selectedProject && (
-        <div className="fixed top-0 left-0 right-0 z-30 h-0.5 bg-transparent pointer-events-none">
+        <div className={`fixed left-0 right-0 z-30 h-0.5 bg-transparent pointer-events-none ${isAuthenticated ? 'top-0' : 'top-14'}`}>
           <div
-            className={`h-full transition-[width] duration-200 ${darkMode ? 'bg-d-accent' : 'bg-accent'}`}
+            className="h-full transition-[width] duration-200 bg-accent"
             style={{ width: `${scrollProgress * 100}%` }}
           />
         </div>
@@ -259,7 +238,7 @@ export default function MobilePublicPortfolio() {
           로그아웃 상세는 미니멀 navbar + 보조 행(@username)이 복귀를 담당하므로 미표시(로고 겹침 방지). */}
       {selectedProject && isAuthenticated && (() => {
         const fromExplore = (location.state as { from?: string } | null)?.from === '/explore'
-        const baseTheme = darkMode ? 'bg-d-bg/85 border-d-line' : 'bg-canvas/85 border-hair/60'
+        const baseTheme = 'bg-canvas/85 border-hair-strong'
         return (
           <button
             onClick={goBackToList}
@@ -282,7 +261,7 @@ export default function MobilePublicPortfolio() {
         <nav
           className={`fixed left-1/2 -translate-x-1/2 z-10 flex flex-row items-center gap-3 px-3 py-2
                        rounded-full border backdrop-blur-md transition-opacity duration-300
-                       ${darkMode ? 'bg-d-bg/85 border-d-line' : 'bg-canvas/85 border-hair/60'}`}
+                       bg-canvas/85 border-hair-strong`}
           style={{
             bottom: 'calc(env(safe-area-inset-bottom) + 24px)',
             opacity: isTouchingRail ? 1 : isScrolling ? 0.35 : 0.55,
@@ -297,9 +276,7 @@ export default function MobilePublicPortfolio() {
               key={ch.id}
               onClick={() => scrollToChapter(ch.id)}
               className={`w-[22px] h-[22px] rounded-full flex items-center justify-center text-[11px] font-medium transition-colors
-                          ${activeChapterId === ch.id
-                            ? darkMode ? 'bg-d-hair text-d-bg' : 'bg-ink text-canvas'
-                            : darkMode ? 'text-d-soft' : 'text-muted'}`}
+                          ${activeChapterId === ch.id ? 'bg-ink text-canvas' : 'text-muted'}`}
               aria-label={`${ch.title} 챕터로 이동`}
             >
               {i + 1}
@@ -326,11 +303,10 @@ export default function MobilePublicPortfolio() {
                   ? ` · ${projects.length} ${projects.length === 1 ? 'project' : 'projects'}`
                   : ''}`}
                 title={`@${username}`}
-                darkMode={darkMode}
-              />
+                    />
               {isAuthenticated && user?.username && user.username !== username && (
                 <div className="-mt-8 mb-8">
-                  <FollowButton username={username!} darkMode={darkMode} />
+                  <FollowButton username={username!} />
                 </div>
               )}
             </div>
@@ -345,12 +321,11 @@ export default function MobilePublicPortfolio() {
                   title={project.title}
                   location={project.location}
                   description={project.description}
-                  darkMode={darkMode}
-                />
+                        />
               ))}
               {/* 로딩 중에는 EmptyState 를 띄우지 않음 — 첫 접근 시 빈 상태 깜빡임 방지 */}
               {projects.length === 0 && !listLoading && (
-                <EmptyState heading={t('portfolio.noPublicProjects')} darkMode={darkMode} />
+                <EmptyState heading={t('portfolio.noPublicProjects')} />
               )}
             </div>
           </>
@@ -366,11 +341,11 @@ export default function MobilePublicPortfolio() {
                     {selectedProject.location}
                   </span>
                 )}
-                {selectedProject.location && <span className="w-[3px] h-[3px] rounded-full bg-faint dark:bg-d-faint" />}
+                {selectedProject.location && <span className="w-[3px] h-[3px] rounded-full bg-faint" />}
                 <span>{selectedProject.chapters.length} chapters</span>
                 {typeof selectedProject.view_count === 'number' && (
                   <>
-                    <span className="w-[3px] h-[3px] rounded-full bg-faint dark:bg-d-faint" />
+                    <span className="w-[3px] h-[3px] rounded-full bg-faint" />
                     <span>{selectedProject.view_count.toLocaleString()} {t('portfolio.views')}</span>
                   </>
                 )}
@@ -399,10 +374,10 @@ export default function MobilePublicPortfolio() {
                       {/* 챕터 헤더 — oversized number + hairline + serif title */}
                       <header className="mb-8">
                         <div className="flex items-baseline gap-3.5 mb-3.5">
-                          <span className={`font-serif text-[44px] font-light tracking-[-0.04em] leading-none ${darkMode ? 'text-d-accent' : 'text-accent'}`}>
+                          <span className={`font-serif text-[44px] font-light tracking-[-0.04em] leading-none text-accent`}>
                             {String(idx + 1).padStart(2, '0')}
                           </span>
-                          <div className={`flex-1 h-px ${darkMode ? 'bg-d-line' : 'bg-hair'}`} />
+                          <div className={`flex-1 h-px bg-hair-strong`} />
                         </div>
                         <h2 className="font-serif text-[24px] leading-[1.12] tracking-[-0.015em] font-normal [word-break:keep-all]">
                           {chapter.title}
@@ -418,8 +393,7 @@ export default function MobilePublicPortfolio() {
                       <MobilePortfolioChapterItems
                         items={chapter.items || []}
                         allLightboxItems={allChapterItems}
-                        darkMode={darkMode}
-                        onLightbox={openLightbox}
+                                      onLightbox={openLightbox}
                       />
 
                       {/* 서브챕터 */}
@@ -437,8 +411,7 @@ export default function MobilePublicPortfolio() {
                           <MobilePortfolioChapterItems
                             items={sub.items || []}
                             allLightboxItems={allChapterItems}
-                            darkMode={darkMode}
-                            onLightbox={openLightbox}
+                                              onLightbox={openLightbox}
                           />
                         </div>
                       ))}
@@ -447,22 +420,18 @@ export default function MobilePublicPortfolio() {
                 })}
               </div>
             ) : (
-              <EmptyState heading={t('portfolio.noChapters')} darkMode={darkMode} />
+              <EmptyState heading={t('portfolio.noChapters')} />
             )}
 
             {/* 공유 버튼 */}
-            <div className={`mt-20 pt-8 border-t ${darkMode ? 'border-d-line' : 'border-hair'}`}>
+            <div className={`mt-20 pt-8 border-t border-hair`}>
               <p className={`t-eyebrow mb-5 ${microcopy}`}>{t('portfolio.share')}</p>
               <div className="flex flex-wrap gap-2">
                 <>
                   <button
                     title="Facebook"
                     onClick={() => openShareUrl(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(getShareUrl())}`)}
-                    className={`inline-flex items-center gap-2 px-3 py-2 rounded-btn border t-caption transition-colors duration-150 ${
-                      darkMode
-                        ? 'border-d-line text-d-faint hover:text-d-hair hover:border-d-soft'
-                        : 'border-hair text-faint hover:text-ink-2 hover:border-faint'
-                    }`}
+                    className="inline-flex items-center gap-2 px-3 py-2 rounded-btn border t-caption transition-colors duration-150 border-hair text-faint hover:text-ink-2 hover:border-hair-strong"
                   >
                     <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
                       <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
@@ -471,11 +440,7 @@ export default function MobilePublicPortfolio() {
                   <button
                     title="X"
                     onClick={() => openShareUrl(`https://twitter.com/intent/tweet?url=${encodeURIComponent(getShareUrl())}&text=${encodeURIComponent(selectedProject.title)}`)}
-                    className={`inline-flex items-center gap-2 px-3 py-2 rounded-btn border t-caption transition-colors duration-150 ${
-                      darkMode
-                        ? 'border-d-line text-d-faint hover:text-d-hair hover:border-d-soft'
-                        : 'border-hair text-faint hover:text-ink-2 hover:border-faint'
-                    }`}
+                    className="inline-flex items-center gap-2 px-3 py-2 rounded-btn border t-caption transition-colors duration-150 border-hair text-faint hover:text-ink-2 hover:border-hair-strong"
                   >
                     <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
                       <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.744l7.737-8.835L1.254 2.25H8.08l4.259 5.632 5.905-5.632zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
@@ -485,8 +450,8 @@ export default function MobilePublicPortfolio() {
                     onClick={handleCopyLink}
                     className={`inline-flex items-center gap-2 px-3 py-2 rounded-btn border t-caption transition-colors duration-150 ${
                       copied
-                        ? darkMode ? 'border-d-soft text-d-hair' : 'border-faint text-ink-2'
-                        : darkMode ? 'border-d-line text-d-faint hover:text-d-hair hover:border-d-soft' : 'border-hair text-faint hover:text-ink-2 hover:border-faint'
+                        ? 'border-hair-strong text-ink-2'
+                        : 'border-hair text-faint hover:text-ink-2 hover:border-hair-strong'
                     }`}
                   >
                     {copied ? <Check size={12} strokeWidth={2} /> : <Link2 size={12} strokeWidth={1.5} />}
@@ -500,7 +465,6 @@ export default function MobilePublicPortfolio() {
               <div style={{ paddingBottom: 'calc(env(safe-area-inset-bottom) + 48px)' }}>
                 <PortfolioComments
                   projectId={selectedProject.id}
-                  darkMode={darkMode}
                   isAuthenticated={isAuthenticated}
                   currentUsername={user?.username}
                   portfolioOwnerUsername={username ?? ''}
@@ -514,19 +478,20 @@ export default function MobilePublicPortfolio() {
       {/* Lightbox — filmstrip (Phase 4 mobile) */}
       {lightboxIndex !== null && lightboxItems[lightboxIndex] && (
         <div
+          data-theme="dark"
           className="fixed inset-0 bg-scrim z-50 flex flex-col"
           style={{ paddingTop: 'env(safe-area-inset-top)', paddingBottom: 'env(safe-area-inset-bottom)' }}
         >
-          {/* 상단: 닫기 + italic 캡션 */}
+          {/* 상단: 닫기 + italic 캡션 — STEP 7: 라이트박스 항상 다크 고정 */}
           <div className="flex items-center justify-between px-4 shrink-0 h-11">
             <button
               aria-label="닫기"
               onClick={() => setLightboxIndex(null)}
               className="min-w-[44px] min-h-[44px] flex items-center justify-center"
             >
-              <X size={20} strokeWidth={1.5} className="text-d-faint" />
+              <X size={20} strokeWidth={1.5} className="text-muted" />
             </button>
-            <span className="font-serif italic text-[13px] text-d-faint/70 text-center px-2 truncate flex-1">
+            <span className="font-serif italic text-[13px] text-muted text-center px-2 truncate flex-1">
               {lightboxItems[lightboxIndex].photo.caption || lightboxItems[lightboxIndex].title}
             </span>
             <div className="w-[44px]" />

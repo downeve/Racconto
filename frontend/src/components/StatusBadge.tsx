@@ -5,7 +5,9 @@ import { useTranslation } from 'react-i18next'
 const STATUS_CLS: Record<string, string> = {
   in_progress: 'bg-badge-progress-bg text-badge-progress-fg',
   completed:   'bg-badge-done-bg text-badge-done-fg',
-  published:   'bg-badge-pub-bg text-badge-pub-fg',
+  // published 는 solid 잉크 배지. pub-bg(고정 0.18)는 다크 canvas 에 묻히므로 테마 반응
+  // 토큰(ink/canvas)으로 — 라이트=어두운 배지+밝은 글자, 다크=밝은 배지+어두운 글자(반전).
+  published:   'bg-ink text-canvas',
   archived:    'bg-badge-arch-bg text-badge-arch-fg',
 }
 

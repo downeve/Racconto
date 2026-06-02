@@ -4,9 +4,10 @@ import axios from 'axios'
 import { useTranslation } from 'react-i18next'
 import FolderProjectMapper from '../components/FolderProjectMapper'
 import { useAuth } from '../context/AuthContext'
+import { useTheme } from '../theme/ThemeProvider'
 import { imeSafeClick } from '../utils/imeSafeClick'
 import {
-  Sun, Moon, Check,
+  Check,
   Palette, Columns3, Paintbrush, Tag, Lock, UserCircle,
 } from 'lucide-react'
 
@@ -50,7 +51,6 @@ export default function Settings() {
   const [passwordError, setPasswordError] = useState('')
   const [passwordSuccess, setPasswordSuccess] = useState('')
   
-  const [portfolioTheme, setPortfolioTheme] = useState('light')
   const [deliveryTagColor, setDeliveryTagColor] = useState('purple')
   const [defaultGridCols, setDefaultGridCols] = useState('3')
   const [defaultShowExif, setDefaultShowExif] = useState('true')
@@ -79,6 +79,7 @@ export default function Settings() {
 
   const { logout } = useAuth()
   const { t, i18n } = useTranslation()
+  const { pref: themePref, setPref: setThemePref } = useTheme()
 
   const handlePasswordChange = async () => {
     setPasswordError('')
@@ -138,7 +139,6 @@ export default function Settings() {
   useEffect(() => {
     if (!settingsData) return
     setSettings(settingsData)
-    setPortfolioTheme(settingsData['portfolio_theme'] || 'light')
     setDeliveryTagColor(settingsData['delivery_tag_color'] || 'purple')
     setDefaultGridCols(settingsData['default_grid_cols'] || '3')
     setDefaultShowExif(settingsData['default_show_exif'] || 'true')
@@ -167,7 +167,6 @@ export default function Settings() {
   const buildPayload = () => {
     // 알려진 키만 명시적으로 보냄 (레거시/미허용 키 spread 방지)
     const payload: Record<string, string> = {
-      portfolio_theme: portfolioTheme,
       delivery_tag_color: deliveryTagColor,
       default_grid_cols: defaultGridCols,
       default_show_exif: defaultShowExif,
@@ -392,6 +391,8 @@ export default function Settings() {
               </div>
             </div>
 
+            <div className="w-px self-stretch bg-hair" />
+
             <div className="flex items-center gap-4">
               <span className="text-sm text-muted">{t('settings.defaultExif')}</span>
               <div className="flex gap-2">
@@ -475,25 +476,30 @@ export default function Settings() {
         </div>
       </div>
 
-      {/* 포트폴리오 테마 */}
+      {/* 사이트 전역 테마 (다크모드) */}
       <div className="border-b border-hair py-8">
-        <h3 className="t-eyebrow text-muted mb-6 flex items-center gap-2">
+        <h3 className="t-eyebrow text-muted mb-2 flex items-center gap-2">
           <Paintbrush className="w-4 h-4" strokeWidth={1.5} />
-          {t('settings.portfolioThemeDesc')}
+          {t('settings.themeTitle')}
         </h3>
-        <div className="flex gap-3">
-          <button
-            onClick={() => setPortfolioTheme('light')}
-            className={`inline-flex items-center gap-1.5 px-4 py-2 text-sm border transition-colors ${portfolioTheme === 'light' ? 'bg-ink text-canvas border-ink' : 'border-hair hover:bg-canvas-2 text-muted hover:text-ink'}`}
-          >
-            <Sun size={14} strokeWidth={1.5} />{t('settings.themeLight')}
-          </button>
-          <button
-            onClick={() => setPortfolioTheme('dark')}
-            className={`inline-flex items-center gap-1.5 px-4 py-2 text-sm border transition-colors ${portfolioTheme === 'dark' ? 'bg-ink text-canvas border-ink' : 'border-hair hover:bg-canvas-2 text-muted hover:text-ink'}`}
-          >
-            <Moon size={14} strokeWidth={1.5} />{t('settings.themeDark')}
-          </button>
+        <p className="text-xs text-faint mb-5 ml-6">{t('settings.themeSystemDesc')}</p>
+        <div className="ml-6 flex gap-2">
+          {(['system', 'light', 'dark'] as const).map(opt => {
+            const active = themePref === opt
+            return (
+              <button
+                key={opt}
+                onClick={() => setThemePref(opt)}
+                className={`px-4 py-1.5 text-xs font-medium transition-colors ${
+                  active ? 'bg-ink text-canvas' : 'bg-hair hover:bg-canvas-2 text-muted hover:text-ink'
+                }`}
+              >
+                {opt === 'system' && t('settings.themeSystem')}
+                {opt === 'light' && t('settings.themeLight')}
+                {opt === 'dark' && t('settings.themeDark')}
+              </button>
+            )
+          })}
         </div>
       </div>
 

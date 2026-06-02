@@ -22,7 +22,6 @@ interface CommentItem {
 
 interface Props {
   projectId: string
-  darkMode: boolean
   isAuthenticated: boolean
   currentUsername?: string
   portfolioOwnerUsername: string
@@ -31,7 +30,7 @@ interface Props {
 const tokenKey = (commentId: string) => `racconto_comment_token_${commentId}`
 
 export default function PortfolioComments({
-  projectId, darkMode, isAuthenticated, currentUsername,
+  projectId, isAuthenticated, currentUsername,
 }: Props) {
   const { t, i18n } = useTranslation()
   const queryClient = useQueryClient()
@@ -165,21 +164,13 @@ export default function PortfolioComments({
     return false
   }
 
-  // ── style helpers ────────────────────────────────────────────────────
-  const border = darkMode ? 'border-d-line' : 'border-hair'
-  const microcopy = darkMode ? 'text-d-faint' : 'text-faint'
-  const subText = darkMode ? 'text-d-soft' : 'text-muted'
-  const textInk = darkMode ? 'text-d-hair' : 'text-ink'
-  const inputClass = `w-full px-3 py-2 text-sm rounded-btn border bg-transparent outline-none transition-colors duration-150 ${
-    darkMode
-      ? 'border-d-line text-d-hair placeholder:text-d-faint/70 focus:border-d-soft'
-      : 'border-hair text-ink placeholder:text-faint focus:border-ink-2'
-  }`
-  const submitBtnClass = `px-4 py-2 text-sm rounded-btn border transition-colors duration-150 ${
-    darkMode
-      ? 'border-d-soft text-d-hair hover:bg-d-hair hover:text-d-bg disabled:opacity-40 disabled:hover:bg-transparent disabled:hover:text-d-hair'
-      : 'border-ink text-ink hover:bg-ink hover:text-canvas disabled:opacity-40 disabled:hover:bg-transparent disabled:hover:text-ink'
-  }`
+  // ── style helpers — 의미 토큰만(상위 [data-theme] 스코프가 자동 라이트/다크 매핑) ──
+  const border = 'border-hair'
+  const microcopy = 'text-faint'
+  const subText = 'text-muted'
+  const textInk = 'text-ink'
+  const inputClass = 'w-full px-3 py-2 text-sm rounded-btn border bg-transparent outline-none transition-colors duration-150 border-hair text-ink placeholder:text-faint focus:border-ink-2'
+  const submitBtnClass = 'px-4 py-2 text-sm rounded-btn border transition-colors duration-150 border-ink text-ink hover:bg-ink hover:text-canvas disabled:opacity-40 disabled:hover:bg-transparent disabled:hover:text-ink'
 
   const fmt = (iso: string | null) => {
     if (!iso) return ''
@@ -208,9 +199,7 @@ export default function PortfolioComments({
       <div className="flex items-center gap-2 mb-1.5 flex-wrap">
         <span className={`text-small font-medium ${textInk}`}>{c.author_name}</span>
         {c.author_is_owner && (
-          <span className={`t-eyebrow px-1.5 py-0.5 border rounded-[1px] ${
-            darkMode ? 'border-d-line text-d-soft' : 'border-hair text-muted'
-          }`}>
+          <span className="t-eyebrow px-1.5 py-0.5 border rounded-[1px] border-hair text-muted">
             {t('portfolio.commentAuthor')}
           </span>
         )}
@@ -219,9 +208,7 @@ export default function PortfolioComments({
           {opts.showReplyButton && !c.is_deleted && (
             <button
               onClick={() => openReplyForm(c.id)}
-              className={`inline-flex items-center gap-1 t-caption transition-colors ${
-                darkMode ? 'text-d-faint hover:text-d-hair' : 'text-faint hover:text-ink-2'
-              }`}
+              className="inline-flex items-center gap-1 t-caption transition-colors text-faint hover:text-ink-2"
             >
               <MessageCircle size={11} strokeWidth={1.5} />
               {t('portfolio.commentReply')}
@@ -230,9 +217,7 @@ export default function PortfolioComments({
           {canDelete(c) && (
             <button
               onClick={() => handleDelete(c)}
-              className={`inline-flex items-center gap-1 t-caption transition-colors ${
-                darkMode ? 'text-d-faint hover:text-d-hair' : 'text-faint hover:text-ink-2'
-              }`}
+              className="inline-flex items-center gap-1 t-caption transition-colors text-faint hover:text-ink-2"
               aria-label={t('portfolio.commentDelete')}
             >
               <Trash2 size={11} strokeWidth={1.5} />
@@ -280,9 +265,7 @@ export default function PortfolioComments({
           <div className="flex items-center gap-2">
             <button
               onClick={cancelReply}
-              className={`px-3 py-2 text-sm rounded-btn border transition-colors ${
-                darkMode ? 'border-d-line text-d-soft hover:text-d-hair' : 'border-hair text-muted hover:text-ink-2'
-              }`}
+              className="px-3 py-2 text-sm rounded-btn border transition-colors border-hair text-muted hover:text-ink-2"
             >
               {t('common.cancel')}
             </button>

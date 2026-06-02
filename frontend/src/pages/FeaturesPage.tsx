@@ -242,7 +242,7 @@ export default function FeaturesPage() {
             {t('landing.alreadyHaveAccount')}{' '}
             <Link
               to="/login"
-              className="text-d-soft hover:text-canvas underline underline-offset-2"
+              className="text-canvas/70 hover:text-canvas underline underline-offset-2"
             >
               {t('auth.login')}
             </Link>

@@ -22,8 +22,6 @@ interface PortfolioListCardProps {
   tags?: string[]
   /** Portfolio 전용 — 2-line clamp · 데스크톱만 표시 */
   description?: string | null
-  /** Portfolio 전용 — 다크 모드 토큰 적용 */
-  darkMode?: boolean
   /** Explore 전용 — 태그 칩 클릭 시 필터 적용 핸들러 */
   onTagClick?: (tag: string) => void
   /** react-router Link 의 state — 진입 referrer 등 전달용 */
@@ -39,12 +37,13 @@ const ASPECT: Record<Mode, string> = {
 export default function PortfolioListCard({
   mode, href, onClick, coverImageUrl, title,
   author, location, cameraType, tags, description,
-  darkMode = false, onTagClick, linkState,
+  onTagClick, linkState,
 }: PortfolioListCardProps) {
+  // 색은 의미 토큰만(상위 [data-theme] 스코프가 자동 라이트/다크 매핑).
   const aspect = ASPECT[mode]
-  const subText  = darkMode ? 'text-d-soft'  : 'text-muted'
-  const faintTxt = darkMode ? 'text-d-faint' : 'text-faint'
-  const coverBg  = darkMode ? 'bg-d-surface' : 'bg-placeholder'
+  const subText  = 'text-muted'
+  const faintTxt = 'text-faint'
+  const coverBg  = 'bg-canvas-4'
 
   const inner = (
     <>
@@ -59,7 +58,7 @@ export default function PortfolioListCard({
             className="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-[1.02]"
           />
         ) : (
-          <CoverFallback title={title} dark={darkMode} />
+          <CoverFallback title={title} />
         )}
       </div>
 

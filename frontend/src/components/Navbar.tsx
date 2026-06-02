@@ -1,6 +1,7 @@
 import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router-dom'
 import { Wordmark } from './Wordmark'
+import ThemeToggle from './ThemeToggle'
 
 interface NavbarProps {
   onLogout: () => void
@@ -20,6 +21,7 @@ export default function Navbar({ onLogout }: NavbarProps) {
           >
             {t('explore.menu', 'Explore')}
           </Link>
+          <ThemeToggle />
           <button
             onClick={onLogout}
             className="text-small tracking-wider text-faint hover:text-accent hover:underline"

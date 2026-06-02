@@ -23,7 +23,7 @@ export default function ProjectCard({ project }: { project: Project }) {
   return (
     <Link to={`/projects/${project.slug || project.id}`}>
       <div className="bg-card rounded-card shadow hover:shadow transition-shadow overflow-hidden">
-        <div className="h-48 bg-hair flex items-center justify-center">
+        <div className="h-48 bg-canvas-4 flex items-center justify-center">
           {project.cover_image_url ? (
             <img
               src={cfUrl(project.cover_image_url, 'grid')}

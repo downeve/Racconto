@@ -4,6 +4,10 @@ import colors from 'tailwindcss/colors'
 const o = (c) => ({ opacityValue }) =>
   opacityValue !== undefined ? c.replace(')', ` / ${opacityValue})`) : c
 
+// 테마 토큰(CSS 변수 채널) → 색. `<alpha-value>` 가 Tailwind opacity 유틸과 호환.
+// 변수 값은 "L C H" 세 숫자 채널이어야 함 (index.css 의 --rc-* 정의 참조).
+const ch = (v) => `oklch(${v} / <alpha-value>)`
+
 /** @type {import('tailwindcss').Config} */
 export default {
   content: [
@@ -22,41 +26,40 @@ export default {
         // 기존 *-gray-*/*-stone-* 클래스가 명암 단계는 유지한 채 warm 제거(무채색)됨.
         gray: colors.neutral,
         stone: colors.neutral,
-        canvas:    o('oklch(0.928 0.007 88.6)'),  // 갤러리 중성 배경 (was 따뜻 크림)
-        'canvas-2': o('oklch(0.958 0.005 95.1)'), // 모달·카드 (중성 off-white)
-        'canvas-3': o('oklch(0.945 0.005 90)'),   // 중간 밴드 (미사용, 중성)
-        'canvas-4': o('oklch(0.905 0.007 88)'),   // Secondary hover, 한 단계 어두운 면
-        'secondary-border': '#D6D3D1',  // Secondary 버튼 Hover border
-        card: o('oklch(0.976 0.004 91.4)'),       // 카드·시트 (중성 off-white)
-        ink:       o('oklch(0.218 0.004 84.6)'),  // 제목 및 강조 (중성)
-        'ink-2':   o('oklch(0.342 0.006 78.3)'),  // 본문 (중성)
-        muted:     o('oklch(0.531 0.008 88.7)'),  // 보조 텍스트 (AA canvas ≈5.3:1)
-        faint:     o('oklch(0.735 0.009 91.5)'),  // 메타·placeholder 장식 (중성)
-        hair:      o('oklch(0.90 0.006 88)'),      // 구분선 (hue 중성, L 유지)
-        accent:    o('oklch(0.50 0.085 55)'),     // 테라코타 — 변경 금지 (행동/상태 전용)
-        'accent-soft': o('oklch(0.933 0.012 59.6)'), // 활성 필터칩 틴트 배경
+        // 표면·잉크·강조 — index.css 의 --rc-* 변수를 참조 (라이트/다크 자동 스왑).
+        // 값을 직접 박지 않고 채널 변수를 ch() 로 감싸 opacity 유틸 호환을 유지.
+        canvas:      ch('var(--rc-canvas)'),
+        'canvas-2':  ch('var(--rc-canvas-2)'),
+        'canvas-3':  ch('var(--rc-canvas-3)'),
+        'canvas-4':  ch('var(--rc-canvas-4)'),
+        'secondary-border': '#D6D3D1',  // Secondary 버튼 Hover border (raw — STEP 5-B 정리 예정)
+        card:        ch('var(--rc-card)'),
+        ink:         ch('var(--rc-ink)'),
+        'ink-2':     ch('var(--rc-ink-2)'),
+        muted:       ch('var(--rc-muted)'),
+        faint:       ch('var(--rc-faint)'),
+        accent:      ch('var(--rc-accent)'),
+        'accent-2':  ch('var(--rc-accent-2)'),
+        // alpha 가 변수에 박힌 토큰 — opacity 유틸 미사용 전제 (그래서 ch() 안 씌움)
+        'accent-soft': 'var(--rc-accent-soft)',
+        hair:          'var(--rc-hair)',
+        'hair-strong': 'var(--rc-hair-strong)',
         // (dead 'lightbox' 색 토큰 제거 — scrim 으로 대체. z-index 'lightbox' 는 별개로 유지)
-        // 다크 모드 — warm taupe
-        'd-bg':      o('oklch(0.196 0.003 67.7)'), // 다크 중성 배경 (was warm)
-        'd-surface': o('oklch(0.231 0.004 84.6)'), // 다크 카드/패널 (중성)
-        'd-line':    o('oklch(0.325 0.009 88.7)'), // 다크 구분선 (중성)
-        'd-faint':   o('oklch(0.651 0.009 84.6)'), // 다크 microcopy (AA d-bg)
-        'd-soft':    o('oklch(0.783 0.009 84.6)'), // 다크 secondary body (중성)
-        'd-hair':    o('oklch(0.94 0.005 88)'),    // 다크 body (hue 중성)
-        // 편집기 전용 의미 토큰 (ProjectStory / StoryBlocks)
-        'edit-canvas':      o('oklch(0.928 0.007 88.6)'), // 편집 배경 (= canvas 중성)
-        'edit-canvas-2':    o('oklch(0.945 0.005 90)'),   // canvas 위 hover (중성)
-        'edit-paper':       o('oklch(0.976 0.004 91.4)'), // 편집 sheet (= card 중성)
-        'edit-paper-2':     o('oklch(0.982 0.003 91)'),   // sheet 위 hover (중성)
-        'edit-line':        o('oklch(0.88 0.006 88)'),    // hue 중성, L 유지
-        'edit-line-strong': o('oklch(0.78 0.007 88)'),
-        'edit-ink':         o('oklch(0.218 0.004 84.6)'), // = ink 중성
-        'edit-muted':       o('oklch(0.531 0.008 88.7)'), // = muted 중성
-        'edit-faint':       o('oklch(0.72 0.007 90)'),    // hue 중성, L 유지
-        'edit-accent':      o('oklch(0.50 0.085 55)'),  // = warm accent (쿨블루 통일)
-        'edit-danger':      o('oklch(0.50 0.15 25)'),
+        // (d-* 다크 전용 토큰 retire 완료 — STEP 4·5 에서 전부 [data-theme] 의미 토큰으로 이행)
+        // 편집기 전용 의미 토큰 — index.css 의 --rc-edit-* 참조 (라이트/다크 자동 스왑).
+        'edit-canvas':      ch('var(--rc-edit-canvas)'),
+        'edit-canvas-2':    ch('var(--rc-edit-canvas-2)'),
+        'edit-paper':       ch('var(--rc-edit-paper)'),
+        'edit-paper-2':     ch('var(--rc-edit-paper-2)'),
+        'edit-line':        ch('var(--rc-edit-line)'),
+        'edit-line-strong': ch('var(--rc-edit-line-strong)'),
+        'edit-ink':         ch('var(--rc-edit-ink)'),
+        'edit-muted':       ch('var(--rc-edit-muted)'),
+        'edit-faint':       ch('var(--rc-edit-faint)'),
+        'edit-accent':      ch('var(--rc-edit-accent)'),
+        'edit-danger':      o('oklch(0.50 0.15 25)'),   // 의미 고정색 (테마 무관)
         'edit-warning':     o('oklch(0.62 0.13 75)'),
-        'edit-drop':        o('oklch(0.95 0.03 55)'),   // warm 드롭 틴트
+        'edit-drop':        o('oklch(0.95 0.03 55)'),   // 드롭 틴트 (라이트 기준 — 드물게 노출)
 
         // 컬러 라벨 5종 (동일 채도/명도 곡선)
         'label-red':        o('oklch(0.62 0.16 25)'),
@@ -71,7 +74,6 @@ export default {
         // 인프라 토큰
         placeholder: o('oklch(0.91 0.006 88)'),     // 스켈레톤·이미지 자리 (중성)
         scrim:       'oklch(0.12 0.012 60 / 0.98)', // 라이트박스 배경
-        'd-accent':  o('oklch(0.669 0.094 54.3)'),  // 다크 전용 warm accent (유지·밝게)
         // 상태 뱃지 (bg/fg 쌍) — StatusBadge 전용
         badge: {
           'progress-bg': 'oklch(0.93 0.03 55)',   'progress-fg': 'oklch(0.46 0.09 55)',

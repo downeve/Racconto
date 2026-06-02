@@ -11,7 +11,8 @@ SETTING_VALUE_MAX_LEN = 5000
 # 허용된 setting 키 (M7) — 클라이언트가 임의 키를 만들지 못하도록 화이트리스트.
 # 새 설정 추가 시 여기에 명시.
 _ALLOWED_SETTING_KEYS: set[str] = {
-    "portfolio_theme",       # 'light' | 'dark'
+    "theme_pref",            # 'system' | 'light' | 'dark' — 전역 다크모드 선호 (사이트 단위)
+    "portfolio_theme",       # 'light' | 'dark' — 포트폴리오 작가 테마 (별개)
     "delivery_tag_color",    # 컬러 레이블 키
     "default_grid_cols",     # '1' | '2' | '3'
     "default_show_exif",     # 'true' | 'false'
@@ -25,12 +26,20 @@ _ALLOWED_SETTING_KEYS: set[str] = {
     "color_label_purple",
 }
 
+# 키별 허용 값(enum) — 미지정 키는 자유 문자열(길이만 제한).
+_SETTING_VALUE_ENUMS: dict[str, set[str]] = {
+    "theme_pref": {"system", "light", "dark"},
+}
+
 
 def _validate_setting(key: str, value: str):
     if key not in _ALLOWED_SETTING_KEYS:
         raise HTTPException(status_code=400, detail=f"SETTING_KEY_NOT_ALLOWED: {key}")
     if len(value) > SETTING_VALUE_MAX_LEN:
         raise HTTPException(status_code=400, detail=f"SETTING_VALUE_TOO_LONG: {key}")
+    enum_values = _SETTING_VALUE_ENUMS.get(key)
+    if enum_values is not None and value not in enum_values:
+        raise HTTPException(status_code=400, detail=f"INVALID_SETTING_VALUE: {key}")
 
 router = APIRouter(prefix="/settings", tags=["settings"])
 

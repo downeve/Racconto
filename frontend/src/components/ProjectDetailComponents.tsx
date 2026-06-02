@@ -142,10 +142,11 @@ export function Lightbox({
   const [hoverRating, setHoverRating] = useState<{ id: string; star: number } | null>(null)
   const [rotating, setRotating] = useState(false)
 
-  // chip vocabulary
+  // chip vocabulary — 라이트박스는 항상 다크(bg-black). data-theme="dark" 스코프 안에서
+  // ink 계열이 밝은 전경으로 렌더된다.
   const chipBase = "inline-flex items-center gap-1.5 t-caption px-3 py-1.5 rounded-[1px] border transition-colors duration-150"
-  const chipIdle = "border-edit-paper/30 text-edit-paper/80 hover:text-edit-paper hover:border-edit-paper/60"
-  const chipActive = "border-edit-paper/50 text-edit-paper bg-edit-paper/5"
+  const chipIdle = "border-ink/30 text-ink/80 hover:text-ink hover:border-ink/60"
+  const chipActive = "border-ink/50 text-ink bg-ink/10"
 
   useEffect(() => {
     setShowNotePanel(false)
@@ -195,7 +196,7 @@ export function Lightbox({
   }
 
   return (
-    <div className="fixed inset-0 bg-black/90 z-lightbox flex flex-col" onClick={onClose}>
+    <div data-theme="dark" className="fixed inset-0 bg-black/90 z-lightbox flex flex-col" onClick={onClose}>
 
       {/* 상단 바 */}
       <div
@@ -230,8 +231,8 @@ export function Lightbox({
                   <Star size={14} strokeWidth={1.25}
                     className={`transition-colors ${
                       isHoveredStar ? 'fill-label-yellow text-label-yellow' :
-                      isRatedStar   ? 'fill-edit-paper text-edit-paper' :
-                                       'text-edit-paper/40'
+                      isRatedStar   ? 'fill-ink text-ink' :
+                                       'text-ink/40'
                     }`}
                   />
                 </button>
@@ -239,7 +240,7 @@ export function Lightbox({
             })}
           </div>
 
-          <div className="w-px h-3 bg-edit-paper/15" />
+          <div className="w-px h-3 bg-ink/15" />
 
           {/* 컬러 라벨 */}
           <div className="flex gap-1.5">
@@ -257,7 +258,7 @@ export function Lightbox({
             ))}
           </div>
 
-          <div className="w-px h-3 bg-edit-paper/15" />
+          <div className="w-px h-3 bg-ink/15" />
 
           {/* 챕터 */}
           <div className="flex items-center" onClick={e => e.stopPropagation()}>
@@ -269,7 +270,7 @@ export function Lightbox({
             </button>
           </div>
 
-          <div className="w-px h-3 bg-edit-paper/15" />
+          <div className="w-px h-3 bg-ink/15" />
 
           {/* 노트 */}
           <button
@@ -279,7 +280,7 @@ export function Lightbox({
             <FileText size={13} strokeWidth={1.5} />{t('note.title')}
           </button>
 
-          <div className="w-px h-3 bg-edit-paper/15" />
+          <div className="w-px h-3 bg-ink/15" />
 
           {/* 회전 */}
           <div className="flex items-center gap-1">
@@ -291,7 +292,7 @@ export function Lightbox({
               }}
               disabled={rotating}
               title={t('photo.rotateLeft')}
-              className={`${chipBase} ${rotating ? 'border-edit-paper/10 text-edit-paper/30 cursor-not-allowed' : chipIdle}`}
+              className={`${chipBase} ${rotating ? 'border-ink/10 text-ink/30 cursor-not-allowed' : chipIdle}`}
             >
               <RotateCcw size={13} strokeWidth={1.5} />
             </button>
@@ -303,7 +304,7 @@ export function Lightbox({
               }}
               disabled={rotating}
               title={t('photo.rotateRight')}
-              className={`${chipBase} ${rotating ? 'border-edit-paper/10 text-edit-paper/30 cursor-not-allowed' : chipIdle}`}
+              className={`${chipBase} ${rotating ? 'border-ink/10 text-ink/30 cursor-not-allowed' : chipIdle}`}
             >
               <RotateCw size={13} strokeWidth={1.5} />
             </button>
@@ -312,8 +313,8 @@ export function Lightbox({
 
         {/* 오른쪽: 카운트 + 닫기 */}
         <div className="flex-1 flex items-center justify-end gap-2">
-          <span className="text-edit-paper/60 text-small whitespace-nowrap">{idx + 1} / {photos.length}</span>
-          <button onClick={onClose} className="text-edit-paper/80 hover:text-edit-paper text-h2 p-3">✕</button>
+          <span className="text-ink/60 text-small whitespace-nowrap">{idx + 1} / {photos.length}</span>
+          <button onClick={onClose} className="text-ink/80 hover:text-ink text-h2 p-3">✕</button>
         </div>
       </div>
 
@@ -321,7 +322,7 @@ export function Lightbox({
       <div className="flex-1 flex items-center justify-center mt-0 relative min-h-0">
         {idx > 0 && !showNotePanel && (
           <button
-            className="absolute left-4 z-10 text-edit-paper/80 hover:text-edit-paper text-h1 select-none p-4"
+            className="absolute left-4 z-10 text-ink/80 hover:text-ink text-h1 select-none p-4"
             onClick={e => { e.stopPropagation(); onNavigate(photos[idx - 1]) }}
           >‹</button>
         )}
@@ -333,7 +334,7 @@ export function Lightbox({
         />
         {idx < photos.length - 1 && !showNotePanel && (
           <button
-            className="absolute right-4 z-10 text-edit-paper/80 hover:text-edit-paper text-h1 select-none p-4"
+            className="absolute right-4 z-10 text-ink/80 hover:text-ink text-h1 select-none p-4"
             onClick={e => { e.stopPropagation(); onNavigate(photos[idx + 1]) }}
           >›</button>
         )}
@@ -341,13 +342,13 @@ export function Lightbox({
 
       {/* 하단 EXIF */}
       <div
-        className={`shrink-0 bg-black/30 border-t border-edit-paper/10 px-6 py-4 transition-opacity duration-300 ${chromeVisible ? 'opacity-100' : 'opacity-0'}`}
+        className={`shrink-0 bg-black/30 border-t border-ink/10 px-6 py-4 transition-opacity duration-300 ${chromeVisible ? 'opacity-100' : 'opacity-0'}`}
         onClick={e => e.stopPropagation()}
       >
         <div className="max-w-[calc(100%-8rem)] mx-auto">
           <div className="flex items-center justify-center gap-4 flex-wrap">
             {showExif && (photo.camera || photo.taken_at || photo.aperture || photo.shutter_speed || photo.iso) && (
-              <span className="text-small text-edit-paper/40">
+              <span className="text-small text-ink/40">
                 {[
                   // 1) 날짜
                   photo.taken_at
