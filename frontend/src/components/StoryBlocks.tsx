@@ -428,7 +428,7 @@ export function SortablePhotoChapter({
             aria-label={selected ? '선택 해제' : '선택'}
             tabIndex={0}
           >
-            {selected && <Check size={11} strokeWidth={2.5} className="text-edit-ink" />}
+            {selected && <Check size={11} strokeWidth={2.5} className="text-black" />}
           </button>
         )}
 
