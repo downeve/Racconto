@@ -29,17 +29,17 @@ export function PhotoActionMenu({ onMove, onDelete }: { onMove: () => void; onDe
       </button>
       {open && (
         <div className="absolute top-full right-0 mt-1 z-popover min-w-[140px]
-                        bg-white border border-edit-line rounded-btn
+                        bg-edit-paper border border-edit-line rounded-btn
                         shadow-[0_4px_12px_rgba(0,0,0,0.06)] py-1">
           <button
             onClick={() => { onMove(); setOpen(false) }}
-            className="w-full px-3 py-1.5 text-left text-[0.75rem] text-edit-ink hover:bg-edit-paper"
+            className="w-full px-3 py-1.5 text-left text-[0.75rem] text-edit-ink hover:bg-edit-paper-2"
           >
             {t('story.toOtherBlockTitle')}
           </button>
           <button
             onClick={() => { onDelete(); setOpen(false) }}
-            className="w-full px-3 py-1.5 text-left text-[0.75rem] text-edit-danger hover:bg-edit-paper"
+            className="w-full px-3 py-1.5 text-left text-[0.75rem] text-edit-danger hover:bg-edit-paper-2"
           >
             {t('story.removePhoto')}
           </button>

@@ -101,15 +101,15 @@ export default function PhotoNotePanel({
       onClick={onClose}
     >
       <div
-        className="w-full max-w-lg bg-white rounded-card shadow flex flex-col max-h-[80vh]"
+        className="w-full max-w-lg bg-card rounded-card shadow flex flex-col max-h-[80vh]"
         onClick={e => e.stopPropagation()}
       >
         {/* 헤더 */}
-        <div className="flex items-center justify-between px-5 py-4 border-b">
-          <h3 className="text-sm font-semibold text-stone-800 flex items-center gap-1.5"><FileText size={14} strokeWidth={1.5} />{t('note.title')}</h3>
+        <div className="flex items-center justify-between px-5 py-4 border-b border-hair">
+          <h3 className="text-sm font-semibold text-ink flex items-center gap-1.5"><FileText size={14} strokeWidth={1.5} />{t('note.title')}</h3>
           <button
             onClick={onClose}
-            className="text-gray-400 hover:text-black text-xl leading-none"
+            className="text-muted hover:text-ink text-xl leading-none"
           >
             ✕
           </button>
@@ -118,7 +118,7 @@ export default function PhotoNotePanel({
         {/* 노트 목록 */}
         <div className="flex-1 overflow-y-auto px-5 py-4 space-y-3">
           {notes.length === 0 ? (
-            <p className="text-xs text-gray-400 text-center py-6">
+            <p className="text-xs text-faint text-center py-6">
               {t('note.noPhotoNote')}
             </p>
           ) : (
@@ -136,7 +136,7 @@ export default function PhotoNotePanel({
                             className={`inline-flex items-center gap-1.5 px-2 py-0.5 text-xs rounded-btn transition-[background,color,border] duration-150 ease-out ${
                               editType === type.value
                                 ? type.color + ' font-semibold ring-1 ring-current'
-                                : 'bg-gray-100 text-gray-400 hover:bg-gray-200'
+                                : 'bg-canvas-3 text-muted hover:bg-canvas-4'
                             }`}
                           >
                             <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${type.dot}`} />
@@ -146,7 +146,7 @@ export default function PhotoNotePanel({
                       </div>
                       <textarea
                         ref={editContentRef}
-                        className="w-full border rounded px-2 py-1.5 text-xs mb-2 focus:outline-none focus:ring-1 focus:ring-black resize-none"
+                        className="w-full border border-hair rounded px-2 py-1.5 text-xs mb-2 bg-card text-ink focus:outline-none focus:ring-1 focus:ring-ink resize-none"
                         rows={3}
                         value={editContent}
                         onChange={e => setEditContent(e.target.value)}
@@ -155,13 +155,13 @@ export default function PhotoNotePanel({
                       <div className="flex gap-2">
                         <button
                           {...imeSafeClick(() => handleUpdate(note.id))}
-                          className="px-3 py-1 text-xs bg-stone-700 text-white rounded hover:bg-stone-800"
+                          className="px-3 py-1 text-xs bg-ink text-canvas rounded hover:bg-ink-2"
                         >
                           {t('common.save')}
                         </button>
                         <button
                           onClick={() => setEditingNote(null)}
-                          className="px-3 py-1 text-xs border rounded hover:bg-gray-50"
+                          className="px-3 py-1 text-xs border border-hair text-muted rounded hover:bg-canvas-4"
                         >
                           {t('common.cancel')}
                         </button>
@@ -175,14 +175,14 @@ export default function PhotoNotePanel({
                           {typeInfo.label}
                         </span>
                         <div className="flex items-center gap-2">
-                          <span className="text-xs text-gray-300">
+                          <span className="text-xs text-faint">
                             {new Date(note.updated_at).toLocaleDateString(
                               i18n.language?.startsWith('ko') ? 'ko-KR' : 'en-US'
                             )}
                           </span>
                           <button
                             onClick={() => { setEditingNote(note.id); setEditContent(note.content); setEditType(note.note_type) }}
-                            className="text-xs text-gray-400 hover:text-black"
+                            className="text-xs text-muted hover:text-ink"
                           >
                             {t('common.edit')}
                           </button>
@@ -194,7 +194,7 @@ export default function PhotoNotePanel({
                           </button>
                         </div>
                       </div>
-                      <MarkdownRenderer content={note.content} className="text-gray-700" />
+                      <MarkdownRenderer content={note.content} className="text-ink-2" />
                     </div>
                   )}
                 </div>
@@ -213,7 +213,7 @@ export default function PhotoNotePanel({
                 className={`inline-flex items-center gap-1.5 px-2 py-0.5 text-xs rounded-btn transition-[background,color,border] duration-150 ease-out ${
                   newType === type.value
                     ? type.color + ' font-semibold ring-1 ring-current'
-                    : 'bg-gray-100 text-gray-400 hover:bg-gray-200'
+                    : 'bg-canvas-3 text-muted hover:bg-canvas-4'
                 }`}
               >
                 <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${type.dot}`} />
@@ -223,7 +223,7 @@ export default function PhotoNotePanel({
           </div>
           <textarea
             ref={newContentRef}
-            className="w-full border rounded px-3 py-2 text-xs mb-2 focus:outline-none focus:ring-1 focus:ring-black resize-none"
+            className="w-full border border-hair rounded px-3 py-2 text-xs mb-2 bg-card text-ink focus:outline-none focus:ring-1 focus:ring-ink resize-none"
             placeholder={t('note.editMdDescription2')}
             rows={3}
             value={newContent}
@@ -232,7 +232,7 @@ export default function PhotoNotePanel({
           <div className="flex justify-end">
             <button
               {...imeSafeClick(handleAdd)}
-              className="px-4 py-1.5 text-xs bg-stone-700 text-white rounded hover:bg-stone-800 disabled:opacity-40"
+              className="px-4 py-1.5 text-xs bg-ink text-canvas rounded hover:bg-ink-2 disabled:opacity-40"
             >
               {t('note.addNote')}
             </button>
