@@ -333,7 +333,15 @@ function ProjectNotes({
     mutationFn: ({ noteId, content, note_type, is_pinned, photo_id }: {
       noteId: string; content: string; note_type: string; is_pinned: boolean; photo_id: string | null
     }) => axios.put(`${API}/notes/${noteId}`, { content, note_type, is_pinned, photo_id }),
-    onSuccess: () => {
+    onSuccess: (_data, variables) => {
+      // 옵티미스틱 — invalidateNotes 응답을 기다리지 않고 캐시를 즉시 새 값으로 갱신.
+      // 그렇지 않으면 setEditingNote(null) 직후 편집 폼이 닫히며 아직 refetch 안 끝난
+      // 옛 content 로 잠깐 렌더되어 '옛 텍스트 깜빡임' 발생 (92b49c0 텍스트 블록과 동일 패턴).
+      queryClient.setQueryData<Note[]>(['notes', projectId], (old) =>
+        old?.map(n => n.id === variables.noteId
+          ? { ...n, content: variables.content, note_type: variables.note_type, is_pinned: variables.is_pinned, photo_id: variables.photo_id }
+          : n) ?? old
+      )
       setEditingNote(null)
       setEditPreviewMode(false)
       invalidateNotes()

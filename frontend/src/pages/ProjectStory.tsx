@@ -555,6 +555,12 @@ function ProjectStory({
         parent_id: chapter.parent_id,
         project_id: chapter.project_id,
       })
+      // 옵티미스틱 — invalidateStory 응답을 기다리지 않고 로컬 chapters 를 즉시 새 값으로 갱신.
+      // 그렇지 않으면 setEditingChapter(null) 직후 헤더가 아직 refetch 안 끝난 옛 title/desc 로
+      // 잠깐 렌더되어 '옛 텍스트 깜빡임' 발생 (92b49c0 텍스트 블록과 동일 패턴).
+      setChapters(prev => prev.map(c =>
+        c.id === chapter.id ? { ...c, title, description: desc } : c
+      ))
       setEditingChapter(null)
       invalidateStory(); onChapterChange?.()
     } catch (err) {
