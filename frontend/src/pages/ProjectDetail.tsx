@@ -1448,7 +1448,7 @@ export default function ProjectDetail({
                                 } ${isSelected ? 'bg-white' : 'bg-black/40 border border-white/60'}`}
                                 aria-label={isSelected ? '선택 해제' : '선택'}
                               >
-                                {isSelected && <Check size={11} strokeWidth={2.5} className="text-edit-ink" />}
+                                {isSelected && <Check size={11} strokeWidth={2.5} className="text-black" />}
                               </button>
                             </div>
                             {/* 호버 오버레이 — 선택 모드 아닐 때만 */}
