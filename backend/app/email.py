@@ -233,7 +233,7 @@ WELCOME_TEMPLATES = {
             '이메일 인증이 성공적으로 완료되었습니다.<br><br>'
             '이제 Racconto와 함께 이야기를 시작할 모든 준비가 끝났습니다.<br>'
             '프로젝트를 만들고, 당신의 사진에 스토리를 담아보세요.<br><br>'
-            '오픈 베타는 2026년 8월 31일까지 무료로 모든 기능을 이용하실 수 있습니다.'
+            '오픈 베타는 2026년 11월 30일까지 무료로 모든 기능을 이용하실 수 있습니다.'
         ),
         'button': 'Racconto 시작하기',
         'closing': 'Racconto와 함께 멋진 이야기를 만들어가세요.',
@@ -245,7 +245,7 @@ WELCOME_TEMPLATES = {
             'Your email verification is complete.<br><br>'
             'You\'re all set to start telling your photo stories on Racconto.<br>'
             'Create a project and bring your photos to life.<br><br>'
-            'The open beta is free for all features until August 31, 2026.'
+            'The open beta is free for all features until November 30, 2026.'
         ),
         'button': 'Get Started',
         'closing': 'We\'re excited to see the stories you\'ll create.',
@@ -257,7 +257,7 @@ WELCOME_TEMPLATES = {
             'メール認証が正常に完了しました。<br><br>'
             'Racconto で写真のストーリーを語る準備が整いました。<br>'
             'プロジェクトを作成して、あなたの写真に物語を添えてみてください。<br><br>'
-            'オープンベータ期間中（2026年8月31日まで）は、すべての機能を無料でご利用いただけます。'
+            'オープンベータ期間中（2026年11月30日まで）は、すべての機能を無料でご利用いただけます。'
         ),
         'button': 'Racconto を始める',
         'closing': 'あなたが生み出す素晴らしいストーリーを楽しみにしています。',
@@ -328,7 +328,7 @@ SOCIAL_WELCOME_TEMPLATES = {
             '소셜 계정으로 가입이 완료되었습니다.<br><br>'
             '이제 Racconto와 함께 이야기를 시작할 모든 준비가 끝났습니다.<br>'
             '프로젝트를 만들고, 당신의 사진에 스토리를 담아보세요.<br><br>'
-            '오픈 베타는 2026년 8월 31일까지 무료로 모든 기능을 이용하실 수 있습니다.'
+            '오픈 베타는 2026년 11월 30일까지 무료로 모든 기능을 이용하실 수 있습니다.'
         ),
         'button': 'Racconto 시작하기',
         'closing': 'Racconto와 함께 멋진 이야기를 만들어가세요.',
@@ -340,7 +340,7 @@ SOCIAL_WELCOME_TEMPLATES = {
             'You\'ve successfully signed up with your social account.<br><br>'
             'You\'re all set to start telling your photo stories on Racconto.<br>'
             'Create a project and bring your photos to life.<br><br>'
-            'The open beta is free for all features until August 31, 2026.'
+            'The open beta is free for all features until November 30, 2026.'
         ),
         'button': 'Get Started',
         'closing': 'We\'re excited to see the stories you\'ll create.',
@@ -352,7 +352,7 @@ SOCIAL_WELCOME_TEMPLATES = {
             'ソーシャルアカウントでの登録が完了しました。<br><br>'
             'Racconto で写真のストーリーを語る準備が整いました。<br>'
             'プロジェクトを作成して、あなたの写真に物語を添えてみてください。<br><br>'
-            'オープンベータ期間中（2026年8月31日まで）は、すべての機能を無料でご利用いただけます。'
+            'オープンベータ期間中（2026年11月30日まで）は、すべての機能を無料でご利用いただけます。'
         ),
         'button': 'Racconto を始める',
         'closing': 'あなたが生み出す素晴らしいストーリーを楽しみにしています。',
