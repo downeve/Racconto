@@ -340,6 +340,16 @@ function ProjectStory({
   const [chapterPreviewId, setChapterPreviewId] = useState<string | null>(null)
   const [chapterPreviewOpen, setChapterPreviewOpen] = useState(false)
 
+  // 미리보기/패널이 열릴 때마다 시작 테마를 현재 사용자 전역 설정으로 동기화.
+  // (페이지에 머문 채 테마를 바꿔도 다음 열기 때 반영. 모달 내부 토글은 그대로 동작.)
+  // globalTheme 은 deps 에서 제외 — 모달이 열려 있는 동안 전역 변경이 내부 토글을 덮지 않도록.
+  useEffect(() => {
+    if (showPreview || chapterPreviewOpen) {
+      setPreviewDarkMode(globalTheme === 'dark')
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [showPreview, chapterPreviewOpen])
+
   // 0-4: 다중 선택 상태
   const [selectedItemIds, setSelectedItemIds] = useState<Set<string>>(new Set())
   const lastSelectedRef = useRef<{ chapterId: string; itemId: string } | null>(null)
