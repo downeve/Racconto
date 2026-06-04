@@ -19,6 +19,7 @@ import {
 } from '@dnd-kit/sortable';
 import { StoryChapter } from './story/StoryChapter'
 import { imeSafeClick } from '../utils/imeSafeClick'
+import { useTheme } from '../theme/ThemeProvider'
 import { flushPendingTextEdit } from '../utils/pendingTextEdit'
 import PhotoLibraryPanel from '../components/PhotoLibraryPanel'
 import StoryLightbox from './story/StoryLightbox'
@@ -332,9 +333,10 @@ function ProjectStory({
   const [selectedPhotoIndex, setSelectedPhotoIndex] = useState<number | null>(null);
   const [currentChapterPhotos, setCurrentChapterPhotos] = useState<ChapterItem[]>([]);
 
-  // 포트폴리오 미리보기 (모달)
+  // 포트폴리오 미리보기 (모달) — 시작 테마는 사용자 전역 설정(시스템/라이트/다크)의 실제 적용값.
+  const { effective: globalTheme } = useTheme()
   const [showPreview, setShowPreview] = useState(false)
-  const [previewDarkMode, setPreviewDarkMode] = useState(false)
+  const [previewDarkMode, setPreviewDarkMode] = useState(globalTheme === 'dark')
   const [chapterPreviewId, setChapterPreviewId] = useState<string | null>(null)
   const [chapterPreviewOpen, setChapterPreviewOpen] = useState(false)
 
