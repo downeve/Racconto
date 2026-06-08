@@ -62,7 +62,7 @@ interface SocialButtonProps {
 
 function SocialButton({ href, variant, label }: SocialButtonProps) {
   const variants: Record<Variant, string> = {
-    google: 'bg-white border border-edit-line text-edit-ink hover:border-edit-line-strong hover:bg-gray-50',
+    google: 'bg-white border border-edit-line text-black hover:border-edit-line-strong hover:bg-gray-50',
     apple:  'bg-edit-ink text-edit-paper hover:bg-edit-ink/85 border border-edit-ink',
     naver:  'bg-card border border-edit-line text-edit-ink hover:border-edit-line-strong hover:bg-gray-50',
     line:   'bg-card border border-edit-line text-edit-ink hover:border-edit-line-strong hover:bg-gray-50',

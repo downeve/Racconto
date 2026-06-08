@@ -154,22 +154,28 @@ export default function Dashboard() {
                     const p = publicProjects[0]
                     const to = p.slug ? `/${user?.username}/${p.slug}` : `/${user?.username}`
                     return (
-                      <Link to={to} className="col-span-2 row-span-2 overflow-hidden bg-hair/50 block">
+                      <Link to={to} className="group relative col-span-2 row-span-2 overflow-hidden bg-hair/50 block">
                         {p.cover_image_url
-                          ? <img src={cfUrl(p.cover_image_url, 'cover')} alt={p.title} className="w-full h-full object-cover hover:opacity-90 transition-opacity" />
+                          ? <img src={cfUrl(p.cover_image_url, 'cover')} alt={p.title} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-[1.02]" />
                           : <CoverFallback title={p.title} />
                         }
+                        <div className="absolute inset-0 flex items-center justify-center bg-black/45 opacity-0 group-hover:opacity-100 transition-opacity duration-200 px-4">
+                          <span className="font-serif text-white text-h3 text-center leading-snug [word-break:keep-all] line-clamp-3">{p.title}</span>
+                        </div>
                       </Link>
                     )
                   })()}
                   {publicProjects.slice(1, 3).map(p => {
                     const to = p.slug ? `/${user?.username}/${p.slug}` : `/${user?.username}`
                     return (
-                      <Link key={p.id} to={to} className="overflow-hidden bg-hair/50 block">
+                      <Link key={p.id} to={to} className="group relative overflow-hidden bg-hair/50 block">
                         {p.cover_image_url
-                          ? <img src={cfUrl(p.cover_image_url, 'grid')} alt={p.title} className="w-full h-full object-cover hover:opacity-90 transition-opacity" />
+                          ? <img src={cfUrl(p.cover_image_url, 'grid')} alt={p.title} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-[1.02]" />
                           : <CoverFallback title={p.title} />
                         }
+                        <div className="absolute inset-0 flex items-center justify-center bg-black/45 opacity-0 group-hover:opacity-100 transition-opacity duration-200 px-2">
+                          <span className="font-serif text-white text-body text-center leading-snug [word-break:keep-all] line-clamp-2">{p.title}</span>
+                        </div>
                       </Link>
                     )
                   })}
